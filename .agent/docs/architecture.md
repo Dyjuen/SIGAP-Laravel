@@ -6,10 +6,10 @@ SIGAP-Laravel is a web-based activity and budget management system for an Indone
 ## Tech Stack
 -   **Framework**: Laravel 12
 -   **Frontend**: Inertia.js v2 + React 18
--   **Styling**: Tailwind CSS v4
+-   **Styling**: Tailwind CSS v3
 -   **Database**:
-    -   **Local/Test**: SQLite
-    -   **Production**: MySQL
+    -   **Local/Test**: PostgreSQL
+    -   **Production**: PostgreSQL
 -   **Testing**: PHPUnit 11 (Backend), Browser MCP (Frontend)
 
 ## Key Components

@@ -7,8 +7,8 @@
 
 ## Tech Stack
 - **Backend**: Laravel 12, PHP 8.2+
-- **Frontend**: Inertia.js v2, React 18, Tailwind CSS v4
-- **Database**: SQLite (local/testing), MySQL (production)
+- **Frontend**: Inertia.js v2, React 18, Tailwind CSS v3
+- **Database**: PostgreSQL via Supabase (all environments)
 - **Testing**: PHPUnit 11 (Backend), Browser MCP (UI)
 - **Tooling**: Laravel Pint (Linting), TypeScript (optional but preferred for props)
 
