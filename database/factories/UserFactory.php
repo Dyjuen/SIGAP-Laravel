@@ -28,7 +28,7 @@ class UserFactory extends Factory
             'password_hash' => static::$password ??= Hash::make('password'),
             'nama_lengkap' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'role_id' => 3, // Default to 'Pengusul'
+            'role_id' => null, // Default to null to avoid constraint errors
             'remember_token' => Str::random(10),
         ];
     }

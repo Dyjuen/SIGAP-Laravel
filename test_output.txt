@@ -1,0 +1,471 @@
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   PASS  Tests\Feature\Admin\AccountTest
+  ✓ admin can view user management page                                  0.16s  
+  ✓ non admin cannot view user management page                           0.02s  
+  ✓ admin can create user                                                0.01s  
+  ✓ admin can update user                                                0.01s  
+  ✓ admin can change user password                                       0.01s  
+  ✓ admin can delete user                                                0.01s  
+  ✓ admin cannot delete self                                             0.01s  
+
+   PASS  Tests\Feature\Auth\AuthenticationTest
+  ✓ login screen can be rendered                                         0.01s  
+  ✓ users can authenticate using the login screen                        0.01s  
+  ✓ users can not authenticate with invalid password                     0.21s  
+  ✓ users can logout                                                     0.01s  
+  ✓ authenticated user is redirected to role dashboard                   0.01s  
+  ✓ login is rate limited                                                1.03s  
+  ✓ login prevents sql injection                                         0.21s  
+  ✓ login validates input length                                         0.01s  
+  ✓ session is regenerated on login                                      0.01s  
+
+   FAIL  Tests\Feature\Auth\EmailVerificationTest
+  ⨯ email verification screen can be rendered                            0.01s  
+  ⨯ email can be verified                                                0.01s  
+  ⨯ email is not verified with invalid hash                              0.01s  
+
+   FAIL  Tests\Feature\Auth\PasswordConfirmationTest
+  ⨯ confirm password screen can be rendered                              0.01s  
+  ⨯ password can be confirmed                                            0.01s  
+  ⨯ password is not confirmed with invalid password                      0.01s  
+
+   FAIL  Tests\Feature\Auth\PasswordResetTest
+  ✓ reset password link screen can be rendered                           0.01s  
+  ⨯ reset password link can be requested                                 0.08s  
+  ⨯ reset password screen can be rendered                                0.06s  
+  ⨯ password can be reset with valid token                               0.06s  
+
+   FAIL  Tests\Feature\Auth\PasswordUpdateTest
+  ⨯ password can be updated                                              0.01s  
+  ✓ correct password must be provided to update password                 0.01s  
+
+   FAIL  Tests\Feature\Auth\RegistrationTest
+  ⨯ registration screen can be rendered                                  0.01s  
+  ⨯ new users can register                                               0.01s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ the application returns a successful response                        0.01s  
+
+   FAIL  Tests\Feature\ProfileTest
+  ✓ profile page is displayed                                            0.01s  
+  ⨯ profile information can be updated                                   0.17s  
+  ⨯ email verification status is unchanged when the email address is un… 0.01s  
+  ✓ user can delete their account                                        0.01s  
+  ✓ correct password must be provided to delete account                  0.01s  
+
+   PASS  Tests\Feature\SeederTest
+  ✓ database schema and seeding                                          0.04s  
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\EmailVerificationTest > email…   QueryException   
+  SQLSTATE[HY000]: General error: 1 table m_users has no column named email_verified_at (Connection: sqlite, Database: :memory:, SQL: insert into "m_users" ("username", "password_hash", "nama_lengkap", "email", "role_id", "remember_token", "email_verified_at", "updated_at", "created_at") values (abernathy.kadin, $2y$04$cgb4a3uOJbk0oLs25qnu0uOh8/BDJweYgRNMCcucNVLR9AQIEdFp., Natalia Yost, pnienow@example.net, ?, q9ifcUr5DN, ?, 2026-02-16 10:05:17, 2026-02-16 10:05:17))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+    834▕             $exceptionType = $this->isUniqueConstraintError($e)
+    835▕                 ? UniqueConstraintViolationException::class
+    836▕                 : QueryException::class;
+    837▕ 
+  ➜ 838▕             throw new $exceptionType(
+    839▕                 $this->getNameWithReadWriteType(),
+    840▕                 $query,
+    841▕                 $this->prepareBindings($bindings),
+    842▕                 $e,
+
+      [2m+17 vendor frames [22m
+  18  tests/Feature/Auth/EmailVerificationTest.php:18
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\EmailVerificationTest > email…   QueryException   
+  SQLSTATE[HY000]: General error: 1 table m_users has no column named email_verified_at (Connection: sqlite, Database: :memory:, SQL: insert into "m_users" ("username", "password_hash", "nama_lengkap", "email", "role_id", "remember_token", "email_verified_at", "updated_at", "created_at") values (sauer.jessyca, $2y$04$cgb4a3uOJbk0oLs25qnu0uOh8/BDJweYgRNMCcucNVLR9AQIEdFp., Beverly Breitenberg, granville67@example.com, ?, BVzq9M3VBd, ?, 2026-02-16 10:05:17, 2026-02-16 10:05:17))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+    834▕             $exceptionType = $this->isUniqueConstraintError($e)
+    835▕                 ? UniqueConstraintViolationException::class
+    836▕                 : QueryException::class;
+    837▕ 
+  ➜ 838▕             throw new $exceptionType(
+    839▕                 $this->getNameWithReadWriteType(),
+    840▕                 $query,
+    841▕                 $this->prepareBindings($bindings),
+    842▕                 $e,
+
+      [2m+17 vendor frames [22m
+  18  tests/Feature/Auth/EmailVerificationTest.php:27
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\EmailVerificationTest > email…   QueryException   
+  SQLSTATE[HY000]: General error: 1 table m_users has no column named email_verified_at (Connection: sqlite, Database: :memory:, SQL: insert into "m_users" ("username", "password_hash", "nama_lengkap", "email", "role_id", "remember_token", "email_verified_at", "updated_at", "created_at") values (odell.goldner, $2y$04$cgb4a3uOJbk0oLs25qnu0uOh8/BDJweYgRNMCcucNVLR9AQIEdFp., Clyde Nicolas, darron79@example.net, ?, jiWVLkcDU5, ?, 2026-02-16 10:05:17, 2026-02-16 10:05:17))
+
+  at vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+    834▕             $exceptionType = $this->isUniqueConstraintError($e)
+    835▕                 ? UniqueConstraintViolationException::class
+    836▕                 : QueryException::class;
+    837▕ 
+  ➜ 838▕             throw new $exceptionType(
+    839▕                 $this->getNameWithReadWriteType(),
+    840▕                 $query,
+    841▕                 $this->prepareBindings($bindings),
+    842▕                 $e,
+
+      [2m+17 vendor frames [22m
+  18  tests/Feature/Auth/EmailVerificationTest.php:46
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordConfirmationTest > confirm password sc…   
+  Expected response status code [200] but received 404.
+Failed asserting that 404 is identical to 200.
+
+  at tests/Feature/Auth/PasswordConfirmationTest.php:19
+     15▕         $user = User::factory()->create();
+     16▕ 
+     17▕         $response = $this->actingAs($user)->get('/confirm-password');
+     18▕ 
+  ➜  19▕         $response->assertStatus(200);
+     20▕     }
+     21▕ 
+     22▕     public function test_password_can_be_confirmed(): void
+     23▕     {
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordConfirmationTest > password can be con…   
+  Expected response status code [201, 301, 302, 303, 307, 308] but received 404.
+Failed asserting that false is true.
+
+  at tests/Feature/Auth/PasswordConfirmationTest.php:30
+     26▕         $response = $this->actingAs($user)->post('/confirm-password', [
+     27▕             'password' => 'password',
+     28▕         ]);
+     29▕ 
+  ➜  30▕         $response->assertRedirect();
+     31▕         $response->assertSessionHasNoErrors();
+     32▕     }
+     33▕ 
+     34▕     public function test_password_is_not_confirmed_with_invalid_password(): void
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordConfirmationTest > password is not con…   
+  Session is missing expected key [errors].
+Failed asserting that false is true.
+
+  at tests/Feature/Auth/PasswordConfirmationTest.php:42
+     38▕         $response = $this->actingAs($user)->post('/confirm-password', [
+     39▕             'password' => 'wrong-password',
+     40▕         ]);
+     41▕ 
+  ➜  42▕         $response->assertSessionHasErrors();
+     43▕     }
+     44▕ }
+     45▕
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordResetTest > reset password link can be…   
+  The expected [Illuminate\Auth\Notifications\ResetPassword] notification was not sent.
+Failed asserting that false is true.
+
+  at vendor/laravel/framework/src/Illuminate/Support/Testing/Fakes/NotificationFake.php:89
+     85▕         if (is_numeric($callback)) {
+     86▕             return $this->assertSentToTimes($notifiable, $notification, $callback);
+     87▕         }
+     88▕ 
+  ➜  89▕         PHPUnit::assertTrue(
+     90▕             $this->sent($notifiable, $notification, $callback)->count() > 0,
+     91▕             "The expected [{$notification}] notification was not sent."
+     92▕         );
+     93▕     }
+
+      [2m+2 vendor frames [22m
+  3   tests/Feature/Auth/PasswordResetTest.php:30
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordResetTest > reset password screen can…    
+  The expected [Illuminate\Auth\Notifications\ResetPassword] notification was not sent.
+Failed asserting that false is true.
+
+  at vendor/laravel/framework/src/Illuminate/Support/Testing/Fakes/NotificationFake.php:89
+     85▕         if (is_numeric($callback)) {
+     86▕             return $this->assertSentToTimes($notifiable, $notification, $callback);
+     87▕         }
+     88▕ 
+  ➜  89▕         PHPUnit::assertTrue(
+     90▕             $this->sent($notifiable, $notification, $callback)->count() > 0,
+     91▕             "The expected [{$notification}] notification was not sent."
+     92▕         );
+     93▕     }
+
+      [2m+2 vendor frames [22m
+  3   tests/Feature/Auth/PasswordResetTest.php:41
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordResetTest > password can be reset with…   
+  The expected [Illuminate\Auth\Notifications\ResetPassword] notification was not sent.
+Failed asserting that false is true.
+
+  at vendor/laravel/framework/src/Illuminate/Support/Testing/Fakes/NotificationFake.php:89
+     85▕         if (is_numeric($callback)) {
+     86▕             return $this->assertSentToTimes($notifiable, $notification, $callback);
+     87▕         }
+     88▕ 
+  ➜  89▕         PHPUnit::assertTrue(
+     90▕             $this->sent($notifiable, $notification, $callback)->count() > 0,
+     91▕             "The expected [{$notification}] notification was not sent."
+     92▕         );
+     93▕     }
+
+      [2m+2 vendor frames [22m
+  3   tests/Feature/Auth/PasswordResetTest.php:58
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\PasswordUpdateTest > password can be updated      
+  Failed asserting that false is true.
+
+  at tests/Feature/Auth/PasswordUpdateTest.php:31
+     27▕         $response
+     28▕             ->assertSessionHasNoErrors()
+     29▕             ->assertRedirect('/profile');
+     30▕ 
+  ➜  31▕         $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+     32▕     }
+     33▕ 
+     34▕     public function test_correct_password_must_be_provided_to_update_password(): void
+     35▕     {
+
+  1   tests/Feature/Auth/PasswordUpdateTest.php:31
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\RegistrationTest > registration screen can be…    
+  Expected response status code [200] but received 404.
+Failed asserting that 404 is identical to 200.
+
+  at tests/Feature/Auth/RegistrationTest.php:16
+     12▕     public function test_registration_screen_can_be_rendered(): void
+     13▕     {
+     14▕         $response = $this->get('/register');
+     15▕ 
+  ➜  16▕         $response->assertStatus(200);
+     17▕     }
+     18▕ 
+     19▕     public function test_new_users_can_register(): void
+     20▕     {
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\Auth\RegistrationTest > new users can register         
+  The user is not authenticated
+Failed asserting that false is true.
+
+  at tests/Feature/Auth/RegistrationTest.php:28
+     24▕             'password' => 'password',
+     25▕             'password_confirmation' => 'password',
+     26▕         ]);
+     27▕ 
+  ➜  28▕         $this->assertAuthenticated();
+     29▕         $response->assertRedirect(route('dashboard', absolute: false));
+     30▕     }
+     31▕ }
+     32▕
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ProfileTest > profile information can be updated       
+  Expected response status code [201, 301, 302, 303, 307, 308] but received 500.
+Failed asserting that false is true.
+
+The following exception occurred during the last request:
+
+PDOException: SQLSTATE[HY000]: General error: 1 no such column: email_verified_at in /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php:605
+Stack trace:
+#0 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(605): PDO->prepare()
+#1 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(827): Illuminate\Database\Connection->{closure:Illuminate\Database\Connection::affectingStatement():597}()
+#2 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(794): Illuminate\Database\Connection->runQueryCallback()
+#3 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(597): Illuminate\Database\Connection->run()
+#4 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(549): Illuminate\Database\Connection->affectingStatement()
+#5 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(4167): Illuminate\Database\Connection->update()
+#6 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1266): Illuminate\Database\Query\Builder->update()
+#7 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1316): Illuminate\Database\Eloquent\Builder->update()
+#8 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1233): Illuminate\Database\Eloquent\Model->performUpdate()
+#9 /home/juen/Projects/SIGAP-Laravel/app/Http/Controllers/ProfileController.php(38): Illuminate\Database\Eloquent\Model->save()
+#10 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(46): App\Http\Controllers\ProfileController->update()
+#11 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Route.php(265): Illuminate\Routing\ControllerDispatcher->dispatch()
+#12 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Route.php(211): Illuminate\Routing\Route->runController()
+#13 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(822): Illuminate\Routing\Route->run()
+#14 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\Routing\Router->{closure:Illuminate\Routing\Router::runRouteWithinStack():821}()
+#15 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/AddLinkHeadersForPreloadedAssets.php(32): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}()
+#16 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets->handle()
+#17 /home/juen/Projects/SIGAP-Laravel/vendor/inertiajs/inertia-laravel/src/Middleware.php(122): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#18 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Inertia\Middleware->handle()
+#19 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#20 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Routing\Middleware\SubstituteBindings->handle()
+#21 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#22 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Auth\Middleware\Authenticate->handle()
+#23 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(87): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#24 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\VerifyCsrfToken->handle()
+#25 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(48): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#26 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\View\Middleware\ShareErrorsFromSession->handle()
+#27 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(120): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#28 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(63): Illuminate\Session\Middleware\StartSession->handleStatefulRequest()
+#29 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Session\Middleware\StartSession->handle()
+#30 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(36): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#31 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse->handle()
+#32 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(74): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#33 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Cookie\Middleware\EncryptCookies->handle()
+#34 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#35 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(821): Illuminate\Pipeline\Pipeline->then()
+#36 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(800): Illuminate\Routing\Router->runRouteWithinStack()
+#37 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(764): Illuminate\Routing\Router->runRoute()
+#38 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(753): Illuminate\Routing\Router->dispatchToRoute()
+#39 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\Routing\Router->dispatch()
+#40 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\Foundation\Http\Kernel->{closure:Illuminate\Foundation\Http\Kernel::dispatchToRouter():197}()
+#41 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}()
+#42 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\Foundation\Http\Middleware\TransformsRequest->handle()
+#43 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull->handle()
+#44 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#45 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\Foundation\Http\Middleware\TransformsRequest->handle()
+#46 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\TrimStrings->handle()
+#47 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#48 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\ValidatePostSize->handle()
+#49 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#50 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance->handle()
+#51 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#52 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\HandleCors->handle()
+#53 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#54 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\TrustProxies->handle()
+#55 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#56 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks->handle()
+#57 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php(26): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#58 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\ValidatePathEncoding->handle()
+#59 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#60 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\Pipeline\Pipeline->then()
+#61 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\Foundation\Http\Kernel->sendRequestThroughRouter()
+#62 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate\Foundation\Http\Kernel->handle()
+#63 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(457): Illuminate\Foundation\Testing\TestCase->call()
+#64 /home/juen/Projects/SIGAP-Laravel/tests/Feature/ProfileTest.php(30): Illuminate\Foundation\Testing\TestCase->patch()
+#65 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestCase.php(1667): Tests\Feature\ProfileTest->test_profile_information_can_be_updated()
+#66 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestCase.php(519): PHPUnit\Framework\TestCase->runTest()
+#67 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestRunner/TestRunner.php(87): PHPUnit\Framework\TestCase->runBare()
+#68 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestCase.php(365): PHPUnit\Framework\TestRunner->run()
+#69 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestCase->run()
+#70 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestSuite->run()
+#71 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestSuite->run()
+#72 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit\Framework\TestSuite->run()
+#73 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/TextUI/Application.php(211): PHPUnit\TextUI\TestRunner->run()
+#74 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/phpunit(104): PHPUnit\TextUI\Application->run()
+#75 {main}
+
+Next Illuminate\Database\QueryException: SQLSTATE[HY000]: General error: 1 no such column: email_verified_at (Connection: sqlite, Database: :memory:, SQL: update "m_users" set "email" = test@example.com, "email_verified_at" = ?, "updated_at" = 2026-02-16 10:05:17 where "user_id" = 1) in /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+Stack trace:
+#0 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(794): Illuminate\Database\Connection->runQueryCallback()
+#1 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(597): Illuminate\Database\Connection->run()
+#2 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Connection.php(549): Illuminate\Database\Connection->affectingStatement()
+#3 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Query/Builder.php(4167): Illuminate\Database\Connection->update()
+#4 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Builder.php(1266): Illuminate\Database\Query\Builder->update()
+#5 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1316): Illuminate\Database\Eloquent\Builder->update()
+#6 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php(1233): Illuminate\Database\Eloquent\Model->performUpdate()
+#7 /home/juen/Projects/SIGAP-Laravel/app/Http/Controllers/ProfileController.php(38): Illuminate\Database\Eloquent\Model->save()
+#8 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/ControllerDispatcher.php(46): App\Http\Controllers\ProfileController->update()
+#9 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Route.php(265): Illuminate\Routing\ControllerDispatcher->dispatch()
+#10 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Route.php(211): Illuminate\Routing\Route->runController()
+#11 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(822): Illuminate\Routing\Route->run()
+#12 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\Routing\Router->{closure:Illuminate\Routing\Router::runRouteWithinStack():821}()
+#13 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/AddLinkHeadersForPreloadedAssets.php(32): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}()
+#14 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets->handle()
+#15 /home/juen/Projects/SIGAP-Laravel/vendor/inertiajs/inertia-laravel/src/Middleware.php(122): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#16 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Inertia\Middleware->handle()
+#17 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Middleware/SubstituteBindings.php(50): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#18 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Routing\Middleware\SubstituteBindings->handle()
+#19 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php(63): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#20 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Auth\Middleware\Authenticate->handle()
+#21 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/VerifyCsrfToken.php(87): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#22 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\VerifyCsrfToken->handle()
+#23 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/View/Middleware/ShareErrorsFromSession.php(48): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#24 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\View\Middleware\ShareErrorsFromSession->handle()
+#25 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(120): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#26 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php(63): Illuminate\Session\Middleware\StartSession->handleStatefulRequest()
+#27 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Session\Middleware\StartSession->handle()
+#28 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/AddQueuedCookiesToResponse.php(36): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#29 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse->handle()
+#30 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Cookie/Middleware/EncryptCookies.php(74): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#31 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Cookie\Middleware\EncryptCookies->handle()
+#32 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#33 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(821): Illuminate\Pipeline\Pipeline->then()
+#34 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(800): Illuminate\Routing\Router->runRouteWithinStack()
+#35 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(764): Illuminate\Routing\Router->runRoute()
+#36 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Routing/Router.php(753): Illuminate\Routing\Router->dispatchToRoute()
+#37 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(200): Illuminate\Routing\Router->dispatch()
+#38 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(180): Illuminate\Foundation\Http\Kernel->{closure:Illuminate\Foundation\Http\Kernel::dispatchToRouter():197}()
+#39 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\Pipeline\Pipeline->{closure:Illuminate\Pipeline\Pipeline::prepareDestination():178}()
+#40 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/ConvertEmptyStringsToNull.php(31): Illuminate\Foundation\Http\Middleware\TransformsRequest->handle()
+#41 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull->handle()
+#42 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TransformsRequest.php(21): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#43 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/TrimStrings.php(51): Illuminate\Foundation\Http\Middleware\TransformsRequest->handle()
+#44 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\TrimStrings->handle()
+#45 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePostSize.php(27): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#46 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\ValidatePostSize->handle()
+#47 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/PreventRequestsDuringMaintenance.php(109): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#48 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance->handle()
+#49 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/HandleCors.php(61): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#50 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\HandleCors->handle()
+#51 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/TrustProxies.php(58): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#52 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\TrustProxies->handle()
+#53 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Middleware/InvokeDeferredCallbacks.php(22): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#54 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Foundation\Http\Middleware\InvokeDeferredCallbacks->handle()
+#55 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Http/Middleware/ValidatePathEncoding.php(26): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#56 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(219): Illuminate\Http\Middleware\ValidatePathEncoding->handle()
+#57 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Pipeline/Pipeline.php(137): Illuminate\Pipeline\Pipeline->{closure:{closure:Illuminate\Pipeline\Pipeline::carry():194}:195}()
+#58 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(175): Illuminate\Pipeline\Pipeline->then()
+#59 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Http/Kernel.php(144): Illuminate\Foundation\Http\Kernel->sendRequestThroughRouter()
+#60 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(607): Illuminate\Foundation\Http\Kernel->handle()
+#61 /home/juen/Projects/SIGAP-Laravel/vendor/laravel/framework/src/Illuminate/Foundation/Testing/Concerns/MakesHttpRequests.php(457): Illuminate\Foundation\Testing\TestCase->call()
+#62 /home/juen/Projects/SIGAP-Laravel/tests/Feature/ProfileTest.php(30): Illuminate\Foundation\Testing\TestCase->patch()
+#63 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestCase.php(1667): Tests\Feature\ProfileTest->test_profile_information_can_be_updated()
+#64 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestCase.php(519): PHPUnit\Framework\TestCase->runTest()
+#65 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestRunner/TestRunner.php(87): PHPUnit\Framework\TestCase->runBare()
+#66 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestCase.php(365): PHPUnit\Framework\TestRunner->run()
+#67 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestCase->run()
+#68 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestSuite->run()
+#69 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/Framework/TestSuite.php(369): PHPUnit\Framework\TestSuite->run()
+#70 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(64): PHPUnit\Framework\TestSuite->run()
+#71 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/src/TextUI/Application.php(211): PHPUnit\TextUI\TestRunner->run()
+#72 /home/juen/Projects/SIGAP-Laravel/vendor/phpunit/phpunit/phpunit(104): PHPUnit\TextUI\Application->run()
+#73 {main}
+
+----------------------------------------------------------------------------------
+
+SQLSTATE[HY000]: General error: 1 no such column: email_verified_at (Connection: sqlite, Database: :memory:, SQL: update "m_users" set "email" = test@example.com, "email_verified_at" = ?, "updated_at" = 2026-02-16 10:05:17 where "user_id" = 1)
+
+  at tests/Feature/ProfileTest.php:37
+     33▕             ]);
+     34▕ 
+     35▕         $response
+     36▕             ->assertSessionHasNoErrors()
+  ➜  37▕             ->assertRedirect('/profile');
+     38▕ 
+     39▕         $user->refresh();
+     40▕ 
+     41▕         $this->assertSame('Test User', $user->name);
+
+  ────────────────────────────────────────────────────────────────────────────  
+   FAILED  Tests\Feature\ProfileTest > email verification status is unchange…   
+  Session has unexpected errors: 
+
+{
+    "default": [
+        "The email has already been taken."
+    ]
+}
+Failed asserting that true is false.
+
+  at tests/Feature/ProfileTest.php:58
+     54▕                 'email' => $user->email,
+     55▕             ]);
+     56▕ 
+     57▕         $response
+  ➜  58▕             ->assertSessionHasNoErrors()
+     59▕             ->assertRedirect('/profile');
+     60▕ 
+     61▕         $this->assertNotNull($user->refresh()->email_verified_at);
+     62▕     }
+
+
+  Tests:    14 failed, 24 passed (110 assertions)
+  Duration: 2.32s
+

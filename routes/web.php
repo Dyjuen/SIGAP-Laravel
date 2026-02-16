@@ -25,3 +25,11 @@ Route::middleware('auth')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
+    Route::get('/user-management', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('admin.users.index');
+    Route::post('/user-management', [\App\Http\Controllers\Admin\AccountController::class, 'store'])->name('admin.users.store');
+    Route::put('/user-management/{user}', [\App\Http\Controllers\Admin\AccountController::class, 'update'])->name('admin.users.update');
+    Route::put('/user-management/{user}/change-password', [\App\Http\Controllers\Admin\AccountController::class, 'changePassword'])->name('admin.users.change-password');
+    Route::delete('/user-management/{user}', [\App\Http\Controllers\Admin\AccountController::class, 'destroy'])->name('admin.users.destroy');
+});

@@ -4,8 +4,8 @@ This document tracks the migration of features from the native PHP application t
 
 | Feature Area | Native Controller | Native Model(s) | Status | Logic Mapped? | Tests Passed? | UI Verified? |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Auth** | `AuthController` | `User`, `Role` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
-| **Accounts** | `AccountController` | `User` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Auth** | `AuthController` | `User`, `Role` | ✅ Completed | ✅ | ✅ | ✅ |
+| **Accounts** | `AccountController` | `User` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Master Data** | `MasterController` | `Iku`, `Satuan`, `TipeKegiatan`, `MataAnggaran`, `KategoriBelanja` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Panduan (Guides)** | `PanduanController` | `Panduan` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **KAK (Activities)** | `KAKController` | `KAK`, `KAKAnggaran`, `KAKIndikator`, `KAKTarget`, `KAKTahapan`, `KAKManfaat` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |

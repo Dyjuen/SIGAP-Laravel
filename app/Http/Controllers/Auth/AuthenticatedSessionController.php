@@ -33,7 +33,20 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Role-based redirect
+        $role = $request->user()->getRoleName();
+
+        $redirectPath = match ($role) {
+            'Admin' => '/admin/user-management',
+            'Verifikator' => '/verifikator/dashboard',
+            'PPK' => '/ppk/dashboard',
+            'Wadir' => '/wadir/dashboard',
+            'Bendahara' => '/bendahara/dashboard',
+            'Rektorat' => '/rektorat/dashboard',
+            default => '/dashboard',
+        };
+
+        return redirect()->intended($redirectPath);
     }
 
     /**
