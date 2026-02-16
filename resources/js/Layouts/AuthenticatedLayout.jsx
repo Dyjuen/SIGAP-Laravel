@@ -30,6 +30,22 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </NavLink>
+                                {user.role_id === 1 && (
+                                    <>
+                                        <NavLink
+                                            href={route('admin.users.index')}
+                                            active={route().current('admin.users.*')}
+                                        >
+                                            Manajemen User
+                                        </NavLink>
+                                        <NavLink
+                                            href={route('admin.panduan.index')}
+                                            active={route().current('admin.panduan.*')}
+                                        >
+                                            Panduan
+                                        </NavLink>
+                                    </>
+                                )}
                             </div>
                         </div>
 
@@ -134,6 +150,22 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             Dashboard
                         </ResponsiveNavLink>
+                        {user.role_id === 1 && (
+                            <>
+                                <ResponsiveNavLink
+                                    href={route('admin.users.index')}
+                                    active={route().current('admin.users.*')}
+                                >
+                                    Manajemen User
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    href={route('admin.panduan.index')}
+                                    active={route().current('admin.panduan.*')}
+                                >
+                                    Panduan
+                                </ResponsiveNavLink>
+                            </>
+                        )}
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">

@@ -10,7 +10,22 @@ class Panduan extends Model
 
     protected $primaryKey = 'panduan_id';
 
-    protected $guarded = ['panduan_id'];
+    protected $fillable = [
+        'judul_panduan',
+        'tipe_media',
+        'path_media',
+        'target_role_id',
+    ];
 
     public $timestamps = false;
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'target_role_id', 'role_id');
+    }
+
+    public function scopeForRole($query, $roleId)
+    {
+        return $query->where('target_role_id', $roleId);
+    }
 }
