@@ -11,4 +11,14 @@ class KegiatanApproval extends Model
     protected $primaryKey = 'approval_kegiatan_id';
 
     protected $guarded = ['approval_kegiatan_id'];
+
+    public function kegiatan()
+    {
+        return $this->belongsTo(Kegiatan::class, 'kegiatan_id');
+    }
+
+    public function approver()
+    {
+        return $this->belongsTo(User::class, 'approver_user_id');
+    }
 }

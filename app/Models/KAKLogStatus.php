@@ -13,4 +13,24 @@ class KAKLogStatus extends Model
     protected $guarded = ['log_id'];
 
     public $timestamps = false;
+
+    public function kak()
+    {
+        return $this->belongsTo(KAK::class, 'kak_id');
+    }
+
+    public function oldStatus()
+    {
+        return $this->belongsTo(KegiatanStatus::class, 'status_id_lama');
+    }
+
+    public function newStatus()
+    {
+        return $this->belongsTo(KegiatanStatus::class, 'status_id_baru');
+    }
+
+    public function actor()
+    {
+        return $this->belongsTo(User::class, 'actor_user_id');
+    }
 }

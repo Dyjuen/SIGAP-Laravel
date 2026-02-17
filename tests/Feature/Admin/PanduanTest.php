@@ -145,7 +145,7 @@ class PanduanTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('m_panduan', ['panduan_id' => $panduan->panduan_id]);
-        Storage::disk('public')->assertMissing($path);
+        $this->assertFalse(Storage::disk('public')->exists($path));
     }
 
     public function test_validation_requires_judul(): void

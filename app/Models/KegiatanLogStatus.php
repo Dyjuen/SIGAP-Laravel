@@ -13,4 +13,24 @@ class KegiatanLogStatus extends Model
     protected $guarded = ['log_id'];
 
     public $timestamps = false;
+
+    public function kegiatan()
+    {
+        return $this->belongsTo(Kegiatan::class, 'kegiatan_id');
+    }
+
+    public function oldStatus()
+    {
+        return $this->belongsTo(KegiatanStatus::class, 'status_id_lama');
+    }
+
+    public function newStatus()
+    {
+        return $this->belongsTo(KegiatanStatus::class, 'status_id_baru');
+    }
+
+    public function actor()
+    {
+        return $this->belongsTo(User::class, 'actor_user_id');
+    }
 }

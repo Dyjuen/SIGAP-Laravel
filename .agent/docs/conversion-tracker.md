@@ -16,7 +16,7 @@ This document tracks the migration of features from the native PHP application t
 | **Dashboard** | `DashboardController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Dashboard Direktur** | `DashboardDirekturController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Notifications** | `NotificationController` | `Notifikasi` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
-| **Logs** | `LogController` | `Log` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Logs** | `LogController` | `Log` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Wadir / Rektorat** | `WadirController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 
 ## Legend

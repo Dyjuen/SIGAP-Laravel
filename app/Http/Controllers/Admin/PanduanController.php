@@ -113,7 +113,10 @@ class PanduanController extends Controller
         }
 
         if ($panduan->path_media && Storage::disk('public')->exists($panduan->path_media)) {
-            return Storage::disk('public')->download($panduan->path_media, $panduan->judul_panduan.'.'.pathinfo($panduan->path_media, PATHINFO_EXTENSION));
+            $filePath = Storage::disk('public')->path($panduan->path_media);
+            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+
+            return response()->download($filePath, $panduan->judul_panduan.'.'.$extension);
         }
 
         abort(404, 'File tidak ditemukan.');

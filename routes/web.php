@@ -39,4 +39,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
     Route::put('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'update'])->name('admin.panduan.update');
     Route::delete('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'destroy'])->name('admin.panduan.destroy');
     Route::get('/panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('admin.panduan.download');
+
+    // Logs Routes
+    Route::get('/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs.index');
 });
