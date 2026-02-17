@@ -6,7 +6,7 @@ This document tracks the migration of features from the native PHP application t
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Auth** | `AuthController` | `User`, `Role` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Accounts** | `AccountController` | `User` | ✅ Completed | ✅ | ✅ | ✅ |
-| **Master Data** | `MasterController` | `Iku`, `Satuan`, `TipeKegiatan`, `MataAnggaran`, `KategoriBelanja` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Master Data** | `MasterController` | `Iku`, `Satuan`, `TipeKegiatan`, `MataAnggaran`, `KategoriBelanja` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Panduan (Guides)** | `PanduanController` | `Panduan` | ✅ Completed | ✅ | ✅ | ✅ |
 | **KAK (Activities)** | `KAKController` | `KAK`, `KAKAnggaran`, `KAKIndikator`, `KAKTarget`, `KAKTahapan`, `KAKManfaat` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Kegiatan (Realization)** | `KegiatanController` | `Kegiatan`, `KegiatanAnggaran`, `KegiatanLampiran` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |

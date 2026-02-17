@@ -42,4 +42,13 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
 
     // Logs Routes
     Route::get('/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs.index');
+
+    // Master Data Routes
+    Route::prefix('master')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\MasterDataController::class, 'index'])->name('admin.master.index');
+        Route::get('/{type}', [\App\Http\Controllers\Admin\MasterDataController::class, 'indexResource'])->name('admin.master.resource.index');
+        Route::post('/{type}', [\App\Http\Controllers\Admin\MasterDataController::class, 'store'])->name('admin.master.store');
+        Route::put('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'update'])->name('admin.master.update');
+        Route::delete('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'destroy'])->name('admin.master.destroy');
+    });
 });
