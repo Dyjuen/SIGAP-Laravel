@@ -82,7 +82,7 @@ const Navbar = () => {
                     {/* Logo */}
                     <div className="flex items-center">
                         <a href="/" className="flex items-center gap-2 sm:gap-3">
-                            <img src="/images/logo/logoland.svg" alt="SIGAP" className="h-8 sm:h-10 lg:h-12 w-auto" />
+                            <img src="/images/logoland.svg" alt="SIGAP" className="h-8 sm:h-10 lg:h-12 w-auto" />
                         </a>
                     </div>
 

@@ -128,7 +128,7 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
                     <Link href="/" className="flex items-center justify-center w-full h-full">
                         {/* Collapsed Logo */}
                         <img
-                            src="/assets/img/logo/logo.svg"
+                            src="/images/logo.svg"
                             alt="SIGAP Logo"
                             className={clsx(
                                 "h-8 w-auto transition-all duration-300 absolute",
@@ -138,7 +138,7 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
 
                         {/* Expanded Logo */}
                         <img
-                            src="/assets/img/logo/logo2.svg"
+                            src="/images/logo2.svg"
                             alt="SIGAP Logo Extended"
                             className={clsx(
                                 "h-10 w-auto transition-all duration-300",

@@ -9,7 +9,7 @@ const Footer = () => {
                     {/* Brand Section */}
                     <div className="flex flex-col w-full lg:w-2/5 lg:border-r lg:border-white/20 lg:pr-10">
                         <a href="/" className="flex items-center gap-3 mb-4 group">
-                            <img src="/images/logo/logo-landing.svg" alt="SIGAP Logo" className="h-8 sm:h-9 w-auto transition-transform duration-300 group-hover:scale-105" onError={(e) => { e.target.onerror = null; e.target.src = '/images/logo/logoland.svg' }} />
+                            <img src="/images/logoland.svg" alt="SIGAP Logo" className="h-8 sm:h-9 w-auto transition-transform duration-300 group-hover:scale-105" />
                             <span className="font-bold text-lg sm:text-xl tracking-wide">SIGAP</span>
                         </a>
                         <p className="text-white/90 text-sm leading-relaxed max-w-md">Sistem Informasi Pengajuan KAK & LPJ</p>
