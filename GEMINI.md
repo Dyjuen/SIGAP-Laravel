@@ -1,12 +1,12 @@
 # SIGAP-Laravel Project Rules & Context
 
 ## Project Context
-**Goal**: Convert SIGAP-PNJ (native PHP) to Laravel 12 + Inertia.js (React) + Tailwind CSS.
+**Goal**: Convert SIGAP-PNJ (native PHP) to Laravel 11 + Inertia.js (React) + Tailwind CSS.
 **Domain**: Activity and budget management system for an Indonesian polytechnic.
 **Source**: `../SIGAP-PNJ` (Sibling directory is the reference source).
 
 ## Tech Stack
-- **Backend**: Laravel 12, PHP 8.2+
+- **Backend**: Laravel 11, PHP 8.2+
 - **Frontend**: Inertia.js v2, React 18, Tailwind CSS v3
 - **Database**: PostgreSQL via Supabase (all environments)
 - **Testing**: PHPUnit 11 (Backend), Browser MCP (UI)

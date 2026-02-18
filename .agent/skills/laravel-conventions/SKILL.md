@@ -1,5 +1,5 @@
 ---
-description: Laravel 12 conventions, patterns, and anti-patterns for SIGAP-Laravel backend development. Triggers: creating controllers, models, migrations, routes.
+description: Laravel 11 conventions, patterns, and anti-patterns for SIGAP-Laravel backend development. Triggers: creating controllers, models, migrations, routes.
 ---
 
 # Laravel Conventions & Patterns

@@ -4,7 +4,7 @@
 SIGAP-Laravel is a web-based activity and budget management system for an Indonesian polytechnic. It is being converted from a native PHP application (SIGAP-PNJ) to a modern Laravel stack.
 
 ## Tech Stack
--   **Framework**: Laravel 12
+-   **Framework**: Laravel 11
 -   **Frontend**: Inertia.js v2 + React 18
 -   **Styling**: Tailwind CSS v3
 -   **Database**:
