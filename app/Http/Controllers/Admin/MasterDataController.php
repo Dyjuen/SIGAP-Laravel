@@ -95,6 +95,32 @@ class MasterDataController extends Controller
             ],
             'searchable' => ['kode', 'nama'],
         ],
+        'roles' => [
+            'model' => \App\Models\Role::class,
+            'title' => 'Role & Izin',
+            'readonly' => true, // Roles are critical, best not to delete via generic CRUD for now
+            'primary_key' => 'role_id',
+            'fields' => [
+                ['name' => 'nama_role', 'label' => 'Nama Role', 'type' => 'text'],
+            ],
+            'validation_rules' => [
+                'nama_role' => 'required|string|max:50|unique:m_roles,nama_role',
+            ],
+            'searchable' => ['nama_role'],
+        ],
+        'kegiatan-status' => [
+            'model' => \App\Models\KegiatanStatus::class,
+            'title' => 'Status Kegiatan',
+            'readonly' => true, // Status workflow is hardcoded in logic usually
+            'primary_key' => 'status_id',
+            'fields' => [
+                ['name' => 'nama_status', 'label' => 'Nama Status', 'type' => 'text'],
+            ],
+            'validation_rules' => [
+                'nama_status' => 'required|string|max:50|unique:m_kegiatan_status,nama_status',
+            ],
+            'searchable' => ['nama_status'],
+        ],
     ];
 
     public function index(): Response

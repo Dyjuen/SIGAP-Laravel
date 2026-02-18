@@ -1,208 +1,92 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import Sidebar from '@/Components/Sidebar/Sidebar';
+import { Menu } from 'lucide-react';
+import { clsx } from 'clsx';
+import { usePage } from '@inertiajs/react';
 
-export default function AuthenticatedLayout({ header, children }) {
-    const user = usePage().props.auth.user;
+export default function AuthenticatedLayout({ user, header, children }) {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile state
+    const [isSidebarExpanded, setIsSidebarExpanded] = useState(false); // Desktop hover state
+    // Note: Desktop collapse state is managed internally by Sidebar component 
+    // but affects layout margin via CSS class checking or shared state if needed.
+    // For simplicity in Phase 1, we'll let the sidebar handle its own width
+    // and use a standardized margin for the main content on desktop.
+    // Ideally, we'd lift the 'collapsed' state up here if we want perfect margin sync,
+    // but CSS grid/flex is often smoother. 
 
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    // Let's use a simpler approach: 
+    // The sidebar is fixed. We add a left margin to the main content.
+    // Since sidebar width changes, we can use a context or just CSS variables.
+    // For now, let's assume a default expanded width for the margin on desktop
+    // and let the user toggle it. 
+
+    // ACTUALLY: To sync the margin with the sidebar state, we need to lift the state up.
+    // But since Sidebar handles internal state for 'collapsed', we might need to refactor slightly 
+    // OR just pass a callback. 
+    // Let's stick to the plan: Sidebar manages its own state for now to keep it self-contained,
+    // but proper layout integration requires lifting state.
+
+    // REVISION: I will lift 'collapsed' state here for better layout control.
+
+    // Waiting for build... logic in Sidebar.jsx uses local state. 
+    // I'll update Sidebar.jsx to accept 'collapsed' prop if I need strict control, 
+    // but for now, let's use a responsive grid or just a fixed margin 
+    // corresponding to the expanded width (280px) on desktop 
+    // and let the sidebar overlay on top if it collapses? 
+    // No, standard admin panels shift content.
+
+    // Let's pass the state setter down.
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
+        <div className="min-h-screen bg-slate-50 flex">
+            <Sidebar
+                isOpen={isSidebarOpen}
+                setIsOpen={setIsSidebarOpen}
+                isExpanded={isSidebarExpanded}
+                setIsExpanded={setIsSidebarExpanded}
+            />
 
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                                {user.role_id === 1 && (
-                                    <>
-                                        <NavLink
-                                            href={route('admin.users.index')}
-                                            active={route().current('admin.users.*')}
-                                        >
-                                            Manajemen User
-                                        </NavLink>
-                                        <NavLink
-                                            href={route('admin.panduan.index')}
-                                            active={route().current('admin.panduan.*')}
-                                        >
-                                            Panduan
-                                        </NavLink>
-                                    </>
-                                )}
-                            </div>
-                        </div>
+            {/* Main Content Wrapper */}
+            <div
+                className={clsx(
+                    "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
+                    isSidebarExpanded ? "lg:ml-[280px]" : "lg:ml-[80px]"
+                )}
+            >
+                {/* 
+                    NOTE: The margin-left above is hardcoded to 280px (expanded width).
+                    If sidebar collapses to 80px, there will be a gap. 
+                    I'll address this in the "Verification" step by refining the state sharing 
+                    if the gap is noticeable/annoying. 
+                */}
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
-                >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                        {user.role_id === 1 && (
-                            <>
-                                <ResponsiveNavLink
-                                    href={route('admin.users.index')}
-                                    active={route().current('admin.users.*')}
-                                >
-                                    Manajemen User
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink
-                                    href={route('admin.panduan.index')}
-                                    active={route().current('admin.panduan.*')}
-                                >
-                                    Panduan
-                                </ResponsiveNavLink>
-                            </>
-                        )}
-                    </div>
-
-                    <div className="border-t border-gray-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
-                            </div>
-                        </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
-                    </div>
+                {/* Mobile Header */}
+                <header className="bg-white shadow-sm lg:hidden h-16 flex items-center px-4 sticky top-0 z-30">
+                    <button
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="p-2 -ml-2 rounded-md text-slate-500 hover:bg-slate-100"
+                    >
+                        <Menu size={24} />
+                    </button>
+                    <span className="font-bold text-lg ml-4 text-slate-800">
+                        SIGAP <span className="text-cyan-500">PNJ</span>
+                    </span>
                 </header>
-            )}
 
-            <main>{children}</main>
+                {/* Page Header */}
+                {header && (
+                    <header className="bg-white shadow">
+                        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                            {header}
+                        </div>
+                    </header>
+                )}
+
+                {/* Page Content */}
+                <main className="flex-1 p-4 lg:p-8">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }
