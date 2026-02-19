@@ -13,4 +13,9 @@ class KAKTahapan extends Model
     protected $guarded = ['tahapan_id'];
 
     public $timestamps = false;
+
+    public function kak()
+    {
+        return $this->belongsTo(KAK::class, 'kak_id');
+    }
 }

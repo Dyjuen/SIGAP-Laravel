@@ -22,6 +22,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // KAK Routes
+    Route::resource('kak', \App\Http\Controllers\KakController::class);
+
+    // KAK Workflow Routes
+    Route::post('/kak/{kak}/submit', [\App\Http\Controllers\KakWorkflowController::class, 'submit'])->name('kak.submit');
+    Route::post('/kak/{kak}/approve', [\App\Http\Controllers\KakWorkflowController::class, 'approve'])->name('kak.approve');
+    Route::post('/kak/{kak}/reject', [\App\Http\Controllers\KakWorkflowController::class, 'reject'])->name('kak.reject');
+    Route::post('/kak/{kak}/revise', [\App\Http\Controllers\KakWorkflowController::class, 'revise'])->name('kak.revise');
+    Route::post('/kak/{kak}/resubmit', [\App\Http\Controllers\KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
 });
 
 require __DIR__.'/auth.php';

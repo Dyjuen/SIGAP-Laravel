@@ -13,4 +13,9 @@ class KAKManfaat extends Model
     protected $guarded = ['manfaat_id'];
 
     public $timestamps = false;
+
+    public function kak()
+    {
+        return $this->belongsTo(KAK::class, 'kak_id');
+    }
 }

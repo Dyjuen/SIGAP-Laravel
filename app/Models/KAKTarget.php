@@ -13,4 +13,9 @@ class KAKTarget extends Model
     protected $guarded = ['target_id'];
 
     public $timestamps = false;
+
+    public function kak()
+    {
+        return $this->belongsTo(KAK::class, 'kak_id');
+    }
 }
