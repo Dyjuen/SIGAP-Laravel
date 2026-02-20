@@ -9,7 +9,8 @@ import {
     Menu,
     X,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    FileText
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import SidebarItem from './SidebarItem';
@@ -17,7 +18,8 @@ import SidebarDropdown from './SidebarDropdown';
 import SidebarProfile from './SidebarProfile';
 
 export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }) {
-    const { url, component } = usePage();
+    const { url, component, auth } = usePage().props;
+    const userRole = auth.user?.role_id;
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -40,27 +42,37 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             active: route().current('dashboard')
         },
         {
+            label: 'Kegiatan (KAK)',
+            href: route('kak.index'),
+            icon: FileText,
+            active: route().current('kak.*')
+        },
+        {
             label: 'Manajemen Akun',
             href: route('admin.users.index'),
             icon: Users,
-            active: route().current('admin.users.*')
+            active: route().current('admin.users.*'),
+            roles: [1] // Admin only
         },
         {
             label: 'Manajemen Panduan',
             href: route('admin.panduan.index'),
             icon: BookOpen,
-            active: route().current('admin.panduan.*')
+            active: route().current('admin.panduan.*'),
+            roles: [1]
         },
         {
             label: 'Riwayat Aktivitas',
             href: route('admin.logs.index'),
             icon: History,
-            active: route().current('admin.logs.*')
+            active: route().current('admin.logs.*'),
+            roles: [1]
         },
         {
             label: 'Master Data',
             icon: Database,
             active: false,
+            roles: [1],
             children: [
                 {
                     label: 'Role & Izin',
@@ -100,6 +112,11 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             ]
         }
     ];
+
+    const visibleMenuItems = menuItems.filter(item => {
+        if (!item.roles || item.roles.length === 0) return true;
+        return item.roles.includes(userRole);
+    });
 
     return (
         <>
@@ -157,7 +174,7 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
 
                 {/* Scrollable Menu Area */}
                 <ul className="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 space-y-1 custom-scrollbar list-none">
-                    {menuItems.map((item, index) => (
+                    {visibleMenuItems.map((item, index) => (
                         item.children ? (
                             <SidebarDropdown
                                 key={index}

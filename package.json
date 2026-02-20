@@ -24,7 +24,9 @@
     "dependencies": {
         "aos": "^2.3.4",
         "clsx": "^2.1.1",
+        "framer-motion": "^12.34.2",
         "lucide-react": "^0.574.0",
+        "react-tailwindcss-datepicker": "^1.7.2",
         "sweetalert2": "^11.26.18",
         "tailwind-merge": "^3.4.1"
     }

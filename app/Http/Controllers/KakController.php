@@ -137,6 +137,10 @@ class KakController extends Controller
 
         return Inertia::render('Kak/Show', [
             'kak' => $kak,
+            'tipe_kegiatan' => TipeKegiatan::all(),
+            'satuan' => Satuan::all(),
+            'iku' => Iku::all(),
+            'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
         ]);
     }
 
