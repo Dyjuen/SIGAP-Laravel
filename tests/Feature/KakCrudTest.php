@@ -207,15 +207,40 @@ class KakCrudTest extends TestCase
         $user = User::factory()->create(['role_id' => 3]);
         $tipe = TipeKegiatan::first();
 
-        // Simulate failure by providing data that passes validation but fails DB constraint (e.g. invalid foreign key manually)
-        // Or mock exception if possible. For now, let's try invalid IKU ID which should be caught by Foreign Key constraint if validation assumes it exists.
-        // Actually, validation usually checks 'exists', so let's skip validation and hit controller direct? No, controller uses FormRequest.
-        // Let's create a partial mock if needed, but easier is to force a DB error.
+        // Simulate failure by throwing an exception when saving a child model
+        \App\Models\KAKManfaat::creating(function () {
+            throw new \Exception('Simulated DB Failure');
+        });
 
-        // This test is hard to implement purely w/o mocking, so let's rely on validation catching foreign keys mostly.
-        // But to test transaction, we can override a model to throw exception on save?
-        // Let's skip complex mocking for now and trust Laravel DB transaction behavior if we wrap it.
-        $this->markTestSkipped('Requires mocking DB transaction failure.');
+        $data = [
+            'kak' => [
+                'nama_kegiatan' => 'Rollback Test Activity',
+                'deskripsi_kegiatan' => 'Description',
+                'metode_pelaksanaan' => 'Method',
+                'kurun_waktu_pelaksanaan' => '1 Month',
+                'tanggal_mulai' => '2025-01-01',
+                'tanggal_selesai' => '2025-01-31',
+                'lokasi' => 'Campus',
+                'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
+                'manfaat' => ['Manfaat 1'], // This will trigger the exception
+                'tahapan_pelaksanaan' => [],
+                'indikator_kinerja' => [],
+            ],
+            'target_iku' => [],
+            'rab' => [],
+        ];
+
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->post(route('kak.store'), $data);
+            $this->fail('Expected exception was not thrown');
+        } catch (\Exception $e) {
+            $this->assertEquals('Simulated DB Failure', $e->getMessage());
+        }
+
+        // Assert parent was rolled back
+        $this->assertDatabaseMissing('t_kak', ['nama_kegiatan' => 'Rollback Test Activity']);
     }
 
     public function test_concurrent_updates_do_not_corrupt_data(): void

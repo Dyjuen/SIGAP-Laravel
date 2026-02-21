@@ -27,7 +27,6 @@ class StoreKakRequest extends FormRequest
             'kak.nama_kegiatan' => 'required|string|max:200',
             'kak.deskripsi_kegiatan' => 'required|string',
             'kak.metode_pelaksanaan' => 'required|string',
-            'kak.kurun_waktu_pelaksanaan' => 'required|string|max:255',
             'kak.tanggal_mulai' => 'required|date',
             'kak.tanggal_selesai' => 'required|date|after_or_equal:kak.tanggal_mulai',
             'kak.lokasi' => 'required|string|max:200',

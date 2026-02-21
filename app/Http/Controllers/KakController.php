@@ -14,6 +14,7 @@ use App\Models\KAKTarget;
 use App\Models\KategoriBelanja;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -34,12 +35,13 @@ class KakController extends Controller
             // Pengusul: Only own KAKs
             $query->where('pengusul_user_id', $user->user_id);
         } elseif ($user->role_id === 2) {
-            // Verifikator: Only KAKs matching their Tipe Kegiatan ID (from username 'verifikatorN')
+            // Verifikator: Only KAKs in "Review Verifikator" status (status_id = 2)
+            // and matching their Tipe Kegiatan (derived from username 'verifikatorN')
+            $query->where('status_id', 2);
             if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
                 $allowedTipeId = (int) $matches[1];
                 $query->where('tipe_kegiatan_id', $allowedTipeId);
             } else {
-                // If username doesn't match pattern, show nothing or handle gracefully
                 $query->whereRaw('1 = 0');
             }
         }
@@ -95,6 +97,11 @@ class KakController extends Controller
 
             // 1. Create Parent KAK
             $kakData = $request->validated('kak');
+            // Compute kurun_waktu_pelaksanaan from the two date fields
+            $kakData['kurun_waktu_pelaksanaan'] = $this->computeKurunWaktu(
+                $kakData['tanggal_mulai'],
+                $kakData['tanggal_selesai']
+            );
             $kak = KAK::create(array_merge($kakData, [
                 'pengusul_user_id' => $user->user_id,
                 'status_id' => 1, // Start as Draft
@@ -194,13 +201,13 @@ class KakController extends Controller
 
             // 1. Update Parent
             $kakData = $request->validated('kak');
+            // Compute kurun_waktu_pelaksanaan from the two date fields
+            $kakData['kurun_waktu_pelaksanaan'] = $this->computeKurunWaktu(
+                $kakData['tanggal_mulai'],
+                $kakData['tanggal_selesai']
+            );
 
             // Remove array fields from kakData (manfaat, tahapan, etc are inside 'kak' array in request but not in KAK model)
-            // The validated data structure is:
-            // 'kak' => ['nama'..., 'manfaat' => [], ...]
-            // But strict update should filter out non-columns.
-            // Eloquent update ignores non-fillable attributes if configured, but let's be explicit.
-
             $parentData = collect($kakData)->except(['manfaat', 'tahapan_pelaksanaan', 'indikator_kinerja'])->toArray();
             $lockedKak->update($parentData);
 
@@ -235,6 +242,25 @@ class KakController extends Controller
     }
 
     // Helper functions
+
+    /**
+     * Compute a human-readable duration string from two dates.
+     */
+    private function computeKurunWaktu(string $start, string $end): string
+    {
+        $startDate = Carbon::parse($start);
+        $endDate = Carbon::parse($end);
+        $diffDays = $startDate->diffInDays($endDate) + 1; // inclusive
+
+        if ($diffDays < 30) {
+            return "{$diffDays} Hari";
+        }
+
+        $months = (int) floor($diffDays / 30);
+        $days = $diffDays % 30;
+
+        return $days > 0 ? "{$months} Bulan {$days} Hari" : "{$months} Bulan";
+    }
 
     private function insertChildren(KAK $kak, $request)
     {

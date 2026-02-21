@@ -42,8 +42,9 @@ class KakAuthorizationTest extends TestCase
         // Verifikator 1 matches Tipe 1
         $verifikator1 = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
 
-        $kakTipe1 = KAK::factory()->create(['tipe_kegiatan_id' => 1]);
-        $kakTipe2 = KAK::factory()->create(['tipe_kegiatan_id' => 2]);
+        // Verifikator only sees KAKs in "Review Verifikator" status (status_id = 2)
+        $kakTipe1 = KAK::factory()->create(['tipe_kegiatan_id' => 1, 'status_id' => 2]);
+        $kakTipe2 = KAK::factory()->create(['tipe_kegiatan_id' => 2, 'status_id' => 2]);
 
         $response = $this->actingAs($verifikator1)->get(route('kak.index'));
 

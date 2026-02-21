@@ -382,11 +382,21 @@ export default function Step1Kak({ data, setData, errors, readOnly = false, mode
 
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-bold text-gray-700 mb-1">Periode Pelaksanaan (Otomatis)</label>
-                                            <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-800 font-bold">
+                                            <div className="p-4 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-800 font-bold mb-6">
                                                 {getDurationText(data.kak.tanggal_mulai, data.kak.tanggal_selesai) || '-'}
                                                 <input type="hidden" name="kurun_waktu_pelaksanaan" value={getDurationText(data.kak.tanggal_mulai, data.kak.tanggal_selesai)} />
                                             </div>
-                                            {/* We should ideally store the calculated text in form data too if backend expects it */}
+
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">Lokasi Pelaksanaan <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                value={data.kak.lokasi || ''}
+                                                onChange={(e) => updateKak('lokasi', e.target.value)}
+                                                placeholder="Contoh: Gedung Direktorat Lt.2, Kampus PNJ"
+                                                disabled={readOnly}
+                                            />
+                                            {errors['kak.lokasi'] && <p className="text-xs text-red-500 mt-1">{errors['kak.lokasi']}</p>}
                                         </div>
                                     </div>
                                 </div>

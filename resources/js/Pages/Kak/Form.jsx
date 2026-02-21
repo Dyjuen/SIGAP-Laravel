@@ -32,16 +32,17 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             deskripsi_kegiatan: kak?.deskripsi_kegiatan || '',
             sasaran_utama: kak?.sasaran_utama || '',
             // Initialize with wrapping objects for stable keys
-            manfaat: kak?.manfaat?.map(m => ({ _id: Math.random(), value: m.deskripsi })) || [{ _id: Math.random(), value: '' }],
+            manfaat: kak?.manfaat?.map(m => ({ _id: Math.random(), value: m.manfaat })) || [{ _id: Math.random(), value: '' }],
             metode_pelaksanaan: kak?.metode_pelaksanaan || '',
             tahapan_pelaksanaan: kak?.tahapan?.map(t => ({ _id: Math.random(), nama_tahapan: t.nama_tahapan })) || [{ _id: Math.random(), nama_tahapan: '' }],
-            indikator_kinerja: kak?.indikator_kinerja?.length > 0
-                ? kak.indikator_kinerja.map(ik => ({ _id: Math.random(), deskripsi_target: ik.deskripsi_target, deskripsi_indikator: ik.deskripsi_indikator }))
+            indikator_kinerja: kak?.targets?.length > 0
+                ? kak.targets.map(ik => ({ _id: Math.random(), deskripsi_target: ik.deskripsi_target, deskripsi_indikator: ik.deskripsi_indikator }))
                 : [{ _id: Math.random(), deskripsi_target: '', deskripsi_indikator: '' }],
             tanggal_mulai: kak?.tanggal_mulai || '',
             tanggal_selesai: kak?.tanggal_selesai || '',
+            lokasi: kak?.lokasi || '',
         },
-        target_iku: kak?.targets?.map(t => ({
+        target_iku: kak?.ikus?.map(t => ({
             _id: Math.random(),
             iku_id: t.iku_id,
             target: t.target,
@@ -98,7 +99,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             ...data.kak,
             manfaat: data.kak.manfaat.map(m => m.value), // Unwrap benefit strings
             tahapan_pelaksanaan: data.kak.tahapan_pelaksanaan.map(({ _id, ...rest }) => rest), // Remove _id
-            // indikator_kinerja: data.kak.indikator_kinerja.map(({ _id, ...rest }) => rest), // If used later
+            indikator_kinerja: data.kak.indikator_kinerja.map(({ _id, ...rest }) => rest), // Strip frontend-only _id key
         },
         target_iku: data.target_iku.map(({ _id, ...rest }) => rest),
         rab: data.rab.map(({ _id, ...rest }) => rest),

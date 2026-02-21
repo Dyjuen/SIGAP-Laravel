@@ -38,11 +38,6 @@ class AuthenticatedSessionController extends Controller
 
         $redirectPath = match ($role) {
             'Admin' => '/admin/user-management',
-            'Verifikator' => '/verifikator/dashboard',
-            'PPK' => '/ppk/dashboard',
-            'Wadir' => '/wadir/dashboard',
-            'Bendahara' => '/bendahara/dashboard',
-            'Rektorat' => '/rektorat/dashboard',
             default => '/dashboard',
         };
 

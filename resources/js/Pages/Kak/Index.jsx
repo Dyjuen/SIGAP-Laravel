@@ -1,11 +1,55 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 export default function KakIndex({ auth, kaks, filters }) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status_id || '');
+    const handleSubmitKak = (item) => {
+        Swal.fire({
+            title: 'Kirim KAK?',
+            text: 'KAK akan dikirim ke Verifikator untuk direview.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#06b6d4',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Kirim!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('kak.submit', item.kak_id), {}, {
+                    onSuccess: () => Swal.fire('Terkirim!', 'KAK berhasil dikirim ke Verifikator.', 'success')
+                });
+            }
+        });
+    };
+
+    const handleRejectKak = (item) => {
+        Swal.fire({
+            title: 'Tolak KAK?',
+            html: '<textarea id="catatan-tolak" class="swal2-textarea" placeholder="Masukkan alasan penolakan di sini..."></textarea>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Tolak!',
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                const catatan = Swal.getPopup().querySelector('#catatan-tolak').value;
+                if (!catatan) {
+                    Swal.showValidationMessage('Alasan penolakan wajib diisi');
+                }
+                return { catatan: catatan };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('kak.reject', item.kak_id), { catatan: result.value.catatan }, {
+                    onSuccess: () => Swal.fire('Ditolak!', 'KAK berhasil ditolak.', 'success')
+                });
+            }
+        });
+    };
 
     // Debounce search
     useEffect(() => {
@@ -127,10 +171,9 @@ export default function KakIndex({ auth, kaks, filters }) {
                                             <tr key={item.kak_id} className="hover:bg-gray-50/80 transition">
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm font-semibold text-gray-900">{item.nama_kegiatan}</div>
-                                                    <div className="text-xs text-gray-500 mt-1 truncate max-w-xs">{item.deskripsi_kegiatan}</div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                                    {item.tipe_kegiatan?.nama_tipe_kegiatan}
+                                                    {item.tipe_kegiatan?.nama_tipe}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     {getStatusBadge(item.status_id, item.status?.nama_status)}
@@ -143,16 +186,44 @@ export default function KakIndex({ auth, kaks, filters }) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                                     <div className="flex justify-center gap-2">
-                                                        <Link
-                                                            href={route('kak.show', item.kak_id)}
-                                                            className="text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition"
-                                                            title="Lihat Detail"
-                                                        >
-                                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                        </Link>
+                                                        {/* Lihat Detail: Hidden for Verifikator (role 2) according to request */}
+                                                        {auth.user.role_id !== 2 && (
+                                                            <Link
+                                                                href={route('kak.show', item.kak_id)}
+                                                                className="text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition"
+                                                                title="Lihat Detail"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                            </Link>
+                                                        )}
+
+                                                        {/* Actions for Verifikator (Role 2) on status_id 2 */}
+                                                        {auth.user.role_id === 2 && item.status_id === 2 && (
+                                                            <>
+                                                                {/* Review Button (Links to show, but typically Verifikator needs a review form. For now, we link to 'Review' view or Show page which acts as Review) */}
+                                                                <Link
+                                                                    href={route('kak.show', item.kak_id)}
+                                                                    className="text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 p-2 rounded-lg transition flex items-center gap-1 text-xs font-bold"
+                                                                    title="Review KAK"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                                    Review
+                                                                </Link>
+
+                                                                {/* Tolak Button */}
+                                                                <button
+                                                                    onClick={() => handleRejectKak(item)}
+                                                                    className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition flex items-center gap-1 text-xs font-bold"
+                                                                    title="Tolak KAK"
+                                                                >
+                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                    Tolak
+                                                                </button>
+                                                            </>
+                                                        )}
 
                                                         {/* Edit: Draft (1), Rejected (4), Revisi (5) only for owner */}
-                                                        {auth.user.role_id === 3 && [1, 4, 5].includes(item.status_id) && item.pengusul_user_id === auth.user.user_id && (
+                                                        {auth.user.role_id === 3 && [1, 4, 5].includes(item.status_id) && item.pengusul_user_id === auth.user.id && (
                                                             <Link
                                                                 href={route('kak.edit', item.kak_id)}
                                                                 className="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-2 rounded-lg transition"
@@ -162,8 +233,19 @@ export default function KakIndex({ auth, kaks, filters }) {
                                                             </Link>
                                                         )}
 
+                                                        {/* Submit: Draft only, for owner Pengusul */}
+                                                        {auth.user.role_id === 3 && item.status_id === 1 && item.pengusul_user_id === auth.user.id && (
+                                                            <button
+                                                                onClick={() => handleSubmitKak(item)}
+                                                                className="text-cyan-500 hover:text-cyan-700 bg-cyan-50 hover:bg-cyan-100 p-2 rounded-lg transition"
+                                                                title="Kirim ke Verifikator"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                                            </button>
+                                                        )}
+
                                                         {/* Delete: Draft (1), Rejected (4) only for owner */}
-                                                        {auth.user.role_id === 3 && [1, 4].includes(item.status_id) && item.pengusul_user_id === auth.user.user_id && (
+                                                        {auth.user.role_id === 3 && [1, 4].includes(item.status_id) && item.pengusul_user_id === auth.user.id && (
                                                             <button
                                                                 onClick={() => handleDelete(item)}
                                                                 className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition"

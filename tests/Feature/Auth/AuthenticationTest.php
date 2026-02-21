@@ -93,7 +93,7 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertRedirect('/verifikator/dashboard');
+        $response->assertRedirect('/dashboard');
     }
 
     public function test_login_is_rate_limited(): void
