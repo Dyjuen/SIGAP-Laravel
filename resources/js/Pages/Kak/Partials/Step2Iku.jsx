@@ -1,9 +1,15 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SpectacularBorder from '../Components/SpectacularBorder';
+import CommentIcon from '../Components/CommentIcon';
+import CommentAlert from '../Components/CommentAlert';
 import { Trash, Plus } from 'lucide-react';
 
-export default function Step2Iku({ data, setData, errors, iku = [], satuan = [], readOnly = false }) {
+export default function Step2Iku({
+    data, setData, errors, iku = [], satuan = [], readOnly = false,
+    isVerifikator = false, isPengusul = false, isPengusulFixing = false,
+    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null
+}) {
 
     const addTargetIku = () => setData('target_iku', [...data.target_iku, { _id: Math.random(), iku_id: '', target: '', satuan_id: '' }]);
     const removeTargetIku = (index) => {
@@ -26,6 +32,10 @@ export default function Step2Iku({ data, setData, errors, iku = [], satuan = [],
                         Pilih Indikator Kinerja Utama yang relevan dengan kegiatan ini dan tentukan target capaiannya.
                     </p>
 
+                    {isPengusulFixing && originalKak?.catatan_iku && (
+                        <CommentAlert message={originalKak.catatan_iku} className="mb-6" />
+                    )}
+
                     <div className="space-y-4">
                         <AnimatePresence mode="popLayout">
                             {data.target_iku.map((item, index) => (
@@ -35,9 +45,9 @@ export default function Step2Iku({ data, setData, errors, iku = [], satuan = [],
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     layout
-                                    className="p-4 rounded-xl bg-gray-50 border border-gray-100 group hover:border-cyan-200 transition-colors"
+                                    className="p-4 rounded-xl bg-gray-50 border border-gray-100 group hover:border-cyan-200 transition-colors relative"
                                 >
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                         {/* IKU Select */}
                                         <div className="md:col-span-6">
                                             <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Kinerja Utama</label>
@@ -86,20 +96,40 @@ export default function Step2Iku({ data, setData, errors, iku = [], satuan = [],
                                             </select>
                                         </div>
 
-                                        {/* Remove Button */}
-                                        {!readOnly && (
-                                            <div className="md:col-span-1 flex justify-end md:mt-6">
+                                        {/* Action Buttons */}
+                                        <div className="md:col-span-1 flex items-center justify-end gap-2 md:mt-5">
+                                            {(isVerifikator || isPengusulFixing) && item.iku_id && (
+                                                <div className="relative w-8 h-8 flex-shrink-0">
+                                                    <CommentIcon
+                                                        hasComment={!!revisiData.anak?.t_kak_iku?.find(r => r.id === item.iku_id)?.catatan_verifikator || !!originalKak?.ikus?.find(i => i.iku_id === item.iku_id)?.catatan_verifikator}
+                                                        isPastNote={!!originalKak?.ikus?.find(i => i.iku_id === item.iku_id)?.catatan_verifikator && !revisiData.anak?.t_kak_iku?.find(r => r.id === item.iku_id)?.catatan_verifikator}
+                                                        isPengusul={isPengusul}
+                                                        onClick={() => {
+                                                            const existingNote = revisiData.anak?.t_kak_iku?.find(r => r.id === item.iku_id)?.catatan_verifikator;
+                                                            const oldNote = originalKak?.ikus?.find(i => i.iku_id === item.iku_id)?.catatan_verifikator;
+                                                            openCommentModal(
+                                                                { field: 'iku', type: 'anak', table: 't_kak_iku', id: item.iku_id },
+                                                                `Catatan Target IKU: ${item.target}`,
+                                                                existingNote || oldNote || '',
+                                                                !!oldNote && !existingNote
+                                                            );
+                                                        }}
+                                                        className="!relative !right-auto !top-auto !translate-y-0"
+                                                    />
+                                                </div>
+                                            )}
+                                            {!readOnly && (
                                                 <button
                                                     type="button"
                                                     onClick={() => removeTargetIku(index)}
                                                     disabled={data.target_iku.length <= 1}
-                                                    className={`p-2 rounded-lg transition-colors ${data.target_iku.length <= 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-400 hover:text-red-600 hover:bg-red-50'}`}
+                                                    className={`p-2 rounded-lg transition-colors flex-shrink-0 ${data.target_iku.length <= 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-400 hover:text-red-600 hover:bg-red-50'}`}
                                                     title={data.target_iku.length <= 1 ? "Minimal 1 IKU" : "Hapus IKU"}
                                                 >
                                                     <Trash size={18} />
                                                 </button>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
                                 </motion.div>
                             ))}

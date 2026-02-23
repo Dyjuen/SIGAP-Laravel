@@ -25,6 +25,25 @@ export default function KakIndex({ auth, kaks, filters }) {
         });
     };
 
+    const handleResubmitKak = (item) => {
+        Swal.fire({
+            title: 'Kirim Hasil Revisi?',
+            text: 'KAK akan dikirim kembali ke Verifikator untuk direview ulang.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#f97316', // orange-500
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: 'Ya, Kirim!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('kak.resubmit', item.kak_id), {}, {
+                    onSuccess: () => Swal.fire('Terkirim!', 'Hasil revisi KAK berhasil dikirim ke Verifikator.', 'success')
+                });
+            }
+        });
+    };
+
     const handleRejectKak = (item) => {
         Swal.fire({
             title: 'Tolak KAK?',
@@ -241,6 +260,17 @@ export default function KakIndex({ auth, kaks, filters }) {
                                                                 title="Kirim ke Verifikator"
                                                             >
                                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                                            </button>
+                                                        )}
+
+                                                        {/* Resubmit: Revisi only, for owner Pengusul */}
+                                                        {auth.user.role_id === 3 && item.status_id === 5 && item.pengusul_user_id === auth.user.id && (
+                                                            <button
+                                                                onClick={() => handleResubmitKak(item)}
+                                                                className="text-orange-500 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 p-2 rounded-lg transition"
+                                                                title="Kirim Kembali Hasil Revisi"
+                                                            >
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                                                             </button>
                                                         )}
 

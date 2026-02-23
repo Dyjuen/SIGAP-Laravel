@@ -6,11 +6,17 @@ import WizardProgress from './Components/WizardProgress';
 import Step1Kak from './Partials/Step1Kak';
 import Step2Iku from './Partials/Step2Iku';
 import Step3Rab from './Partials/Step3Rab';
+import CommentModal from './Components/CommentModal';
 import Swal from 'sweetalert2';
-import { ChevronLeft, ChevronRight, Save, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, Check, FileWarning } from 'lucide-react';
+import { router } from '@inertiajs/react';
 
 export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategori_belanja, readOnly = false }) {
     const isEdit = !!kak;
+    const isVerifikator = auth.user.role_id === 2 && readOnly; // Verifikator viewing
+    const isPengusulFixing = auth.user.role_id === 3 && kak?.status_id === 5; // Pengusul fixing revision
+
+    // Core Navigation State
     const [currentStep, setCurrentStep] = useState(1);
     const [subStep, setSubStep] = useState('gambaran-umum');
 
@@ -32,24 +38,26 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             deskripsi_kegiatan: kak?.deskripsi_kegiatan || '',
             sasaran_utama: kak?.sasaran_utama || '',
             // Initialize with wrapping objects for stable keys
-            manfaat: kak?.manfaat?.map(m => ({ _id: Math.random(), value: m.manfaat })) || [{ _id: Math.random(), value: '' }],
+            manfaat: kak?.manfaat?.map(m => ({ _id: Math.random(), manfaat_id: m.manfaat_id, value: m.manfaat })) || [{ _id: Math.random(), value: '' }],
             metode_pelaksanaan: kak?.metode_pelaksanaan || '',
-            tahapan_pelaksanaan: kak?.tahapan?.map(t => ({ _id: Math.random(), nama_tahapan: t.nama_tahapan })) || [{ _id: Math.random(), nama_tahapan: '' }],
+            tahapan_pelaksanaan: kak?.tahapan?.map(t => ({ _id: Math.random(), tahapan_id: t.tahapan_id, nama_tahapan: t.nama_tahapan })) || [{ _id: Math.random(), nama_tahapan: '' }],
             indikator_kinerja: kak?.targets?.length > 0
-                ? kak.targets.map(ik => ({ _id: Math.random(), deskripsi_target: ik.deskripsi_target, deskripsi_indikator: ik.deskripsi_indikator }))
-                : [{ _id: Math.random(), deskripsi_target: '', deskripsi_indikator: '' }],
+                ? kak.targets.map(ik => ({ _id: Math.random(), target_id: ik.target_id, bulan_indikator: ik.bulan_indikator || '', deskripsi_target: ik.deskripsi_target || '', persentase_target: ik.persentase_target ?? '' }))
+                : [{ _id: Math.random(), bulan_indikator: '', deskripsi_target: '', persentase_target: '' }],
             tanggal_mulai: kak?.tanggal_mulai || '',
             tanggal_selesai: kak?.tanggal_selesai || '',
             lokasi: kak?.lokasi || '',
         },
         target_iku: kak?.ikus?.map(t => ({
             _id: Math.random(),
+            kak_iku_id: t.kak_iku_id, // we might need this if comments map to the pivot, but ikus has kak_iku_id or iku_id? let's preserve all
             iku_id: t.iku_id,
             target: t.target,
             satuan_id: t.satuan_id
         })) || [{ _id: Math.random(), iku_id: '', target: '', satuan_id: '' }], // Ensure min 1 item
         rab: kak?.anggaran?.map(a => ({
             _id: Math.random(),
+            anggaran_id: a.anggaran_id,
             kategori_belanja_id: a.kategori_belanja_id,
             uraian: a.uraian,
             volume1: a.volume1,
@@ -61,6 +69,172 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             harga_satuan: a.harga_satuan
         })) || []
     });
+
+    // --- REVISION STATE MANAGEMENT ---
+    const [revisiData, setRevisiData] = useState({
+        catatan: '', // General note
+        catatan_kak: {}, // Main KAK fields e.g., { nama_kegiatan: '...' }
+        anak: {
+            t_kak_manfaat: [],
+            t_kak_tahapan: [],
+            t_kak_target: [], // Indikator Kinerja
+            t_kak_iku: [],
+            t_kak_anggaran: [] // RAB
+        }
+    });
+
+    const [activeComment, setActiveComment] = useState({
+        isOpen: false,
+        field: null, // 'nama_kegiatan', 'deskripsi_kegiatan', or child table identifier
+        type: 'kak', // 'kak' | 'anak'
+        table: null, // e.g., 't_kak_anggaran', only for type='anak'
+        id: null, // primary key ID, only for type='anak'
+        title: '',
+        initialValue: '',
+        isPastNote: false
+    });
+
+    const openCommentModal = (fieldInfo, title, initialValue = '', isPastNote = false) => {
+        setActiveComment({
+            isOpen: true,
+            ...fieldInfo,
+            title,
+            initialValue,
+            isPastNote
+        });
+    };
+
+    const handleSaveComment = (note) => {
+        setRevisiData(prev => {
+            const newData = { ...prev };
+            if (activeComment.type === 'kak') {
+                if (note.trim() === '') {
+                    delete newData.catatan_kak[activeComment.field];
+                } else {
+                    newData.catatan_kak[activeComment.field] = note;
+                }
+            } else if (activeComment.type === 'anak') {
+                const tableArray = [...newData.anak[activeComment.table]];
+                const existingIndex = tableArray.findIndex(item => item.id === activeComment.id);
+
+                // Determine the correct field name for the child table
+                const noteCol = activeComment.table === 't_kak_manfaat' ? 'catatan_manfaat' : 'catatan_verifikator';
+
+                if (note.trim() === '') {
+                    if (existingIndex > -1) tableArray.splice(existingIndex, 1);
+                } else {
+                    if (existingIndex > -1) {
+                        tableArray[existingIndex][noteCol] = note;
+                    } else {
+                        tableArray.push({ id: activeComment.id, [noteCol]: note });
+                    }
+                }
+                newData.anak[activeComment.table] = tableArray;
+            }
+            return newData;
+        });
+    };
+
+    const submitRevision = () => {
+        if (!revisiData.catatan && Object.keys(revisiData.catatan_kak).length === 0 && Object.values(revisiData.anak).every(arr => arr.length === 0)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Kosong',
+                text: 'Silakan isi setidaknya satu catatan revisi (pada form atau general) sebelum mengirim permintaan revisi.'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Minta Revisi?',
+            text: "KAK akan dikembalikan ke Pengusul dengan catatan revisi yang telah dibuat.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Minta Revisi',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const finalPayload = {
+                    ...revisiData
+                };
+
+                router.post(route('kak.revise', kak.kak_id), finalPayload, {
+                    onSuccess: () => {
+                        Swal.fire('Berhasil!', 'Permintaan revisi berhasil dikirim.', 'success').then(() => {
+                            router.get(route('kak.index'));
+                        });
+                    }
+                });
+            }
+        });
+    };
+
+    const submitApproval = () => {
+        Swal.fire({
+            title: 'Setujui KAK?',
+            html: `
+                <div class="text-left space-y-4 mt-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Kode Anggaran</label>
+                        <input id="swal-kode-anggaran" class="w-full rounded-lg border-gray-200" placeholder="Contoh: 023.14.WA.4132...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Nama Sumber Dana</label>
+                        <input id="swal-sumber-dana" class="w-full rounded-lg border-gray-200" placeholder="Contoh: PNBP">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Tahun Anggaran</label>
+                        <input id="swal-tahun-anggaran" type="number" class="w-full rounded-lg border-gray-200" value="${new Date().getFullYear()}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Total Pagu</label>
+                        <input id="swal-total-pagu" type="number" class="w-full rounded-lg border-gray-200" placeholder="Contoh: 50000000">
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#10b981', // emerald
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Setujui',
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                const kode = document.getElementById('swal-kode-anggaran').value;
+                const sumber = document.getElementById('swal-sumber-dana').value;
+                const tahun = document.getElementById('swal-tahun-anggaran').value;
+                const pagu = document.getElementById('swal-total-pagu').value;
+
+                if (!kode || !sumber || !tahun || !pagu) {
+                    Swal.showValidationMessage('Semua form wajib diisi!');
+                    return false;
+                }
+
+                return {
+                    kode_anggaran: kode,
+                    nama_sumber_dana: sumber,
+                    tahun_anggaran: parseInt(tahun, 10),
+                    total_pagu: parseFloat(pagu)
+                };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('kak.approve', kak.kak_id), result.value, {
+                    onSuccess: () => {
+                        Swal.fire('Berhasil!', 'KAK berhasil disetujui.', 'success').then(() => {
+                            router.get(route('kak.index'));
+                        });
+                    }
+                });
+            }
+        });
+    };
+
+    const hasNewComments = revisiData.catatan.trim() !== '' ||
+        Object.keys(revisiData.catatan_kak).length > 0 ||
+        Object.values(revisiData.anak).some(arr => arr.length > 0);
+
+    // ------------------------------------
 
     const nextStep = () => {
         // Basic Client-side Validation before proceeding
@@ -97,7 +271,10 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         ...data,
         kak: {
             ...data.kak,
-            manfaat: data.kak.manfaat.map(m => m.value), // Unwrap benefit strings
+            manfaat: data.kak.manfaat.map(({ value, manfaat_id }) => ({
+                manfaat: value,
+                ...(manfaat_id ? { manfaat_id } : {})
+            })),
             tahapan_pelaksanaan: data.kak.tahapan_pelaksanaan.map(({ _id, ...rest }) => rest), // Remove _id
             indikator_kinerja: data.kak.indikator_kinerja.map(({ _id, ...rest }) => rest), // Strip frontend-only _id key
         },
@@ -164,6 +341,13 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                         readOnly={readOnly}
                                         subStep={subStep}
                                         setSubStep={setSubStep}
+                                        // Revision props
+                                        isVerifikator={isVerifikator}
+                                        isPengusul={!isVerifikator}
+                                        isPengusulFixing={isPengusulFixing}
+                                        openCommentModal={openCommentModal}
+                                        revisiData={revisiData}
+                                        originalKak={kak}
                                     />
                                 )}
 
@@ -175,9 +359,15 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                         iku={iku}
                                         satuan={satuan}
                                         readOnly={readOnly}
+                                        // Revision props
+                                        isVerifikator={isVerifikator}
+                                        isPengusul={!isVerifikator}
+                                        isPengusulFixing={isPengusulFixing}
+                                        openCommentModal={openCommentModal}
+                                        revisiData={revisiData}
+                                        originalKak={kak}
                                     />
                                 )}
-
                                 {currentStep === 3 && (
                                     <Step3Rab
                                         data={data}
@@ -186,13 +376,20 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                         kategori_belanja={kategori_belanja}
                                         satuan={satuan}
                                         readOnly={readOnly}
+                                        // Revision props
+                                        isVerifikator={isVerifikator}
+                                        isPengusul={!isVerifikator}
+                                        isPengusulFixing={isPengusulFixing}
+                                        openCommentModal={openCommentModal}
+                                        revisiData={revisiData}
+                                        originalKak={kak}
                                     />
                                 )}
                             </motion.div>
                         </AnimatePresence>
 
                         {/* Navigation Buttons */}
-                        <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
                             <button
                                 type="button"
                                 onClick={prevStep}
@@ -203,44 +400,84 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                 <ChevronLeft size={18} /> Sebelumnya
                             </button>
 
-                            {currentStep < 3 ? (
-                                <button
-                                    key="next-btn"
-                                    type="button"
-                                    onClick={nextStep}
-                                    className="px-6 py-2 bg-cyan-500 text-white rounded-xl shadow-lg hover:bg-cyan-600 hover:shadow-cyan-200 transition-all font-semibold flex items-center gap-2"
-                                >
-                                    Selanjutnya <ChevronRight size={18} />
-                                </button>
-                            ) : (
-                                !readOnly && (
+                            <div className="flex gap-4">
+                                {currentStep < 3 ? (
                                     <button
-                                        key="submit-btn"
-                                        type="submit"
-                                        disabled={processing}
-                                        className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 transition-all duration-300 font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        key="next-btn"
+                                        type="button"
+                                        onClick={nextStep}
+                                        className="px-6 py-2 bg-cyan-500 text-white rounded-xl shadow-lg hover:bg-cyan-600 hover:shadow-cyan-200 transition-all font-semibold flex items-center gap-2"
                                     >
-                                        {processing ? (
-                                            <>
-                                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Menyimpan...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Save size={18} /> Simpan KAK
-                                            </>
-                                        )}
+                                        Selanjutnya <ChevronRight size={18} />
                                     </button>
-                                )
-                            )}
+                                ) : (
+                                    !readOnly && (
+                                        <button
+                                            key="submit-btn"
+                                            type="submit"
+                                            disabled={processing}
+                                            className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 transition-all duration-300 font-bold flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {processing ? (
+                                                <>
+                                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                    Menyimpan...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save size={18} /> Simpan KAK
+                                                </>
+                                            )}
+                                        </button>
+                                    )
+                                )}
+
+                                {/* Verifikator Revision/Accept Action */}
+                                {isVerifikator && currentStep === 3 && (
+                                    <>
+                                        {hasNewComments ? (
+                                            <button
+                                                type="button"
+                                                onClick={submitRevision}
+                                                className="px-8 py-3 bg-gradient-to-r from-orange-400 to-red-500 text-white rounded-xl shadow-lg hover:shadow-red-500/30 hover:-translate-y-1 transition-all duration-300 font-bold flex items-center gap-2"
+                                            >
+                                                <FileWarning size={18} />
+                                                Minta Revisi
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={submitApproval}
+                                                className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-green-500/30 hover:-translate-y-1 transition-all duration-300 font-bold flex items-center gap-2"
+                                            >
+                                                <Check size={18} />
+                                                Terima KAK
+                                            </button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
                         </div>
 
                     </form>
                 </div>
             </div>
+
+            {/* Comment Modal for Verifikator / Pengusul view */}
+            <CommentModal
+                isOpen={activeComment.isOpen}
+                onClose={() => setActiveComment(prev => ({ ...prev, isOpen: false }))}
+                onSave={handleSaveComment}
+                title={activeComment.title}
+                initialValue={activeComment.initialValue}
+                isPastNote={activeComment.isPastNote}
+                isReadOnly={!isVerifikator}
+                isPengusul={!isVerifikator}
+            />
+
         </AuthenticatedLayout>
     );
 }

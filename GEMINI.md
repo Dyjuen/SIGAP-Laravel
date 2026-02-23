@@ -23,6 +23,7 @@
 ### 1. Testing is Mandatory
 - **Backend**: Every feature must have Feature tests (`tests/Feature`).
 - **Frontend**: Every UI flow must be verified via Browser MCP tools after implementation.
+- **Credentials**: For testing authentication, grab user credentials (username and password) from `UserSeeder.php`.
 - **Commit Gate**: `composer test` must pass before any commit.
 
 ### 2. Living Documentation

@@ -63,7 +63,7 @@ class KakCrudTest extends TestCase
                 'tanggal_selesai' => '2025-01-31',
                 'lokasi' => 'Campus',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => ['Manfaat 1', 'Manfaat 2'],
+                'manfaat' => [['manfaat' => 'Manfaat 1'], ['manfaat' => 'Manfaat 2']],
                 'tahapan_pelaksanaan' => [
                     ['nama_tahapan' => 'Step 1', 'urutan' => 1],
                     ['nama_tahapan' => 'Step 2', 'urutan' => 2],
@@ -92,7 +92,7 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => 'New Activity']);
         $this->assertDatabaseHas('t_kak_manfaat', ['manfaat' => 'Manfaat 1']);
         $this->assertDatabaseHas('t_kak_tahapan', ['nama_tahapan' => 'Step 1']);
-        $this->assertDatabaseHas('t_kak_target', ['deskripsi_target' => 'Target 1']); // Indikator maps to target
+        $this->assertDatabaseHas('t_kak_target', ['bulan_indikator' => 'Jan', 'deskripsi_target' => 'Target 1', 'persentase_target' => 50]);
         $this->assertDatabaseHas('t_kak_iku', ['iku_id' => $iku->iku_id]);
         $this->assertDatabaseHas('t_kak_anggaran', ['uraian' => 'Item 1']);
     }
@@ -132,7 +132,7 @@ class KakCrudTest extends TestCase
                 'tanggal_selesai' => '2025-03-31',
                 'lokasi' => 'New Loc',
                 'tipe_kegiatan_id' => 1,
-                'manfaat' => ['New Manfaat'],
+                'manfaat' => [['manfaat' => 'New Manfaat']],
                 // Empty children to test clearing
                 'tahapan_pelaksanaan' => [],
                 'indikator_kinerja' => [],
@@ -222,7 +222,7 @@ class KakCrudTest extends TestCase
                 'tanggal_selesai' => '2025-01-31',
                 'lokasi' => 'Campus',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => ['Manfaat 1'], // This will trigger the exception
+                'manfaat' => [['manfaat' => 'Manfaat 1']], // This will trigger the exception
                 'tahapan_pelaksanaan' => [],
                 'indikator_kinerja' => [],
             ],
@@ -283,6 +283,107 @@ class KakCrudTest extends TestCase
 
         $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
         $this->assertDatabaseMissing('t_kak_manfaat', ['manfaat' => 'Old Manfaat']);
+    }
+
+    public function test_update_preserves_child_ids(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
+
+        // 1. Create a KAK with children
+        $data = [
+            'kak' => [
+                'nama_kegiatan' => 'Original Activity',
+                'deskripsi_kegiatan' => 'Desc',
+                'metode_pelaksanaan' => 'Method',
+                'tanggal_mulai' => '2025-01-01',
+                'tanggal_selesai' => '2025-01-31',
+                'lokasi' => 'Campus',
+                'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
+                'manfaat' => [['manfaat' => 'Old Manfaat']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Old Tahapan']],
+                'indikator_kinerja' => [
+                    ['bulan_indikator' => 'Jan', 'deskripsi_target' => 'Old Target', 'persentase_target' => 10],
+                ],
+            ],
+            'target_iku' => [],
+            'rab' => [
+                [
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'Item 1',
+                    'volume1' => 10,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 1000,
+                ],
+            ],
+        ];
+
+        $this->actingAs($user)->post(route('kak.store'), $data);
+        $kak = KAK::where('nama_kegiatan', 'Original Activity')->first();
+
+        // Retrieve the generated IDs
+        $manfaatId = $kak->manfaat()->first()->manfaat_id;
+        $tahapanId = $kak->tahapan()->first()->tahapan_id;
+        $targetId = $kak->targets()->first()->target_id;
+        $anggaranId = $kak->anggaran()->first()->anggaran_id;
+
+        // 2. Update the KAK passing the existing IDs
+        $updatedData = [
+            'kak' => [
+                'nama_kegiatan' => 'Updated Activity',
+                'deskripsi_kegiatan' => 'Desc',
+                'metode_pelaksanaan' => 'Method',
+                'tanggal_mulai' => '2025-01-01',
+                'tanggal_selesai' => '2025-01-31',
+                'lokasi' => 'Campus',
+                'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
+                'manfaat' => [['manfaat_id' => $manfaatId, 'manfaat' => 'Updated Manfaat']],
+                'tahapan_pelaksanaan' => [['tahapan_id' => $tahapanId, 'nama_tahapan' => 'Updated Tahapan']],
+                'indikator_kinerja' => [
+                    ['target_id' => $targetId, 'bulan_indikator' => 'Feb', 'deskripsi_target' => 'Updated Target', 'persentase_target' => 20],
+                ],
+            ],
+            'target_iku' => [],
+            'rab' => [
+                [
+                    'anggaran_id' => $anggaranId,
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'Updated Item',
+                    'volume1' => 20,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 2000,
+                ],
+            ],
+        ];
+
+        $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
+
+        // 3. Assert the same IDs exist with the updated values
+        $this->assertDatabaseHas('t_kak_manfaat', [
+            'manfaat_id' => $manfaatId,
+            'manfaat' => 'Updated Manfaat',
+        ]);
+        $this->assertDatabaseHas('t_kak_tahapan', [
+            'tahapan_id' => $tahapanId,
+            'nama_tahapan' => 'Updated Tahapan',
+        ]);
+        $this->assertDatabaseHas('t_kak_target', [
+            'target_id' => $targetId,
+            'deskripsi_target' => 'Updated Target',
+        ]);
+        $this->assertDatabaseHas('t_kak_anggaran', [
+            'anggaran_id' => $anggaranId,
+            'uraian' => 'Updated Item',
+        ]);
+
+        // Assert count didn't increase
+        $this->assertEquals(1, $kak->manfaat()->count());
+        $this->assertEquals(1, $kak->tahapan()->count());
+        $this->assertEquals(1, $kak->targets()->count());
+        $this->assertEquals(1, $kak->anggaran()->count());
     }
 
     public function test_store_rejects_invalid_foreign_keys(): void

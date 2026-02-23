@@ -44,7 +44,6 @@ class SeederTest extends TestCase
             't_kak_anggaran',
             't_kak_approval',
             't_kak_iku',
-            't_kak_indikator',
             't_kak_log_status',
             't_kak_manfaat',
             't_kak_tahapan',

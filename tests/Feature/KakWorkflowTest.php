@@ -103,11 +103,30 @@ class KakWorkflowTest extends TestCase
         $pengusul = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->review()->create(['pengusul_user_id' => $pengusul->user_id, 'tipe_kegiatan_id' => $tipeId]);
 
+        // Create some child records
+        $anggaran = \App\Models\KAKAnggaran::create([
+            'kak_id' => $kak->kak_id,
+            'kategori_belanja_id' => 1,
+            'uraian' => 'Test Uraian',
+        ]);
+        $manfaat = \App\Models\KAKManfaat::create([
+            'kak_id' => $kak->kak_id,
+            'manfaat' => 'Test Manfaat',
+        ]);
+
         $data = [
             'catatan' => 'General revision note',
             'catatan_kak' => [
                 'nama_kegiatan' => 'Fix Name',
                 'deskripsi_kegiatan' => 'Fix Desc',
+            ],
+            'anak' => [
+                't_kak_anggaran' => [
+                    ['id' => $anggaran->anggaran_id, 'catatan_verifikator' => 'RAB terlalu mahal'],
+                ],
+                't_kak_manfaat' => [
+                    ['id' => $manfaat->manfaat_id, 'catatan_manfaat' => 'Manfaat kurang jelas'],
+                ],
             ],
         ];
 
@@ -116,6 +135,9 @@ class KakWorkflowTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseHas('t_kak', ['kak_id' => $kak->kak_id, 'status_id' => 5]); // Revisi
         $this->assertDatabaseHas('t_kak', ['kak_id' => $kak->kak_id, 'catatan_nama_kegiatan' => 'Fix Name']);
+        $this->assertDatabaseHas('t_kak', ['kak_id' => $kak->kak_id, 'catatan_deskripsi_kegiatan' => 'Fix Desc']);
+        $this->assertDatabaseHas('t_kak_anggaran', ['anggaran_id' => $anggaran->anggaran_id, 'catatan_verifikator' => 'RAB terlalu mahal']);
+        $this->assertDatabaseHas('t_kak_manfaat', ['manfaat_id' => $manfaat->manfaat_id, 'catatan_manfaat' => 'Manfaat kurang jelas']);
     }
 
     public function test_pengusul_can_resubmit_revised_kak(): void

@@ -211,15 +211,8 @@ class KakController extends Controller
             $parentData = collect($kakData)->except(['manfaat', 'tahapan_pelaksanaan', 'indikator_kinerja'])->toArray();
             $lockedKak->update($parentData);
 
-            // 2. Delete Existing Children
-            $lockedKak->manfaat()->delete();
-            $lockedKak->tahapan()->delete();
-            $lockedKak->targets()->delete();
-            $lockedKak->ikus()->delete();
-            $lockedKak->anggaran()->delete();
-
-            // 3. Re-insert Children
-            $this->insertChildren($lockedKak, $request);
+            // Sync Children (preserve existing rows to keep catatan_verifikator)
+            $this->insertChildren($lockedKak, $request, true);
         });
 
         return redirect()->route('kak.index')->with('success', 'KAK berhasil diperbarui.');
@@ -262,67 +255,115 @@ class KakController extends Controller
         return $days > 0 ? "{$months} Bulan {$days} Hari" : "{$months} Bulan";
     }
 
-    private function insertChildren(KAK $kak, $request)
+    private function insertChildren(KAK $kak, $request, $isUpdate = false)
     {
-        // Manfaat
-        $manfaatData = $request->input('kak.manfaat', []);
+        // 1. Manfaat (Frontend sends array of strings)
+        $manfaatData = collect($request->input('kak.manfaat', []))->filter(fn ($m) => ! empty($m['manfaat']));
+        $incomingManfaatIds = $manfaatData->pluck('manfaat_id')->filter()->all();
+        if ($isUpdate) {
+            $kak->manfaat()->whereNotIn('manfaat_id', $incomingManfaatIds)->delete();
+        }
         foreach ($manfaatData as $m) {
-            KAKManfaat::create(['kak_id' => $kak->kak_id, 'manfaat' => $m]);
+            if (! empty($m['manfaat_id'])) {
+                $kak->manfaat()->where('manfaat_id', $m['manfaat_id'])->update([
+                    'manfaat' => $m['manfaat'],
+                ]);
+            } else {
+                KAKManfaat::create([
+                    'kak_id' => $kak->kak_id,
+                    'manfaat' => $m['manfaat'],
+                ]);
+            }
         }
 
-        // Tahapan
-        $tahapanData = $request->input('kak.tahapan_pelaksanaan', []);
+        // 2. Tahapan (Frontend sends array of {nama_tahapan})
+        $tahapanData = collect($request->input('kak.tahapan_pelaksanaan', []))->filter(fn ($t) => ! empty($t['nama_tahapan']));
+        $incomingTahapanIds = $tahapanData->pluck('tahapan_id')->filter()->all();
+        if ($isUpdate) {
+            $kak->tahapan()->whereNotIn('tahapan_id', $incomingTahapanIds)->delete();
+        }
         foreach ($tahapanData as $idx => $t) {
-            KAKTahapan::create([
-                'kak_id' => $kak->kak_id,
-                'nama_tahapan' => $t['nama_tahapan'],
-                'urutan' => $idx + 1, // Or from input
-            ]);
+            if (! empty($t['tahapan_id'])) {
+                $kak->tahapan()->where('tahapan_id', $t['tahapan_id'])->update([
+                    'nama_tahapan' => $t['nama_tahapan'],
+                    'urutan' => $idx + 1,
+                ]);
+            } else {
+                KAKTahapan::create([
+                    'kak_id' => $kak->kak_id,
+                    'nama_tahapan' => $t['nama_tahapan'],
+                    'urutan' => $idx + 1,
+                ]);
+            }
         }
 
-        // Indikator Kinerja (mapped to t_kak_target)
-        // Frontend sends: { deskripsi_target, deskripsi_indikator, ... }
+        // 3. Indikator Kinerja (mapped to t_kak_target)
         $indikatorData = $request->input('kak.indikator_kinerja', []);
+        $incomingTargetIds = collect($indikatorData)->pluck('target_id')->filter()->all();
+        if ($isUpdate) {
+            $kak->targets()->whereNotIn('target_id', $incomingTargetIds)->delete();
+        }
         foreach ($indikatorData as $i) {
-            KAKTarget::create([
-                'kak_id' => $kak->kak_id,
-                'deskripsi_target' => $i['deskripsi_target'], // Target
-                'deskripsi_indikator' => $i['deskripsi_indikator'] ?? '', // Indikator
-            ]);
+            if (! empty($i['target_id'])) {
+                $kak->targets()->where('target_id', $i['target_id'])->update([
+                    'bulan_indikator' => $i['bulan_indikator'] ?? null,
+                    'deskripsi_target' => $i['deskripsi_target'],
+                    'persentase_target' => $i['persentase_target'] ?? null,
+                ]);
+            } else {
+                KAKTarget::create([
+                    'kak_id' => $kak->kak_id,
+                    'bulan_indikator' => $i['bulan_indikator'] ?? null,
+                    'deskripsi_target' => $i['deskripsi_target'],
+                    'persentase_target' => $i['persentase_target'] ?? null,
+                ]);
+            }
         }
 
-        // Target IKU (mapped to t_kak_iku)
-        // Frontend sends: { iku_id, target, satuan_id }
+        // 4. Target IKU
+        // No auto-increment ID in table t_kak_iku (composite PK kak_id, iku_id).
         $ikuData = $request->input('target_iku', []);
-        // Deduplicate by iku_id
-        $ikuData = collect($ikuData)->unique('iku_id')->values()->all();
-
+        $incomingIkuIds = collect($ikuData)->pluck('iku_id')->unique()->filter()->all();
+        if ($isUpdate) {
+            $kak->ikus()->whereNotIn('iku_id', $incomingIkuIds)->delete();
+        }
+        $ikuData = collect($ikuData)->unique('iku_id')->values();
         foreach ($ikuData as $i) {
-            KAKIku::create([
-                'kak_id' => $kak->kak_id,
-                'iku_id' => $i['iku_id'],
-                'target' => $i['target'],
-                'satuan_id' => $i['satuan_id'],
-            ]);
+            KAKIku::updateOrCreate(
+                ['kak_id' => $kak->kak_id, 'iku_id' => $i['iku_id']],
+                [
+                    'target' => $i['target'],
+                    'satuan_id' => $i['satuan_id'],
+                ]
+            );
         }
 
-        // RAB (mapped to t_kak_anggaran)
+        // 5. RAB (Anggaran)
         $rabData = $request->input('rab', []);
+        $incomingAnggaranIds = collect($rabData)->pluck('anggaran_id')->filter()->all();
+        if ($isUpdate) {
+            $kak->anggaran()->whereNotIn('anggaran_id', $incomingAnggaranIds)->delete();
+        }
         foreach ($rabData as $r) {
-            KAKAnggaran::create([
-                'kak_id' => $kak->kak_id,
+            $data = [
                 'kategori_belanja_id' => $r['kategori_belanja_id'],
                 'uraian' => $r['uraian'],
                 'volume1' => $r['volume1'],
                 'satuan1_id' => $r['satuan1_id'],
-                // Add nullable fields
                 'volume2' => $r['volume2'] ?? null,
                 'satuan2_id' => $r['satuan2_id'] ?? null,
                 'volume3' => $r['volume3'] ?? null,
                 'satuan3_id' => $r['satuan3_id'] ?? null,
                 'harga_satuan' => $r['harga_satuan'],
                 'jumlah_diusulkan' => ($r['volume1'] * ($r['volume2'] ?? 1) * ($r['volume3'] ?? 1) * $r['harga_satuan']),
-            ]);
+            ];
+
+            if (! empty($r['anggaran_id'])) {
+                $kak->anggaran()->where('anggaran_id', $r['anggaran_id'])->update($data);
+            } else {
+                $data['kak_id'] = $kak->kak_id;
+                KAKAnggaran::create($data);
+            }
         }
     }
 

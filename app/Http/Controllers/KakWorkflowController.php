@@ -160,13 +160,21 @@ class KakWorkflowController extends Controller
 
             // Save specific field notes
             $catatanKak = $request->input('catatan_kak', []);
-            if (isset($catatanKak['nama_kegiatan'])) {
-                $kak->catatan_nama_kegiatan = $catatanKak['nama_kegiatan'];
+            $kakFieldsMap = [
+                'nama_kegiatan' => 'catatan_nama_kegiatan',
+                'deskripsi_kegiatan' => 'catatan_deskripsi_kegiatan',
+                'tipe_kegiatan_id' => 'catatan_tipe_kegiatan',
+                'sasaran_utama' => 'catatan_sasaran_utama',
+                'metode_pelaksanaan' => 'catatan_metode_pelaksanaan',
+                'lokasi' => 'catatan_lokasi',
+                'tanggal' => 'catatan_tanggal',
+            ];
+
+            foreach ($kakFieldsMap as $frontendKey => $dbCol) {
+                if (isset($catatanKak[$frontendKey])) {
+                    $kak->$dbCol = $catatanKak[$frontendKey];
+                }
             }
-            if (isset($catatanKak['deskripsi_kegiatan'])) {
-                $kak->catatan_deskripsi_kegiatan = $catatanKak['deskripsi_kegiatan'];
-            }
-            // ... map other fields as needed based on column names
 
             $kak->save();
 
@@ -180,9 +188,33 @@ class KakWorkflowController extends Controller
                 'catatan' => $request->catatan, // General note
             ]);
 
-            // We would also update child items' notes here if passed in request
-            // For brevity, assuming child notes handling logic would be expanded here
-            // or handled via Child Model updates if necessary.
+            // Save child items' notes
+            $anak = $request->input('anak', []);
+
+            // Map table names from request to Eloquent relationships and primary keys
+            $childMaps = [
+                't_kak_manfaat' => ['relation' => 'manfaat', 'pk' => 'manfaat_id', 'note_col' => 'catatan_manfaat'],
+                't_kak_tahapan' => ['relation' => 'tahapan', 'pk' => 'tahapan_id', 'note_col' => 'catatan_verifikator'],
+                't_kak_target' => ['relation' => 'targets', 'pk' => 'target_id', 'note_col' => 'catatan_verifikator'], // Indikator
+                't_kak_iku' => ['relation' => 'ikus', 'pk' => 'iku_id', 'note_col' => 'catatan_verifikator'],
+                't_kak_anggaran' => ['relation' => 'anggaran', 'pk' => 'anggaran_id', 'note_col' => 'catatan_verifikator'], // RAB
+            ];
+
+            foreach ($childMaps as $table => $map) {
+                if (isset($anak[$table]) && is_array($anak[$table])) {
+                    $relation = $map['relation'];
+                    $pk = $map['pk'];
+                    $noteCol = $map['note_col'];
+
+                    foreach ($anak[$table] as $itemNote) {
+                        if (isset($itemNote['id']) && array_key_exists($noteCol, $itemNote)) {
+                            $kak->$relation()->where($pk, $itemNote['id'])->update([
+                                $noteCol => $itemNote[$noteCol],
+                            ]);
+                        }
+                    }
+                }
+            }
         });
 
         return back()->with('success', 'Permintaan revisi dikirim.');
