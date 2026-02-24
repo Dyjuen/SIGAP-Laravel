@@ -91,9 +91,9 @@ class KegiatanController extends Controller
             $filePath = null;
             if ($request->hasFile('surat_pengantar')) {
                 $file = $request->file('surat_pengantar');
-                $filename = time() . '_' . $file->getClientOriginalName();
+                $filename = time().'_'.$file->getClientOriginalName();
                 $file->storeAs('uploads/documents', $filename, 'public');
-                $filePath = 'uploads/documents/' . $filename;
+                $filePath = 'uploads/documents/'.$filename;
             }
 
             // 3. Create Kegiatan
@@ -137,7 +137,7 @@ class KegiatanController extends Controller
             DB::rollBack();
 
             // Re-throw or return generic error
-            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: '.$e->getMessage());
         }
     }
 
@@ -175,7 +175,7 @@ class KegiatanController extends Controller
 
         $activeApproval = $kegiatan->activeApproval()->first();
 
-        if (!$activeApproval) {
+        if (! $activeApproval) {
             return back()->with('error', 'Tidak ada langkah persetujuan yang aktif.');
         }
 
@@ -186,7 +186,7 @@ class KegiatanController extends Controller
             // Others outside of current scope
         ];
 
-        if (!isset($expectedRoleMap[$activeApproval->approval_level]) || $expectedRoleMap[$activeApproval->approval_level] !== $role) {
+        if (! isset($expectedRoleMap[$activeApproval->approval_level]) || $expectedRoleMap[$activeApproval->approval_level] !== $role) {
             abort(403, 'Akses ditolak: level persetujuan tidak sesuai dengan role Anda.');
         }
 
@@ -246,7 +246,7 @@ class KegiatanController extends Controller
                     'status_id_lama' => $oldStatus,
                     'status_id_baru' => $newStatus,
                     'actor_user_id' => $user->user_id,
-                    'catatan' => $request->catatan ?: 'Disetujui oleh ' . $role,
+                    'catatan' => $request->catatan ?: 'Disetujui oleh '.$role,
                 ]);
             }
 
@@ -257,7 +257,7 @@ class KegiatanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());
         }
     }
 
@@ -290,7 +290,7 @@ class KegiatanController extends Controller
         if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
             $query->whereHas('kak', function ($q) use ($searchTerm) {
-                $q->where('nama_kegiatan', 'like', '%' . $searchTerm . '%');
+                $q->where('nama_kegiatan', 'like', '%'.$searchTerm.'%');
             });
         }
 
@@ -311,7 +311,7 @@ class KegiatanController extends Controller
                 'accWD2' => null,
                 'uangMuka' => null,
                 'lpj' => null,
-                'setorFisik' => null
+                'setorFisik' => null,
             ];
 
             $approvedSteps = [];
@@ -325,7 +325,7 @@ class KegiatanController extends Controller
                 }
             }
 
-            $maxApprovedStep = !empty($approvedSteps) ? max($approvedSteps) : 0;
+            $maxApprovedStep = ! empty($approvedSteps) ? max($approvedSteps) : 0;
 
             $activeApproval = $kegiatan->approvals->where('status', 'Aktif')->first();
 

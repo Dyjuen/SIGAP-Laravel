@@ -39,7 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
     Route::get('/user-management', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('admin.users.index');
