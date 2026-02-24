@@ -148,6 +148,7 @@ class KakController extends Controller
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
             'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
+            'mata_anggaran' => \App\Models\MataAnggaran::all(),
         ]);
     }
 
@@ -177,6 +178,7 @@ class KakController extends Controller
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
             'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
+            'mata_anggaran' => \App\Models\MataAnggaran::all(),
         ]);
     }
 

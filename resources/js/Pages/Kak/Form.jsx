@@ -11,7 +11,7 @@ import Swal from 'sweetalert2';
 import { ChevronLeft, ChevronRight, Save, Check, FileWarning } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
-export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategori_belanja, readOnly = false }) {
+export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategori_belanja, mata_anggaran = [], readOnly = false }) {
     const isEdit = !!kak;
     const isVerifikator = auth.user.role_id === 2 && readOnly; // Verifikator viewing
     const isPengusulFixing = auth.user.role_id === 3 && kak?.status_id === 5; // Pengusul fixing revision
@@ -172,13 +172,25 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
     };
 
     const submitApproval = () => {
+        const optionsHtml = mata_anggaran.map(ma =>
+            `<option value="${ma.mata_anggaran_id}">${ma.kode_anggaran}</option>`
+        ).join('');
+
         Swal.fire({
             title: 'Setujui KAK?',
             html: `
                 <div class="text-left space-y-4 mt-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">Kode Anggaran</label>
-                        <input id="swal-kode-anggaran" class="w-full rounded-lg border-gray-200" placeholder="Contoh: 023.14.WA.4132...">
+                        <select id="swal-select-anggaran" class="w-full rounded-lg border-gray-200 mb-2">
+                            <option value="">-- Pilih Kode Anggaran --</option>
+                            ${optionsHtml}
+                            <option value="new">+ Tambah Kode MAK Baru</option>
+                        </select>
+                        
+                        <div id="new-kode-container" style="display: none;">
+                            <input id="swal-kode-anggaran" class="w-full rounded-lg border-gray-200" placeholder="Contoh: 023.14.WA.4132...">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">Nama Sumber Dana</label>
@@ -194,23 +206,81 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                     </div>
                 </div>
             `,
+            didOpen: () => {
+                const selectEl = document.getElementById('swal-select-anggaran');
+                const newKodeContainer = document.getElementById('new-kode-container');
+                const kodeInput = document.getElementById('swal-kode-anggaran');
+                const sumberInput = document.getElementById('swal-sumber-dana');
+                const tahunInput = document.getElementById('swal-tahun-anggaran');
+                const paguInput = document.getElementById('swal-total-pagu');
+
+                // Pass the data array to the DOM context
+                const maData = mata_anggaran;
+
+                selectEl.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    if (val === 'new') {
+                        newKodeContainer.style.display = 'block';
+                        kodeInput.value = '';
+                        sumberInput.value = '';
+                        tahunInput.value = new Date().getFullYear();
+                        paguInput.value = '';
+
+                        sumberInput.disabled = false;
+                        tahunInput.disabled = false;
+                        paguInput.disabled = false;
+                    } else if (val !== '') {
+                        newKodeContainer.style.display = 'none';
+                        const selectedMA = maData.find(ma => ma.mata_anggaran_id == val);
+                        if (selectedMA) {
+                            kodeInput.value = selectedMA.kode_anggaran;
+                            sumberInput.value = selectedMA.nama_sumber_dana;
+                            tahunInput.value = selectedMA.tahun_anggaran;
+                            paguInput.value = selectedMA.total_pagu;
+
+                            sumberInput.disabled = true;
+                            tahunInput.disabled = true;
+                            paguInput.disabled = true;
+                        }
+                    } else {
+                        newKodeContainer.style.display = 'none';
+                        kodeInput.value = '';
+                        sumberInput.value = '';
+                        tahunInput.value = new Date().getFullYear();
+                        paguInput.value = '';
+
+                        sumberInput.disabled = false;
+                        tahunInput.disabled = false;
+                        paguInput.disabled = false;
+                    }
+                });
+            },
             showCancelButton: true,
             confirmButtonColor: '#10b981', // emerald
             cancelButtonColor: '#d33',
             confirmButtonText: 'Ya, Setujui',
             cancelButtonText: 'Batal',
             preConfirm: () => {
+                const selectVal = document.getElementById('swal-select-anggaran').value;
                 const kode = document.getElementById('swal-kode-anggaran').value;
                 const sumber = document.getElementById('swal-sumber-dana').value;
                 const tahun = document.getElementById('swal-tahun-anggaran').value;
                 const pagu = document.getElementById('swal-total-pagu').value;
 
-                if (!kode || !sumber || !tahun || !pagu) {
-                    Swal.showValidationMessage('Semua form wajib diisi!');
+                if (!selectVal) {
+                    Swal.showValidationMessage('Silakan pilih Kode Anggaran!');
                     return false;
                 }
 
+                if (selectVal === 'new') {
+                    if (!kode || !sumber || !tahun || !pagu) {
+                        Swal.showValidationMessage('Semua form wajib diisi untuk kode anggaran baru!');
+                        return false;
+                    }
+                }
+
                 return {
+                    mata_anggaran_id: selectVal === 'new' ? null : selectVal,
                     kode_anggaran: kode,
                     nama_sumber_dana: sumber,
                     tahun_anggaran: parseInt(tahun, 10),

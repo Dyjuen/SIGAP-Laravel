@@ -77,4 +77,9 @@ class KAK extends Model
     {
         return $this->hasMany(KAKApproval::class, 'kak_id');
     }
+
+    public function kegiatan()
+    {
+        return $this->hasOne(Kegiatan::class, 'kak_id');
+    }
 }

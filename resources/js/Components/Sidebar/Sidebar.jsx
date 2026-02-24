@@ -10,7 +10,8 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    FileText
+    FileText,
+    ClipboardCheck
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import SidebarItem from './SidebarItem';
@@ -46,6 +47,12 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             href: route('kak.index'),
             icon: FileText,
             active: route().current('kak.*')
+        },
+        {
+            label: 'Kegiatan',
+            href: route('kegiatan.index'),
+            icon: ClipboardCheck,
+            active: route().current('kegiatan.*')
         },
         {
             label: 'Manajemen Akun',

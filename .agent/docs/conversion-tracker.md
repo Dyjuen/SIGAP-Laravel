@@ -9,10 +9,10 @@ This document tracks the migration of features from the native PHP application t
 | **Master Data** | `MasterController` | `Iku`, `Satuan`, `TipeKegiatan`, `MataAnggaran`, `KategoriBelanja` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Panduan (Guides)** | `PanduanController` | `Panduan` | ✅ Completed | ✅ | ✅ | ✅ |
 | **KAK (Activities)** | `KAKController` | `KAK`, `KAKAnggaran`, `KAKIndikator`, `KAKTarget`, `KAKTahapan`, `KAKManfaat` | ✅ Completed | ✅ | ✅ | ✅ |
-| **Kegiatan (Realization)** | `KegiatanController` | `Kegiatan`, `KegiatanAnggaran`, `KegiatanLampiran` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Kegiatan (Realization)** | `KegiatanController` | `Kegiatan`, `KegiatanApproval`, `KegiatanLogStatus` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Lampiran (Attachments)** | `LampiranController` | `KegiatanLampiran` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Pencairan (Disbursement)** | `PencairanController` | `PencairanDana` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
-| **LPJ (Reports)** | `LpjController` | (Logic mainly in controller) | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **LPJ (Reports)** | `KegiatanAnggaran`, `LpjController` | (Logic mainly in controller) | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Dashboard** | `DashboardController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Dashboard Direktur** | `DashboardDirekturController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Notifications** | `NotificationController` | `Notifikasi` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |

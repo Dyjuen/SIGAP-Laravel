@@ -32,6 +32,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/kak/{kak}/reject', [\App\Http\Controllers\KakWorkflowController::class, 'reject'])->name('kak.reject');
     Route::post('/kak/{kak}/revise', [\App\Http\Controllers\KakWorkflowController::class, 'revise'])->name('kak.revise');
     Route::post('/kak/{kak}/resubmit', [\App\Http\Controllers\KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
+
+    // Kegiatan Routes
+    Route::resource('kegiatan', \App\Http\Controllers\KegiatanController::class)->only(['index', 'store', 'show']);
+    Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
 });
 
 require __DIR__.'/auth.php';

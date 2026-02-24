@@ -57,28 +57,34 @@ class KakWorkflowController extends Controller
         }
 
         $request->validate([
-            'kode_anggaran' => 'required|string',
-            'nama_sumber_dana' => 'required|string',
-            'tahun_anggaran' => 'required|integer',
-            'total_pagu' => 'required|numeric',
+            'mata_anggaran_id' => 'nullable|exists:m_mata_anggaran,mata_anggaran_id',
+            'kode_anggaran' => 'required_without:mata_anggaran_id|string|nullable',
+            'nama_sumber_dana' => 'required_without:mata_anggaran_id|string|nullable',
+            'tahun_anggaran' => 'required_without:mata_anggaran_id|integer|nullable',
+            'total_pagu' => 'required_without:mata_anggaran_id|numeric|nullable',
         ]);
 
         DB::transaction(function () use ($request, $kak) {
             $oldStatus = $kak->status_id;
 
-            // Handle Mata Anggaran
-            $mataAnggaran = MataAnggaran::firstOrCreate(
-                ['kode_anggaran' => $request->kode_anggaran],
-                [
-                    'nama_sumber_dana' => $request->nama_sumber_dana,
-                    'tahun_anggaran' => $request->tahun_anggaran,
-                    'total_pagu' => $request->total_pagu,
-                ]
-            );
+            if ($request->filled('mata_anggaran_id')) {
+                $mataAnggaranId = $request->mata_anggaran_id;
+            } else {
+                // Handle Mata Anggaran Baru
+                $mataAnggaran = MataAnggaran::firstOrCreate(
+                    ['kode_anggaran' => $request->kode_anggaran],
+                    [
+                        'nama_sumber_dana' => $request->nama_sumber_dana,
+                        'tahun_anggaran' => $request->tahun_anggaran,
+                        'total_pagu' => $request->total_pagu,
+                    ]
+                );
+                $mataAnggaranId = $mataAnggaran->mata_anggaran_id;
+            }
 
             // Update KAK
             $kak->status_id = 3; // Disetujui
-            $kak->mata_anggaran_id = $mataAnggaran->mata_anggaran_id;
+            $kak->mata_anggaran_id = $mataAnggaranId;
 
             // Clear catatan on Approval
             $this->clearCatatan($kak);
