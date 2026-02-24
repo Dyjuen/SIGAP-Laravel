@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import {
     ClipboardCheck,
@@ -117,7 +118,7 @@ export default function Index({ auth, approvedKaks, pendingKegiatan }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-slate-800 leading-tight">Manajemen Kegiatan</h2>}
+            header={<PageHeader title="Manajemen Kegiatan" />}
         >
             <Head title="Kegiatan" />
 

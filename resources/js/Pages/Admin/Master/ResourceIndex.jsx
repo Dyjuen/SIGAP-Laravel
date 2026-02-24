@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm, router } from '@inertiajs/react'; // router imported
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -79,7 +80,7 @@ export default function ResourceIndex({ auth, type, title, readonly, primaryKey,
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{title}</h2>}
+            header={<PageHeader title={title} />}
         >
             <Head title={title} />
 

@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, useForm, router } from '@inertiajs/react'; // Import router from @inertiajs/react
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
@@ -165,7 +166,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Manajemen Akun</h2>}
+            header={<PageHeader title="Manajemen Akun" />}
         >
             <Head title="Manajemen Akun" />
 
@@ -297,8 +298,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                             key={i}
                                             onClick={() => setCurrentPage(i + 1)}
                                             className={`px-3 py-1 rounded-md text-sm font-medium transition ${currentPage === i + 1
-                                                    ? 'bg-cyan-500 text-white shadow-md'
-                                                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                                ? 'bg-cyan-500 text-white shadow-md'
+                                                : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                                                 }`}
                                         >
                                             {i + 1}

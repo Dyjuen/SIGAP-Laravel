@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, useForm, router } from '@inertiajs/react'; // Import router
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
@@ -112,7 +113,7 @@ export default function PanduanIndex({ auth, panduan, roles }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Manajemen Panduan</h2>}
+            header={<PageHeader title="Manajemen Panduan" />}
         >
             <Head title="Manajemen Panduan" />
 

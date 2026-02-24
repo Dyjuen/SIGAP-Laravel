@@ -91,9 +91,9 @@ class KegiatanController extends Controller
             $filePath = null;
             if ($request->hasFile('surat_pengantar')) {
                 $file = $request->file('surat_pengantar');
-                $filename = time().'_'.$file->getClientOriginalName();
+                $filename = time() . '_' . $file->getClientOriginalName();
                 $file->storeAs('uploads/documents', $filename, 'public');
-                $filePath = 'uploads/documents/'.$filename;
+                $filePath = 'uploads/documents/' . $filename;
             }
 
             // 3. Create Kegiatan
@@ -137,7 +137,7 @@ class KegiatanController extends Controller
             DB::rollBack();
 
             // Re-throw or return generic error
-            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: '.$e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
         }
     }
 
@@ -175,7 +175,7 @@ class KegiatanController extends Controller
 
         $activeApproval = $kegiatan->activeApproval()->first();
 
-        if (! $activeApproval) {
+        if (!$activeApproval) {
             return back()->with('error', 'Tidak ada langkah persetujuan yang aktif.');
         }
 
@@ -186,7 +186,7 @@ class KegiatanController extends Controller
             // Others outside of current scope
         ];
 
-        if (! isset($expectedRoleMap[$activeApproval->approval_level]) || $expectedRoleMap[$activeApproval->approval_level] !== $role) {
+        if (!isset($expectedRoleMap[$activeApproval->approval_level]) || $expectedRoleMap[$activeApproval->approval_level] !== $role) {
             abort(403, 'Akses ditolak: level persetujuan tidak sesuai dengan role Anda.');
         }
 
@@ -246,7 +246,7 @@ class KegiatanController extends Controller
                     'status_id_lama' => $oldStatus,
                     'status_id_baru' => $newStatus,
                     'actor_user_id' => $user->user_id,
-                    'catatan' => $request->catatan ?: 'Disetujui oleh '.$role,
+                    'catatan' => $request->catatan ?: 'Disetujui oleh ' . $role,
                 ]);
             }
 
@@ -257,7 +257,103 @@ class KegiatanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());
+            return back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Display the monitoring kegiatan page.
+     */
+    public function monitoring(Request $request)
+    {
+        $user = $request->user();
+        $role = $user->getRoleName();
+
+        $query = Kegiatan::with(['kak.tipeKegiatan', 'approvals']);
+
+        if ($role === 'Pengusul') {
+            $query->whereHas('kak', function ($q) use ($user) {
+                $q->where('pengusul_user_id', $user->user_id);
+            });
+        } elseif ($role === 'Verifikator') {
+            // Extract number from username (e.g., verifikator1 -> 1)
+            preg_match('/verifikator(\d+)/i', $user->username, $matches);
+            if (isset($matches[1])) {
+                $tipeKegiatanId = $matches[1];
+                $query->whereHas('kak', function ($q) use ($tipeKegiatanId) {
+                    $q->where('tipe_kegiatan_id', $tipeKegiatanId);
+                });
+            }
+        }
+
+        // Apply search if provided
+        if ($request->has('search') && $request->search) {
+            $searchTerm = $request->search;
+            $query->whereHas('kak', function ($q) use ($searchTerm) {
+                $q->where('nama_kegiatan', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        $kegiatans = $query->latest('kegiatan_id')->paginate(10)->withQueryString();
+
+        // Map data for frontend
+        $mappedKegiatans = $kegiatans->getCollection()->map(function ($kegiatan) {
+            $approvalStepMapping = [
+                'PPK' => ['step' => 1, 'dateKey' => 'accPPK'],
+                'Wadir2' => ['step' => 2, 'dateKey' => 'accWD2'],
+                'Bendahara-Cair' => ['step' => 3, 'dateKey' => 'uangMuka'],
+                'Bendahara-LPJ' => ['step' => 4, 'dateKey' => 'lpj'],
+                'Bendahara-Setor' => ['step' => 5, 'dateKey' => 'setorFisik'],
+            ];
+
+            $dates = [
+                'accPPK' => null,
+                'accWD2' => null,
+                'uangMuka' => null,
+                'lpj' => null,
+                'setorFisik' => null
+            ];
+
+            $approvedSteps = [];
+            $currentStatus = 1;
+
+            foreach ($kegiatan->approvals as $approval) {
+                if (($approval->status === 'Disetujui' || $approval->status === 'Bendahara-Setor') && isset($approvalStepMapping[$approval->approval_level])) {
+                    $mapping = $approvalStepMapping[$approval->approval_level];
+                    $dates[$mapping['dateKey']] = $approval->updated_at ? $approval->updated_at->format('d/m/Y') : null;
+                    $approvedSteps[] = $mapping['step'];
+                }
+            }
+
+            $maxApprovedStep = !empty($approvedSteps) ? max($approvedSteps) : 0;
+
+            $activeApproval = $kegiatan->approvals->where('status', 'Aktif')->first();
+
+            if ($activeApproval && isset($approvalStepMapping[$activeApproval->approval_level])) {
+                $currentStatus = $approvalStepMapping[$activeApproval->approval_level]['step'];
+            } else {
+                if ($maxApprovedStep === 5) {
+                    $currentStatus = 6;
+                } else {
+                    $currentStatus = $maxApprovedStep + 1;
+                }
+            }
+
+            return [
+                'kak_id' => $kegiatan->kak_id,
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'nama_kegiatan' => $kegiatan->kak ? $kegiatan->kak->nama_kegiatan : '-',
+                'status' => $currentStatus,
+                'dates' => $dates,
+                'overdueDays' => 0, // Not implemented yet
+            ];
+        });
+
+        $kegiatans->setCollection($mappedKegiatans);
+
+        return Inertia::render('Kegiatan/Monitoring', [
+            'kegiatans' => $kegiatans,
+            'filters' => $request->only(['search']),
+        ]);
     }
 }

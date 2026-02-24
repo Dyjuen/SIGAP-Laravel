@@ -1,5 +1,6 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -45,17 +46,17 @@ export default function Show({ auth, kegiatan }) {
         <AuthenticatedLayout
             user={auth.user}
             header={
-                <div className="flex items-center gap-4">
-                    <Link
-                        href={route('kegiatan.index')}
-                        className="p-2 bg-white text-slate-500 hover:text-cyan-600 rounded-full transition-colors border border-slate-200"
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                    <h2 className="font-semibold text-xl text-slate-800 leading-tight">
-                        Detail Kegiatan
-                    </h2>
-                </div>
+                <PageHeader title={
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href={route('kegiatan.index')}
+                            className="p-2 bg-white text-slate-500 hover:text-cyan-600 rounded-full transition-colors border border-slate-200 flex-shrink-0"
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </Link>
+                        <span>Detail Kegiatan</span>
+                    </div>
+                } />
             }
         >
             <Head title={`Detail Kegiatan - ${kak.nama_kegiatan}`} />

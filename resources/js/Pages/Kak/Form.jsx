@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, useForm, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -377,7 +378,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">{isEdit ? 'Edit KAK' : 'Usulan KAK Baru'}</h2>}
+            header={<PageHeader title={isEdit ? 'Edit KAK' : 'Usulan KAK Baru'} />}
         >
             <Head title={isEdit ? 'Edit KAK' : 'Usulan KAK'} />
 

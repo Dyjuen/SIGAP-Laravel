@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
@@ -95,7 +96,7 @@ export default function LogsIndex({ auth, logs, roles, filters }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Riwayat Pengguna</h2>}
+            header={<PageHeader title="Riwayat Pengguna" />}
         >
             <Head title="Riwayat Pengguna" />
 

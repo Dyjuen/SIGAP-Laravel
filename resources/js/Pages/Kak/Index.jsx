@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
@@ -123,7 +124,7 @@ export default function KakIndex({ auth, kaks, filters }) {
     return (
         <AuthenticatedLayout
             user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Daftar Usulan Kegiatan (KAK)</h2>}
+            header={<PageHeader title="Daftar Usulan Kegiatan (KAK)" />}
         >
             <Head title="Daftar KAK" />
 

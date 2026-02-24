@@ -11,7 +11,8 @@ import {
     ChevronLeft,
     ChevronRight,
     FileText,
-    ClipboardCheck
+    ClipboardCheck,
+    Eye
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import SidebarItem from './SidebarItem';
@@ -52,7 +53,13 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             label: 'Kegiatan',
             href: route('kegiatan.index'),
             icon: ClipboardCheck,
-            active: route().current('kegiatan.*')
+            active: route().current('kegiatan.*') && !route().current('kegiatan.monitoring')
+        },
+        {
+            label: 'Pemantauan Kegiatan',
+            href: route('kegiatan.monitoring'),
+            icon: Eye,
+            active: route().current('kegiatan.monitoring')
         },
         {
             label: 'Manajemen Akun',

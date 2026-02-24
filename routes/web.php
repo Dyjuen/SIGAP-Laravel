@@ -34,11 +34,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/kak/{kak}/resubmit', [\App\Http\Controllers\KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
 
     // Kegiatan Routes
+    Route::get('/kegiatan/monitoring', [\App\Http\Controllers\KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
     Route::resource('kegiatan', \App\Http\Controllers\KegiatanController::class)->only(['index', 'store', 'show']);
     Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
     Route::get('/user-management', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('admin.users.index');
