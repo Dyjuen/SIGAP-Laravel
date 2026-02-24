@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import SpectacularBorder from '../Components/SpectacularBorder';
 import CommentIcon from '../Components/CommentIcon';
-import CommentAlert from '../Components/CommentAlert';
 import { Wallet, Trash, Plus } from 'lucide-react';
 
 export default function Step3Rab({
@@ -187,13 +186,6 @@ export default function Step3Rab({
                                                                     </td>
                                                                 )}
                                                             </motion.tr>
-                                                            {isPengusulFixing && originalKak?.anggaran?.find(a => a.anggaran_id === item.anggaran_id)?.catatan_verifikator && (
-                                                                <tr className="bg-red-50">
-                                                                    <td colSpan={readOnly ? 9 : 10} className="px-2 py-1">
-                                                                        <CommentAlert message={originalKak.anggaran.find(a => a.anggaran_id === item.anggaran_id).catatan_verifikator} className="my-1 border-0 shadow-none bg-transparent" />
-                                                                    </td>
-                                                                </tr>
-                                                            )}
                                                         </React.Fragment>
                                                     ))}
                                                 </AnimatePresence>

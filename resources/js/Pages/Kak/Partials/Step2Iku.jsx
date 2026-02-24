@@ -2,7 +2,6 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SpectacularBorder from '../Components/SpectacularBorder';
 import CommentIcon from '../Components/CommentIcon';
-import CommentAlert from '../Components/CommentAlert';
 import { Trash, Plus } from 'lucide-react';
 
 export default function Step2Iku({
@@ -32,9 +31,6 @@ export default function Step2Iku({
                         Pilih Indikator Kinerja Utama yang relevan dengan kegiatan ini dan tentukan target capaiannya.
                     </p>
 
-                    {isPengusulFixing && originalKak?.catatan_iku && (
-                        <CommentAlert message={originalKak.catatan_iku} className="mb-6" />
-                    )}
 
                     <div className="space-y-4">
                         <AnimatePresence mode="popLayout">

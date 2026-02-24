@@ -484,7 +484,14 @@ export default function Step1Kak({
                                                                     type="number"
                                                                     className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
                                                                     value={item.persentase_target}
-                                                                    onChange={(e) => updateIndikator(index, 'persentase_target', e.target.value)}
+                                                                    onChange={(e) => {
+                                                                        let val = e.target.value;
+                                                                        if (val !== '') {
+                                                                            if (Number(val) > 100) val = '100';
+                                                                            if (Number(val) < 0) val = '0';
+                                                                        }
+                                                                        updateIndikator(index, 'persentase_target', val);
+                                                                    }}
                                                                     placeholder="0"
                                                                     min="0"
                                                                     max="100"

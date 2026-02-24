@@ -158,6 +158,9 @@ class KakWorkflowController extends Controller
 
             $kak->status_id = 5; // Revisi
 
+            // Clear all previous review notes first before setting the new ones
+            $this->clearCatatan($kak);
+
             // Save specific field notes
             $catatanKak = $request->input('catatan_kak', []);
             $kakFieldsMap = [
@@ -299,5 +302,12 @@ class KakWorkflowController extends Controller
         $kak->catatan_metode_pelaksanaan = null;
         $kak->catatan_lokasi = null;
         $kak->catatan_tanggal = null;
+
+        // Clear child notes
+        $kak->manfaat()->update(['catatan_manfaat' => null]);
+        $kak->tahapan()->update(['catatan_verifikator' => null]);
+        $kak->targets()->update(['catatan_verifikator' => null]);
+        $kak->ikus()->update(['catatan_verifikator' => null]);
+        $kak->anggaran()->update(['catatan_verifikator' => null]);
     }
 }
