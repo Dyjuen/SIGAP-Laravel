@@ -12,7 +12,7 @@ class StorePencairanRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->getRoleName() === 'Bendahara';
+        return in_array($this->user()->getRoleName(), ['Bendahara', 'Admin']);
     }
 
     /**

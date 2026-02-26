@@ -9,6 +9,7 @@ use App\Models\KegiatanApproval;
 use App\Models\KegiatanLogStatus;
 use App\Models\PencairanDana;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -95,7 +96,7 @@ class PencairanController extends Controller
     /**
      * Record a new disbursement transaction (only Bendahara).
      */
-    public function store(StorePencairanRequest $request, Kegiatan $kegiatan): JsonResponse
+    public function store(StorePencairanRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
         // Check Bendahara-Cair approval is Aktif
         $bendaharaCairApproval = $kegiatan->approvals()
@@ -104,9 +105,9 @@ class PencairanController extends Controller
             ->first();
 
         if (! $bendaharaCairApproval) {
-            return response()->json([
+            return redirect()->back()->withErrors([
                 'message' => 'Pencairan belum dapat dilakukan. Status persetujuan Bendahara-Cair belum Aktif.',
-            ], 400);
+            ]);
         }
 
         $nominalPencairan = (float) $request->nominal_pencairan;
@@ -114,12 +115,9 @@ class PencairanController extends Controller
         // Validate nominal does not exceed sisa dana
         $summary = $this->computeSisaDana($kegiatan);
         if ($nominalPencairan > $summary['sisa_dana']) {
-            return response()->json([
-                'message' => 'Nominal pencairan melebihi sisa dana yang tersedia. Sisa dana: Rp '.number_format($summary['sisa_dana'], 0, ',', '.'),
-                'errors' => [
-                    'nominal_pencairan' => ['Nominal pencairan melebihi sisa dana yang tersedia.'],
-                ],
-            ], 422);
+            return redirect()->back()->withErrors([
+                'nominal_pencairan' => 'Nominal pencairan melebihi sisa dana yang tersedia.',
+            ]);
         }
 
         $pencairan = PencairanDana::create([
@@ -130,19 +128,14 @@ class PencairanController extends Controller
             'tanggal_pencairan' => now()->toDateString(),
         ]);
 
-        return response()->json([
-            'message' => 'Pencairan dana berhasil dicatat.',
-            'data' => [
-                'pencairan_id' => $pencairan->pencairan_id,
-            ],
-        ], 201);
+        return redirect()->back()->with('success', 'Pencairan dana berhasil dicatat.');
     }
 
     /**
      * Complete the disbursement phase (UM Selesai).
      * Sets Bendahara-Cair → Disetujui, activates Bendahara-LPJ, updates KAK status to 10.
      */
-    public function selesai(Request $request, Kegiatan $kegiatan): JsonResponse
+    public function selesai(Request $request, Kegiatan $kegiatan): RedirectResponse
     {
         $user = $request->user();
 
@@ -158,9 +151,9 @@ class PencairanController extends Controller
             ->first();
 
         if (! $bendaharaCairApproval) {
-            return response()->json([
+            return redirect()->back()->withErrors([
                 'message' => 'Proses pencairan belum aktif atau sudah diselesaikan.',
-            ], 400);
+            ]);
         }
 
         DB::beginTransaction();
@@ -200,16 +193,14 @@ class PencairanController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'message' => 'Proses pencairan berhasil diselesaikan dan tahap LPJ telah dimulai.',
-            ]);
+            return redirect()->back()->with('success', 'Proses pencairan berhasil diselesaikan dan tahap LPJ telah dimulai.');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            return response()->json([
+            return redirect()->back()->withErrors([
                 'message' => 'Gagal menyelesaikan proses pencairan: '.$e->getMessage(),
-            ], 500);
+            ]);
         }
     }
 

@@ -198,12 +198,13 @@ class PencairanTest extends TestCase
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
 
         $response = $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.store', $kegiatan), [
+            ->post(route('pencairan.store', $kegiatan), [
                 'nominal_pencairan' => 2000000,
                 'keterangan' => 'Pencairan tahap pertama',
             ]);
 
-        $response->assertStatus(201);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('t_pencairan_dana', [
             'kegiatan_id' => $kegiatan->kegiatan_id,
@@ -212,16 +213,31 @@ class PencairanTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_store_pencairan(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]); // Admin
+        $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
+
+        $response = $this->actingAs($admin)
+            ->post(route('pencairan.store', $kegiatan), [
+                'nominal_pencairan' => 1000000,
+                'keterangan' => 'Pencairan oleh admin',
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHas('success');
+    }
+
     public function test_non_bendahara_cannot_store_pencairan(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
 
         $this->actingAs($this->ppk)
-            ->postJson(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 1000000])
+            ->post(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 1000000])
             ->assertStatus(403);
 
         $this->actingAs($this->pengusul)
-            ->postJson(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 1000000])
+            ->post(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 1000000])
             ->assertStatus(403);
     }
 
@@ -255,9 +271,10 @@ class PencairanTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 1000000]);
+            ->post(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 1000000]);
 
-        $response->assertStatus(400);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['message']);
         $this->assertDatabaseCount('t_pencairan_dana', 0);
     }
 
@@ -266,12 +283,12 @@ class PencairanTest extends TestCase
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 2000000);
 
         $response = $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.store', $kegiatan), [
+            ->post(route('pencairan.store', $kegiatan), [
                 'nominal_pencairan' => 3000000, // Exceeds budget of 2M
             ]);
 
-        $response->assertStatus(422)
-            ->assertJsonPath('message', fn ($msg) => str_contains($msg, 'sisa dana'));
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['nominal_pencairan']);
 
         $this->assertDatabaseCount('t_pencairan_dana', 0);
     }
@@ -282,15 +299,15 @@ class PencairanTest extends TestCase
 
         // Missing nominal_pencairan
         $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.store', $kegiatan), [])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['nominal_pencairan']);
+            ->post(route('pencairan.store', $kegiatan), [])
+            ->assertStatus(302)
+            ->assertSessionHasErrors(['nominal_pencairan']);
 
         // Zero value
         $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 0])
-            ->assertStatus(422)
-            ->assertJsonValidationErrors(['nominal_pencairan']);
+            ->post(route('pencairan.store', $kegiatan), ['nominal_pencairan' => 0])
+            ->assertStatus(302)
+            ->assertSessionHasErrors(['nominal_pencairan']);
     }
 
     // ========================================
@@ -302,9 +319,10 @@ class PencairanTest extends TestCase
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
 
         $response = $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.selesai', $kegiatan));
+            ->post(route('pencairan.selesai', $kegiatan));
 
-        $response->assertStatus(200);
+        $response->assertStatus(302);
+        $response->assertSessionHas('success');
 
         // Bendahara-Cair should now be Disetujui
         $this->assertDatabaseHas('t_kegiatan_approval', [
@@ -338,11 +356,11 @@ class PencairanTest extends TestCase
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
 
         $this->actingAs($this->ppk)
-            ->postJson(route('pencairan.selesai', $kegiatan))
+            ->post(route('pencairan.selesai', $kegiatan))
             ->assertStatus(403);
 
         $this->actingAs($this->pengusul)
-            ->postJson(route('pencairan.selesai', $kegiatan))
+            ->post(route('pencairan.selesai', $kegiatan))
             ->assertStatus(403);
     }
 
@@ -376,8 +394,9 @@ class PencairanTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->bendahara)
-            ->postJson(route('pencairan.selesai', $kegiatan));
+            ->post(route('pencairan.selesai', $kegiatan));
 
-        $response->assertStatus(400);
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['message']);
     }
 }

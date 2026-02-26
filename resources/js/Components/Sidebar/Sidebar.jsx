@@ -12,7 +12,8 @@ import {
     ChevronRight,
     FileText,
     ClipboardCheck,
-    Eye
+    Eye,
+    Banknote
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import SidebarItem from './SidebarItem';
@@ -60,6 +61,13 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             href: route('kegiatan.monitoring'),
             icon: Eye,
             active: route().current('kegiatan.monitoring')
+        },
+        {
+            label: 'Pencairan Dana',
+            href: route('pencairan.index'),
+            icon: Banknote,
+            active: route().current('pencairan.*'),
+            roles: [1, 6] // Admin and Bendahara
         },
         {
             label: 'Manajemen Akun',
