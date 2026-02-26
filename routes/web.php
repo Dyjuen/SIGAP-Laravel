@@ -37,6 +37,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/kegiatan/monitoring', [\App\Http\Controllers\KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
     Route::resource('kegiatan', \App\Http\Controllers\KegiatanController::class)->only(['index', 'store', 'show']);
     Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
+
+    // Pencairan Routes
+    Route::get('/pencairan', [\App\Http\Controllers\PencairanController::class, 'index'])->name('pencairan.index');
+    Route::get('/kegiatan/{kegiatan}/pencairan/sisa-dana', [\App\Http\Controllers\PencairanController::class, 'sisaDana'])->name('pencairan.sisa-dana');
+    Route::post('/kegiatan/{kegiatan}/pencairan', [\App\Http\Controllers\PencairanController::class, 'store'])->name('pencairan.store');
+    Route::post('/kegiatan/{kegiatan}/pencairan/selesai', [\App\Http\Controllers\PencairanController::class, 'selesai'])->name('pencairan.selesai');
 });
 
 require __DIR__.'/auth.php';

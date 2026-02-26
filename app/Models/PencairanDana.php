@@ -13,4 +13,19 @@ class PencairanDana extends Model
     protected $guarded = ['pencairan_id'];
 
     public $timestamps = false;
+
+    protected $casts = [
+        'tanggal_pencairan' => 'date',
+        'jumlah_dicairkan' => 'decimal:2',
+    ];
+
+    public function kegiatan()
+    {
+        return $this->belongsTo(Kegiatan::class, 'kegiatan_id');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'user_id');
+    }
 }

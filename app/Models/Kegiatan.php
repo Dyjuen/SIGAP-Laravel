@@ -37,4 +37,9 @@ class Kegiatan extends Model
     {
         return $this->hasOne(KegiatanApproval::class, 'kegiatan_id')->where('status', 'Aktif');
     }
+
+    public function pencairanDana()
+    {
+        return $this->hasMany(PencairanDana::class, 'kegiatan_id');
+    }
 }
