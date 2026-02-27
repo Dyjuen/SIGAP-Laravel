@@ -64,10 +64,10 @@ class LampiranController extends Controller
         }
 
         return DB::transaction(function () use ($request, $anggaran) {
+            $storedPath = null;
             try {
                 $file = $request->file('file');
                 $filename = time().'_'.$file->getClientOriginalName();
-                $path = 'lampiran/'.$anggaran->anggaran_id.'/'.$filename;
 
                 // Save to disk using stream-efficient storeAs
                 $storedPath = $file->storeAs(
@@ -83,7 +83,7 @@ class LampiranController extends Controller
                 $lampiran = KegiatanLampiran::create([
                     'anggaran_id' => $anggaran->anggaran_id,
                     'nama_file_asli' => $file->getClientOriginalName(),
-                    'path_file_disimpan' => $path,
+                    'path_file_disimpan' => $storedPath,
                     'uploader_user_id' => auth()->id(),
                     'catatan' => $request->catatan,
                     'status_lampiran' => 'pending',
@@ -97,9 +97,10 @@ class LampiranController extends Controller
                     'message' => 'File berhasil diunggah.',
                 ], 201);
             } catch (\Exception $e) {
-                // DB transaction will rollback automatically
-                // But if the file was written, we would ideally clean it up.
-                // However, put() is inside the try, so if it fails, it throws.
+                if ($storedPath) {
+                    Storage::disk('public')->delete($storedPath);
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal mengunggah file: '.$e->getMessage(),
@@ -123,7 +124,11 @@ class LampiranController extends Controller
         }
 
         return response()->stream(function () use ($lampiran) {
-            echo Storage::disk('public')->get($lampiran->path_file_disimpan);
+            $stream = Storage::disk('public')->readStream($lampiran->path_file_disimpan);
+            fpassthru($stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
         }, 200, [
             'Content-Type' => Storage::disk('public')->mimeType($lampiran->path_file_disimpan),
             'Content-Disposition' => 'inline; filename="'.$lampiran->nama_file_asli.'"',
@@ -167,12 +172,8 @@ class LampiranController extends Controller
     /**
      * Approve a lampiran and cleanup history.
      */
-    public function approve(KegiatanLampiran $lampiran): JsonResponse
+    public function approve(\App\Http\Requests\ApproveLampiranRequest $request, KegiatanLampiran $lampiran): JsonResponse
     {
-        if (! in_array(auth()->user()->getRoleName(), ['Bendahara', 'Admin'])) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-        }
-
         return DB::transaction(function () use ($lampiran) {
             $lampiran->update([
                 'status_lampiran' => 'approved',
@@ -204,10 +205,10 @@ class LampiranController extends Controller
         }
 
         return DB::transaction(function () use ($request, $lampiran) {
+            $storedPath = null;
             try {
                 $file = $request->file('file');
                 $filename = time().'_rev_'.$file->getClientOriginalName();
-                $path = 'lampiran/'.$lampiran->anggaran_id.'/'.$filename;
 
                 // Save to disk using stream-efficient storeAs
                 $storedPath = $file->storeAs(
@@ -227,7 +228,7 @@ class LampiranController extends Controller
                 $newLampiran = KegiatanLampiran::create([
                     'anggaran_id' => $lampiran->anggaran_id,
                     'nama_file_asli' => $file->getClientOriginalName(),
-                    'path_file_disimpan' => $path,
+                    'path_file_disimpan' => $storedPath,
                     'uploader_user_id' => auth()->id(),
                     'catatan' => $request->catatan,
                     'status_lampiran' => 'pending',
@@ -242,6 +243,10 @@ class LampiranController extends Controller
                     'message' => 'Revisi lampiran berhasil diunggah.',
                 ], 201);
             } catch (\Exception $e) {
+                if ($storedPath) {
+                    Storage::disk('public')->delete($storedPath);
+                }
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Gagal mengunggah revisi: '.$e->getMessage(),
@@ -278,7 +283,7 @@ class LampiranController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        if (! $strictOwner && ! in_array($user->getRoleName(), ['Verifikator', 'Pengusul'])) {
+        if (! $strictOwner && $user->getRoleName() !== 'Pengusul') {
             abort(403, 'Unauthorized');
         }
 

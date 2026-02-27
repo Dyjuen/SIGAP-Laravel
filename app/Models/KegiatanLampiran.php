@@ -57,6 +57,10 @@ class KegiatanLampiran extends Model
 
     /**
      * Get the full history tree (recursive ancestors)
+     *
+     * @NOTE: This implementation performs N+1 queries (one per ancestor).
+     * For typical revision depths (< 10), this is acceptable. If history
+     * grows significantly, consider a recursive CTE or a flattened 'root_lampiran_id'.
      */
     public function getHistoryAttribute()
     {
