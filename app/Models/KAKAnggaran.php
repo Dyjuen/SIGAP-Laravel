@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class KAKAnggaran extends Model
 {
+    use HasFactory;
+
     protected $table = 't_kak_anggaran';
 
     protected $primaryKey = 'anggaran_id';

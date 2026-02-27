@@ -30,3 +30,4 @@ SIGAP-Laravel is a web-based activity and budget management system for an Indone
 ## Design Decisions
 -   **Full-Stack Inertia**: No separate API layer for the web app. Controllers return `Inertia::render()`.
 -   **English Code, Indonesian UI**: Codebase uses English naming; Interface uses Bahasa Indonesia.
+-   **No Laravel Sail**: This project does NOT use Sail. Run tests with `php artisan test`, not `./vendor/bin/sail test`.

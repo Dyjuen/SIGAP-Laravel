@@ -10,7 +10,7 @@ This document tracks the migration of features from the native PHP application t
 | **Panduan (Guides)** | `PanduanController` | `Panduan` | ✅ Completed | ✅ | ✅ | ✅ |
 | **KAK (Activities)** | `KAKController` | `KAK`, `KAKAnggaran`, `KAKIndikator`, `KAKTarget`, `KAKTahapan`, `KAKManfaat` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Kegiatan (Realization)** | `KegiatanController` | `Kegiatan`, `KegiatanApproval`, `KegiatanLogStatus` | ✅ Completed | ✅ | ✅ | ✅ |
-| **Lampiran (Attachments)** | `LampiranController` | `KegiatanLampiran` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Lampiran (Attachments)** | `LampiranController` | `KegiatanLampiran` | 🚧 In Progress | ✅ | ✅ | ⬜ |
 | **Pencairan (Disbursement)** | `PencairanController` | `PencairanDana` | ✅ Completed | ✅ | ✅ | ✅ |
 | **LPJ (Reports)** | `KegiatanAnggaran`, `LpjController` | (Logic mainly in controller) | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Dashboard** | `DashboardController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |

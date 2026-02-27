@@ -43,6 +43,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/kegiatan/{kegiatan}/pencairan/sisa-dana', [\App\Http\Controllers\PencairanController::class, 'sisaDana'])->name('pencairan.sisa-dana');
     Route::post('/kegiatan/{kegiatan}/pencairan', [\App\Http\Controllers\PencairanController::class, 'store'])->name('pencairan.store');
     Route::post('/kegiatan/{kegiatan}/pencairan/selesai', [\App\Http\Controllers\PencairanController::class, 'selesai'])->name('pencairan.selesai');
+
+    // Lampiran (Attachments)
+    Route::prefix('lampiran')->group(function () {
+        Route::get('/anggaran/{anggaran}', [\App\Http\Controllers\LampiranController::class, 'index'])->name('lampiran.index');
+        Route::post('/anggaran/{anggaran}', [\App\Http\Controllers\LampiranController::class, 'store'])->name('lampiran.store');
+        Route::get('/{lampiran}', [\App\Http\Controllers\LampiranController::class, 'show'])->name('lampiran.show');
+        Route::get('/{lampiran}/stream', [\App\Http\Controllers\LampiranController::class, 'stream'])->name('lampiran.stream');
+        Route::delete('/{lampiran}', [\App\Http\Controllers\LampiranController::class, 'destroy'])->name('lampiran.destroy');
+        Route::post('/{lampiran}/catatan', [\App\Http\Controllers\LampiranController::class, 'saveCatatan'])->name('lampiran.catatan');
+        Route::post('/{lampiran}/approve', [\App\Http\Controllers\LampiranController::class, 'approve'])->name('lampiran.approve');
+        Route::post('/{lampiran}/resubmit', [\App\Http\Controllers\LampiranController::class, 'resubmit'])->name('lampiran.resubmit');
+        Route::get('/{lampiran}/history', [\App\Http\Controllers\LampiranController::class, 'history'])->name('lampiran.history');
+    });
 });
 
 require __DIR__.'/auth.php';
