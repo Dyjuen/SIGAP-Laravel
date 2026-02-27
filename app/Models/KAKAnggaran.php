@@ -41,4 +41,9 @@ class KAKAnggaran extends Model
     {
         return $this->belongsTo(Satuan::class, 'satuan3_id');
     }
+
+    public function lampiran()
+    {
+        return $this->hasMany(KegiatanLampiran::class, 'anggaran_id');
+    }
 }

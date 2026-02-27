@@ -56,6 +56,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/{lampiran}/resubmit', [\App\Http\Controllers\LampiranController::class, 'resubmit'])->name('lampiran.resubmit');
         Route::get('/{lampiran}/history', [\App\Http\Controllers\LampiranController::class, 'history'])->name('lampiran.history');
     });
+
+    // LPJ (Laporan Pertanggungjawaban)
+    Route::prefix('kegiatan/{kegiatan}/lpj')->group(function () {
+        Route::get('/review', [\App\Http\Controllers\LpjController::class, 'review'])->name('lpj.review');
+        Route::post('/submit', [\App\Http\Controllers\LpjController::class, 'submit'])->name('lpj.submit');
+        Route::post('/revise', [\App\Http\Controllers\LpjController::class, 'revise'])->name('lpj.revise');
+        Route::post('/resubmit', [\App\Http\Controllers\LpjController::class, 'resubmit'])->name('lpj.resubmit');
+        Route::post('/approve', [\App\Http\Controllers\LpjController::class, 'approve'])->name('lpj.approve');
+        Route::post('/complete', [\App\Http\Controllers\LpjController::class, 'complete'])->name('lpj.complete');
+    });
 });
 
 require __DIR__.'/auth.php';
