@@ -5,7 +5,7 @@ import { FileText, ChartBar, DollarSign, Check } from 'lucide-react';
  * WizardProgress Component
  * Displays the main progress steps (KAK -> IKU -> RAB)
  */
-export default function WizardProgress({ currentStep, steps = [] }) {
+export default function WizardProgress({ currentStep, steps = [], onStepClick }) {
     const defaultSteps = [
         { id: 1, label: 'Kerangka Acuan Kerja', icon: FileText },
         { id: 2, label: 'Indikator Kinerja Utama', icon: ChartBar },
@@ -21,8 +21,15 @@ export default function WizardProgress({ currentStep, steps = [] }) {
                 const isCompleted = step.id < currentStep;
                 const IconComponent = step.icon;
 
+                const isClickable = !!onStepClick;
+
                 return (
-                    <div key={step.id} className="flex items-center justify-center gap-3 px-4 min-w-max">
+                    <div
+                        key={step.id}
+                        onClick={() => isClickable && onStepClick(step.id)}
+                        className={`flex items-center justify-center gap-3 px-4 min-w-max rounded-xl transition-all duration-200
+                            ${isClickable ? 'cursor-pointer hover:bg-slate-50 active:scale-95' : ''}`}
+                    >
                         <div
                             className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 shadow-sm
                             ${isActive ? 'bg-cyan-500 text-white shadow-cyan-500/40 ring-4 ring-cyan-100' :

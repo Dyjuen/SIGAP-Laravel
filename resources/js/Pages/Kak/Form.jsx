@@ -174,36 +174,70 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
 
     const submitApproval = () => {
         const optionsHtml = mata_anggaran.map(ma =>
-            `<option value="${ma.mata_anggaran_id}">${ma.kode_anggaran}</option>`
+            `<option value="${ma.mata_anggaran_id}">${ma.kode_anggaran} — ${ma.nama_sumber_dana}</option>`
         ).join('');
 
         Swal.fire({
-            title: 'Setujui KAK?',
+            title: `<span style="font-size:2rem;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">Setujui KAK?</span>`,
             html: `
-                <div class="text-left space-y-4 mt-4">
+                <p style="font-size:0.8rem;color:#64748b;margin-bottom:1.2rem;line-height:1.5;">
+                    Tentukan alokasi mata anggaran untuk kegiatan ini. KAK akan segera disetujui dan dapat dilanjutkan ke tahap pengajuan kegiatan.
+                </p>
+
+                <div style="text-align:left;display:flex;flex-direction:column;gap:1rem;">
+
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Kode Anggaran</label>
-                        <select id="swal-select-anggaran" class="w-full rounded-lg border-gray-200 mb-2">
-                            <option value="">-- Pilih Kode Anggaran --</option>
+                        <label style="display:block;font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">
+                            Kode Mata Anggaran
+                        </label>
+                        <select id="swal-select-anggaran" style="
+                            width:100%;padding:10px 14px;border-radius:12px;
+                            border:2px solid #e2e8f0;background:#f8fafc;
+                            font-size:0.875rem;color:#334155;outline:none;
+                            transition:border-color .2s;cursor:pointer;
+                            appearance:auto;
+                        ">
+                            <option value="">— Pilih Kode Anggaran —</option>
                             ${optionsHtml}
-                            <option value="new">+ Tambah Kode MAK Baru</option>
+                            <option value="new">✚ Tambah Kode MAK Baru</option>
                         </select>
-                        
-                        <div id="new-kode-container" style="display: none;">
-                            <input id="swal-kode-anggaran" class="w-full rounded-lg border-gray-200" placeholder="Contoh: 023.14.WA.4132...">
+                    </div>
+
+                    <div id="new-kode-container" style="display:none;padding:12px;background:#f0fdf4;border:1.5px dashed #86efac;border-radius:12px;">
+                        <label style="display:block;font-size:0.72rem;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Kode MAK Baru</label>
+                        <input id="swal-kode-anggaran" placeholder="Contoh: 023.14.WA.4132..." style="
+                            width:100%;padding:10px 14px;border-radius:10px;
+                            border:2px solid #bbf7d0;background:white;
+                            font-size:0.875rem;color:#0f172a;outline:none;box-sizing:border-box;
+                        ">
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <label style="display:block;font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Nama Sumber Dana</label>
+                            <input id="swal-sumber-dana" placeholder="Contoh: PNBP" style="
+                                width:100%;padding:10px 14px;border-radius:12px;
+                                border:2px solid #e2e8f0;background:#f8fafc;
+                                font-size:0.875rem;color:#334155;outline:none;box-sizing:border-box;
+                            ">
+                        </div>
+                        <div>
+                            <label style="display:block;font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Tahun Anggaran</label>
+                            <input id="swal-tahun-anggaran" type="number" value="${new Date().getFullYear()}" style="
+                                width:100%;padding:10px 14px;border-radius:12px;
+                                border:2px solid #e2e8f0;background:#f8fafc;
+                                font-size:0.875rem;color:#334155;outline:none;box-sizing:border-box;
+                            ">
                         </div>
                     </div>
+
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Nama Sumber Dana</label>
-                        <input id="swal-sumber-dana" class="w-full rounded-lg border-gray-200" placeholder="Contoh: PNBP">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Tahun Anggaran</label>
-                        <input id="swal-tahun-anggaran" type="number" class="w-full rounded-lg border-gray-200" value="${new Date().getFullYear()}">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">Total Pagu</label>
-                        <input id="swal-total-pagu" type="number" class="w-full rounded-lg border-gray-200" placeholder="Contoh: 50000000">
+                        <label style="display:block;font-size:0.72rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Total Pagu (Rp)</label>
+                        <input id="swal-total-pagu" type="number" placeholder="Contoh: 50000000" style="
+                            width:100%;padding:10px 14px;border-radius:12px;
+                            border:2px solid #e2e8f0;background:#f8fafc;
+                            font-size:0.875rem;color:#334155;outline:none;box-sizing:border-box;
+                        ">
                     </div>
                 </div>
             `,
@@ -214,9 +248,13 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                 const sumberInput = document.getElementById('swal-sumber-dana');
                 const tahunInput = document.getElementById('swal-tahun-anggaran');
                 const paguInput = document.getElementById('swal-total-pagu');
-
-                // Pass the data array to the DOM context
                 const maData = mata_anggaran;
+
+                // Focus ring on inputs
+                [selectEl, sumberInput, tahunInput, paguInput].forEach(el => {
+                    el?.addEventListener('focus', () => { if (el) el.style.borderColor = '#06b6d4'; });
+                    el?.addEventListener('blur', () => { if (el) el.style.borderColor = '#e2e8f0'; });
+                });
 
                 selectEl.addEventListener('change', (e) => {
                     const val = e.target.value;
@@ -226,7 +264,6 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                         sumberInput.value = '';
                         tahunInput.value = new Date().getFullYear();
                         paguInput.value = '';
-
                         sumberInput.disabled = false;
                         tahunInput.disabled = false;
                         paguInput.disabled = false;
@@ -238,10 +275,14 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                             sumberInput.value = selectedMA.nama_sumber_dana;
                             tahunInput.value = selectedMA.tahun_anggaran;
                             paguInput.value = selectedMA.total_pagu;
-
                             sumberInput.disabled = true;
                             tahunInput.disabled = true;
                             paguInput.disabled = true;
+                            // Style disabled
+                            [sumberInput, tahunInput, paguInput].forEach(el => {
+                                el.style.background = '#f1f5f9';
+                                el.style.color = '#94a3b8';
+                            });
                         }
                     } else {
                         newKodeContainer.style.display = 'none';
@@ -249,18 +290,29 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                         sumberInput.value = '';
                         tahunInput.value = new Date().getFullYear();
                         paguInput.value = '';
-
                         sumberInput.disabled = false;
                         tahunInput.disabled = false;
                         paguInput.disabled = false;
+                        [sumberInput, tahunInput, paguInput].forEach(el => {
+                            el.style.background = '#f8fafc';
+                            el.style.color = '#334155';
+                        });
                     }
                 });
             },
             showCancelButton: true,
-            confirmButtonColor: '#10b981', // emerald
-            cancelButtonColor: '#d33',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#ef4444',
             confirmButtonText: 'Ya, Setujui',
             cancelButtonText: 'Batal',
+            padding: '2rem',
+            customClass: {
+                popup: 'rounded-3xl border-none shadow-2xl',
+                title: 'text-lg font-black',
+                htmlContainer: 'text-left',
+                confirmButton: 'rounded-xl px-6 py-2.5 text-sm font-bold uppercase tracking-wider',
+                cancelButton: 'rounded-xl px-6 py-2.5 text-sm font-bold uppercase tracking-wider',
+            },
             preConfirm: () => {
                 const selectVal = document.getElementById('swal-select-anggaran').value;
                 const kode = document.getElementById('swal-kode-anggaran').value;
@@ -269,13 +321,13 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                 const pagu = document.getElementById('swal-total-pagu').value;
 
                 if (!selectVal) {
-                    Swal.showValidationMessage('Silakan pilih Kode Anggaran!');
+                    Swal.showValidationMessage('⚠ Silakan pilih Kode Anggaran terlebih dahulu!');
                     return false;
                 }
 
                 if (selectVal === 'new') {
                     if (!kode || !sumber || !tahun || !pagu) {
-                        Swal.showValidationMessage('Semua form wajib diisi untuk kode anggaran baru!');
+                        Swal.showValidationMessage('⚠ Semua field wajib diisi untuk kode anggaran baru!');
                         return false;
                     }
                 }
@@ -292,7 +344,16 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             if (result.isConfirmed) {
                 router.post(route('kak.approve', kak.kak_id), result.value, {
                     onSuccess: () => {
-                        Swal.fire('Berhasil!', 'KAK berhasil disetujui.', 'success').then(() => {
+                        Swal.fire({
+                            title: 'KAK Disetujui!',
+                            text: 'KAK berhasil disetujui dan siap dilanjutkan ke tahap pengajuan kegiatan.',
+                            icon: 'success',
+                            confirmButtonColor: '#10b981',
+                            customClass: {
+                                popup: 'rounded-3xl border-none shadow-2xl',
+                                confirmButton: 'rounded-xl px-6 py-2.5 text-sm font-bold',
+                            }
+                        }).then(() => {
                             router.get(route('kak.index'));
                         });
                     }
@@ -385,7 +446,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             <div className="py-12 bg-gradient-to-br from-gray-50 to-cyan-50 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                    <WizardProgress currentStep={currentStep} />
+                    <WizardProgress currentStep={currentStep} onStepClick={setCurrentStep} />
 
                     <form
                         onSubmit={handleSubmit}
