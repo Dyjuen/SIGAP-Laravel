@@ -13,7 +13,8 @@ import {
     FileText,
     ClipboardCheck,
     Eye,
-    Banknote
+    Banknote,
+    FileCheck
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import SidebarItem from './SidebarItem';
@@ -68,6 +69,13 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             icon: Banknote,
             active: route().current('pencairan.*'),
             roles: [1, 6] // Admin and Bendahara
+        },
+        {
+            label: 'LPJ',
+            href: route('lpj.index'),
+            icon: FileCheck,
+            active: route().current('lpj.*'),
+            roles: [1, 3, 6] // Admin, Pengusul, Bendahara
         },
         {
             label: 'Manajemen Akun',

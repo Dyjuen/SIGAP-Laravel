@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // LPJ (Laporan Pertanggungjawaban)
+    Route::get('/lpj', [\App\Http\Controllers\LpjController::class, 'index'])->name('lpj.index');
     Route::prefix('kegiatan/{kegiatan}/lpj')->group(function () {
         Route::get('/review', [\App\Http\Controllers\LpjController::class, 'review'])->name('lpj.review');
         Route::post('/submit', [\App\Http\Controllers\LpjController::class, 'submit'])->name('lpj.submit');
