@@ -10,6 +10,7 @@ use App\Models\KegiatanApproval;
 use App\Models\KegiatanLogStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class KegiatanController extends Controller
@@ -92,8 +93,11 @@ class KegiatanController extends Controller
             if ($request->hasFile('surat_pengantar')) {
                 $file = $request->file('surat_pengantar');
                 $filename = time().'_'.$file->getClientOriginalName();
-                $file->storeAs('uploads/documents', $filename, 'public');
-                $filePath = 'uploads/documents/'.$filename;
+                $filePath = $file->storeAs('surat-pengantar', $filename, 'supabase');
+
+                if (! $filePath) {
+                    throw new \Exception('Gagal mengunggah surat pengantar ke storage.');
+                }
             }
 
             // 3. Create Kegiatan
@@ -136,6 +140,10 @@ class KegiatanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
+            if (isset($filePath) && $filePath) {
+                Storage::disk('supabase')->delete($filePath);
+            }
+
             // Re-throw or return generic error
             return back()->with('error', 'Terjadi kesalahan saat menyimpan data: '.$e->getMessage());
         }
@@ -159,6 +167,10 @@ class KegiatanController extends Controller
             'logs.actor',
             'logs.newStatus',
         ]);
+
+        if ($kegiatan->surat_pengantar_path && ! str_starts_with($kegiatan->surat_pengantar_path, 'http')) {
+            $kegiatan->surat_pengantar_url = Storage::disk('supabase')->url($kegiatan->surat_pengantar_path);
+        }
 
         return Inertia::render('Kegiatan/Show', [
             'kegiatan' => $kegiatan,

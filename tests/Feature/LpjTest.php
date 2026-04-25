@@ -373,7 +373,6 @@ class LpjTest extends TestCase
             ->assertStatus(403);
     }
 
-
     // ========================================
     // RESUBMIT TESTS
     // ========================================

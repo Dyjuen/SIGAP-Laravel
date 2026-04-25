@@ -160,7 +160,7 @@ export default function Show({ auth, kegiatan }) {
                                                 Surat Pengantar
                                             </dt>
                                             <dd>
-                                                {kegiatan.surat_pengantar_path ? (
+                                                {kegiatan.surat_pengantar_url ? (
                                                     <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={() => setShowDocModal(true)}
@@ -170,7 +170,7 @@ export default function Show({ auth, kegiatan }) {
                                                             Lihat Dokumen
                                                         </button>
                                                         <a
-                                                            href={`/storage/${kegiatan.surat_pengantar_path}`}
+                                                            href={kegiatan.surat_pengantar_url}
                                                             target="_blank"
                                                             rel="noreferrer"
                                                             download
@@ -281,7 +281,7 @@ export default function Show({ auth, kegiatan }) {
                             </h3>
                             <div className="flex items-center gap-2">
                                 <a
-                                    href={`/storage/${kegiatan.surat_pengantar_path}`}
+                                    href={kegiatan.surat_pengantar_url}
                                     download
                                     className="p-2 text-slate-500 hover:text-cyan-600 hover:bg-white rounded-lg transition-colors border border-transparent hover:border-slate-200"
                                     title="Unduh"
@@ -298,7 +298,7 @@ export default function Show({ auth, kegiatan }) {
                         </div>
                         <div className="flex-1 bg-slate-100 relative">
                             <iframe
-                                src={`/storage/${kegiatan.surat_pengantar_path}#view=FitH`}
+                                src={`${kegiatan.surat_pengantar_url}#view=FitH`}
                                 className="absolute inset-0 w-full h-full border-0"
                                 title="Document Viewer"
                             />

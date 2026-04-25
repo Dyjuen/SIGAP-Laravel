@@ -87,7 +87,7 @@ class LpjController extends Controller
             'user_id' => $request->user()->user_id,
             'kegiatan_id' => $kegiatan->kegiatan_id,
             'has_realisasi' => $request->has('realisasi'),
-            'has_bukti' => !empty($request->file('bukti')),
+            'has_bukti' => ! empty($request->file('bukti')),
         ]);
 
         $uploadedFiles = [];
@@ -122,10 +122,10 @@ class LpjController extends Controller
                 if (is_array($request->file('bukti'))) {
                     foreach ($request->file('bukti') as $anggaranId => $files) {
                         foreach ($files as $file) {
-                            $filename = time() . '_' . $file->getClientOriginalName();
+                            $filename = time().'_'.$file->getClientOriginalName();
                             // Consistent with LampiranController: use 'public' disk and relative path
-                            $path = $file->storeAs('lampiran/' . $anggaranId, $filename, 'supabase');                            
-                            if (!$path) {
+                            $path = $file->storeAs('lampiran/'.$anggaranId, $filename, 'supabase');
+                            if (! $path) {
                                 throw new \Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
                             }
 
@@ -173,10 +173,11 @@ class LpjController extends Controller
         } catch (\Exception $e) {
             Log::error('LPJ Submit Failed', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             $this->cleanupFiles($uploadedFiles);
-            return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit LPJ: ' . $e->getMessage()]);
+
+            return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit LPJ: '.$e->getMessage()]);
         }
     }
 
@@ -197,10 +198,11 @@ class LpjController extends Controller
             ->get();
 
         // Resolve storage URLs for lampiran
-        $lampirans = $anggaran->pluck('lampiran')->flatten()->map(function($l) {
-            if ($l->path_file_disimpan && !str_starts_with($l->path_file_disimpan, 'http')) {
+        $lampirans = $anggaran->pluck('lampiran')->flatten()->map(function ($l) {
+            if ($l->path_file_disimpan && ! str_starts_with($l->path_file_disimpan, 'http')) {
                 $l->path_file_disimpan = Storage::disk('supabase')->url($l->path_file_disimpan);
             }
+
             return $l;
         });
 
@@ -222,7 +224,7 @@ class LpjController extends Controller
 
             // 1. Clear old comments before applying new ones
             // Clear lampiran comments for this kegiatan
-            KegiatanLampiran::whereHas('anggaran', function($q) use ($kegiatan) {
+            KegiatanLampiran::whereHas('anggaran', function ($q) use ($kegiatan) {
                 $q->where('kak_id', $kegiatan->kak_id);
             })->update([
                 'catatan_reviewer' => null,
@@ -308,53 +310,53 @@ class LpjController extends Controller
 
         try {
             return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
-            $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
+                $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
 
-            // 0. State Guard: Only allow resubmit if there is a 'Revisi' status for Bendahara-LPJ
-            $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-LPJ')
-                ->first();
+                // 0. State Guard: Only allow resubmit if there is a 'Revisi' status for Bendahara-LPJ
+                $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
+                    ->where('approval_level', 'Bendahara-LPJ')
+                    ->first();
 
-            if (! $approval || $approval->status !== 'Revisi') {
-                return redirect()->back()->withErrors(['message' => 'LPJ tidak dalam status revisi.']);
-            }
+                if (! $approval || $approval->status !== 'Revisi') {
+                    return redirect()->back()->withErrors(['message' => 'LPJ tidak dalam status revisi.']);
+                }
 
-            // 1. Handle file deletions (archiving)
-            $filesToDelete = $request->files_to_delete;
+                // 1. Handle file deletions (archiving)
+                $filesToDelete = $request->files_to_delete;
 
-            if (! empty($filesToDelete)) {
-                KegiatanLampiran::whereIn('lampiran_id', $filesToDelete)
-                    ->update(['status_lampiran' => 'archived']);
-            }
+                if (! empty($filesToDelete)) {
+                    KegiatanLampiran::whereIn('lampiran_id', $filesToDelete)
+                        ->update(['status_lampiran' => 'archived']);
+                }
 
-            // 2. Handle realization updates
-            $realisasi = $request->realisasi;
+                // 2. Handle realization updates
+                $realisasi = $request->realisasi;
 
-            if (! empty($realisasi)) {
-                foreach ($realisasi as $anggaranId => $data) {
-                    $anggaran = KAKAnggaran::find($anggaranId);
-                    if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
-                        $anggaran->update([
-                            'realisasi_volume1' => $data['volume1'] ?? $anggaran->realisasi_volume1,
-                            'realisasi_satuan1_id' => $data['satuan1_id'] ?? $anggaran->realisasi_satuan1_id,
-                            'realisasi_volume2' => $data['volume2'] ?? $anggaran->realisasi_volume2,
-                            'realisasi_satuan2_id' => $data['satuan2_id'] ?? $anggaran->realisasi_satuan2_id,
-                            'realisasi_volume3' => $data['volume3'] ?? $anggaran->realisasi_volume3,
-                            'realisasi_satuan3_id' => $data['satuan3_id'] ?? $anggaran->realisasi_satuan3_id,
-                            'realisasi_harga_satuan' => isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : $anggaran->realisasi_harga_satuan,
-                            'realisasi_jumlah' => $this->calculateTotal($data),
-                        ]);
+                if (! empty($realisasi)) {
+                    foreach ($realisasi as $anggaranId => $data) {
+                        $anggaran = KAKAnggaran::find($anggaranId);
+                        if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
+                            $anggaran->update([
+                                'realisasi_volume1' => $data['volume1'] ?? $anggaran->realisasi_volume1,
+                                'realisasi_satuan1_id' => $data['satuan1_id'] ?? $anggaran->realisasi_satuan1_id,
+                                'realisasi_volume2' => $data['volume2'] ?? $anggaran->realisasi_volume2,
+                                'realisasi_satuan2_id' => $data['satuan2_id'] ?? $anggaran->realisasi_satuan2_id,
+                                'realisasi_volume3' => $data['volume3'] ?? $anggaran->realisasi_volume3,
+                                'realisasi_satuan3_id' => $data['satuan3_id'] ?? $anggaran->realisasi_satuan3_id,
+                                'realisasi_harga_satuan' => isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : $anggaran->realisasi_harga_satuan,
+                                'realisasi_jumlah' => $this->calculateTotal($data),
+                            ]);
+                        }
                     }
                 }
-            }
 
                 // 3. Handle new uploads
                 if (is_array($request->file('bukti'))) {
                     foreach ($request->file('bukti') as $anggaranId => $files) {
                         foreach ($files as $file) {
-                            $filename = time() . '_' . $file->getClientOriginalName();
-                            $path = $file->storeAs('lampiran/' . $anggaranId, $filename, 'supabase');                            
-                            if (!$path) {
+                            $filename = time().'_'.$file->getClientOriginalName();
+                            $path = $file->storeAs('lampiran/'.$anggaranId, $filename, 'supabase');
+                            if (! $path) {
                                 throw new \Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
                             }
 
@@ -371,43 +373,44 @@ class LpjController extends Controller
                     }
                 }
 
-            // 4. Update status back to Review
-            $kak = $kegiatan->kak;
-            $oldStatus = $kak->status_id;
-            $newStatus = 11;
+                // 4. Update status back to Review
+                $kak = $kegiatan->kak;
+                $oldStatus = $kak->status_id;
+                $newStatus = 11;
 
-            $kegiatan->update(['lpj_submitted_at' => now()]);
-            $kak->update(['status_id' => $newStatus]);
+                $kegiatan->update(['lpj_submitted_at' => now()]);
+                $kak->update(['status_id' => $newStatus]);
 
-            $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-LPJ')
-                ->first();
+                $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
+                    ->where('approval_level', 'Bendahara-LPJ')
+                    ->first();
 
-            if ($approval) {
-                $approval->update([
-                    'status' => 'Aktif',
-                    'catatan' => null,
-                    'approver_user_id' => null,
+                if ($approval) {
+                    $approval->update([
+                        'status' => 'Aktif',
+                        'catatan' => null,
+                        'approver_user_id' => null,
+                    ]);
+                }
+
+                KegiatanLogStatus::create([
+                    'kegiatan_id' => $kegiatan->kegiatan_id,
+                    'status_id_lama' => $oldStatus,
+                    'status_id_baru' => $newStatus,
+                    'actor_user_id' => $request->user()->user_id,
+                    'catatan' => 'LPJ disubmit ulang setelah revisi.',
                 ]);
-            }
 
-            KegiatanLogStatus::create([
-                'kegiatan_id' => $kegiatan->kegiatan_id,
-                'status_id_lama' => $oldStatus,
-                'status_id_baru' => $newStatus,
-                'actor_user_id' => $request->user()->user_id,
-                'catatan' => 'LPJ disubmit ulang setelah revisi.',
-            ]);
-
-            return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
-        });
+                return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
+            });
         } catch (\Exception $e) {
             Log::error('LPJ Resubmit Failed', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             $this->cleanupFiles($uploadedFiles);
-            return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit ulang LPJ: ' . $e->getMessage()]);
+
+            return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit ulang LPJ: '.$e->getMessage()]);
         }
     }
 

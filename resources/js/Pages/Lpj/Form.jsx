@@ -453,7 +453,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                                     <div>
                                                                                         <label className="btn-add-lampiran cursor-pointer text-xs flex items-center gap-1 shadow-sm">
                                                                                             <Plus size={14} /> Tambah Bukti
-                                                                                                <input type="file" className="hidden" multiple accept="image/*" onChange={(e) => handleFileChange(item.anggaran_id, e)} />
+                                                                                                <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(item.anggaran_id, e)} />
                                                                                             </label>                                                                            </div>
                                                                                 )}
                                                                             </div>

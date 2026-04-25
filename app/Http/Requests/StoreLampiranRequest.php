@@ -47,7 +47,7 @@ class StoreLampiranRequest extends FormRequest
                 'required',
                 'file',
                 'max:10240', // 10MB
-                'mimes:jpg,jpeg,png',
+                'mimes:jpg,jpeg,png,pdf',
             ],
             'catatan' => ['nullable', 'string', 'max:500'],
         ];
@@ -62,7 +62,7 @@ class StoreLampiranRequest extends FormRequest
             'file.required' => 'File lampiran wajib diunggah.',
             'file.file' => 'Input harus berupa file.',
             'file.max' => 'Ukuran file maksimal adalah 10 MB.',
-            'file.mimes' => 'Format file tidak didukung. Gunakan file Gambar (JPG, JPEG, PNG).',
+            'file.mimes' => 'Format file tidak didukung. Gunakan file Gambar (JPG, JPEG, PNG) atau PDF.',
             'catatan.max' => 'Catatan maksimal 500 karakter.',
         ];
     }

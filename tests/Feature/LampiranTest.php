@@ -149,7 +149,7 @@ class LampiranTest extends TestCase
     public function test_upload_validation_rules(): void
     {
         // 1. Invalid mime type
-        $file = UploadedFile::fake()->create('script.pdf', 100, 'application/pdf');
+        $file = UploadedFile::fake()->create('script.txt', 100, 'text/plain');
         $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.store', $this->anggaran), ['file' => $file])
             ->assertStatus(422)
