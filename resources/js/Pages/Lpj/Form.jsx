@@ -3,10 +3,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, router, useForm } from '@inertiajs/react';
 import {
-    FileCheck, Upload, Trash2, MessageCircle, FileText, CheckCircle2, AlertCircle, ChevronLeft, Save, X, Plus, Loader2
+    FileCheck, Upload, Trash2, MessageCircle, FileText, CheckCircle2, AlertCircle, ChevronLeft, Save, X, Plus, Loader2, Eye
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import clsx from 'clsx';
+import Modal from '@/Components/Modal';
 
 export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
     const isPengusul = auth.user.role_id === 3;
@@ -55,7 +56,6 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
         realisasi: initialRealisasi,
         bukti: {}, // { anggaran_id: [File1, File2] }
         files_to_delete: [], // Array of lampiran_id to be archived during resubmit
-        catatan_umum: '',
         lampiran_comments: [], // { id: lampiran_id, catatan_reviewer: string }
         anggaran_comments: [], // { id: anggaran_id, catatan_reviewer: string }
     });
@@ -63,6 +63,18 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
     const [activeTab, setActiveTab] = useState(0); // 0: Form, 1: Review/Riwayat
     const [commentModalConfig, setCommentModalConfig] = useState(null); // { type: 'lampiran'|'anggaran', id: number, title: string }
     const [commentText, setCommentText] = useState('');
+    const [viewerConfig, setViewerConfig] = useState(null); // { url: string, name: string }
+
+    const commentInputRef = useRef(null);
+    useEffect(() => {
+        if (commentModalConfig && commentInputRef.current) {
+            setTimeout(() => {
+                commentInputRef.current.focus();
+            }, 100);
+        }
+    }, [commentModalConfig]);
+
+
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('id-ID', {
@@ -123,6 +135,8 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
     // Form Submissions
     const submitLpj = (e) => {
         e.preventDefault();
+        console.log('submitLpj triggered');
+        console.log('Current Form Data:', data);
         
         Swal.fire({
             title: status === 12 ? 'Submit Ulang LPJ?' : 'Submit LPJ?',
@@ -137,12 +151,18 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                     ? route('lpj.resubmit', kegiatan.kegiatan_id) 
                     : route('lpj.submit', kegiatan.kegiatan_id);
                 
+                // forceFormData MUST be true — without it, Inertia serializes
+                // the request as JSON, which silently drops all File objects.
+                // Files only survive transmission inside multipart/form-data.
                 post(url, {
+                    forceFormData: true,
                     onSuccess: () => {
                         // Success message handled by Index flash props
                     },
                     onError: (errs) => {
-                        Swal.fire('Error', errs.message || 'Gagal mengirim LPJ', 'error');
+                        console.error('Validation Errors:', errs);
+                        const errorCount = Object.keys(errs).length;
+                        Swal.fire('Gagal', `Terdapat ${errorCount} kesalahan pada form. Silakan periksa pesan error di bawah.`, 'error');
                     }
                 });
             }
@@ -171,28 +191,20 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
 
     const reviseLpj = () => {
         Swal.fire({
-            title: 'Revisi LPJ',
-            input: 'textarea',
-            inputLabel: 'Catatan Umum Revisi',
-            inputPlaceholder: 'Masukkan catatan umum untuk Pengusul...',
+            title: 'Kembalikan untuk Revisi?',
+            text: 'Pastikan Anda telah memberikan catatan pada item anggaran atau dokumen yang perlu diperbaiki.',
+            icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Kirim Revisi',
-            preConfirm: (catatan) => {
-                if (!catatan) Swal.showValidationMessage('Catatan umum wajib diisi');
-                return catatan;
-            }
+            confirmButtonText: 'Ya, Kembalikan',
+            cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
                 post(route('lpj.revise', kegiatan.kegiatan_id), {
-                    transform: (formData) => ({
-                        ...formData,
-                        catatan_umum: result.value
-                    }),
                     onSuccess: () => {
                         // Success message handled by Index flash props
                     },
-                    onError: (e) => Swal.fire('Error', e.message, 'error')
+                    onError: (e) => Swal.fire('Error', e.message || 'Gagal mengirim revisi', 'error')
                 });
             }
         });
@@ -219,7 +231,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
     };
 
     const saveComment = () => {
-        if (!commentModalConfig) return;
+        if (!commentModalConfig || commentModalConfig.isArchived) return;
         
         if (commentModalConfig.type === 'lampiran') {
             const existing = data.lampiran_comments.find(c => c.id === commentModalConfig.id);
@@ -251,18 +263,25 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
     };
 
     const getCommentForLampiran = (lampiranId) => {
-        // Check local state first, then DB
         const local = data.lampiran_comments.find(c => c.id === lampiranId);
-        if (local) return local.catatan_reviewer;
         const dbLampiran = lampiran.find(l => l.lampiran_id === lampiranId);
-        return dbLampiran?.catatan_reviewer || '';
+        const dbText = dbLampiran?.catatan_reviewer || '';
+        
+        if (local) {
+            return { text: local.catatan_reviewer, isOld: local.catatan_reviewer === dbText };
+        }
+        return { text: dbText, isOld: true };
     };
 
     const getCommentForAnggaran = (anggaranId) => {
         const local = data.anggaran_comments.find(c => c.id === anggaranId);
-        if (local) return local.catatan_reviewer;
         const dbAnggaran = anggaran.find(a => a.anggaran_id === anggaranId);
-        return dbAnggaran?.catatan_verifikator || '';
+        const dbText = dbAnggaran?.catatan_verifikator || '';
+
+        if (local) {
+            return { text: local.catatan_reviewer, isOld: local.catatan_reviewer === dbText };
+        }
+        return { text: dbText, isOld: true };
     };
 
     const calculateRowTotal = (item) => {
@@ -292,9 +311,6 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                 <Head title={`LPJ - ${kegiatan.nama_kegiatan}`} />
 
                 <div className="max-w-7xl mx-auto space-y-6 form-lpj-page pb-20">
-                    
-
-
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden main-step-content active border-hover-draw">
                         <div className="p-6">
                             <h3 className="text-lg font-bold text-slate-800 border-b pb-3 mb-6">Formulir Realisasi LPJ</h3>
@@ -314,159 +330,214 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                 <th className="px-2 py-3 text-center text-xs font-bold text-gray-500 uppercase w-24">Satuan</th>
                                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase w-32">Harga Satuan (Real)</th>
                                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase w-32">Total (Real)</th>
-                                                <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase w-12"></th>
-                                            </tr>
+                                                {status !== 10 && (
+                                                   <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase w-12"></th>
+                                                )}
+                                             </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
-                                            {anggaran.map((item, idx) => {
-                                                const realisasiItem = data.realisasi[item.anggaran_id] || {};
-                                                const attachedFiles = lampiran.filter(l => l.anggaran_id === item.anggaran_id && l.status_lampiran !== 'archived' && !data.files_to_delete.includes(l.lampiran_id));
-                                                const newFiles = data.bukti[item.anggaran_id] || [];
-                                                
-                                                return (
-                                                    <React.Fragment key={item.anggaran_id}>
-                                                        <tr className="text-sm bg-white hover:bg-slate-50 transition-colors">
-                                                            <td className="px-4 py-3 align-top font-bold text-slate-800 w-48 border-r border-slate-100">
-                                                                <div className="flex items-start gap-2">
-                                                                    <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-cyan-100 text-cyan-700 font-bold text-[10px] shrink-0 mt-0.5">{idx + 1}</span>
-                                                                    <span>{item.uraian}</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className="px-4 py-3 align-top text-right text-slate-600 font-semibold whitespace-nowrap border-r border-slate-100">
-                                                                {formatCurrency(item.jumlah_diusulkan)}
-                                                            </td>
-                                                            {/* Vol 1 */}
-                                                            <td className="px-1 py-2 align-top border-r border-slate-100/50">
-                                                                <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="1" />
-                                                            </td>
-                                                            <td className="px-1 py-2 align-top border-r border-slate-100">
-                                                                <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.satuan1_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan1_id', e.target.value)} disabled={!isEditingPengusul}>
-                                                                    <option value="">-</option>
-                                                                    {satuans.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
-                                                                </select>
-                                                            </td>
-                                                            {/* Vol 2 */}
-                                                            <td className="px-1 py-2 align-top border-r border-slate-100/50">
-                                                                <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.volume2} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume2', e.target.value)} disabled={!isEditingPengusul} placeholder="-" min="0" />
-                                                            </td>
-                                                            <td className="px-1 py-2 align-top border-r border-slate-100">
-                                                                <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.satuan2_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan2_id', e.target.value)} disabled={!isEditingPengusul}>
-                                                                    <option value="">-</option>
-                                                                    {satuans.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
-                                                                </select>
-                                                            </td>
-                                                            {/* Vol 3 */}
-                                                            <td className="px-1 py-2 align-top border-r border-slate-100/50">
-                                                                <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.volume3} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume3', e.target.value)} disabled={!isEditingPengusul} placeholder="-" min="0" />
-                                                            </td>
-                                                            <td className="px-1 py-2 align-top border-r border-slate-100">
-                                                                <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.satuan3_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan3_id', e.target.value)} disabled={!isEditingPengusul}>
-                                                                    <option value="">-</option>
-                                                                    {satuans.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
-                                                                </select>
-                                                            </td>
-                                                            {/* Harga */}
-                                                            <td className="px-2 py-2 align-top border-r border-slate-100">
-                                                                <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 text-right focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                    value={realisasiItem.harga_satuan ? formatInputCurrency(realisasiItem.harga_satuan) : ''} onChange={e => handleRealisasiChange(item.anggaran_id, 'harga_satuan', e.target.value)} disabled={!isEditingPengusul} placeholder="Rp 0" />
-                                                            </td>
-                                                            <td className="px-4 py-2 text-right font-bold text-gray-700 bg-cyan-50/30 align-top whitespace-nowrap">
-                                                                <div className="py-2">{formatCurrency(calculateRowTotal(realisasiItem))}</div>
-                                                            </td>
-                                                            <td className="px-2 py-3 align-top text-center border-l border-slate-100">
-                                                                {(() => {
-                                                                    const comment = getCommentForAnggaran(item.anggaran_id);
-                                                                    return (
-                                                                        <button 
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                setCommentModalConfig({
-                                                                                    type: 'anggaran',
-                                                                                    id: item.anggaran_id,
-                                                                                    title: `Item Anggaran: ${item.uraian}`
-                                                                                });
-                                                                                setCommentText(comment);
-                                                                            }}
-                                                                            className={clsx("lampiran-comment-btn mx-auto", comment ? "has-comment" : "")}
-                                                                            title="Catatan Revisi Item"
-                                                                        >
-                                                                            <MessageCircle size={14} />
-                                                                        </button>
-                                                                    );
-                                                                })()}
-                                                            </td>
-                                                        </tr>
-                                                        {/* Bukti Dokumen Row */}
-                                                        <tr className="bg-slate-50/50 border-b-2 border-b-slate-200">
-                                                            <td colSpan="11" className="px-4 py-4 pb-6">
-                                                                <div className="p-4 bg-white rounded-xl border-2 border-slate-100 hover:border-cyan-300 transition-colors shadow-sm md:ml-12">
-                                                                    <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
-                                                                        <h5 className="font-bold text-slate-700 text-sm flex items-center gap-2">
-                                                                            <FileCheck size={16} className="text-cyan-600" /> Bukti Dokumen
-                                                                        </h5>
-                                                                        {isEditingPengusul && (
-                                                                            <div>
-                                                                                <label className="btn-add-lampiran cursor-pointer text-xs flex items-center gap-1 shadow-sm">
-                                                                                    <Plus size={14} /> Tambah Bukti
-                                                                                    <input type="file" className="hidden" multiple onChange={(e) => handleFileChange(item.anggaran_id, e)} />
-                                                                                </label>
+                                            {Object.entries(
+                                                anggaran.reduce((acc, curr) => {
+                                                    const catId = curr.kategori_belanja_id;
+                                                    if (!acc[catId]) {
+                                                        acc[catId] = {
+                                                            name: curr.kategori_belanja?.nama_kategori_belanja || 'Lainnya',
+                                                            items: []
+                                                        };
+                                                    }
+                                                    acc[catId].items.push(curr);
+                                                    return acc;
+                                                }, {})
+                                            ).map(([catId, category]) => (
+                                                <React.Fragment key={`cat-${catId}`}>
+                                                    <tr className="bg-slate-50">
+                                                        <td colSpan={status !== 10 ? 11 : 10} className="px-4 py-2 font-bold text-slate-700 text-xs uppercase tracking-wider border-y border-slate-200">
+                                                            {category.name}
+                                                        </td>
+                                                    </tr>
+                                                    {category.items.map((item, idx) => {
+                                                        const realisasiItem = data.realisasi[item.anggaran_id] || {};
+                                                        const attachedFiles = lampiran.filter(l => l.anggaran_id === item.anggaran_id);
+                                                        const newFiles = data.bukti[item.anggaran_id] || [];
+                                                        
+                                                        return (
+                                                            <React.Fragment key={item.anggaran_id}>
+                                                                <tr className="text-sm bg-white hover:bg-slate-50 transition-colors">
+                                                                    <td className="px-4 py-3 align-top font-bold text-slate-800 w-48 border-r border-slate-100">
+                                                                        <div className="flex items-start gap-2">
+                                                                            <span className="inline-flex items-center justify-center w-5 h-5 rounded bg-cyan-100 text-cyan-700 font-bold text-[10px] shrink-0 mt-0.5">{idx + 1}</span>
+                                                                            <span>{item.uraian}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 align-top text-right text-slate-600 font-semibold whitespace-nowrap border-r border-slate-100">
+                                                                        {formatCurrency(item.jumlah_diusulkan)}
+                                                                    </td>
+                                                                    {/* Vol 1 */}
+                                                                    <td className="px-1 py-2 align-top border-r border-slate-100/50">
+                                                                        <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="1" />
+                                                                    </td>
+                                                                    <td className="px-1 py-2 align-top border-r border-slate-100">
+                                                                        <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.satuan1_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan1_id', e.target.value)} disabled={!isEditingPengusul}>
+                                                                            <option value="">-</option>
+                                                                            {satuans.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
+                                                                        </select>
+                                                                    </td>
+                                                                    {/* Vol 2 */}
+                                                                    <td className="px-1 py-2 align-top border-r border-slate-100/50">
+                                                                        <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.volume2} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume2', e.target.value)} disabled={!isEditingPengusul} placeholder="-" min="0" />
+                                                                    </td>
+                                                                    <td className="px-1 py-2 align-top border-r border-slate-100">
+                                                                        <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.satuan2_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan2_id', e.target.value)} disabled={!isEditingPengusul}>
+                                                                            <option value="">-</option>
+                                                                            {satuans.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
+                                                                        </select>
+                                                                    </td>
+                                                                    {/* Vol 3 */}
+                                                                    <td className="px-1 py-2 align-top border-r border-slate-100/50">
+                                                                        <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.volume3} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume3', e.target.value)} disabled={!isEditingPengusul} placeholder="-" min="0" />
+                                                                    </td>
+                                                                    <td className="px-1 py-2 align-top border-r border-slate-100">
+                                                                        <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.satuan3_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan3_id', e.target.value)} disabled={!isEditingPengusul}>
+                                                                            <option value="">-</option>
+                                                                            {satuans.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
+                                                                        </select>
+                                                                    </td>
+                                                                    {/* Harga */}
+                                                                    <td className="px-2 py-2 align-top border-r border-slate-100">
+                                                                        <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 text-right focus:border-cyan-400 focus:ring-0 shadow-sm"
+                                                                            value={realisasiItem.harga_satuan ? formatInputCurrency(realisasiItem.harga_satuan) : ''} onChange={e => handleRealisasiChange(item.anggaran_id, 'harga_satuan', e.target.value)} disabled={!isEditingPengusul} placeholder="Rp 0" />
+                                                                    </td>
+                                                                    <td className="px-4 py-2 text-right font-bold text-gray-700 bg-cyan-50/30 align-top whitespace-nowrap">
+                                                                        <div className="py-2">{formatCurrency(calculateRowTotal(realisasiItem))}</div>
+                                                                    </td>
+                                                                    {status !== 10 && (
+                                                                        <td className="px-2 py-3 align-top text-center border-l border-slate-100">
+                                                                            {(() => {
+                                                                                const comment = getCommentForAnggaran(item.anggaran_id);
+                                                                                return (
+                                                                                    <button 
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setCommentModalConfig({
+                                                                                                type: 'anggaran',
+                                                                                                id: item.anggaran_id,
+                                                                                                title: `Item Anggaran: ${item.uraian}`
+                                                                                            });
+                                                                                            setCommentText(comment.text);
+                                                                                        }}
+                                                                                        className={clsx("lampiran-comment-btn mx-auto", comment.text ? (isBendahara && comment.isOld ? "is-old-comment" : "has-comment") : "")}
+                                                                                        title="Catatan Revisi Item"
+                                                                                    >
+                                                                                        <MessageCircle size={14} />
+                                                                                    </button>
+                                                                                );
+                                                                            })()}
+                                                                        </td>
+                                                                    )}
+                                                                </tr>
+                                                                {/* Bukti Dokumen Row */}
+                                                                <tr className="bg-slate-50/50 border-b-2 border-b-slate-200">
+                                                                    <td colSpan="11" className="px-4 py-4 pb-6">
+                                                                        <div className="p-4 bg-white rounded-xl border-2 border-slate-100 hover:border-cyan-300 transition-colors shadow-sm md:ml-12">
+                                                                            <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                                                                                <h5 className="font-bold text-slate-700 text-sm flex items-center gap-2">
+                                                                                    <FileCheck size={16} className="text-cyan-600" /> Bukti Dokumen
+                                                                                </h5>
+                                                                                {isEditingPengusul && (
+                                                                                    <div>
+                                                                                        <label className="btn-add-lampiran cursor-pointer text-xs flex items-center gap-1 shadow-sm">
+                                                                                            <Plus size={14} /> Tambah Bukti
+                                                                                                <input type="file" className="hidden" multiple accept="image/*" onChange={(e) => handleFileChange(item.anggaran_id, e)} />
+                                                                                            </label>                                                                            </div>
+                                                                                )}
                                                                             </div>
-                                                                        )}
-                                                                    </div>
-                                                                    <div className="space-y-3">
-                                                                        {attachedFiles.length === 0 && newFiles.length === 0 && (
-                                                                            <div className="text-center py-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-300 text-sm text-slate-400 font-medium">Belum ada bukti yang diunggah untuk item ini.</div>
-                                                                        )}
+                                                                            <div className="space-y-3">
+                                                                                {attachedFiles.filter(l => l.status_lampiran !== 'archived' && !data.files_to_delete.includes(l.lampiran_id)).length === 0 && newFiles.length === 0 && (
+                                                                                    <div className="text-center py-6 bg-slate-50/50 rounded-lg border border-dashed border-slate-300 text-sm text-slate-400 font-medium">Belum ada bukti yang diunggah untuk item ini.</div>
+                                                                                )}
 
-                                                                        {/* Existing Files */}
-                                                                        {attachedFiles.map(file => {
-                                                                            const comment = getCommentForLampiran(file.lampiran_id);
-                                                                            return (
-                                                                                <div key={file.lampiran_id} className={clsx("lampiran-item flex justify-between items-center p-3 rounded-lg border", comment ? "border-red-200 bg-red-50/30" : "border-slate-100 bg-white shadow-sm")}>
-                                                                                    <div className="flex items-center gap-3">
-                                                                                        <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", comment ? "bg-red-100 text-red-600" : "bg-cyan-50 text-cyan-600")}>
-                                                                                            <FileText size={20} />
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <a href={file.path_file_disimpan} target="_blank" rel="noreferrer" className="text-sm font-bold text-cyan-700 hover:text-cyan-500 hover:underline transition-colors">
-                                                                                                {file.nama_file_asli}
-                                                                                            </a>
-                                                                                            <div className="text-[11px] text-slate-400 mt-0.5 font-medium">Diunggah pada {new Date(file.created_at).toLocaleDateString()}</div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div className="flex items-center gap-2">
-                                                                                        {/* Comment Button (Bendahara & Pengusul) */}
-                                                                                        <button 
-                                                                                            type="button"
-                                                                                            onClick={() => {
-                                                                                                setCommentModalConfig({
-                                                                                                    type: 'lampiran',
-                                                                                                    id: file.lampiran_id,
-                                                                                                    title: `Dokumen: ${file.nama_file_asli}`
-                                                                                                });
-                                                                                                setCommentText(comment);
-                                                                                            }}
-                                                                                            className={clsx("lampiran-comment-btn", comment ? "has-comment" : "")}
-                                                                                            title="Catatan Revisi"
-                                                                                        >
-                                                                                            <MessageCircle size={16} />
-                                                                                        </button>
+                                                                                {/* Existing Files */}
+                                                                                {attachedFiles.map(file => {
+                                                                                    const comment = getCommentForLampiran(file.lampiran_id);
+                                                                                    const isArchived = file.status_lampiran === 'archived' || data.files_to_delete.includes(file.lampiran_id);
+                                                                                    
+                                                                                    return (
+                                                                                        <div key={file.lampiran_id} className={clsx("lampiran-item flex justify-between items-center p-3 rounded-lg border", comment ? "border-red-200 bg-red-50/30" : "border-slate-100 bg-white shadow-sm", isArchived && "opacity-50 grayscale bg-slate-100")}>
+                                                                                            <div className="flex items-center gap-3">
+                                                                                                <div className={clsx("w-10 h-10 rounded-lg flex items-center justify-center", comment ? "bg-red-100 text-red-600" : "bg-cyan-50 text-cyan-600")}>
+                                                                                                    <FileText size={20} />
+                                                                                                </div>
+                                                                                                <div>
+                                                                                                    <div className="flex items-center gap-2">
+                                                                                                        <button 
+                                                                                                            type="button"
+                                                                                                            onClick={() => setViewerConfig({ url: file.path_file_disimpan, name: file.nama_file_asli })} 
+                                                                                                            className={clsx("text-sm font-bold text-cyan-700 hover:text-cyan-500 hover:underline transition-colors", isArchived && "line-through text-slate-500")}
+                                                                                                        >
+                                                                                                            {file.nama_file_asli}
+                                                                                                        </button>
+                                                                                                        {isArchived && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 font-bold uppercase">Archived</span>}
+                                                                                                    </div>
+                                                                                                    <div className="text-[11px] text-slate-400 mt-0.5 font-medium">Diunggah pada {new Date(file.created_at).toLocaleDateString()}</div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                {/* View Button */}
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => setViewerConfig({ url: file.path_file_disimpan, name: file.nama_file_asli })}
+                                                                                                    className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-cyan-600 transition-colors"
+                                                                                                    title="Lihat Dokumen"
+                                                                                                >
+                                                                                                    <Eye size={16} />
+                                                                                                </button>
 
-                                                                                        {isEditingPengusul && (
-                                                                                            <button type="button" onClick={() => removeExistingFile(file.lampiran_id)} className="btn-delete-lampiran" title="Hapus Dokumen">
-                                                                                                <Trash2 size={16} />
-                                                                                            </button>
-                                                                                        )}
-                                                                                    </div>
-                                                                                </div>
-                                                                            );
-                                                                        })}
+                                                                                                {/* Comment Button (Bendahara & Pengusul) */}
+                                                                                                {status !== 10 && (
+                                                                                                    <button 
+                                                                                                        type="button"
+                                                                                                        onClick={() => {
+                                                                                                            setCommentModalConfig({
+                                                                                                                type: 'lampiran',
+                                                                                                                id: file.lampiran_id,
+                                                                                                                title: `Dokumen: ${file.nama_file_asli}`,
+                                                                                                                isArchived: isArchived
+                                                                                                            });
+                                                                                                            setCommentText(comment.text);
+                                                                                                        }}
+                                                                                                        className={clsx("lampiran-comment-btn", comment.text ? (isBendahara && comment.isOld ? "is-old-comment" : "has-comment") : "")}
+                                                                                                        title="Catatan Revisi"
+                                                                                                    >
+                                                                                                        <MessageCircle size={16} />
+                                                                                                    </button>
+                                                                                                )}
+
+                                                                                                {isEditingPengusul && !isArchived && (
+                                                                                                    <button type="button" onClick={() => removeExistingFile(file.lampiran_id)} className="btn-delete-lampiran" title="Hapus Dokumen">
+                                                                                                        <Trash2 size={16} />
+                                                                                                    </button>
+                                                                                                )}
+                                                                                                
+                                                                                                {isEditingPengusul && isArchived && (
+                                                                                                    <button 
+                                                                                                        type="button" 
+                                                                                                        onClick={() => setData('files_to_delete', data.files_to_delete.filter(id => id !== file.lampiran_id))} 
+                                                                                                        className="p-2 rounded-lg hover:bg-cyan-100 text-slate-400 hover:text-cyan-600 transition-colors" 
+                                                                                                        title="Batal Hapus"
+                                                                                                    >
+                                                                                                        <Save size={16} />
+                                                                                                    </button>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
 
                                                                         {/* New Files (Pengusul only) */}
                                                                         {newFiles.map((file, idx) => (
@@ -495,32 +566,28 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                 </div>
                                                             </td>
                                                         </tr>
-                                                    </React.Fragment>
-                                                );
-                                            })}
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
+                                                </React.Fragment>
+                                            ))}
                                         </tbody>
                                     </table>
                                 </div>
-
-                                {errors.message && (
-                                    <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
-                                        {errors.message}
+                                
+                                <div className="bg-slate-50 border-t border-slate-200 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                                    <div className="flex items-center gap-2 text-slate-500">
+                                        <AlertCircle size={20} className="text-cyan-600" />
+                                        <span className="text-sm">Pastikan semua data realisasi dan bukti lampiran telah lengkap.</span>
                                     </div>
-                                )}
-
-                                {/* Action Buttons */}
-                                <div className="action-buttons border-t-4 border-cyan-500 flex flex-col md:flex-row justify-between items-center gap-4 bg-slate-50/80 p-6 rounded-b-2xl">
-                                    <div className="text-sm text-slate-500 italic">
-                                        Pastikan data realisasi dan dokumen pendukung sesuai.
-                                    </div>
-                                    <div className="flex flex-wrap gap-3 justify-end w-full md:w-auto">
+                                    <div className="flex items-center gap-3">
                                         {isEditingPengusul && (
                                             <button 
                                                 type="submit" 
                                                 disabled={processing}
-                                                className="btn-primary-action bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg shadow-cyan-200 disabled:opacity-50"
+                                                className="btn-primary-action bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg shadow-cyan-200"
                                             >
-                                                {processing ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                                {processing ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                                                 <span>{status === 12 ? 'Submit Ulang LPJ' : 'Submit LPJ'}</span>
                                             </button>
                                         )}
@@ -531,17 +598,17 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                     type="button" 
                                                     onClick={reviseLpj}
                                                     disabled={processing}
-                                                    className="btn-primary-action btn-revise"
+                                                    className="btn-primary-action bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-200"
                                                 >
-                                                    <AlertCircle size={20} /> <span>Kembalikan untuk Revisi</span>
+                                                    <X size={20} /> <span>Kembalikan untuk Revisi</span>
                                                 </button>
                                                 <button 
                                                     type="button" 
                                                     onClick={approveLpj}
                                                     disabled={processing}
-                                                    className="btn-primary-action bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-200"
+                                                    className="btn-primary-action bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg shadow-cyan-200"
                                                 >
-                                                    <CheckCircle2 size={20} /> <span>Setujui LPJ Digital</span>
+                                                    <CheckCircle2 size={20} /> <span>Setujui LPJ</span>
                                                 </button>
                                             </>
                                         )}
@@ -564,47 +631,82 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                 </div>
 
                 {/* Comment Modal */}
-                {commentModalConfig && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-                        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-slide-in-up">
-                            <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 flex justify-between items-center text-white">
-                                <h3 className="text-xl font-black flex items-center gap-2">
-                                    <MessageCircle size={24} /> Catatan Revisi {commentModalConfig.type === 'lampiran' ? 'Dokumen' : 'Item'}
-                                </h3>
-                                <button onClick={() => setCommentModalConfig(null)} className="p-2 bg-white/20 hover:bg-white/30 rounded-xl transition-colors backdrop-blur-md border border-white/30">
-                                    <X size={20} />
+                <Modal show={!!commentModalConfig} onClose={() => setCommentModalConfig(null)} maxWidth="md">
+                    <div className="p-6">
+                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <MessageCircle size={20} className="text-cyan-600" />
+                                Catatan Revisi
+                            </h3>
+                            <button onClick={() => setCommentModalConfig(null)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="mb-4 text-sm font-semibold text-slate-600 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                            <span className="text-cyan-600">{commentModalConfig?.title}</span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <label className="block text-sm font-bold text-slate-700">Catatan Reviewer:</label>
+                            <textarea
+                                ref={commentInputRef}
+                                className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-cyan-500 focus:ring-0 transition-colors h-32 resize-none"
+                                placeholder={isReviewingBendahara ? (commentModalConfig?.isArchived ? "Dokumen ini dihapus. Catatan tidak dapat diubah." : "Masukkan catatan...") : "Belum ada catatan."}
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                disabled={!isReviewingBendahara || commentModalConfig?.isArchived}
+                            />
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button onClick={() => setCommentModalConfig(null)} className="px-6 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors">
+                                Tutup
+                            </button>
+                            {isReviewingBendahara && !commentModalConfig?.isArchived && (
+                                <button onClick={saveComment} className="px-6 py-2.5 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition-colors flex items-center gap-2">
+                                    <Save size={18} /> Simpan Catatan
                                 </button>
-                            </div>
-                            <div className="p-6">
-                                <div className="mb-4 text-sm font-semibold text-slate-600 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                    <span className="text-cyan-600">{commentModalConfig.title}</span>
-                                </div>
-                                
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-bold text-slate-700">Catatan Reviewer:</label>
-                                    <textarea
-                                        className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-cyan-500 focus:ring-0 transition-colors h-32 resize-none"
-                                        placeholder={isReviewingBendahara ? "Masukkan catatan..." : "Belum ada catatan."}
-                                        value={commentText}
-                                        onChange={(e) => setCommentText(e.target.value)}
-                                        disabled={!isReviewingBendahara}
-                                    />
-                                </div>
-                                
-                                <div className="mt-6 flex justify-end gap-3">
-                                    <button onClick={() => setCommentModalConfig(null)} className="px-6 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 transition-colors">
-                                        Tutup
-                                    </button>
-                                    {isReviewingBendahara && (
-                                        <button onClick={saveComment} className="px-6 py-2.5 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 shadow-lg shadow-red-200 transition-colors flex items-center gap-2">
-                                            <Save size={18} /> Simpan Catatan
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                            )}
+                        </div>                    </div>
+                </Modal>
+
+                {/* Proof Viewer Modal */}
+                <Modal show={!!viewerConfig} onClose={() => setViewerConfig(null)} maxWidth="2xl">
+                    <div className="p-6">
+                        <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-800 truncate pr-8">
+                                {viewerConfig?.name}
+                            </h3>
+                            <button onClick={() => setViewerConfig(null)} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <div className="bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center min-h-[400px]">
+                            {viewerConfig?.url.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                                <img src={viewerConfig.url} alt={viewerConfig.name} className="max-w-full h-auto shadow-lg" />
+                            ) : (
+                                <iframe src={viewerConfig?.url} className="w-full h-[600px] border-none" title="Proof Viewer" />
+                            )}
+                        </div>
+                        <div className="mt-4 flex justify-end gap-3">
+                            <a 
+                                href={viewerConfig?.url} 
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
+                            >
+                                <Eye size={18} /> Buka Tab Baru
+                            </a>
+                            <button
+                                onClick={() => setViewerConfig(null)}
+                                className="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-bold hover:bg-slate-900 transition-all active:scale-95"
+                            >
+                                Tutup
+                            </button>
                         </div>
                     </div>
-                )}
+                </Modal>
             </AuthenticatedLayout>
 
             <style dangerouslySetInnerHTML={{
@@ -671,6 +773,11 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                     border-color: #FCA5A5;
                     animation: pulse-comment 2s infinite;
                 }
+                .lampiran-comment-btn.is-old-comment {
+                    background: #FEF9C3;
+                    color: #CA8A04;
+                    border-color: #FDE047;
+                }
                 @keyframes pulse-comment {
                     0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
                     50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
@@ -731,31 +838,20 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                     padding: 0.75rem 1.5rem;
                     border-radius: 0.75rem;
                     font-weight: 700;
-                    font-size: 0.875rem;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    white-space: nowrap;
-                    border: none;
-                    cursor: pointer;
                 }
                 .btn-primary-action:hover {
                     transform: translateY(-2px);
                 }
                 .btn-primary-action:active {
-                    transform: translateY(0);
+                    transform: scale(0.95);
                 }
-                .btn-revise {
-                    background: #ef4444;
-                    color: white;
-                    shadow-lg shadow-red-200;
+                .btn-primary-action:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
                 }
-                .btn-revise:hover {
-                    background: #dc2626;
-                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-                }
-                .action-buttons span {
-                    line-height: 1;
-                }
-            `}} />
+                `
+            }} />
         </>
     );
 }

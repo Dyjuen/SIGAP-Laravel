@@ -17,7 +17,7 @@ This document tracks the migration of features from the native PHP application t
 | **Dashboard Direktur** | `DashboardDirekturController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Notifications** | `NotificationController`, `LPJTimerService` | `Notifikasi` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Logs** | `LogController` | `Log` | ✅ Completed | ✅ | ✅ | ✅ |
-| **Wadir / Rektorat** | `WadirController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Wadir / PPK** | `WadirController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 
 ## Legend
 -   ⬜ Not Started

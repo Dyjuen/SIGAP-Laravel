@@ -25,7 +25,7 @@ class ResubmitLpjRequest extends FormRequest
             'files_to_delete' => ['nullable', 'array'],
             'files_to_delete.*' => ['integer'],
             'bukti' => ['nullable', 'array'],
-            'bukti.*.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,jpg,jpeg,png,xls,xlsx'],
+            'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png'],
         ];
     }
 
@@ -33,7 +33,7 @@ class ResubmitLpjRequest extends FormRequest
     {
         return [
             'bukti.*.*.max' => 'Ukuran file maksimal 10 MB.',
-            'bukti.*.*.mimes' => 'Format file harus: pdf, doc, docx, jpg, jpeg, png, xls, xlsx.',
+            'bukti.*.*.mimes' => 'Format file harus berupa gambar (jpg, jpeg, png).',
         ];
     }
 }

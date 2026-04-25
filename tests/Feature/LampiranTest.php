@@ -62,7 +62,7 @@ class LampiranTest extends TestCase
             'jumlah_diusulkan' => 1000,
         ]);
 
-        Storage::fake('public');
+        Storage::fake('supabase');
     }
 
     /**
@@ -105,7 +105,7 @@ class LampiranTest extends TestCase
      */
     public function test_successful_upload(): void
     {
-        $file = UploadedFile::fake()->create('dokumen.pdf', 500);
+        $file = UploadedFile::fake()->image('bukti.jpg', 500);
 
         $response = $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.store', $this->anggaran), [
@@ -117,12 +117,12 @@ class LampiranTest extends TestCase
 
         $this->assertDatabaseHas('t_kegiatan_lampiran', [
             'anggaran_id' => $this->anggaran->anggaran_id,
-            'nama_file_asli' => 'dokumen.pdf',
+            'nama_file_asli' => 'bukti.jpg',
             'catatan' => 'Test catatan uploader',
         ]);
 
         $lampiran = KegiatanLampiran::first();
-        Storage::disk('public')->assertExists($lampiran->path_file_disimpan);
+        Storage::disk('supabase')->assertExists($lampiran->path_file_disimpan);
     }
 
     public function test_upload_fails_on_storage_error_and_rolls_back(): void
@@ -131,7 +131,7 @@ class LampiranTest extends TestCase
         // However, in Laravel testing, UploadedFile::storeAs uses the underlying disk
         // A better way to test the catch block is to ensure the DB record isn't there if something goes wrong
 
-        $file = UploadedFile::fake()->create('dokumen.pdf', 500);
+        $file = UploadedFile::fake()->image('bukti.jpg', 500);
 
         // We can't easily mock storeAs on the UploadedFile object directly in a post request
         // But we can verify the 'path_file_disimpan' fix by checking if the record is created with the right path
@@ -149,14 +149,14 @@ class LampiranTest extends TestCase
     public function test_upload_validation_rules(): void
     {
         // 1. Invalid mime type
-        $file = UploadedFile::fake()->create('script.exe', 100, 'application/x-mswait');
+        $file = UploadedFile::fake()->create('script.pdf', 100, 'application/pdf');
         $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.store', $this->anggaran), ['file' => $file])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['file']);
 
         // 2. Too large (> 10MB)
-        $largeFile = UploadedFile::fake()->create('heavy.pdf', 11000);
+        $largeFile = UploadedFile::fake()->create('heavy.jpg', 11000, 'image/jpeg');
         $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.store', $this->anggaran), ['file' => $largeFile])
             ->assertStatus(422);
@@ -170,7 +170,7 @@ class LampiranTest extends TestCase
             'status_lampiran' => 'pending',
         ]);
 
-        $file = UploadedFile::fake()->create('dokumen_extra.pdf', 500);
+        $file = UploadedFile::fake()->image('bukti_extra.jpg', 500);
 
         $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.store', $this->anggaran), ['file' => $file])
@@ -185,19 +185,19 @@ class LampiranTest extends TestCase
     {
         $lampiran = KegiatanLampiran::create([
             'anggaran_id' => $this->anggaran->anggaran_id,
-            'nama_file_asli' => 'test.pdf',
-            'path_file_disimpan' => 'lampiran/1/test.pdf',
+            'nama_file_asli' => 'test.jpg',
+            'path_file_disimpan' => 'lampiran/1/test.jpg',
             'uploader_user_id' => $this->pengusul->user_id,
             'status_lampiran' => 'pending',
         ]);
 
-        Storage::disk('public')->put($lampiran->path_file_disimpan, 'fake-content');
+        Storage::disk('supabase')->put($lampiran->path_file_disimpan, 'fake-content');
 
         $response = $this->actingAs($this->pengusul)
             ->get(route('lampiran.stream', $lampiran));
 
         $response->assertStatus(200);
-        $response->assertHeader('Content-Type', 'application/pdf');
+        $response->assertHeader('Content-Type', 'image/jpeg');
     }
 
     public function test_stream_fails_when_file_missing_on_disk(): void
@@ -240,7 +240,7 @@ class LampiranTest extends TestCase
         $this->assertEquals('revision_requested', $lampiran->fresh()->status_lampiran);
 
         // 2. Pengusul resubmits
-        $revFile = UploadedFile::fake()->create('ver2.pdf', 600);
+        $revFile = UploadedFile::fake()->image('ver2.jpg', 600);
         $resubmitResponse = $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.resubmit', $lampiran), [
                 'file' => $revFile,
@@ -267,7 +267,7 @@ class LampiranTest extends TestCase
             'status_lampiran' => 'pending', // NOT revision_requested
         ]);
 
-        $file = UploadedFile::fake()->create('ver2.pdf', 100);
+        $file = UploadedFile::fake()->image('ver2.jpg', 100);
         $this->actingAs($this->pengusul)
             ->postJson(route('lampiran.resubmit', $lampiran), ['file' => $file])
             ->assertStatus(422)
@@ -306,22 +306,22 @@ class LampiranTest extends TestCase
         // Create chain: L1 (archived) -> L2 (pending)
         $l1 = KegiatanLampiran::create([
             'anggaran_id' => $this->anggaran->anggaran_id,
-            'nama_file_asli' => 'old.pdf',
-            'path_file_disimpan' => 'lampiran/1/old.pdf',
+            'nama_file_asli' => 'old.jpg',
+            'path_file_disimpan' => 'lampiran/1/old.jpg',
             'uploader_user_id' => $this->pengusul->user_id,
             'status_lampiran' => 'archived',
         ]);
-        Storage::disk('public')->put($l1->path_file_disimpan, 'old-data');
+        Storage::disk('supabase')->put($l1->path_file_disimpan, 'old-data');
 
         $l2 = KegiatanLampiran::create([
             'anggaran_id' => $this->anggaran->anggaran_id,
-            'nama_file_asli' => 'new.pdf',
-            'path_file_disimpan' => 'lampiran/1/new.pdf',
+            'nama_file_asli' => 'new.jpg',
+            'path_file_disimpan' => 'lampiran/1/new.jpg',
             'uploader_user_id' => $this->pengusul->user_id,
             'status_lampiran' => 'pending',
             'parent_lampiran_id' => $l1->lampiran_id,
         ]);
-        Storage::disk('public')->put($l2->path_file_disimpan, 'new-data');
+        Storage::disk('supabase')->put($l2->path_file_disimpan, 'new-data');
 
         // Approve L2
         $this->actingAs($this->bendahara)
@@ -333,10 +333,10 @@ class LampiranTest extends TestCase
 
         // Verify L1 is deleted from DB and Disk
         $this->assertDatabaseMissing('t_kegiatan_lampiran', ['lampiran_id' => $l1->lampiran_id]);
-        Storage::disk('public')->assertMissing($l1->path_file_disimpan);
+        Storage::disk('supabase')->assertMissing($l1->path_file_disimpan);
 
         // L2 file should still exist
-        Storage::disk('public')->assertExists($l2->path_file_disimpan);
+        Storage::disk('supabase')->assertExists($l2->path_file_disimpan);
     }
 
     public function test_history_returns_correct_tree(): void

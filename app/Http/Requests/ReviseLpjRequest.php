@@ -20,18 +20,17 @@ class ReviseLpjRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'catatan_umum' => ['required', 'string', 'max:1000'],
             'lampiran_comments' => ['nullable', 'array'],
             'lampiran_comments.*.id' => ['required', 'integer', 'exists:t_kegiatan_lampiran,lampiran_id'],
             'lampiran_comments.*.catatan_reviewer' => ['required', 'string', 'max:1000'],
+            'anggaran_comments' => ['nullable', 'array'],
+            'anggaran_comments.*.id' => ['required', 'integer', 'exists:t_kak_anggaran,anggaran_id'],
+            'anggaran_comments.*.catatan_reviewer' => ['required', 'string', 'max:1000'],
         ];
     }
 
     public function messages(): array
     {
-        return [
-            'catatan_umum.required' => 'Catatan umum revisi harus diisi.',
-            'catatan_umum.max' => 'Catatan umum maksimal 1000 karakter.',
-        ];
+        return [];
     }
 }

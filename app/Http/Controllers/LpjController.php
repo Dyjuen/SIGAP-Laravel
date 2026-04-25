@@ -12,124 +12,203 @@ use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
 use App\Models\KegiatanLogStatus;
-use Illuminate\Http\JsonResponse;
+use App\Models\Satuan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class LpjController extends Controller
 {
+    /**
+     * Display the LPJ index page for Admin, Bendahara, and Pengusul.
+     */
+    public function index(Request $request): \Inertia\Response
+    {
+        $user = $request->user();
+        $role = $user->getRoleName();
+
+        if (! in_array($role, ['Admin', 'Bendahara', 'Pengusul'])) {
+            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+        }
+
+        $query = Kegiatan::with([
+            'kak.pengusul',
+            'kak.mataAnggaran',
+            'kak.tipeKegiatan',
+            'kak.status',
+            'approvals',
+        ])->whereHas('kak', function ($q) {
+            $q->where('status_id', '>=', 10)->where('status_id', '!=', 14);
+        });
+
+        if ($role === 'Pengusul') {
+            $query->whereHas('kak', function ($q) use ($user) {
+                $q->where('pengusul_user_id', $user->user_id);
+            });
+        }
+
+        $kegiatans = $query->get();
+
+        // For accurate total_anggaran, we need to load the sum of anggaran
+        $kegiatans->load(['kak' => fn ($q) => $q->withSum('anggaran', 'jumlah_diusulkan')]);
+
+        $kegiatans = $kegiatans->map(function (Kegiatan $kegiatan) {
+            $totalAnggaran = (float) ($kegiatan->kak?->anggaran_sum_jumlah_diusulkan ?? 0);
+
+            // Re-use logic from Pencairan to get total dicairkan and calculate sisa dana
+            $totalDicairkan = $kegiatan->pencairanDana()->sum('jumlah_dicairkan');
+
+            return [
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'kak_id' => $kegiatan->kak_id,
+                'nama_kegiatan' => $kegiatan->kak?->nama_kegiatan ?? '-',
+                'status_id' => $kegiatan->kak?->status_id,
+                'status_nama' => $kegiatan->kak?->status?->nama_status ?? '-',
+                'total_anggaran_diusulkan' => $totalAnggaran,
+                'dana_dicairkan' => $totalDicairkan,
+                'sisa_dana' => $totalAnggaran - $totalDicairkan,
+            ];
+        });
+
+        return Inertia::render('Lpj/Index', [
+            'kegiatans' => $kegiatans,
+        ]);
+    }
+
     /**
      * Submit LPJ for a given kegiatan (Pengusul).
      */
     public function submit(SubmitLpjRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
+        Log::info('LPJ Submit Method Reached', [
+            'user_id' => $request->user()->user_id,
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'has_realisasi' => $request->has('realisasi'),
+            'has_bukti' => !empty($request->file('bukti')),
+        ]);
+
         $uploadedFiles = [];
 
-        return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
-            // Pessimistic lock to prevent double submission
-            $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
+        try {
+            return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
+                // Pessimistic lock to prevent double submission
+                $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
 
-            if ($kegiatan->lpj_submitted_at !== null) {
-                return redirect()->back()->withErrors(['message' => 'LPJ untuk kegiatan ini sudah pernah disubmit.']);
-            }
-
-            // 1. Process realization updates
-            foreach ($request->realisasi as $anggaranId => $data) {
-                $anggaran = KAKAnggaran::find($anggaranId);
-                if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
-                    $v1 = (float) ($data['volume1'] ?? 0);
-                    $v2 = (float) ($data['volume2'] ?? 0);
-                    $v3 = (float) ($data['volume3'] ?? 0);
-                    $hp = (float) ($data['harga_satuan'] ?? 0);
-
-                    $anggaran->update([
-                        'realisasi_volume1' => $data['volume1'] === '' ? null : $data['volume1'],
-                        'realisasi_satuan1_id' => $data['satuan1_id'] === '' ? null : $data['satuan1_id'],
-                        'realisasi_volume2' => $data['volume2'] === '' ? null : $data['volume2'],
-                        'realisasi_satuan2_id' => $data['satuan2_id'] === '' ? null : $data['satuan2_id'],
-                        'realisasi_volume3' => $data['volume3'] === '' ? null : $data['volume3'],
-                        'realisasi_satuan3_id' => $data['satuan3_id'] === '' ? null : $data['satuan3_id'],
-                        'realisasi_harga_satuan' => $data['harga_satuan'] === '' ? null : $data['harga_satuan'],
-                        'realisasi_jumlah' => ($v1 + $v2 + $v3) * $hp,
-                    ]);
+                if ($kegiatan->lpj_submitted_at !== null) {
+                    return redirect()->back()->withErrors(['message' => 'LPJ untuk kegiatan ini sudah pernah disubmit.']);
                 }
-            }
 
-            // 2. Process file uploads
-            if ($request->hasFile('bukti')) {
-                foreach ($request->file('bukti') as $anggaranId => $files) {
-                    foreach ($files as $file) {
-                        try {
-                            $path = $file->store('documents', 'public');
+                // 1. Process realization updates
+                foreach ($request->realisasi as $anggaranId => $data) {
+                    $anggaran = KAKAnggaran::find($anggaranId);
+                    if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
+                        $anggaran->update([
+                            'realisasi_volume1' => $data['volume1'] === '' ? null : $data['volume1'],
+                            'realisasi_satuan1_id' => $data['satuan1_id'] === '' ? null : $data['satuan1_id'],
+                            'realisasi_volume2' => $data['volume2'] === '' ? null : $data['volume2'],
+                            'realisasi_satuan2_id' => $data['satuan2_id'] === '' ? null : $data['satuan2_id'],
+                            'realisasi_volume3' => $data['volume3'] === '' ? null : $data['volume3'],
+                            'realisasi_satuan3_id' => $data['satuan3_id'] === '' ? null : $data['satuan3_id'],
+                            'realisasi_harga_satuan' => ($data['harga_satuan'] ?? '') === '' ? null : preg_replace('/[^0-9]/', '', $data['harga_satuan']),
+                            'realisasi_jumlah' => $this->calculateTotal($data),
+                        ]);
+                    }
+                }
+
+                // 2. Process file uploads
+                if (is_array($request->file('bukti'))) {
+                    foreach ($request->file('bukti') as $anggaranId => $files) {
+                        foreach ($files as $file) {
+                            $filename = time() . '_' . $file->getClientOriginalName();
+                            // Consistent with LampiranController: use 'public' disk and relative path
+                            $path = $file->storeAs('lampiran/' . $anggaranId, $filename, 'supabase');                            
+                            if (!$path) {
+                                throw new \Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
+                            }
+
                             $uploadedFiles[] = $path;
 
                             KegiatanLampiran::create([
                                 'anggaran_id' => $anggaranId,
                                 'nama_file_asli' => $file->getClientOriginalName(),
-                                'path_file_disimpan' => '/storage/'.$path,
+                                'path_file_disimpan' => $path,
                                 'uploader_user_id' => $request->user()->user_id,
-                                'status_lampiran' => 'active',
+                                'status_lampiran' => 'pending',
                             ]);
-                        } catch (\Exception $e) {
-                            $this->cleanupFiles($uploadedFiles);
-                            throw $e;
                         }
                     }
                 }
-            }
 
-            // 3. Update status
-            $kak = $kegiatan->kak;
-            $oldStatus = $kak->status_id;
-            $newStatus = 11; // Review LPJ
+                // 3. Update status
+                $kak = $kegiatan->kak;
+                $oldStatus = $kak->status_id;
+                $newStatus = 11; // Review LPJ
 
-            $kegiatan->update(['lpj_submitted_at' => now()]);
-            $kak->update(['status_id' => $newStatus]);
+                $kegiatan->update(['lpj_submitted_at' => now()]);
+                $kak->update(['status_id' => $newStatus]);
 
-            // 4. Activate Approval
-            $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-LPJ')
-                ->first();
+                // 4. Activate Approval
+                $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
+                    ->where('approval_level', 'Bendahara-LPJ')
+                    ->first();
 
-            if ($approval) {
-                $approval->update(['status' => 'Aktif']);
-            }
+                if ($approval) {
+                    $approval->update(['status' => 'Aktif']);
+                }
 
-            // 5. Log
-            KegiatanLogStatus::create([
-                'kegiatan_id' => $kegiatan->kegiatan_id,
-                'status_id_lama' => $oldStatus,
-                'status_id_baru' => $newStatus,
-                'actor_user_id' => $request->user()->user_id,
-                'catatan' => 'LPJ disubmit untuk review.',
+                // 5. Log
+                KegiatanLogStatus::create([
+                    'kegiatan_id' => $kegiatan->kegiatan_id,
+                    'status_id_lama' => $oldStatus,
+                    'status_id_baru' => $newStatus,
+                    'actor_user_id' => $request->user()->user_id,
+                    'catatan' => 'LPJ disubmit untuk review.',
+                ]);
+
+                return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit dan menunggu review dari Bendahara LPJ.');
+            });
+        } catch (\Exception $e) {
+            Log::error('LPJ Submit Failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
-
-            return redirect()->back()->with('success', 'LPJ berhasil disubmit dan menunggu review dari Bendahara LPJ.');
-        });
+            $this->cleanupFiles($uploadedFiles);
+            return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit LPJ: ' . $e->getMessage()]);
+        }
     }
 
     /**
      * Review LPJ (Bendahara or Pengusul).
      */
-    public function review(Request $request, Kegiatan $kegiatan): JsonResponse
+    public function review(Request $request, Kegiatan $kegiatan): \Inertia\Response
     {
         $user = $request->user();
         if (! $this->canAccessLpj($user, $kegiatan)) {
             abort(403, 'Anda tidak memiliki akses ke LPJ ini.');
         }
 
-        $kegiatan->load(['kak.pengusul', 'kak.mataAnggaran']);
+        $kegiatan->load(['kak.pengusul', 'kak.mataAnggaran', 'approvals']);
 
         $anggaran = KAKAnggaran::with(['kategoriBelanja', 'lampiran.uploader'])
             ->where('kak_id', $kegiatan->kak_id)
             ->get();
 
-        return response()->json([
+        // Resolve storage URLs for lampiran
+        $lampirans = $anggaran->pluck('lampiran')->flatten()->map(function($l) {
+            if ($l->path_file_disimpan && !str_starts_with($l->path_file_disimpan, 'http')) {
+                $l->path_file_disimpan = Storage::disk('supabase')->url($l->path_file_disimpan);
+            }
+            return $l;
+        });
+
+        return Inertia::render('Lpj/Form', [
             'kegiatan' => $kegiatan,
             'anggaran' => $anggaran,
-            'lampiran' => $anggaran->pluck('lampiran')->flatten(),
+            'lampiran' => $lampirans,
+            'satuans' => Satuan::all(),
         ]);
     }
 
@@ -141,7 +220,22 @@ class LpjController extends Controller
         return DB::transaction(function () use ($request, $kegiatan) {
             $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
 
-            // 1. Process lampiran comments
+            // 1. Clear old comments before applying new ones
+            // Clear lampiran comments for this kegiatan
+            KegiatanLampiran::whereHas('anggaran', function($q) use ($kegiatan) {
+                $q->where('kak_id', $kegiatan->kak_id);
+            })->update([
+                'catatan_reviewer' => null,
+                'reviewer_user_id' => null,
+                'approval_tanggal' => null,
+            ]);
+
+            // Clear anggaran comments for this kegiatan
+            KAKAnggaran::where('kak_id', $kegiatan->kak_id)->update([
+                'catatan_verifikator' => null,
+            ]);
+
+            // 2. Process lampiran comments from request
             if ($request->has('lampiran_comments')) {
                 foreach ($request->lampiran_comments as $comment) {
                     $lampiran = KegiatanLampiran::find($comment['id']);
@@ -150,6 +244,18 @@ class LpjController extends Controller
                             'catatan_reviewer' => $comment['catatan_reviewer'],
                             'reviewer_user_id' => $request->user()->user_id,
                             'approval_tanggal' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            // Process anggaran comments from request
+            if ($request->has('anggaran_comments')) {
+                foreach ($request->anggaran_comments as $comment) {
+                    $anggaran = KAKAnggaran::find($comment['id']);
+                    if ($anggaran) {
+                        $anggaran->update([
+                            'catatan_verifikator' => $comment['catatan_reviewer'],
                         ]);
                     }
                 }
@@ -166,7 +272,7 @@ class LpjController extends Controller
 
             $approval->update([
                 'status' => 'Revisi',
-                'catatan' => $request->catatan_umum,
+                'catatan' => 'LPJ dikembalikan untuk revisi.',
                 'approver_user_id' => $request->user()->user_id,
             ]);
 
@@ -181,10 +287,10 @@ class LpjController extends Controller
                 'status_id_lama' => $oldStatus,
                 'status_id_baru' => $newStatus,
                 'actor_user_id' => $request->user()->user_id,
-                'catatan' => 'Revisi LPJ: '.$request->catatan_umum,
+                'catatan' => 'LPJ dikembalikan untuk revisi.',
             ]);
 
-            return redirect()->back()->with('success', 'LPJ telah dikembalikan untuk revisi.');
+            return redirect()->route('lpj.index')->with('success', 'LPJ telah dikembalikan untuk revisi.');
         });
     }
 
@@ -193,9 +299,15 @@ class LpjController extends Controller
      */
     public function resubmit(ResubmitLpjRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
+        Log::info('LPJ Resubmit Method Reached', [
+            'user_id' => $request->user()->user_id,
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+        ]);
+
         $uploadedFiles = [];
 
-        return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
+        try {
+            return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
             $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
 
             // 0. State Guard: Only allow resubmit if there is a 'Revisi' status for Bendahara-LPJ
@@ -223,36 +335,41 @@ class LpjController extends Controller
                     $anggaran = KAKAnggaran::find($anggaranId);
                     if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
                         $anggaran->update([
-                            'realisasi_volume1' => $data['realisasi_volume1'] ?? $anggaran->realisasi_volume1,
-                            'realisasi_satuan1_id' => $data['realisasi_satuan1_id'] ?? $anggaran->realisasi_satuan1_id,
-                            'realisasi_harga_satuan' => isset($data['realisasi_harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['realisasi_harga_satuan']) : $anggaran->realisasi_harga_satuan,
+                            'realisasi_volume1' => $data['volume1'] ?? $anggaran->realisasi_volume1,
+                            'realisasi_satuan1_id' => $data['satuan1_id'] ?? $anggaran->realisasi_satuan1_id,
+                            'realisasi_volume2' => $data['volume2'] ?? $anggaran->realisasi_volume2,
+                            'realisasi_satuan2_id' => $data['satuan2_id'] ?? $anggaran->realisasi_satuan2_id,
+                            'realisasi_volume3' => $data['volume3'] ?? $anggaran->realisasi_volume3,
+                            'realisasi_satuan3_id' => $data['satuan3_id'] ?? $anggaran->realisasi_satuan3_id,
+                            'realisasi_harga_satuan' => isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : $anggaran->realisasi_harga_satuan,
+                            'realisasi_jumlah' => $this->calculateTotal($data),
                         ]);
                     }
                 }
             }
 
-            // 3. Handle new uploads
-            if ($request->hasFile('bukti')) {
-                foreach ($request->file('bukti') as $anggaranId => $files) {
-                    foreach ($files as $file) {
-                        try {
-                            $path = $file->store('documents', 'public');
+                // 3. Handle new uploads
+                if (is_array($request->file('bukti'))) {
+                    foreach ($request->file('bukti') as $anggaranId => $files) {
+                        foreach ($files as $file) {
+                            $filename = time() . '_' . $file->getClientOriginalName();
+                            $path = $file->storeAs('lampiran/' . $anggaranId, $filename, 'supabase');                            
+                            if (!$path) {
+                                throw new \Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
+                            }
+
                             $uploadedFiles[] = $path;
 
                             KegiatanLampiran::create([
                                 'anggaran_id' => $anggaranId,
                                 'nama_file_asli' => $file->getClientOriginalName(),
-                                'path_file_disimpan' => '/storage/'.$path,
+                                'path_file_disimpan' => $path,
                                 'uploader_user_id' => $request->user()->user_id,
-                                'status_lampiran' => 'active',
+                                'status_lampiran' => 'pending',
                             ]);
-                        } catch (\Exception $e) {
-                            $this->cleanupFiles($uploadedFiles);
-                            throw $e;
                         }
                     }
                 }
-            }
 
             // 4. Update status back to Review
             $kak = $kegiatan->kak;
@@ -282,8 +399,16 @@ class LpjController extends Controller
                 'catatan' => 'LPJ disubmit ulang setelah revisi.',
             ]);
 
-            return redirect()->back()->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
+            return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
         });
+        } catch (\Exception $e) {
+            Log::error('LPJ Resubmit Failed', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            $this->cleanupFiles($uploadedFiles);
+            return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit ulang LPJ: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -330,7 +455,7 @@ class LpjController extends Controller
                 'catatan' => 'LPJ digital disetujui. Menunggu setor fisik.',
             ]);
 
-            return redirect()->back()->with('success', 'LPJ berhasil disetujui.');
+            return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disetujui.');
         });
     }
 
@@ -370,7 +495,7 @@ class LpjController extends Controller
                 'catatan' => 'LPJ fisik diterima. Kegiatan selesai.',
             ]);
 
-            return redirect()->back()->with('success', 'LPJ telah ditandai selesai.');
+            return redirect()->route('lpj.index')->with('success', 'LPJ telah ditandai selesai.');
         });
     }
 
@@ -384,10 +509,20 @@ class LpjController extends Controller
         return $kegiatan->kak && $kegiatan->kak->pengusul_user_id === $user->user_id;
     }
 
+    public function calculateTotal(array $data): float
+    {
+        $v1 = (float) ($data['volume1'] ?? 0);
+        $v2 = (float) (isset($data['volume2']) && $data['volume2'] !== '' ? $data['volume2'] : 1);
+        $v3 = (float) (isset($data['volume3']) && $data['volume3'] !== '' ? $data['volume3'] : 1);
+        $price = (float) (isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : 0);
+
+        return $v1 * $v2 * $v3 * $price;
+    }
+
     private function cleanupFiles(array $paths): void
     {
         foreach ($paths as $path) {
-            Storage::disk('public')->delete($path);
+            Storage::disk('supabase')->delete($path);
         }
     }
 }

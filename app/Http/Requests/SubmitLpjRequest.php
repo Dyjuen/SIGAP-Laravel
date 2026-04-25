@@ -30,9 +30,9 @@ class SubmitLpjRequest extends FormRequest
             'realisasi.*.satuan2_id' => ['nullable', 'integer'],
             'realisasi.*.volume3' => ['nullable', 'numeric'],
             'realisasi.*.satuan3_id' => ['nullable', 'integer'],
-            'realisasi.*.harga_satuan' => ['nullable', 'numeric'],
+            'realisasi.*.harga_satuan' => ['nullable', 'string'],
             'bukti' => ['nullable', 'array'],
-            'bukti.*.*' => ['file', 'max:10240', 'mimes:pdf,doc,docx,jpg,jpeg,png,xls,xlsx'],
+            'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png'],
         ];
     }
 
@@ -42,7 +42,7 @@ class SubmitLpjRequest extends FormRequest
             'realisasi.required' => 'Data realisasi tidak boleh kosong.',
             'realisasi.min' => 'Data realisasi tidak boleh kosong.',
             'bukti.*.*.max' => 'Ukuran file maksimal 10 MB.',
-            'bukti.*.*.mimes' => 'Format file harus: pdf, doc, docx, jpg, jpeg, png, xls, xlsx.',
+            'bukti.*.*.mimes' => 'Format file harus berupa gambar (jpg, jpeg, png).',
         ];
     }
 }

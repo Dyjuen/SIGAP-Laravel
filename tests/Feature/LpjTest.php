@@ -231,7 +231,7 @@ class LpjTest extends TestCase
 
     public function test_submit_rolls_back_on_file_upload_failure(): void
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
         $payload = $this->buildRealisasiPayload($kegiatan);
 
@@ -291,14 +291,9 @@ class LpjTest extends TestCase
         $this->submitLpj($kegiatan);
 
         $response = $this->actingAs($this->bendahara)
-            ->getJson(route('lpj.review', $kegiatan));
+            ->get(route('lpj.review', $kegiatan));
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'kegiatan',
-                'anggaran',
-                'lampiran',
-            ]);
+        $response->assertStatus(200);
     }
 
     public function test_pengusul_owner_can_review_lpj(): void
@@ -307,13 +302,9 @@ class LpjTest extends TestCase
         $this->submitLpj($kegiatan);
 
         $response = $this->actingAs($this->pengusul)
-            ->getJson(route('lpj.review', $kegiatan));
+            ->get(route('lpj.review', $kegiatan));
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'kegiatan',
-                'anggaran',
-            ]);
+        $response->assertStatus(200);
     }
 
     public function test_non_authorized_cannot_review_lpj(): void
@@ -340,7 +331,9 @@ class LpjTest extends TestCase
 
         $response = $this->actingAs($this->bendahara)
             ->post(route('lpj.revise', $kegiatan), [
-                'catatan_umum' => 'Bukti belum lengkap, mohon dilengkapi.',
+                'anggaran_comments' => [
+                    ['id' => $kegiatan->kak->anggaran->first()->anggaran_id, 'catatan_reviewer' => 'Revisi anggaran ini.'],
+                ],
             ]);
 
         $response->assertStatus(302);
@@ -372,28 +365,14 @@ class LpjTest extends TestCase
         $this->submitLpj($kegiatan);
 
         $this->actingAs($this->pengusul)
-            ->post(route('lpj.revise', $kegiatan), [
-                'catatan_umum' => 'Test',
-            ])
+            ->post(route('lpj.revise', $kegiatan), [])
             ->assertStatus(403);
 
         $this->actingAs($this->ppk)
-            ->post(route('lpj.revise', $kegiatan), [
-                'catatan_umum' => 'Test',
-            ])
+            ->post(route('lpj.revise', $kegiatan), [])
             ->assertStatus(403);
     }
 
-    public function test_revise_requires_catatan_umum(): void
-    {
-        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
-        $this->submitLpj($kegiatan);
-
-        $this->actingAs($this->bendahara)
-            ->post(route('lpj.revise', $kegiatan), [])
-            ->assertStatus(302)
-            ->assertSessionHasErrors(['catatan_umum']);
-    }
 
     // ========================================
     // RESUBMIT TESTS
@@ -476,7 +455,7 @@ class LpjTest extends TestCase
             'nama_file_asli' => 'bukti_old.pdf',
             'path_file_disimpan' => '/storage/uploads/documents/bukti_old.pdf',
             'uploader_user_id' => $this->pengusul->user_id,
-            'status_lampiran' => 'active',
+            'status_lampiran' => 'pending',
         ]);
 
         // Move to revised state
@@ -513,7 +492,7 @@ class LpjTest extends TestCase
             'nama_file_asli' => 'bukti.pdf',
             'path_file_disimpan' => '/storage/uploads/documents/bukti.pdf',
             'uploader_user_id' => $this->pengusul->user_id,
-            'status_lampiran' => 'active',
+            'status_lampiran' => 'pending',
         ]);
 
         // Move to revised state
@@ -537,7 +516,7 @@ class LpjTest extends TestCase
         // Verify the existing lampiran was NOT modified by a partial failure
         $this->assertDatabaseHas('t_kegiatan_lampiran', [
             'lampiran_id' => $lampiran->lampiran_id,
-            'status_lampiran' => 'active',
+            'status_lampiran' => 'pending',
         ]);
     }
 

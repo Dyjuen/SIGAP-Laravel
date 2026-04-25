@@ -60,6 +60,21 @@ return [
             'report' => false,
         ],
 
+        // Supabase Storage — S3-compatible, used for lampiran uploads.
+        // Uses path-style endpoint (required by Supabase) and throws on
+        // failure so the DB transaction rolls back cleanly on upload error.
+        'supabase' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION', 'ap-southeast-1'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+            'throw' => true,
+        ],
+
     ],
 
     /*

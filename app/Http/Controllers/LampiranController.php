@@ -73,7 +73,7 @@ class LampiranController extends Controller
                 $storedPath = $file->storeAs(
                     'lampiran/'.$anggaran->anggaran_id,
                     $filename,
-                    'public'
+                    'supabase'
                 );
 
                 if (! $storedPath) {
@@ -98,7 +98,7 @@ class LampiranController extends Controller
                 ], 201);
             } catch (\Exception $e) {
                 if ($storedPath) {
-                    Storage::disk('public')->delete($storedPath);
+                    Storage::disk('supabase')->delete($storedPath);
                 }
 
                 return response()->json([
@@ -116,7 +116,7 @@ class LampiranController extends Controller
     {
         $this->authorizeAccess($lampiran->anggaran);
 
-        if (! Storage::disk('public')->exists($lampiran->path_file_disimpan)) {
+        if (! Storage::disk('supabase')->exists($lampiran->path_file_disimpan)) {
             return response()->json([
                 'success' => false,
                 'message' => 'File tidak ditemukan di server.',
@@ -124,13 +124,13 @@ class LampiranController extends Controller
         }
 
         return response()->stream(function () use ($lampiran) {
-            $stream = Storage::disk('public')->readStream($lampiran->path_file_disimpan);
+            $stream = Storage::disk('supabase')->readStream($lampiran->path_file_disimpan);
             fpassthru($stream);
             if (is_resource($stream)) {
                 fclose($stream);
             }
         }, 200, [
-            'Content-Type' => Storage::disk('public')->mimeType($lampiran->path_file_disimpan),
+            'Content-Type' => Storage::disk('supabase')->mimeType($lampiran->path_file_disimpan),
             'Content-Disposition' => 'inline; filename="'.$lampiran->nama_file_asli.'"',
         ]);
     }
@@ -214,7 +214,7 @@ class LampiranController extends Controller
                 $storedPath = $file->storeAs(
                     'lampiran/'.$lampiran->anggaran_id,
                     $filename,
-                    'public'
+                    'supabase'
                 );
 
                 if (! $storedPath) {
@@ -244,7 +244,7 @@ class LampiranController extends Controller
                 ], 201);
             } catch (\Exception $e) {
                 if ($storedPath) {
-                    Storage::disk('public')->delete($storedPath);
+                    Storage::disk('supabase')->delete($storedPath);
                 }
 
                 return response()->json([
@@ -300,7 +300,7 @@ class LampiranController extends Controller
         $parent = $lampiran->parent;
         if ($parent && $parent->status_lampiran === 'archived') {
             // Delete file from storage
-            Storage::disk('public')->delete($parent->path_file_disimpan);
+            Storage::disk('supabase')->delete($parent->path_file_disimpan);
 
             // Recurse before deleting from DB
             $this->cleanupParents($parent);

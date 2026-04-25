@@ -11,7 +11,8 @@ import {
     Loader2,
     X,
     FileText,
-    CheckCircle2
+    CheckCircle2,
+    Eye
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -203,7 +204,15 @@ export default function Index({ auth, kegiatans, flash }) {
                                                                 {processing === item.kegiatan_id ? (
                                                                     <Loader2 size={20} className="animate-spin" />
                                                                 ) : (
-                                                                    <FileCheck size={20} />
+                                                                    (() => {
+                                                                        const isPengusul = auth.user.role_id === 3 || auth.user.role === 'Pengusul';
+                                                                        const isBendahara = auth.user.role_id === 6 || auth.user.role === 'Bendahara';
+                                                                        
+                                                                        if (isPengusul && item.status_id === 11) return <Eye size={20} />;
+                                                                        if (isBendahara && item.status_id === 12) return <Eye size={20} />;
+                                                                        
+                                                                        return <FileCheck size={20} />;
+                                                                    })()
                                                                 )}
                                                                 <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900/90 backdrop-blur-sm text-white text-[11px] font-bold rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 whitespace-nowrap shadow-lg z-50 border border-slate-700">
                                                                     Lihat LPJ
