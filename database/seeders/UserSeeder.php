@@ -40,7 +40,7 @@ class UserSeeder extends Seeder
             // 4. PPK
             ['user_id' => 13, 'username' => 'ppk', 'password_hash' => bcrypt('ppk123'), 'nama_lengkap' => 'Falih Elmanda', 'email' => 'ppk@pnj.ac.id', 'role_id' => $ppkRole],
             // 5. Wadir
-            ['user_id' => 14, 'username' => 'wadir2', 'password_hash' => bcrypt('wadir2123'), 'nama_lengkap' => '', 'email' => 'Utami Puji Lestari S.E., M.Ak., Ph.D', 'role_id' => $wadirRole],
+            ['user_id' => 14, 'username' => 'wadir2', 'password_hash' => bcrypt('wadir2123'), 'nama_lengkap' => 'Utami Puji Lestari S.E., M.Ak., Ph.D', 'email' => 'wadir2@pnj.ac.id', 'role_id' => $wadirRole],
             // 6. Bendahara
             ['user_id' => 15, 'username' => 'bendahara', 'password_hash' => bcrypt('bendahara123'), 'nama_lengkap' => 'Mba Amanah', 'email' => 'bendahara@pnj.ac.id', 'role_id' => $bendaharaRole],
             // 7. Rektorat
