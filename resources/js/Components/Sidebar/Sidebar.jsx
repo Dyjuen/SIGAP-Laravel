@@ -49,13 +49,15 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             label: 'Kegiatan (KAK)',
             href: route('kak.index'),
             icon: FileText,
-            active: route().current('kak.*')
+            active: route().current('kak.*'),
+            roles: [1, 2, 3, 6, 7]
         },
         {
             label: 'Kegiatan',
             href: route('kegiatan.index'),
             icon: ClipboardCheck,
-            active: route().current('kegiatan.*') && !route().current('kegiatan.monitoring')
+            active: route().current('kegiatan.*') && !route().current('kegiatan.monitoring'),
+            roles: [1, 3, 4, 5, 6, 7]
         },
         {
             label: 'Pemantauan Kegiatan',

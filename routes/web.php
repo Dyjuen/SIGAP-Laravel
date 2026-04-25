@@ -24,19 +24,23 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // KAK Routes
-    Route::resource('kak', \App\Http\Controllers\KakController::class);
+    Route::middleware('role:Admin,Verifikator,Pengusul,Bendahara,Rektorat')->group(function () {
+        Route::resource('kak', \App\Http\Controllers\KakController::class);
 
-    // KAK Workflow Routes
-    Route::post('/kak/{kak}/submit', [\App\Http\Controllers\KakWorkflowController::class, 'submit'])->name('kak.submit');
-    Route::post('/kak/{kak}/approve', [\App\Http\Controllers\KakWorkflowController::class, 'approve'])->name('kak.approve');
-    Route::post('/kak/{kak}/reject', [\App\Http\Controllers\KakWorkflowController::class, 'reject'])->name('kak.reject');
-    Route::post('/kak/{kak}/revise', [\App\Http\Controllers\KakWorkflowController::class, 'revise'])->name('kak.revise');
-    Route::post('/kak/{kak}/resubmit', [\App\Http\Controllers\KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
+        // KAK Workflow Routes
+        Route::post('/kak/{kak}/submit', [\App\Http\Controllers\KakWorkflowController::class, 'submit'])->name('kak.submit');
+        Route::post('/kak/{kak}/approve', [\App\Http\Controllers\KakWorkflowController::class, 'approve'])->name('kak.approve');
+        Route::post('/kak/{kak}/reject', [\App\Http\Controllers\KakWorkflowController::class, 'reject'])->name('kak.reject');
+        Route::post('/kak/{kak}/revise', [\App\Http\Controllers\KakWorkflowController::class, 'revise'])->name('kak.revise');
+        Route::post('/kak/{kak}/resubmit', [\App\Http\Controllers\KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
+    });
 
     // Kegiatan Routes
     Route::get('/kegiatan/monitoring', [\App\Http\Controllers\KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
-    Route::resource('kegiatan', \App\Http\Controllers\KegiatanController::class)->only(['index', 'store', 'show']);
-    Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Rektorat')->group(function () {
+        Route::resource('kegiatan', \App\Http\Controllers\KegiatanController::class)->only(['index', 'store', 'show']);
+        Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
+    });
 
     // Pencairan Routes
     Route::get('/pencairan', [\App\Http\Controllers\PencairanController::class, 'index'])->name('pencairan.index');
