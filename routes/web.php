@@ -80,7 +80,6 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
     Route::post('/panduan', [\App\Http\Controllers\Admin\PanduanController::class, 'store'])->name('admin.panduan.store');
     Route::put('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'update'])->name('admin.panduan.update');
     Route::delete('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'destroy'])->name('admin.panduan.destroy');
-    Route::get('/panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('admin.panduan.download');
 
     // Logs Routes
     Route::get('/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs.index');
@@ -93,4 +92,8 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
         Route::put('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'update'])->name('admin.master.update');
         Route::delete('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'destroy'])->name('admin.master.destroy');
     });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('admin.panduan.download');
 });

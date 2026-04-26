@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import PanduanSection from '@/Components/PanduanSection';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
     FileText,
@@ -283,7 +284,7 @@ function AdminDashboard({ stats }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════
-export default function Dashboard({ auth, stats = {}, recent_kaks, pending_kegiatan }) {
+export default function Dashboard({ auth, stats = {}, recent_kaks, pending_kegiatan, panduans = [] }) {
     const roleId = auth.user?.role_id;
 
     const roleLabels = {
@@ -329,6 +330,7 @@ export default function Dashboard({ auth, stats = {}, recent_kaks, pending_kegia
             >
                 <Head title="Dashboard" />
                 {renderDashboard()}
+                <PanduanSection panduans={panduans} />
             </AuthenticatedLayout>
 
             <style dangerouslySetInnerHTML={{

@@ -18,22 +18,37 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         $role = $user->getRoleName();
+        $panduans = $this->getPanduans($user->role_id);
 
         return match ($role) {
-            'Bendahara' => $this->bendaharaDashboard($request),
-            'Pengusul' => $this->pengusulDashboard($request),
-            'PPK' => $this->ppkDashboard($request),
-            'Wadir' => $this->wadirDashboard($request),
-            'Verifikator' => $this->verifikatorDashboard($request),
-            default => $this->defaultDashboard($request),
+            'Bendahara' => $this->bendaharaDashboard($request, $panduans),
+            'Pengusul' => $this->pengusulDashboard($request, $panduans),
+            'PPK' => $this->ppkDashboard($request, $panduans),
+            'Wadir' => $this->wadirDashboard($request, $panduans),
+            'Verifikator' => $this->verifikatorDashboard($request, $panduans),
+            default => $this->defaultDashboard($request, $panduans),
         };
+    }
+
+    private function getPanduans($roleId)
+    {
+        return Panduan::where('target_role_id', $roleId)
+            ->orWhereNull('target_role_id')
+            ->get()
+            ->map(fn ($p) => [
+                'id' => $p->panduan_id,
+                'judul' => $p->judul_panduan,
+                'tipe' => $p->tipe_media,
+                'path' => $p->path_media,
+                'download_url' => route('admin.panduan.download', $p->panduan_id),
+            ]);
     }
 
     // ════════════════════════════════════════════════════════════════════
     // PENGUSUL DASHBOARD
     // ════════════════════════════════════════════════════════════════════
 
-    private function pengusulDashboard(Request $request)
+    private function pengusulDashboard(Request $request, $panduans = [])
     {
         $user = $request->user();
 
@@ -72,6 +87,7 @@ class DashboardController extends Controller
                 'kegiatan_aktif' => $kegiatanAktif,
             ],
             'recent_kaks' => $recentKaks,
+            'panduans' => $panduans,
         ]);
     }
 
@@ -79,7 +95,7 @@ class DashboardController extends Controller
     // PPK DASHBOARD
     // ════════════════════════════════════════════════════════════════════
 
-    private function ppkDashboard(Request $request)
+    private function ppkDashboard(Request $request, $panduans = [])
     {
         $pendingCount = KegiatanApproval::where('approval_level', 'PPK')
             ->where('status', 'Aktif')
@@ -113,6 +129,7 @@ class DashboardController extends Controller
                 'total_kegiatan' => $totalKegiatan,
             ],
             'pending_kegiatan' => $pendingKegiatan,
+            'panduans' => $panduans,
         ]);
     }
 
@@ -120,7 +137,7 @@ class DashboardController extends Controller
     // WADIR DASHBOARD
     // ════════════════════════════════════════════════════════════════════
 
-    private function wadirDashboard(Request $request)
+    private function wadirDashboard(Request $request, $panduans = [])
     {
         $pendingCount = KegiatanApproval::where('approval_level', 'Wadir2')
             ->where('status', 'Aktif')
@@ -154,6 +171,7 @@ class DashboardController extends Controller
                 'total_kegiatan' => $totalKegiatan,
             ],
             'pending_kegiatan' => $pendingKegiatan,
+            'panduans' => $panduans,
         ]);
     }
 
@@ -161,7 +179,7 @@ class DashboardController extends Controller
     // VERIFIKATOR DASHBOARD
     // ════════════════════════════════════════════════════════════════════
 
-    private function verifikatorDashboard(Request $request)
+    private function verifikatorDashboard(Request $request, $panduans = [])
     {
         $user = $request->user();
 
@@ -202,6 +220,7 @@ class DashboardController extends Controller
                 'total_kak' => $totalKak,
             ],
             'recent_kaks' => $recentKaks,
+            'panduans' => $panduans,
         ]);
     }
 
@@ -209,7 +228,7 @@ class DashboardController extends Controller
     // ADMIN / DEFAULT DASHBOARD
     // ════════════════════════════════════════════════════════════════════
 
-    private function defaultDashboard(Request $request)
+    private function defaultDashboard(Request $request, $panduans = [])
     {
         $totalKak = KAK::count();
         $totalKegiatan = Kegiatan::count();
@@ -221,6 +240,7 @@ class DashboardController extends Controller
                 'total_kegiatan' => $totalKegiatan,
                 'pending_approvals' => $pendingApprovals,
             ],
+            'panduans' => $panduans,
         ]);
     }
 
@@ -228,7 +248,7 @@ class DashboardController extends Controller
     // BENDAHARA DASHBOARD
     // ════════════════════════════════════════════════════════════════════
 
-    private function bendaharaDashboard(Request $request)
+    private function bendaharaDashboard(Request $request, $panduans = [])
     {
         $kegiatans = Kegiatan::with([
             'kak.pengusul',
@@ -313,17 +333,6 @@ class DashboardController extends Controller
             ];
         });
 
-        $videos = [];
-        if (class_exists(Panduan::class)) {
-            $videos = Panduan::where('tipe_media', 'Video')
-                ->limit(6)
-                ->get()
-                ->map(fn ($v) => [
-                    'judul_panduan' => $v->judul_panduan,
-                    'path_media' => $v->path_media,
-                ]);
-        }
-
         return Inertia::render('Bendahara/Dashboard', [
             'kegiatans' => $mappedKegiatans,
             'stats' => [
@@ -333,7 +342,7 @@ class DashboardController extends Controller
                 'total_disbursed_amount' => $totalDisbursedAmount,
                 'total_undisbursed_amount' => $totalUndisbursedAmount,
             ],
-            'videos' => $videos,
+            'panduans' => $panduans,
         ]);
     }
 }
