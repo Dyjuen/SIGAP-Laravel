@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SpectacularBorder from '../Components/SpectacularBorder';
 import CommentIcon from '../Components/CommentIcon';
 import { Trash, Plus } from 'lucide-react';
+import CustomSelect from '@/Components/CustomSelect';
 
 export default function Step2Iku({
     data, setData, errors, iku = [], satuan = [], readOnly = false,
@@ -47,19 +48,14 @@ export default function Step2Iku({
                                         {/* IKU Select */}
                                         <div className="md:col-span-6">
                                             <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Kinerja Utama</label>
-                                            <select
-                                                className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            <CustomSelect
                                                 value={item.iku_id}
-                                                onChange={(e) => updateTargetIku(index, 'iku_id', e.target.value)}
+                                                onChange={(val) => updateTargetIku(index, 'iku_id', val)}
+                                                options={iku.map(i => ({ value: i.iku_id, label: `${i.kode_iku} - ${i.nama_iku}` }))}
+                                                placeholder="Pilih IKU"
                                                 disabled={readOnly}
-                                            >
-                                                <option value="">Pilih IKU</option>
-                                                {iku.map(i => (
-                                                    <option key={i.iku_id} value={i.iku_id}>
-                                                        {i.kode_iku} - {i.nama_iku}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                                className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
+                                            />
                                         </div>
 
                                         {/* Target Input */}
@@ -79,17 +75,14 @@ export default function Step2Iku({
                                         {/* Satuan Select */}
                                         <div className="md:col-span-2">
                                             <label className="block text-xs font-bold text-gray-500 mb-1">Satuan</label>
-                                            <select
-                                                className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            <CustomSelect
                                                 value={item.satuan_id}
-                                                onChange={(e) => updateTargetIku(index, 'satuan_id', e.target.value)}
+                                                onChange={(val) => updateTargetIku(index, 'satuan_id', val)}
+                                                options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
+                                                placeholder="Satuan"
                                                 disabled={readOnly}
-                                            >
-                                                <option value="">Satuan</option>
-                                                {satuan.map(s => (
-                                                    <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>
-                                                ))}
-                                            </select>
+                                                className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
+                                            />
                                         </div>
 
                                         {/* Action Buttons */}

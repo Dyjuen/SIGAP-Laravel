@@ -15,7 +15,7 @@ export default function WizardProgress({ currentStep, steps = [], onStepClick })
     const actualSteps = steps.length > 0 ? steps : defaultSteps;
 
     return (
-        <div className="flex justify-center gap-4 md:gap-24 mb-8 backdrop-blur-md p-6 rounded-xl shadow-lg bg-white/80 border border-gray-100 overflow-x-auto">
+        <div className="flex justify-center gap-4 md:gap-24 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-gray-100 overflow-x-auto mx-auto w-fit">
             {actualSteps.map((step) => {
                 const isActive = step.id === currentStep;
                 const isCompleted = step.id < currentStep;
@@ -31,9 +31,9 @@ export default function WizardProgress({ currentStep, steps = [], onStepClick })
                             ${isClickable ? 'cursor-pointer hover:bg-slate-50 active:scale-95' : ''}`}
                     >
                         <div
-                            className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300 shadow-sm
-                            ${isActive ? 'bg-cyan-500 text-white shadow-cyan-500/40 ring-4 ring-cyan-100' :
-                                    isCompleted ? 'bg-emerald-500 text-white shadow-emerald-500/40' : 'bg-gray-200 text-gray-500'}
+                            className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300
+                            ${isActive ? 'bg-[#00b4d8] text-white' :
+                                    isCompleted ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}
                             `}
                         >
                             {isCompleted ? (
