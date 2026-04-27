@@ -1,35 +1,44 @@
 import React from 'react';
 
 const Footer = () => {
+    const smoothScroll = (e, href) => {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+            const offset = 80;
+            const top = target.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
+    };
+
     return (
         <footer className="bg-[#2BA9B8] text-white rounded-t-3xl flex flex-col w-full relative z-10" id="landingContact">
             <div className="py-10 sm:py-12 px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 2xl:px-48 w-full max-w-[1600px] mx-auto">
                 <div className="flex flex-col lg:flex-row items-start justify-between gap-y-8 lg:gap-x-10">
 
                     {/* Brand Section */}
-                    <div className="flex flex-col w-full lg:w-2/5 lg:border-r lg:border-white/20 lg:pr-10">
+                    <div className="flex flex-col w-full lg:w-2/5 lg:border-r lg:border-white/20 lg:pr-10" data-aos="fade-right" data-aos-duration="800">
                         <a href="/" className="flex items-center gap-3 mb-4 group">
                             <img src="/images/logoland.svg" alt="SIGAP Logo" className="h-8 sm:h-9 w-auto transition-transform duration-300 group-hover:scale-105" />
-                            <span className="font-bold text-lg sm:text-xl tracking-wide">SIGAP</span>
                         </a>
                         <p className="text-white/90 text-sm leading-relaxed max-w-md">Sistem Informasi Pengajuan KAK & LPJ</p>
                         <p className="text-white/70 text-xs sm:text-sm leading-relaxed mt-2 sm:mt-3 max-w-md">Membantu digitalisasi proses administrasi kegiatan kampus secara cepat, transparan, dan efisien.</p>
                     </div>
 
                     {/* Sections */}
-                    <div className="w-full lg:w-auto">
+                    <div className="w-full lg:w-auto" data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
                         <h4 className="font-semibold text-sm tracking-wider mb-4 sm:mb-5 text-white/90">SECTIONS</h4>
                         <nav className="flex flex-wrap gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3">
-                            <a href="#landingHero" className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Beranda</a>
-                            <a href="#landingFeatures" className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Fitur Utama</a>
-                            <a href="#landingRoles" className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Peran</a>
-                            <a href="#landingFAQ" className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">FAQ</a>
-                            <a href="#landingContact" className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Kontak</a>
+                            <a href="#landingHero" onClick={(e) => smoothScroll(e, '#landingHero')} className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Beranda</a>
+                            <a href="#landingFeatures" onClick={(e) => smoothScroll(e, '#landingFeatures')} className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Fitur Utama</a>
+                            <a href="#landingRoles" onClick={(e) => smoothScroll(e, '#landingRoles')} className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Peran</a>
+                            <a href="#landingFAQ" onClick={(e) => smoothScroll(e, '#landingFAQ')} className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">FAQ</a>
+                            <a href="#landingContact" onClick={(e) => smoothScroll(e, '#landingContact')} className="footer-link text-white/80 hover:text-white transition-colors duration-300 text-[13px] relative after:content-[''] after:absolute after:bottom-[-2px] after:left-0 after:w-0 after:h-[1px] after:bg-white after:transition-all after:duration-300 hover:after:w-full">Kontak</a>
                         </nav>
                     </div>
 
                     {/* Contact */}
-                    <div className="w-full lg:w-auto">
+                    <div className="w-full lg:w-auto" data-aos="fade-left" data-aos-duration="800" data-aos-delay="200">
                         <h4 className="font-semibold text-sm tracking-wider mb-4 sm:mb-5 text-white/90">HUBUNGI KAMI</h4>
                         <div className="flex flex-col gap-2 sm:gap-3">
                             <a href="mailto:sigap@pnj.ac.id" className="contact-link flex items-center gap-2.5 text-white/80 text-[13px] hover:text-white hover:translate-x-1 transition-all duration-300">
@@ -50,7 +59,7 @@ const Footer = () => {
             </div>
 
             {/* Bottom Bar */}
-            <div className="bg-[#267A84] py-4 w-full">
+            <div className="bg-[#267A84] py-4 w-full" data-aos="fade-up" data-aos-duration="600" data-aos-delay="300">
                 <div className="px-4 sm:px-6 md:px-12 lg:px-20 xl:px-32 2xl:px-48 max-w-[1600px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-y-2 sm:gap-4">
                     <span className="text-xs sm:text-sm text-white/80 text-center sm:text-left">© 2025 SIGAP PNJ - Sistem Informasi Pengajuan KAK & LPJ</span>
                     <div className="flex gap-3 sm:gap-4">

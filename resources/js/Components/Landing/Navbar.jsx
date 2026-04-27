@@ -70,9 +70,23 @@ const Navbar = () => {
     }, [activeNav, isMobileMenuOpen]);
 
 
-    const handleNavClick = (id) => {
-        setActiveNav(id);
+    const handleNavClick = (e, item) => {
+        e.preventDefault();
+        setActiveNav(item.id);
         setIsMobileMenuOpen(false);
+        const target = document.querySelector(item.href);
+        if (target) {
+            const offset = 80;
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = target.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+            
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
     };
 
     return (
@@ -95,7 +109,7 @@ const Navbar = () => {
                                     href={item.href}
                                     className={`nav-item relative px-7 py-2.5 text-gray-600/80 hover:text-[#33C8DA] transition-colors duration-300 rounded-full z-10 cursor-pointer ${activeNav === item.id ? 'active text-[#33C8DA]' : ''}`}
                                     data-nav={item.id}
-                                    onClick={() => handleNavClick(item.id)}
+                                    onClick={(e) => handleNavClick(e, item)}
                                 >
                                     {item.label}
                                 </a>
@@ -154,7 +168,7 @@ const Navbar = () => {
                                 href={item.href}
                                 className={`mobile-nav-item relative px-6 py-3.5 text-gray-600/80 hover:text-[#33C8DA] transition-colors duration-300 rounded-3xl z-10 cursor-pointer font-semibold text-center text-sm ${activeNav === item.id ? 'active text-[#33C8DA]' : ''}`}
                                 data-nav={item.id}
-                                onClick={() => handleNavClick(item.id)}
+                                onClick={(e) => handleNavClick(e, item)}
                             >
                                 {item.label}
                             </a>

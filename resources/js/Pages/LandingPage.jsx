@@ -7,6 +7,7 @@ import Footer from '@/Components/Landing/Footer';
 import ShaderBackground from '@/Components/Landing/ShaderBackground';
 import IntroOverlay from '@/Components/Landing/IntroOverlay';
 import DashboardPreview from '@/Components/Landing/DashboardPreview';
+import ChatbotBubble from '@/Components/Landing/ChatbotBubble';
 
 export default function LandingPage({ auth }) {
     useEffect(() => {
@@ -124,6 +125,16 @@ export default function LandingPage({ auth }) {
                 @keyframes glow {
                    0%, 100% { box-shadow: 0 0 5px rgba(51, 200, 218, 0.5); }
                    50% { box-shadow: 0 0 20px rgba(51, 200, 218, 0.8), 0 0 30px rgba(51, 200, 218, 0.6); }
+                }
+                .animated-gradient {
+                    background: linear-gradient(270deg, #33C8DA, #2BA9B8, #1E8A96);
+                    background-size: 600% 600%;
+                    animation: gradientFlow 15s ease infinite;
+                }
+                @keyframes gradientFlow {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
                 }
             `}</style>
 
@@ -343,7 +354,93 @@ export default function LandingPage({ auth }) {
                 </div>
             </section>
 
+            {/* KONTAK KAMI SECTION (Legacy Converted) */}
+            <section id="landingContact" className="py-20 px-4 relative overflow-hidden">
+                {/* Animated gradient background */}
+                <div className="absolute inset-0 animated-gradient opacity-10 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50/50 to-[#2BA9B8]/5 pointer-events-none"></div>
+                
+                <div className="container mx-auto relative z-10">
+                    <div className="text-center mb-16">
+                    <span className="section-badge inline-block px-4 py-2 bg-cyan-100 text-[#33C8DA] rounded-full text-sm font-semibold mb-4" data-aos="fade-down" data-aos-duration="800">KONTAK</span>
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="100">
+                        Hubungi <span className="gradient-text">Tim SIGAP</span>
+                    </h2>
+                    <p className="text-lg text-gray-600 max-w-3xl mx-auto" data-aos="fade-up" data-aos-duration="1000" data-aos-delay="200">
+                        Ada pertanyaan atau butuh bantuan? Tim kami siap membantu Anda.
+                    </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                    {/* Left Side: Contact Image */}
+                    <div className="relative" data-aos="fade-right" data-aos-duration="1000" data-aos-delay="300">
+                        <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-8 border-2 border-[#33C8DA]/20 hover:shadow-lg transition-shadow duration-300">
+                        <img src="/images/landing/contact-customer-service.png" alt="Customer Service" className="w-full rounded-xl mb-6" />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6 text-[#33C8DA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <rect x="2" y="4" width="20" height="16" rx="2" />
+                                <path d="M22 7l-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 mb-1">Alamat Email</p>
+                                <a href="mailto:Sigap@pnj.ac.id" className="text-sm font-semibold text-gray-900 hover:text-[#33C8DA] transition-colors">Sigap@pnj.ac.id</a>
+                            </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg className="w-6 h-6 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 mb-1">Nomor Telepon</p>
+                                <a href="tel:+6234088963" className="text-sm font-semibold text-gray-900 hover:text-[#33C8DA] transition-colors">+6234 088 963</a>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+
+                    {/* Right Side: Contact Form */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="400">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Kirim sebuah pesan</h3>
+                        <p className="text-gray-600 mb-6">Ada pertanyaan? Hubungi kami melalui formulir di bawah ini.</p>
+
+                        <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert('Terima kasih! Pesan Anda telah diterima.'); e.target.reset(); }}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                            <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
+                            <input type="text" id="name" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="Budi Hartono" required />
+                            </div>
+                            <div>
+                            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">Alamat Email</label>
+                            <input type="email" id="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="budihartono@gmail.com" required />
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
+                            <input type="tel" id="phone" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="+62 812 3456 7890" required />
+                        </div>
+                        <div>
+                            <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">Pesan</label>
+                            <textarea id="message" rows="5" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all resize-none hover:border-cyan-300" placeholder="Tulis pesan Anda di sini..." required></textarea>
+                        </div>
+                        <button type="submit" className="w-full bg-[#33C8DA] text-white px-6 py-4 rounded-lg font-semibold hover:bg-[#2BA9B8] transition-colors duration-300 shadow-md hover:shadow-lg">
+                            Kirim Pesan
+                        </button>
+                        </form>
+                    </div>
+                    </div>
+                </div>
+            </section>
+
             <Footer />
+            <ChatbotBubble />
         </div>
     );
 }
