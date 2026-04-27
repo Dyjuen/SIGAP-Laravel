@@ -84,7 +84,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
 
     const handleRealisasiChange = (anggaranId, field, value) => {
         if (!isEditingPengusul) return;
-        
+
         let finalValue = value;
         if (field === 'harga_satuan') {
             finalValue = value.replace(/\D/g, '');
@@ -137,7 +137,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
         e.preventDefault();
         console.log('submitLpj triggered');
         console.log('Current Form Data:', data);
-        
+
         Swal.fire({
             title: status === 12 ? 'Submit Ulang LPJ?' : 'Submit LPJ?',
             text: 'Pastikan semua realisasi dan bukti telah diisi dengan benar.',
@@ -147,10 +147,10 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
             confirmButtonText: 'Ya, Submit'
         }).then((result) => {
             if (result.isConfirmed) {
-                const url = status === 12 
-                    ? route('lpj.resubmit', kegiatan.kegiatan_id) 
+                const url = status === 12
+                    ? route('lpj.resubmit', kegiatan.kegiatan_id)
                     : route('lpj.submit', kegiatan.kegiatan_id);
-                
+
                 // forceFormData MUST be true — without it, Inertia serializes
                 // the request as JSON, which silently drops all File objects.
                 // Files only survive transmission inside multipart/form-data.
@@ -232,7 +232,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
 
     const saveComment = () => {
         if (!commentModalConfig || commentModalConfig.isArchived) return;
-        
+
         if (commentModalConfig.type === 'lampiran') {
             const existing = data.lampiran_comments.find(c => c.id === commentModalConfig.id);
             let newComments = [...data.lampiran_comments];
@@ -258,7 +258,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
             }
             setData('anggaran_comments', newComments);
         }
-        
+
         setCommentModalConfig(null);
     };
 
@@ -266,7 +266,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
         const local = data.lampiran_comments.find(c => c.id === lampiranId);
         const dbLampiran = lampiran.find(l => l.lampiran_id === lampiranId);
         const dbText = dbLampiran?.catatan_reviewer || '';
-        
+
         if (local) {
             return { text: local.catatan_reviewer, isOld: local.catatan_reviewer === dbText };
         }
@@ -314,7 +314,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden main-step-content active border-hover-draw">
                         <div className="p-6">
                             <h3 className="text-lg font-bold text-slate-800 border-b pb-3 mb-6">Formulir Realisasi LPJ</h3>
-                            
+
                             <form onSubmit={submitLpj} className="space-y-8">
                                 <div className="hidden md:block overflow-x-auto overflow-y-hidden rounded-xl border border-gray-200">
                                     <table className="min-w-full divide-y divide-gray-200">
@@ -331,9 +331,9 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase w-32">Harga Satuan (Real)</th>
                                                 <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase w-32">Total (Real)</th>
                                                 {status !== 10 && (
-                                                   <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase w-12"></th>
+                                                    <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase w-12"></th>
                                                 )}
-                                             </tr>
+                                            </tr>
                                         </thead>
                                         <tbody className="bg-white divide-y divide-gray-200">
                                             {Object.entries(
@@ -359,7 +359,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                         const realisasiItem = data.realisasi[item.anggaran_id] || {};
                                                         const attachedFiles = lampiran.filter(l => l.anggaran_id === item.anggaran_id);
                                                         const newFiles = data.bukti[item.anggaran_id] || [];
-                                                        
+
                                                         return (
                                                             <React.Fragment key={item.anggaran_id}>
                                                                 <tr className="text-sm bg-white hover:bg-slate-50 transition-colors">
@@ -375,7 +375,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                     {/* Vol 1 */}
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100/50">
                                                                         <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                            value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="1" />
+                                                                            value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="-" />
                                                                     </td>
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100">
                                                                         <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
@@ -421,7 +421,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                             {(() => {
                                                                                 const comment = getCommentForAnggaran(item.anggaran_id);
                                                                                 return (
-                                                                                    <button 
+                                                                                    <button
                                                                                         type="button"
                                                                                         onClick={() => {
                                                                                             setCommentModalConfig({
@@ -453,8 +453,8 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                                     <div>
                                                                                         <label className="btn-add-lampiran cursor-pointer text-xs flex items-center gap-1 shadow-sm">
                                                                                             <Plus size={14} /> Tambah Bukti
-                                                                                                <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(item.anggaran_id, e)} />
-                                                                                            </label>                                                                            </div>
+                                                                                            <input type="file" className="hidden" multiple accept="image/*,application/pdf" onChange={(e) => handleFileChange(item.anggaran_id, e)} />
+                                                                                        </label>                                                                            </div>
                                                                                 )}
                                                                             </div>
                                                                             <div className="space-y-3">
@@ -466,7 +466,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                                 {attachedFiles.map(file => {
                                                                                     const comment = getCommentForLampiran(file.lampiran_id);
                                                                                     const isArchived = file.status_lampiran === 'archived' || data.files_to_delete.includes(file.lampiran_id);
-                                                                                    
+
                                                                                     return (
                                                                                         <div key={file.lampiran_id} className={clsx("lampiran-item flex justify-between items-center p-3 rounded-lg border", comment ? "border-red-200 bg-red-50/30" : "border-slate-100 bg-white shadow-sm", isArchived && "opacity-50 grayscale bg-slate-100")}>
                                                                                             <div className="flex items-center gap-3">
@@ -475,9 +475,9 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                                                 </div>
                                                                                                 <div>
                                                                                                     <div className="flex items-center gap-2">
-                                                                                                        <button 
+                                                                                                        <button
                                                                                                             type="button"
-                                                                                                            onClick={() => setViewerConfig({ url: file.path_file_disimpan, name: file.nama_file_asli })} 
+                                                                                                            onClick={() => setViewerConfig({ url: file.path_file_disimpan, name: file.nama_file_asli })}
                                                                                                             className={clsx("text-sm font-bold text-cyan-700 hover:text-cyan-500 hover:underline transition-colors", isArchived && "line-through text-slate-500")}
                                                                                                         >
                                                                                                             {file.nama_file_asli}
@@ -500,7 +500,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
 
                                                                                                 {/* Comment Button (Bendahara & Pengusul) */}
                                                                                                 {status !== 10 && (
-                                                                                                    <button 
+                                                                                                    <button
                                                                                                         type="button"
                                                                                                         onClick={() => {
                                                                                                             setCommentModalConfig({
@@ -523,12 +523,12 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                                                         <Trash2 size={16} />
                                                                                                     </button>
                                                                                                 )}
-                                                                                                
+
                                                                                                 {isEditingPengusul && isArchived && (
-                                                                                                    <button 
-                                                                                                        type="button" 
-                                                                                                        onClick={() => setData('files_to_delete', data.files_to_delete.filter(id => id !== file.lampiran_id))} 
-                                                                                                        className="p-2 rounded-lg hover:bg-cyan-100 text-slate-400 hover:text-cyan-600 transition-colors" 
+                                                                                                    <button
+                                                                                                        type="button"
+                                                                                                        onClick={() => setData('files_to_delete', data.files_to_delete.filter(id => id !== file.lampiran_id))}
+                                                                                                        className="p-2 rounded-lg hover:bg-cyan-100 text-slate-400 hover:text-cyan-600 transition-colors"
                                                                                                         title="Batal Hapus"
                                                                                                     >
                                                                                                         <Save size={16} />
@@ -539,33 +539,33 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                                     );
                                                                                 })}
 
-                                                                        {/* New Files (Pengusul only) */}
-                                                                        {newFiles.map((file, idx) => (
-                                                                            <div key={`new-${idx}`} className="lampiran-item pending-lampiran flex justify-between items-center p-3 rounded-lg border border-blue-200 bg-blue-50/50 shadow-sm">
-                                                                                <div className="flex items-center gap-3">
-                                                                                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                                                                                        <Upload size={20} />
-                                                                                    </div>
-                                                                                    <div>
-                                                                                        <div className="text-sm font-bold text-slate-700">{file.name}</div>
-                                                                                        <div className="text-[11px] text-blue-500 mt-0.5 font-medium flex items-center gap-1">
-                                                                                            <span className="relative flex h-2 w-2">
-                                                                                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                                                                                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                                                                                            </span>
-                                                                                            Siap diunggah ({(file.size/1024).toFixed(1)} KB)
+                                                                                {/* New Files (Pengusul only) */}
+                                                                                {newFiles.map((file, idx) => (
+                                                                                    <div key={`new-${idx}`} className="lampiran-item pending-lampiran flex justify-between items-center p-3 rounded-lg border border-blue-200 bg-blue-50/50 shadow-sm">
+                                                                                        <div className="flex items-center gap-3">
+                                                                                            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                                                                                                <Upload size={20} />
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <div className="text-sm font-bold text-slate-700">{file.name}</div>
+                                                                                                <div className="text-[11px] text-blue-500 mt-0.5 font-medium flex items-center gap-1">
+                                                                                                    <span className="relative flex h-2 w-2">
+                                                                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                                                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                                                                                    </span>
+                                                                                                    Siap diunggah ({(file.size / 1024).toFixed(1)} KB)
+                                                                                                </div>
+                                                                                            </div>
                                                                                         </div>
+                                                                                        <button type="button" onClick={() => removeNewFile(item.anggaran_id, idx)} className="btn-cancel-upload" title="Batal Unggah">
+                                                                                            <X size={16} />
+                                                                                        </button>
                                                                                     </div>
-                                                                                </div>
-                                                                                <button type="button" onClick={() => removeNewFile(item.anggaran_id, idx)} className="btn-cancel-upload" title="Batal Unggah">
-                                                                                    <X size={16} />
-                                                                                </button>
+                                                                                ))}
                                                                             </div>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
                                                             </React.Fragment>
                                                         );
                                                     })}
@@ -574,7 +574,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                         </tbody>
                                     </table>
                                 </div>
-                                
+
                                 <div className="bg-slate-50 border-t border-slate-200 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                                     <div className="flex items-center gap-2 text-slate-500">
                                         <AlertCircle size={20} className="text-cyan-600" />
@@ -582,8 +582,8 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                     </div>
                                     <div className="flex items-center gap-3">
                                         {isEditingPengusul && (
-                                            <button 
-                                                type="submit" 
+                                            <button
+                                                type="submit"
                                                 disabled={processing}
                                                 className="btn-primary-action bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg shadow-cyan-200"
                                             >
@@ -594,16 +594,16 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
 
                                         {isReviewingBendahara && (
                                             <>
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     onClick={reviseLpj}
                                                     disabled={processing}
                                                     className="btn-primary-action bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-200"
                                                 >
                                                     <X size={20} /> <span>Kembalikan untuk Revisi</span>
                                                 </button>
-                                                <button 
-                                                    type="button" 
+                                                <button
+                                                    type="button"
                                                     onClick={approveLpj}
                                                     disabled={processing}
                                                     className="btn-primary-action bg-cyan-600 text-white hover:bg-cyan-700 shadow-lg shadow-cyan-200"
@@ -614,8 +614,8 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                         )}
 
                                         {isSetorFisik && (
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 onClick={completeLpj}
                                                 disabled={processing}
                                                 className="btn-primary-action bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-200"
@@ -646,7 +646,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                         <div className="mb-4 text-sm font-semibold text-slate-600 p-3 bg-slate-50 rounded-lg border border-slate-100">
                             <span className="text-cyan-600">{commentModalConfig?.title}</span>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <label className="block text-sm font-bold text-slate-700">Catatan Reviewer:</label>
                             <textarea
@@ -690,8 +690,8 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                             )}
                         </div>
                         <div className="mt-4 flex justify-end gap-3">
-                            <a 
-                                href={viewerConfig?.url} 
+                            <a
+                                href={viewerConfig?.url}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="px-5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
