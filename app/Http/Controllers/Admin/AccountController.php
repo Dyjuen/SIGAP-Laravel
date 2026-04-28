@@ -10,6 +10,8 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PasswordResetMail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -79,6 +81,15 @@ class AccountController extends Controller
         $user->update([
             'password_hash' => Hash::make($request->new_password),
         ]);
+
+        // Notify user via email
+        if ($user->email) {
+            Mail::to($user->email)->send(new PasswordResetMail([
+                'recipient_name' => $user->nama_lengkap,
+                'new_password' => $request->new_password,
+                'action_link' => config('app.url') . '/login',
+            ]));
+        }
 
         return redirect()->back()->with('success', 'Password user berhasil diubah.');
     }

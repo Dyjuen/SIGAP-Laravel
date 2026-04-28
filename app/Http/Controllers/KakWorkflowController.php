@@ -9,6 +9,9 @@ use App\Models\MataAnggaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\KAKWorkflowMail;
+use App\Models\User;
 
 class KakWorkflowController extends Controller
 {
@@ -37,9 +40,8 @@ class KakWorkflowController extends Controller
             // Log Status
             $this->logStatus($kak, $oldStatus, 2);
 
-            // Removing KAKApproval creation on submit as it requires approver_user_id (not null)
-            // and we don't have a specific verifier yet.
-            // t_kak_log_status is sufficient for tracking submission history.
+            // Send Email to Verifikator
+            $this->sendMailToVerifikator($kak, 'submitted');
         });
 
         return back()->with('success', 'KAK berhasil diajukan untuk verifikasi.');
@@ -102,6 +104,9 @@ class KakWorkflowController extends Controller
                 'tanggal_telaah' => now(),
                 'catatan' => null,
             ]);
+
+            // Send Email to Pengusul
+            $this->sendMailToPengusul($kak, 'approved');
         });
 
         return back()->with('success', 'KAK berhasil disetujui.');
@@ -137,6 +142,9 @@ class KakWorkflowController extends Controller
                 'tanggal_telaah' => now(),
                 'catatan' => $request->catatan,
             ]);
+
+            // Send Email to Pengusul
+            $this->sendMailToPengusul($kak, 'rejected', $request->catatan);
         });
 
         return back()->with('success', 'KAK telah ditolak.');
@@ -224,6 +232,9 @@ class KakWorkflowController extends Controller
                     }
                 }
             }
+
+            // Send Email to Pengusul
+            $this->sendMailToPengusul($kak, 'revised', $request->catatan);
         });
 
         return back()->with('success', 'Permintaan revisi dikirim.');
@@ -251,7 +262,8 @@ class KakWorkflowController extends Controller
 
             $this->logStatus($kak, $oldStatus, 2);
 
-            // Removing KAKApproval creation on resubmit as it requires approver_user_id.
+            // Send Email to Verifikator
+            $this->sendMailToVerifikator($kak, 'resubmitted');
         });
 
         return back()->with('success', 'KAK berhasil diajukan kembali.');
@@ -315,5 +327,82 @@ class KakWorkflowController extends Controller
         $kak->targets()->update(['catatan_verifikator' => null]);
         $kak->ikus()->update(['catatan_verifikator' => null]);
         $kak->anggaran()->update(['catatan_verifikator' => null]);
+    }
+
+    private function sendMailToVerifikator(KAK $kak, string $type)
+    {
+        $kak->load('pengusul');
+        
+        // Find the specific Verifikator based on tipe_kegiatan_id
+        $verifikatorUsername = 'verifikator' . $kak->tipe_kegiatan_id;
+        $verifikator = User::where('username', $verifikatorUsername)->first();
+
+        if ($verifikator && $verifikator->email) {
+            $isResubmit = ($type === 'resubmitted');
+            $data = [
+                'subject' => $isResubmit ? "🔄 KAK Sudah Direvisi - Perlu Review Ulang" : "🔔 KAK Baru Membutuhkan Verifikasi",
+                'title' => $isResubmit ? 'KAK Telah Direvisi' : 'KAK Baru Disubmit',
+                'recipient_name' => $verifikator->nama_lengkap,
+                'body' => $isResubmit 
+                    ? "Halo <strong>Verifikator</strong>,<br><br>KAK yang sebelumnya diminta revisi telah diajukan kembali."
+                    : "Halo <strong>Verifikator</strong>,<br><br>Ada KAK baru yang telah disubmit dan membutuhkan verifikasi.",
+                'details' => [
+                    'Nama Kegiatan' => $kak->nama_kegiatan,
+                    'Diajukan oleh' => $kak->pengusul->nama_lengkap,
+                ],
+                'action_link' => config('app.url') . "/kak/{$kak->kak_id}",
+                'action_text' => 'Review KAK Sekarang',
+                'status_color' => '#1ABDD4',
+            ];
+
+            Mail::to($verifikator->email)->send(new KAKWorkflowMail($data));
+        }
+    }
+
+    private function sendMailToPengusul(KAK $kak, string $type, string $catatan = null)
+    {
+        $kak->load('pengusul');
+        $pengusul = $kak->pengusul;
+
+        if ($pengusul && $pengusul->email) {
+            $config = [
+                'approved' => [
+                    'subject' => '✅ KAK Disetujui - SIGAP PNJ',
+                    'title' => 'KAK Disetujui',
+                    'body' => "Selamat! KAK Anda telah disetujui oleh Verifikator. Silakan melanjutkan ke tahap pengajuan kegiatan.",
+                    'color' => '#28a745',
+                ],
+                'rejected' => [
+                    'subject' => '❌ KAK Ditolak - SIGAP PNJ',
+                    'title' => 'KAK Ditolak',
+                    'body' => "Mohon maaf, KAK Anda telah ditolak oleh Verifikator.<br><br><strong>Catatan:</strong> " . ($catatan ?? '-'),
+                    'color' => '#dc3545',
+                ],
+                'revised' => [
+                    'subject' => '⚠️ KAK Perlu Revisi - SIGAP PNJ',
+                    'title' => 'Permintaan Revisi KAK',
+                    'body' => "Verifikator telah mereview KAK Anda dan meminta beberapa perbaikan.<br><br><strong>Catatan:</strong> " . ($catatan ?? '-'),
+                    'color' => '#ffc107',
+                ],
+            ];
+
+            if (isset($config[$type])) {
+                $c = $config[$type];
+                $data = [
+                    'subject' => $c['subject'],
+                    'title' => $c['title'],
+                    'recipient_name' => $pengusul->nama_lengkap,
+                    'body' => $c['body'],
+                    'details' => [
+                        'Nama Kegiatan' => $kak->nama_kegiatan,
+                    ],
+                    'action_link' => config('app.url') . "/kak/{$kak->kak_id}",
+                    'action_text' => 'Lihat KAK',
+                    'status_color' => $c['color'],
+                ];
+
+                Mail::to($pengusul->email)->send(new KAKWorkflowMail($data));
+            }
+        }
     }
 }

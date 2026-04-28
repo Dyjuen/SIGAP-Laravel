@@ -12,6 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\FundsReleasedMail;
 use Inertia\Inertia;
 
 class PencairanController extends Controller
@@ -191,6 +193,12 @@ class PencairanController extends Controller
                 'catatan' => 'Proses pencairan selesai, tahap LPJ dimulai.',
             ]);
 
+            // Calculate total funds released
+            $totalCair = $kegiatan->pencairanDana()->sum('jumlah_dicairkan');
+
+            // Send Email to Pengusul
+            $this->sendFundsReleasedMail($kegiatan, $totalCair);
+
             DB::commit();
 
             return redirect()->back()->with('success', 'Proses pencairan berhasil diselesaikan dan tahap LPJ telah dimulai.');
@@ -246,5 +254,22 @@ class PencairanController extends Controller
             'total_dicairkan' => (float) $totalDicairkan,
             'sisa_dana' => (float) ($totalAnggaran - $totalDicairkan),
         ];
+    }
+
+    private function sendFundsReleasedMail(Kegiatan $kegiatan, float $jumlah)
+    {
+        $kak = $kegiatan->kak;
+        $pengusul = $kak->pengusul;
+
+        if ($pengusul && $pengusul->email) {
+            $data = [
+                'recipient_name' => $pengusul->nama_lengkap,
+                'nama_kegiatan' => $kak->nama_kegiatan,
+                'jumlah' => $jumlah,
+                'action_link' => config('app.url') . "/kegiatan/{$kegiatan->kegiatan_id}",
+            ];
+
+            Mail::to($pengusul->email)->send(new FundsReleasedMail($data));
+        }
     }
 }

@@ -10,7 +10,9 @@ use App\Models\KegiatanApproval;
 use App\Models\KegiatanLogStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Mail\KAKWorkflowMail;
 use Inertia\Inertia;
 
 class KegiatanController extends Controller
@@ -260,6 +262,9 @@ class KegiatanController extends Controller
                     'actor_user_id' => $user->user_id,
                     'catatan' => $request->catatan ?: 'Disetujui oleh '.$role,
                 ]);
+
+                // Send Email to Pengusul
+                $this->sendApprovalMailToPengusul($kegiatan, $role, $request->catatan);
             }
 
             DB::commit();
@@ -367,5 +372,28 @@ class KegiatanController extends Controller
             'kegiatans' => $kegiatans,
             'filters' => $request->only(['search']),
         ]);
+    }
+
+    private function sendApprovalMailToPengusul(Kegiatan $kegiatan, string $role, ?string $catatan)
+    {
+        $kak = $kegiatan->kak;
+        $pengusul = $kak->pengusul;
+
+        if ($pengusul && $pengusul->email) {
+            $data = [
+                'subject' => "✅ Kegiatan Disetujui oleh {$role} - SIGAP PNJ",
+                'title' => 'Kegiatan Disetujui',
+                'recipient_name' => $pengusul->nama_lengkap,
+                'body' => "Kegiatan Anda telah disetujui oleh <strong>{$role}</strong>. Status kegiatan saat ini: <strong>{$kak->status->nama_status}</strong>." . ($catatan ? "<br><br><strong>Catatan:</strong> {$catatan}" : ""),
+                'details' => [
+                    'Nama Kegiatan' => $kak->nama_kegiatan,
+                ],
+                'action_link' => config('app.url') . "/kegiatan/{$kegiatan->kegiatan_id}",
+                'action_text' => 'Lihat Detail Kegiatan',
+                'status_color' => '#28a745',
+            ];
+
+            Mail::to($pengusul->email)->send(new KAKWorkflowMail($data));
+        }
     }
 }

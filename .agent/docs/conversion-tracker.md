@@ -15,7 +15,7 @@ This document tracks the migration of features from the native PHP application t
 | **LPJ (Reports)** | `KegiatanAnggaran`, `LpjController` | (Logic mainly in controller) | ✅ Completed | ✅ | ✅ | ⬜ |
 | **Dashboard** | `DashboardController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 | **Dashboard Direktur** | `DashboardDirekturController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
-| **Notifications** | `NotificationController`, `LPJTimerService` | `Notifikasi` | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Notifications** | `MailService`, `NotificationController` | `Notifikasi` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Logs** | `LogController` | `Log` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Wadir / PPK** | `WadirController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
 

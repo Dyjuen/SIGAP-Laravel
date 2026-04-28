@@ -17,7 +17,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Mail\LPJWorkflowMail;
+use App\Models\User;
 use Inertia\Inertia;
 
 class LpjController extends Controller
@@ -168,6 +171,9 @@ class LpjController extends Controller
                     'catatan' => 'LPJ disubmit untuk review.',
                 ]);
 
+                // Send Email to Bendahara
+                $this->sendLpjMailToBendahara($kegiatan, 'submitted');
+
                 return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit dan menunggu review dari Bendahara LPJ.');
             });
         } catch (\Exception $e) {
@@ -292,6 +298,9 @@ class LpjController extends Controller
                 'catatan' => 'LPJ dikembalikan untuk revisi.',
             ]);
 
+            // Send Email to Pengusul
+            $this->sendLpjMailToPengusul($kegiatan, 'revised', 'LPJ Anda memerlukan revisi. Silakan cek catatan di aplikasi.');
+
             return redirect()->route('lpj.index')->with('success', 'LPJ telah dikembalikan untuk revisi.');
         });
     }
@@ -401,6 +410,9 @@ class LpjController extends Controller
                     'catatan' => 'LPJ disubmit ulang setelah revisi.',
                 ]);
 
+                // Send Email to Bendahara
+                $this->sendLpjMailToBendahara($kegiatan, 'resubmitted');
+
                 return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
             });
         } catch (\Exception $e) {
@@ -458,6 +470,9 @@ class LpjController extends Controller
                 'catatan' => 'LPJ digital disetujui. Menunggu setor fisik.',
             ]);
 
+            // Send Email to Pengusul
+            $this->sendLpjMailToPengusul($kegiatan, 'approved', 'LPJ digital Anda telah disetujui. Silakan segera setor berkas fisik ke Bendahara.');
+
             return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disetujui.');
         });
     }
@@ -498,6 +513,9 @@ class LpjController extends Controller
                 'catatan' => 'LPJ fisik diterima. Kegiatan selesai.',
             ]);
 
+            // Send Email to Pengusul
+            $this->sendLpjMailToPengusul($kegiatan, 'completed', 'Selamat! Seluruh tahapan LPJ telah selesai dan berkas fisik telah diterima.');
+
             return redirect()->route('lpj.index')->with('success', 'LPJ telah ditandai selesai.');
         });
     }
@@ -526,6 +544,52 @@ class LpjController extends Controller
     {
         foreach ($paths as $path) {
             Storage::disk('supabase')->delete($path);
+        }
+    }
+
+    private function sendLpjMailToBendahara(Kegiatan $kegiatan, string $type)
+    {
+        $bendahara = User::whereHas('role', function($q) { $q->where('nama_role', 'Bendahara'); })->first();
+        
+        if ($bendahara && $bendahara->email) {
+            $isResubmit = ($type === 'resubmitted');
+            $data = [
+                'subject' => $isResubmit ? "🔄 LPJ Direvisi - Perlu Review Ulang" : "📋 LPJ Baru Perlu Review - SIGAP PNJ",
+                'title' => 'Review LPJ Baru',
+                'recipient_name' => $bendahara->nama_lengkap,
+                'body' => $isResubmit 
+                    ? "Halo <strong>Bendahara</strong>,<br><br>LPJ yang sebelumnya diminta revisi telah diajukan kembali oleh pengusul."
+                    : "Halo <strong>Bendahara</strong>,<br><br>Ada LPJ baru yang telah disubmit dan memerlukan review Anda.",
+                'details' => [
+                    'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
+                    'Pengusul' => $kegiatan->kak->pengusul->nama_lengkap,
+                ],
+                'action_link' => config('app.url') . "/lpj/review/{$kegiatan->kegiatan_id}",
+                'status_color' => '#dc3545',
+            ];
+
+            Mail::to($bendahara->email)->send(new LPJWorkflowMail($data));
+        }
+    }
+
+    private function sendLpjMailToPengusul(Kegiatan $kegiatan, string $type, string $message)
+    {
+        $pengusul = $kegiatan->kak->pengusul;
+
+        if ($pengusul && $pengusul->email) {
+            $data = [
+                'subject' => "Status LPJ: " . strtoupper($type) . " - SIGAP PNJ",
+                'title' => 'Update Status LPJ',
+                'recipient_name' => $pengusul->nama_lengkap,
+                'body' => $message,
+                'details' => [
+                    'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
+                ],
+                'action_link' => config('app.url') . "/lpj",
+                'status_color' => ($type === 'revised' ? '#ffc107' : '#28a745'),
+            ];
+
+            Mail::to($pengusul->email)->send(new LPJWorkflowMail($data));
         }
     }
 }
