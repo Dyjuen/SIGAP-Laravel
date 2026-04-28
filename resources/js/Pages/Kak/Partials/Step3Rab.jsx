@@ -3,6 +3,7 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import SpectacularBorder from '../Components/SpectacularBorder';
 import CommentIcon from '../Components/CommentIcon';
 import { Wallet, Trash, Plus } from 'lucide-react';
+import CustomSelect from '@/Components/CustomSelect';
 
 export default function Step3Rab({
     data, setData, errors, kategori_belanja = [], satuan = [], readOnly = false,
@@ -106,14 +107,17 @@ export default function Step3Rab({
                                                                 {/* Vol 1 */}
                                                                 <td className="px-1 py-2 align-top">
                                                                     <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.volume1 || ''} onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="1" />
+                                                                        value={item.volume1 || ''} onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="-" />
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top">
-                                                                    <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.satuan1_id || ''} onChange={e => updateRab(item.originalIndex, 'satuan1_id', e.target.value)} disabled={readOnly && !isPengusulFixing}>
-                                                                        <option value="">-</option>
-                                                                        {satuan.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
-                                                                    </select>
+                                                                    <CustomSelect
+                                                                        value={item.satuan1_id || ''}
+                                                                        onChange={(val) => updateRab(item.originalIndex, 'satuan1_id', val)}
+                                                                        options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
+                                                                        placeholder="-"
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
+                                                                    />
                                                                 </td>
                                                                 {/* Vol 2 (Optional) */}
                                                                 <td className="px-1 py-2 align-top">
@@ -121,11 +125,14 @@ export default function Step3Rab({
                                                                         value={item.volume2 || ''} onChange={e => updateRab(item.originalIndex, 'volume2', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top">
-                                                                    <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.satuan2_id || ''} onChange={e => updateRab(item.originalIndex, 'satuan2_id', e.target.value)} disabled={readOnly && !isPengusulFixing}>
-                                                                        <option value="">-</option>
-                                                                        {satuan.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
-                                                                    </select>
+                                                                    <CustomSelect
+                                                                        value={item.satuan2_id || ''}
+                                                                        onChange={(val) => updateRab(item.originalIndex, 'satuan2_id', val)}
+                                                                        options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
+                                                                        placeholder="-"
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
+                                                                    />
                                                                 </td>
                                                                 {/* Vol 3 (Optional) */}
                                                                 <td className="px-1 py-2 align-top">
@@ -133,11 +140,14 @@ export default function Step3Rab({
                                                                         value={item.volume3 || ''} onChange={e => updateRab(item.originalIndex, 'volume3', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top">
-                                                                    <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.satuan3_id || ''} onChange={e => updateRab(item.originalIndex, 'satuan3_id', e.target.value)} disabled={readOnly && !isPengusulFixing}>
-                                                                        <option value="">-</option>
-                                                                        {satuan.map(s => <option key={s.satuan_id} value={s.satuan_id}>{s.nama_satuan}</option>)}
-                                                                    </select>
+                                                                    <CustomSelect
+                                                                        value={item.satuan3_id || ''}
+                                                                        onChange={(val) => updateRab(item.originalIndex, 'satuan3_id', val)}
+                                                                        options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
+                                                                        placeholder="-"
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
+                                                                    />
                                                                 </td>
                                                                 {/* Harga */}
                                                                 <td className="px-2 py-2 align-top">

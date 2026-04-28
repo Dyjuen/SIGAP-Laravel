@@ -4,6 +4,7 @@ import SpectacularBorder from '../Components/SpectacularBorder';
 import CommentIcon from '../Components/CommentIcon';
 import { FileText, Users, Target, ChartBar, Calendar, Trash, Plus, AlertCircle } from 'lucide-react';
 import Datepicker from "react-tailwindcss-datepicker";
+import CustomSelect from '@/Components/CustomSelect';
 
 export default function Step1Kak({
     data, setData, errors, readOnly = false, tipe_kegiatan = [],
@@ -154,19 +155,14 @@ export default function Step1Kak({
                                     <div className="relative group/field">
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Tipe Kegiatan <span className="text-red-500">*</span></label>
                                         <div className="relative">
-                                            <select
-                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12"
+                                            <CustomSelect
                                                 value={data.kak.tipe_kegiatan_id || ''}
-                                                onChange={(e) => updateKak('tipe_kegiatan_id', e.target.value)}
+                                                onChange={(val) => updateKak('tipe_kegiatan_id', val)}
+                                                options={tipe_kegiatan.map(t => ({ value: t.tipe_kegiatan_id, label: t.nama_tipe }))}
+                                                placeholder="Pilih Tipe Kegiatan"
                                                 disabled={readOnly && !isPengusulFixing}
-                                            >
-                                                <option value="">Pilih Tipe Kegiatan</option>
-                                                {tipe_kegiatan.map(t => (
-                                                    <option key={t.tipe_kegiatan_id} value={t.tipe_kegiatan_id}>
-                                                        {t.nama_tipe}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                                className="w-full rounded-xl py-2.5 pl-4 pr-12 text-sm"
+                                            />
                                             {/* Revision Comments */}
                                             {(isVerifikator || isPengusulFixing) && (
                                                 <CommentIcon
@@ -445,26 +441,27 @@ export default function Step1Kak({
                                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4">
                                                         <div className="md:col-span-3">
                                                             <label className="block text-xs font-bold text-gray-500 mb-1">Bulan</label>
-                                                            <select
-                                                                className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                            <CustomSelect
                                                                 value={item.bulan_indikator}
-                                                                onChange={(e) => updateIndikator(index, 'bulan_indikator', e.target.value)}
+                                                                onChange={(val) => updateIndikator(index, 'bulan_indikator', val)}
+                                                                options={[
+                                                                    { value: 'Januari', label: 'Januari' },
+                                                                    { value: 'Februari', label: 'Februari' },
+                                                                    { value: 'Maret', label: 'Maret' },
+                                                                    { value: 'April', label: 'April' },
+                                                                    { value: 'Mei', label: 'Mei' },
+                                                                    { value: 'Juni', label: 'Juni' },
+                                                                    { value: 'Juli', label: 'Juli' },
+                                                                    { value: 'Agustus', label: 'Agustus' },
+                                                                    { value: 'September', label: 'September' },
+                                                                    { value: 'Oktober', label: 'Oktober' },
+                                                                    { value: 'November', label: 'November' },
+                                                                    { value: 'Desember', label: 'Desember' }
+                                                                ]}
+                                                                placeholder="Pilih Bulan"
                                                                 disabled={readOnly && !isPengusulFixing}
-                                                            >
-                                                                <option value="">Pilih Bulan</option>
-                                                                <option value="Januari">Januari</option>
-                                                                <option value="Februari">Februari</option>
-                                                                <option value="Maret">Maret</option>
-                                                                <option value="April">April</option>
-                                                                <option value="Mei">Mei</option>
-                                                                <option value="Juni">Juni</option>
-                                                                <option value="Juli">Juli</option>
-                                                                <option value="Agustus">Agustus</option>
-                                                                <option value="September">September</option>
-                                                                <option value="Oktober">Oktober</option>
-                                                                <option value="November">November</option>
-                                                                <option value="Desember">Desember</option>
-                                                            </select>
+                                                                className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
+                                                            />
                                                         </div>
                                                         <div className="md:col-span-6">
                                                             <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Keberhasilan</label>

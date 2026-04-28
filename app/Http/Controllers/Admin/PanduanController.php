@@ -44,7 +44,7 @@ class PanduanController extends Controller
         if ($data['tipe_media'] === 'video') {
             $pathMedia = $data['path_media'];
         } elseif ($request->hasFile('file')) {
-            $pathMedia = $request->file('file')->store('panduan', 'public');
+            $pathMedia = $request->file('file')->store('panduan', 'supabase');
         }
 
         Panduan::create([
@@ -68,7 +68,7 @@ class PanduanController extends Controller
         if ($data['tipe_media'] === 'video') {
             // If switching from document to video, delete old file
             if ($panduan->tipe_media === 'document' && $panduan->path_media) {
-                Storage::disk('public')->delete($panduan->path_media);
+                Storage::disk('supabase')->delete($panduan->path_media);
             }
             $panduan->tipe_media = 'video';
             $panduan->path_media = $data['path_media'];
@@ -77,9 +77,9 @@ class PanduanController extends Controller
             if ($request->hasFile('file')) {
                 // Delete old file if exists (and was document)
                 if ($panduan->tipe_media === 'document' && $panduan->path_media) {
-                    Storage::disk('public')->delete($panduan->path_media);
+                    Storage::disk('supabase')->delete($panduan->path_media);
                 }
-                $path = $request->file('file')->store('panduan', 'public');
+                $path = $request->file('file')->store('panduan', 'supabase');
                 $panduan->tipe_media = 'document';
                 $panduan->path_media = $path;
             } else {
@@ -98,7 +98,7 @@ class PanduanController extends Controller
     public function destroy(Panduan $panduan)
     {
         if ($panduan->tipe_media === 'document' && $panduan->path_media) {
-            Storage::disk('public')->delete($panduan->path_media);
+            Storage::disk('supabase')->delete($panduan->path_media);
         }
 
         $panduan->delete();
@@ -112,11 +112,18 @@ class PanduanController extends Controller
             return redirect()->away($panduan->path_media);
         }
 
-        if ($panduan->path_media && Storage::disk('public')->exists($panduan->path_media)) {
-            $filePath = Storage::disk('public')->path($panduan->path_media);
-            $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        if ($panduan->path_media && Storage::disk('supabase')->exists($panduan->path_media)) {
+            $extension = pathinfo($panduan->path_media, PATHINFO_EXTENSION);
+            $filename = $panduan->judul_panduan . ($extension ? '.' . $extension : '');
+            
+            // If request has stream=1, show inline (for iframe preview)
+            if (request()->query('stream')) {
+                return Storage::disk('supabase')->response($panduan->path_media, $filename, [
+                    'Content-Disposition' => 'inline; filename="' . $filename . '"'
+                ]);
+            }
 
-            return response()->download($filePath, $panduan->judul_panduan.'.'.$extension);
+            return Storage::disk('supabase')->download($panduan->path_media, $filename);
         }
 
         abort(404, 'File tidak ditemukan.');

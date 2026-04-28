@@ -1,11 +1,10 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', \App\Http\Controllers\LandingPageController::class);
+Route::post('/chatbot/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])->name('chatbot.chat');
 
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth'])
@@ -19,6 +18,9 @@ Route::middleware('auth')->group(function () {
     // KAK Routes
     Route::middleware('role:Admin,Verifikator,Pengusul,Bendahara,Rektorat')->group(function () {
         Route::resource('kak', \App\Http\Controllers\KakController::class);
+        Route::get('/kak/{kak}/pdf/preview', [\App\Http\Controllers\KakController::class, 'previewPdf'])->name('kak.pdf.preview');
+        Route::get('/kak/{kak}/pdf/preview-blob', [\App\Http\Controllers\KakController::class, 'previewPdfBlob'])->name('kak.pdf.preview-blob');
+        Route::get('/kak/{kak}/pdf/download', [\App\Http\Controllers\KakController::class, 'exportPdf'])->name('kak.pdf.download');
 
         // KAK Workflow Routes
         Route::post('/kak/{kak}/submit', [\App\Http\Controllers\KakWorkflowController::class, 'submit'])->name('kak.submit');
@@ -80,7 +82,6 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
     Route::post('/panduan', [\App\Http\Controllers\Admin\PanduanController::class, 'store'])->name('admin.panduan.store');
     Route::put('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'update'])->name('admin.panduan.update');
     Route::delete('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'destroy'])->name('admin.panduan.destroy');
-    Route::get('/panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('admin.panduan.download');
 
     // Logs Routes
     Route::get('/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs.index');
@@ -93,4 +94,8 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
         Route::put('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'update'])->name('admin.master.update');
         Route::delete('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'destroy'])->name('admin.master.destroy');
     });
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('admin.panduan.download');
 });

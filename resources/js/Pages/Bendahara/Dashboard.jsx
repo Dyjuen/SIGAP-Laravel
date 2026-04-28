@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import PanduanSection from '@/Components/PanduanSection';
 import { Head, Link } from '@inertiajs/react';
 import {
     Clock,
@@ -130,21 +131,8 @@ function StatusBadge({ status }) {
     );
 }
 
-// ─── Video Embed Helper ──────────────────────────────────────────────────────
-function getEmbedUrl(url) {
-    if (!url) return null;
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        let videoId = '';
-        if (url.includes('watch?v=')) videoId = url.split('watch?v=')[1]?.split('&')[0];
-        else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
-        else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
-        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-    }
-    return url;
-}
-
 // ─── Main Component ──────────────────────────────────────────────────────────
-export default function BendaharaDashboard({ auth, kegiatans = [], stats = {}, videos = [] }) {
+export default function BendaharaDashboard({ auth, kegiatans = [], stats = {}, panduans = [] }) {
     const [filter, setFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
@@ -393,38 +381,7 @@ export default function BendaharaDashboard({ auth, kegiatans = [], stats = {}, v
                         )}
                     </div>
 
-                    {/* ── Video Panduan ── */}
-                    {videos.length > 0 && (
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '900ms' }}>
-                            <div className="px-6 pt-6 pb-2">
-                                <h3 className="text-xl font-black text-slate-800">Video Panduan</h3>
-                                <p className="text-sm text-slate-400 mt-1">Panduan dalam menggunakan SIGAP</p>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6">
-                                {videos.map((video, idx) => {
-                                    const embedUrl = getEmbedUrl(video.path_media);
-                                    return (
-                                        <div key={idx} className="relative rounded-xl overflow-hidden aspect-video bg-black shadow-md group hover:shadow-xl transition-shadow">
-                                            {embedUrl ? (
-                                                <iframe
-                                                    src={embedUrl}
-                                                    title={video.judul_panduan || 'Video Panduan'}
-                                                    frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                    className="absolute inset-0 w-full h-full"
-                                                />
-                                            ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-                                                    <Play size={48} className="text-slate-400" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
+                    <PanduanSection panduans={panduans} />
                 </div>
             </AuthenticatedLayout>
 

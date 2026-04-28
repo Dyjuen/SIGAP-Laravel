@@ -14,6 +14,7 @@ use App\Models\KAKTarget;
 use App\Models\KategoriBelanja;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,12 +49,12 @@ class KakController extends Controller
         // Others (Admin/PPK): Currently see all? Restrict if needed. For now allow all for visualization.
 
         // Apply filters
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where('nama_kegiatan', 'ilike', "%{$search}%");
         }
 
-        if ($request->has('status_id')) {
+        if ($request->filled('status_id')) {
             $query->where('status_id', $request->status_id);
         }
 
@@ -408,5 +409,76 @@ class KakController extends Controller
 
         // Others (PPK, etc) - Read only access allowed for now?
         // If strict restriction is needed for others, add here.
+    }
+
+    /**
+     * Generate PDF for a specific KAK — inline preview (stream).
+     */
+    public function previewPdf(KAK $kak)
+    {
+        $this->authorizeAccess($kak);
+
+        $kak->load([
+            'status', 'tipeKegiatan', 'mataAnggaran', 'pengusul',
+            'manfaat', 'tahapan', 'targets',
+            'ikus.iku', 'ikus.satuan',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.kak', compact('kak'))
+            ->setPaper('a4', 'portrait');
+
+        $fileName = 'KAK_'.str_replace(' ', '_', $kak->nama_kegiatan).'.pdf';
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$fileName.'"',
+        ]);
+    }
+
+    /**
+     * Generate PDF payload for frontend blob preview.
+     */
+    public function previewPdfBlob(KAK $kak)
+    {
+        $this->authorizeAccess($kak);
+
+        $kak->load([
+            'status', 'tipeKegiatan', 'mataAnggaran', 'pengusul',
+            'manfaat', 'tahapan', 'targets',
+            'ikus.iku', 'ikus.satuan',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.kak', compact('kak'))
+            ->setPaper('a4', 'portrait');
+
+        $fileName = 'KAK_'.str_replace(' ', '_', $kak->nama_kegiatan).'.pdf';
+
+        return response()->json([
+            'fileName' => $fileName,
+            'mimeType' => 'application/pdf',
+            'base64' => base64_encode($pdf->output()),
+        ]);
+    }
+
+    /**
+     * Generate PDF for a specific KAK — force download.
+     */
+    public function exportPdf(KAK $kak)
+    {
+        $this->authorizeAccess($kak);
+
+        $kak->load([
+            'status', 'tipeKegiatan', 'mataAnggaran', 'pengusul',
+            'manfaat', 'tahapan', 'targets',
+            'ikus.iku', 'ikus.satuan',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.kak', compact('kak'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('KAK_'.str_replace(' ', '_', $kak->nama_kegiatan).'.pdf');
     }
 }

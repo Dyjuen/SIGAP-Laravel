@@ -92,20 +92,25 @@ export default function Index({ auth, kegiatans, flash }) {
 
     return (
         <>
-            <AuthenticatedLayout
-                user={auth.user}
-                header={
-                    <PageHeader
-                        title="Laporan Pertanggungjawaban (LPJ)"
-                        description="Kelola dan pantau pengumpulan serta review Laporan Pertanggungjawaban"
-                    />
-                }
-            >
+            <AuthenticatedLayout user={auth.user}>
                 <Head title="LPJ" />
 
-                <div className="max-w-7xl mx-auto space-y-6">
-                    {/* Search Bar */}
-                    <div className="relative group max-w-md animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+                <div className="py-8 relative min-h-screen">
+                    {/* Decorative background blobs */}
+                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                        <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-violet-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+                        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+                    </div>
+
+                    <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-6">
+                        <PageHeader
+                            title="Laporan Pertanggungjawaban (LPJ)"
+                            description="Kelola dan pantau pengumpulan serta review Laporan Pertanggungjawaban"
+                        />
+
+                        {/* Search Bar */}
+                        <div className="relative group max-w-md animate-fade-in-up" style={{ animationDelay: '100ms' }}>
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-5 w-5 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
                         </div>
@@ -249,6 +254,7 @@ export default function Index({ auth, kegiatans, flash }) {
                             </table>
                         </div>
                     </div>
+                </div>
                 </div>
             </AuthenticatedLayout>
 

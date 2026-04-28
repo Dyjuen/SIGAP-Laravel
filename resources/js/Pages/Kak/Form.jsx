@@ -8,7 +8,7 @@ import Step1Kak from './Partials/Step1Kak';
 import Step2Iku from './Partials/Step2Iku';
 import Step3Rab from './Partials/Step3Rab';
 import CommentModal from './Components/CommentModal';
-import Swal from 'sweetalert2';
+import CustomSwal from '@/Utils/CustomSwal';
 import { ChevronLeft, ChevronRight, Save, Check, FileWarning } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
@@ -20,6 +20,9 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
     // Core Navigation State
     const [currentStep, setCurrentStep] = useState(1);
     const [subStep, setSubStep] = useState('gambaran-umum');
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
+    const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
     const step1Menu = [
         'gambaran-umum',
@@ -136,9 +139,11 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         });
     };
 
+
+
     const submitRevision = () => {
         if (!revisiData.catatan && Object.keys(revisiData.catatan_kak).length === 0 && Object.values(revisiData.anak).every(arr => arr.length === 0)) {
-            Swal.fire({
+            CustomSwal.fire({
                 icon: 'warning',
                 title: 'Data Kosong',
                 text: 'Silakan isi setidaknya satu catatan revisi (pada form atau general) sebelum mengirim permintaan revisi.'
@@ -146,15 +151,14 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             return;
         }
 
-        Swal.fire({
+        CustomSwal.fire({
             title: 'Minta Revisi?',
             text: "KAK akan dikembalikan ke Pengusul dengan catatan revisi yang telah dibuat.",
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
             confirmButtonText: 'Ya, Minta Revisi',
-            cancelButtonText: 'Batal'
+            cancelButtonText: 'Batal',
+            customClass: { confirmButton: 'px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all duration-300 shadow-lg shadow-orange-500/30 font-semibold mx-2' }
         }).then((result) => {
             if (result.isConfirmed) {
                 const finalPayload = {
@@ -163,7 +167,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
 
                 router.post(route('kak.revise', kak.kak_id), finalPayload, {
                     onSuccess: () => {
-                        Swal.fire('Berhasil!', 'Permintaan revisi berhasil dikirim.', 'success').then(() => {
+                        CustomSwal.fire({ title: 'Berhasil!', text: 'Permintaan revisi berhasil dikirim.', icon: 'success' }).then(() => {
                             router.get(route('kak.index'));
                         });
                     }
@@ -321,13 +325,13 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                 const pagu = document.getElementById('swal-total-pagu').value;
 
                 if (!selectVal) {
-                    Swal.showValidationMessage('⚠ Silakan pilih Kode Anggaran terlebih dahulu!');
+                    CustomSwal.showValidationMessage('⚠ Silakan pilih Kode Anggaran terlebih dahulu!');
                     return false;
                 }
 
                 if (selectVal === 'new') {
                     if (!kode || !sumber || !tahun || !pagu) {
-                        Swal.showValidationMessage('⚠ Semua field wajib diisi untuk kode anggaran baru!');
+                        CustomSwal.showValidationMessage('⚠ Semua field wajib diisi untuk kode anggaran baru!');
                         return false;
                     }
                 }
@@ -372,7 +376,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         // Basic Client-side Validation before proceeding
         if (currentStep === 1) {
             if (!data.kak.nama_kegiatan || !data.kak.tipe_kegiatan_id) {
-                Swal.fire('Mohon Lengkapi', 'Nama Kegiatan dan Tipe Kegiatan wajib diisi.', 'warning');
+                CustomSwal.fire({ title: 'Mohon Lengkapi', text: 'Nama Kegiatan dan Tipe Kegiatan wajib diisi.', icon: 'warning' });
                 return;
             }
 
@@ -414,6 +418,57 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         rab: data.rab.map(({ _id, ...rest }) => rest),
     }));
 
+    const handlePreviewPdf = async (e, url) => {
+        e.preventDefault();
+        setIsPreviewLoading(true);
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+            if (!response.ok) throw new Error('Network error');
+
+            const payload = await response.json();
+            if (!payload?.base64) {
+                throw new Error('Invalid preview payload');
+            }
+
+            const byteCharacters = atob(payload.base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+
+            const blob = new Blob([new Uint8Array(byteNumbers)], {
+                type: payload.mimeType || 'application/pdf',
+            });
+            const blobUrl = URL.createObjectURL(blob);
+
+            if (previewBlobUrl) {
+                URL.revokeObjectURL(previewBlobUrl);
+            }
+
+            setPreviewBlobUrl(blobUrl);
+            setIsPreviewOpen(true);
+        } catch (error) {
+            console.error('Error previewing PDF:', error);
+            CustomSwal.fire({ title: 'Gagal preview', text: 'PDF tidak bisa ditampilkan saat ini.', icon: 'error' });
+        } finally {
+            setIsPreviewLoading(false);
+        }
+    };
+
+    const closePreviewPdf = () => {
+        if (previewBlobUrl) {
+            URL.revokeObjectURL(previewBlobUrl);
+        }
+
+        setPreviewBlobUrl(null);
+        setIsPreviewOpen(false);
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -422,31 +477,82 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
 
         submitMethod(submitUrl, {
             onSuccess: () => {
-                Swal.fire({
+                CustomSwal.fire({
                     title: 'Berhasil!',
                     text: isEdit ? 'KAK berhasil diperbarui.' : 'KAK berhasil dibuat.',
                     icon: 'success',
-                    confirmButtonText: 'OK'
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    router.get(route('kak.index'));
                 });
             },
             onError: (errors) => {
-                console.error("Submission Errors:", errors);
-                Swal.fire('Gagal!', 'Terdapat kesalahan pada inputan Anda. Silakan cek kembali.', 'error');
+                console.error("Validation Errors:", errors);
+                CustomSwal.fire({ title: 'Gagal!', text: 'Terdapat kesalahan pada inputan Anda. Silakan cek kembali.', icon: 'error' });
             }
         });
     };
 
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={<PageHeader title={isEdit ? 'Edit KAK' : 'Usulan KAK Baru'} />}
-        >
+        <AuthenticatedLayout user={auth.user}>
             <Head title={isEdit ? 'Edit KAK' : 'Usulan KAK'} />
 
-            <div className="py-12 bg-gradient-to-br from-gray-50 to-cyan-50 min-h-screen">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="py-8 relative min-h-screen">
+                {/* Decorative background blobs */}
+                <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+                    <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+                    <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-violet-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+                    <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+                </div>
 
-                    <WizardProgress currentStep={currentStep} onStepClick={setCurrentStep} />
+                <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-8">
+                    <PageHeader 
+                        title={readOnly ? 'Detail KAK' : (isEdit ? 'Edit KAK' : 'Usulan KAK Baru')} 
+                        description={readOnly ? 'Informasi rincian Kerangka Acuan Kerja.' : (isEdit ? 'Perbarui informasi dan rincian Kerangka Acuan Kerja yang telah dibuat.' : 'Lengkapi informasi di bawah ini untuk membuat usulan Kerangka Acuan Kerja (KAK) baru.')}
+                    />
+
+                    <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-4 mb-8 w-full">
+                        <div className="hidden xl:block"></div>
+                        
+                        <div className="flex justify-center">
+                            <WizardProgress currentStep={currentStep} onStepClick={setCurrentStep} />
+                        </div>
+                        
+                        <div className="flex justify-center xl:justify-end">
+                            {readOnly && kak && (
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={(e) => handlePreviewPdf(e, route('kak.pdf.preview-blob', kak.kak_id))}
+                                        disabled={isPreviewLoading}
+                                        className={`px-4 py-2 border rounded-xl transition-colors shadow-sm flex items-center gap-2 text-sm font-semibold ${
+                                            isPreviewLoading
+                                                ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-wait'
+                                                : 'bg-white border-violet-200 text-violet-600 hover:bg-violet-50'
+                                        }`}
+                                    >
+                                        {isPreviewLoading ? (
+                                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                                        )}
+                                        {isPreviewLoading ? 'Memuat...' : 'Preview PDF'}
+                                    </button>
+                                    <a
+                                        href={route('kak.pdf.download', kak.kak_id)}
+                                        className="px-4 py-2 bg-white border border-emerald-200 text-emerald-600 rounded-xl hover:bg-emerald-50 transition-colors shadow-sm flex items-center gap-2 text-sm font-semibold"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                        Download PDF
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     <form
                         onSubmit={handleSubmit}
@@ -609,6 +715,29 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                 isReadOnly={!isVerifikator}
                 isPengusul={!isVerifikator}
             />
+
+            {isPreviewOpen && previewBlobUrl && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 md:p-8">
+                    <div className="h-full w-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                            <h3 className="text-sm md:text-base font-semibold text-gray-800">Preview PDF</h3>
+                            <button
+                                type="button"
+                                onClick={closePreviewPdf}
+                                className="px-3 py-1.5 text-sm font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+                            >
+                                Tutup
+                            </button>
+                        </div>
+
+                        <iframe
+                            src={previewBlobUrl}
+                            title="Preview PDF"
+                            className="w-full flex-1"
+                        />
+                    </div>
+                </div>
+            )}
 
         </AuthenticatedLayout>
     );
