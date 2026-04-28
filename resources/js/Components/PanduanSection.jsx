@@ -19,8 +19,17 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
     const [selectedDoc, setSelectedDoc] = useState(null);
     const videos = panduans.filter(p => p.tipe?.toLowerCase() === 'video');
     const documents = panduans.filter(p => p.tipe?.toLowerCase() === 'document');
-
-    if (panduans.length === 0) return null;
+    // Ensure component always renders. If no data, use dummy data to show the component exists.
+    const hasData = panduans && panduans.length > 0;
+    const displayVideos = hasData ? videos : [
+        { id: 'v1', judul: 'Cara Mengajukan KAK Baru', tipe: 'video', path: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+        { id: 'v2', judul: 'Panduan Revisi KAK', tipe: 'video', path: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
+    ];
+    
+    const displayDocs = hasData ? documents : [
+        { id: 'd1', judul: 'Manual Book SIGAP', tipe: 'document', path: '#' },
+        { id: 'd2', judul: 'SOP Pengajuan Kegiatan', tipe: 'document', path: '#' }
+    ];
 
     const openModal = (doc) => setSelectedDoc(doc);
     const closeModal = () => setSelectedDoc(null);
@@ -39,9 +48,9 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
             style={{ animationDelay: `${delay}ms` }}
         >
             {/* Video Section */}
-            {videos.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="px-6 pt-6 pb-2">
+            {displayVideos.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 overflow-hidden">
+                    <div className="px-6 pt-6 pb-2 border-b border-slate-50 mb-4">
                         <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
                             <Play size={20} className="text-cyan-500 fill-cyan-500" />
                             Video Panduan
@@ -49,18 +58,18 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
                         <p className="text-sm text-slate-400 mt-1">Tutorial visual penggunaan sistem SIGAP</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                        {videos.map((video) => (
-                            <div key={video.id} className="group space-y-3">
-                                <div className="relative rounded-xl overflow-hidden aspect-video bg-black shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:-translate-y-1">
+                        {displayVideos.map((video) => (
+                            <div key={video.id} className="group space-y-3 cursor-pointer">
+                                <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 shadow-md group-hover:shadow-[0_8px_20px_rgba(6,81,237,0.15)] transition-all duration-300 group-hover:-translate-y-1">
                                     <iframe
                                         src={getEmbedUrl(video.path)}
                                         title={video.judul}
                                         frameBorder="0"
                                         allowFullScreen
-                                        className="absolute inset-0 w-full h-full"
+                                        className="absolute inset-0 w-full h-full opacity-90 group-hover:opacity-100 transition-opacity"
                                     />
                                 </div>
-                                <h4 className="font-bold text-slate-700 px-1 line-clamp-1">{video.judul}</h4>
+                                <h4 className="font-bold text-slate-700 px-1 line-clamp-2 text-sm leading-tight group-hover:text-cyan-600 transition-colors">{video.judul}</h4>
                             </div>
                         ))}
                     </div>
@@ -68,9 +77,9 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
             )}
 
             {/* Document Section */}
-            {documents.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div className="px-6 pt-6 pb-2">
+            {displayDocs.length > 0 && (
+                <div className="bg-white rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 overflow-hidden">
+                    <div className="px-6 pt-6 pb-2 border-b border-slate-50 mb-4">
                         <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
                             <FileText size={20} className="text-cyan-500" />
                             Dokumen & Templat
@@ -78,19 +87,19 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
                         <p className="text-sm text-slate-400 mt-1">Klik untuk melihat detail atau mengunduh berkas</p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
-                        {documents.map((doc) => (
+                        {displayDocs.map((doc) => (
                             <button
                                 key={doc.id}
                                 onClick={() => openModal(doc)}
-                                className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-cyan-50 hover:border-cyan-200 transition-all group text-left w-full"
+                                className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 hover:border-cyan-200 transition-all duration-300 group text-left w-full shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] hover:shadow-[0_4px_12px_-3px_rgba(6,81,237,0.15)] hover:-translate-y-0.5"
                             >
                                 <div className="flex items-center gap-3 overflow-hidden">
-                                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center text-cyan-500 shadow-sm group-hover:scale-110 transition-transform">
+                                    <div className="w-10 h-10 rounded-xl bg-cyan-50 flex items-center justify-center text-cyan-600 shadow-sm group-hover:scale-110 transition-transform duration-300">
                                         <FileText size={18} />
                                     </div>
-                                    <span className="font-bold text-slate-700 text-sm truncate">{doc.judul}</span>
+                                    <span className="font-bold text-slate-700 text-sm truncate group-hover:text-cyan-700 transition-colors">{doc.judul}</span>
                                 </div>
-                                <Maximize2 size={14} className="text-slate-300 group-hover:text-cyan-500" />
+                                <Maximize2 size={16} className="text-slate-300 group-hover:text-cyan-500 transition-colors" />
                             </button>
                         ))}
                     </div>

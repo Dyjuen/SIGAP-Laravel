@@ -15,6 +15,7 @@ import {
     ArrowRight,
     Users,
     Send,
+    Play,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -45,19 +46,15 @@ function useCounterAnimation(target, duration = 1500) {
     return count;
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({ label, value, icon: Icon, color = 'cyan', href, delay = 0 }) {
+// ─── Stat Card (Reference Style) ────────────────────────────────────────────────
+function StatCard({ label, subtitle = 'USULAN', value, color = 'white', href, delay = 0 }) {
     const animatedValue = useCounterAnimation(value || 0);
 
-    const colorMap = {
-        cyan: 'from-cyan-500 to-cyan-600 shadow-cyan-200/50',
-        emerald: 'from-emerald-500 to-emerald-600 shadow-emerald-200/50',
-        amber: 'from-amber-500 to-amber-600 shadow-amber-200/50',
-        rose: 'from-rose-500 to-rose-600 shadow-rose-200/50',
-        violet: 'from-violet-500 to-violet-600 shadow-violet-200/50',
-        blue: 'from-blue-500 to-blue-600 shadow-blue-200/50',
-        slate: 'from-slate-500 to-slate-600 shadow-slate-200/50',
-    };
+    const isCyan = color === 'cyan';
+    const bgClass = isCyan ? 'bg-[#00bcd4] shadow-lg shadow-cyan-500/20' : 'bg-white shadow-sm border border-slate-100';
+    const textClass = isCyan ? 'text-white' : 'text-slate-800';
+    const subtitleClass = isCyan ? 'text-cyan-50' : 'text-cyan-500';
+    const valueClass = isCyan ? 'text-white' : 'text-cyan-500';
 
     const Wrapper = href ? Link : 'div';
     const wrapperProps = href ? { href } : {};
@@ -65,21 +62,21 @@ function StatCard({ label, value, icon: Icon, color = 'cyan', href, delay = 0 })
     return (
         <Wrapper
             {...wrapperProps}
-            className="relative overflow-hidden rounded-2xl p-6 bg-white border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-500 group cursor-pointer animate-fade-in-up"
+            className={clsx("relative overflow-hidden rounded-2xl p-6 hover:-translate-y-1 transition-all duration-300 group cursor-pointer animate-fade-in-up h-[130px] flex flex-col justify-between", bgClass)}
             style={{ animationDelay: `${delay}ms` }}
         >
-            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
-
-            <div className="relative z-10 flex items-start justify-between">
-                <div>
-                    <span className="text-[11px] uppercase font-bold tracking-wider text-slate-400">{label}</span>
-                    <div className="text-4xl font-black text-slate-800 mt-2 group-hover:scale-105 transition-transform duration-300">
-                        {animatedValue}
-                    </div>
-                </div>
-                <div className={clsx('w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center text-white shadow-lg', colorMap[color])}>
-                    <Icon size={22} />
-                </div>
+            <div className="relative z-10">
+                <div className={clsx("text-[10px] uppercase font-bold tracking-widest mb-1", subtitleClass)}>{subtitle}</div>
+                <div className={clsx("text-[22px] font-bold leading-none", textClass)}>{label}</div>
+            </div>
+            
+            {/* Background Number Fix */}
+            <div className={clsx("absolute -right-4 top-1/2 -translate-y-1/2 text-[130px] font-black opacity-[0.05] group-hover:scale-110 transition-transform duration-500 pointer-events-none select-none leading-none", isCyan ? 'text-white' : 'text-slate-900')}>
+                {value}
+            </div>
+            
+            <div className={clsx("text-5xl font-bold absolute bottom-4 right-6", valueClass)}>
+                {animatedValue}
             </div>
         </Wrapper>
     );
@@ -106,54 +103,112 @@ function StatusBadge({ statusId, statusName }) {
 // ═════════════════════════════════════════════════════════════════════════════
 function PengusulDashboard({ stats, recentKaks }) {
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatCard label="Total Usulan KAK" value={stats.total_kak} icon={FileText} color="blue" href={route('kak.index')} delay={100} />
-                <StatCard label="Draft" value={stats.draft_kak} icon={Clock} color="slate" delay={200} />
-                <StatCard label="Sedang Review" value={stats.review_kak} icon={Eye} color="amber" delay={300} />
-                <StatCard label="Disetujui" value={stats.approved_kak} icon={CheckCircle2} color="emerald" delay={400} />
+        <div className="max-w-7xl mx-auto space-y-8">
+            {/* Header Actions - Moved to top right */}
+            <div className="flex justify-end gap-3 mb-2">
+                <Link href={route('kak.create')} className="bg-[#00bcd4] hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-2">
+                    + Tambah Usulan
+                </Link>
+                <Link href={route('kegiatan.index')} className="bg-[#00bcd4] hover:bg-cyan-500 text-white px-5 py-2.5 rounded-lg text-xs font-bold shadow-sm transition-all flex items-center gap-2">
+                    + Ajukan Kegiatan
+                </Link>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <StatCard label="Perlu Revisi / Ditolak" value={stats.rejected_kak} icon={XCircle} color="rose" delay={500} />
-                <StatCard label="Kegiatan Aktif" value={stats.kegiatan_aktif} icon={Activity} color="violet" href={route('kegiatan.monitoring')} delay={600} />
+            {/* Statistik Utama (Reference Style) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <StatCard subtitle="USULAN" label="Draft" value={stats.draft_kak} color="cyan" href={route('kak.index')} delay={100} />
+                <StatCard subtitle="USULAN" label="Diajukan" value={stats.review_kak} color="white" href={route('kak.index')} delay={200} />
+                <StatCard subtitle="USULAN" label="Revisi" value={stats.rejected_kak} color="white" href={route('kak.index')} delay={300} />
             </div>
 
-            {/* Recent KAKs */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '700ms' }}>
-                <div className="flex justify-between items-center px-6 pt-6 pb-3">
-                    <h3 className="text-lg font-black text-slate-800">Usulan Terbaru</h3>
-                    <Link href={route('kak.index')} className="text-sm font-bold text-cyan-600 hover:text-cyan-700 flex items-center gap-1">
-                        Lihat Semua <ArrowRight size={14} />
-                    </Link>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-slate-50/80 border-y border-slate-100">
-                                <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase">Nama Kegiatan</th>
-                                <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase">Tipe</th>
-                                <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase">Status</th>
-                                <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase">Terakhir Diubah</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {recentKaks?.length > 0 ? recentKaks.map((kak) => (
-                                <tr key={kak.kak_id} className="hover:bg-slate-50/80 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <Link href={route('kak.show', kak.kak_id)} className="font-bold text-slate-900 hover:text-cyan-600 transition-colors">
-                                            {kak.nama_kegiatan}
-                                        </Link>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">{kak.tipe}</td>
-                                    <td className="px-6 py-4"><StatusBadge statusId={kak.status_id} statusName={kak.status_nama} /></td>
-                                    <td className="px-6 py-4 text-sm text-slate-400">{kak.updated_at}</td>
+            {/* Tables Area - side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Pemantauan Kegiatan */}
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                    <div className="flex justify-between items-center px-6 py-5">
+                        <h3 className="text-[15px] font-bold text-slate-800">Pemantauan Kegiatan</h3>
+                        <Link href={route('kegiatan.monitoring')} className="text-xs font-medium text-cyan-500 hover:text-cyan-600 transition-colors">
+                            Lihat Semua
+                        </Link>
+                    </div>
+                    <div className="overflow-x-auto p-4 pt-0">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-slate-50">
+                                    <th className="px-2 py-3 text-[11px] font-bold text-cyan-500">No.</th>
+                                    <th className="px-4 py-3 text-[11px] font-bold text-cyan-500">Nama Kegiatan</th>
+                                    <th className="px-4 py-3 text-[11px] font-bold text-cyan-500 text-right">Status Saat Ini</th>
                                 </tr>
-                            )) : (
-                                <tr><td colSpan="4" className="px-6 py-12 text-center text-slate-400">Belum ada usulan KAK.</td></tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {recentKaks?.length > 0 ? recentKaks.slice(0, 5).map((kak, index) => (
+                                    <tr key={kak.kak_id} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-2 py-4">
+                                            <div className="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-500">
+                                                {index + 1}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <div className="font-bold text-[13px] text-slate-800">{kak.nama_kegiatan}</div>
+                                            <div className="text-[10px] font-medium text-cyan-500 mt-0.5">Pengusul</div>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            <div className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-600">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
+                                                <span className="truncate max-w-[120px]">{kak.status_nama || 'Menunggu'}</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr><td colSpan="3" className="px-4 py-8 text-center text-slate-400 text-xs">Belum ada usulan KAK.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Pemantauan LPJ */}
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+                    <div className="flex justify-between items-center px-6 py-5">
+                        <h3 className="text-[15px] font-bold text-slate-800">Pemantauan LPJ</h3>
+                        <Link href={route('kegiatan.monitoring')} className="text-xs font-medium text-cyan-500 hover:text-cyan-600 transition-colors">
+                            Lihat Semua
+                        </Link>
+                    </div>
+                    <div className="overflow-x-auto p-4 pt-0">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-slate-50">
+                                    <th className="px-2 py-3 text-[11px] font-bold text-cyan-500">No.</th>
+                                    <th className="px-4 py-3 text-[11px] font-bold text-cyan-500">Nama Kegiatan</th>
+                                    <th className="px-4 py-3 text-[11px] font-bold text-cyan-500 text-right">Status Saat Ini</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {recentKaks?.length > 0 ? recentKaks.slice(0, 5).map((kak, index) => (
+                                    <tr key={`lpj-${kak.kak_id}`} className="hover:bg-slate-50/50 transition-colors">
+                                        <td className="px-2 py-4">
+                                            <div className="w-8 h-8 rounded-full border border-slate-100 flex items-center justify-center text-[11px] font-bold text-slate-500">
+                                                {index + 1}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <div className="font-bold text-[13px] text-slate-800">{kak.nama_kegiatan}</div>
+                                            <div className="text-[10px] font-medium text-cyan-500 mt-0.5">Pengusul</div>
+                                        </td>
+                                        <td className="px-4 py-4 text-right">
+                                            <div className="flex flex-col items-end">
+                                                <div className="text-[11px] font-bold text-emerald-600">Selesai</div>
+                                                <div className="text-[9px] font-medium text-slate-400 mt-0.5">Deadline: -</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr><td colSpan="3" className="px-4 py-8 text-center text-slate-400 text-xs">Belum ada LPJ.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -330,7 +385,11 @@ export default function Dashboard({ auth, stats = {}, recent_kaks, pending_kegia
             >
                 <Head title="Dashboard" />
                 {renderDashboard()}
-                <PanduanSection panduans={panduans} />
+                
+                {/* Panduan Section is placed globally at the bottom of the dashboard */}
+                <div className="max-w-7xl mx-auto mt-12 mb-8 border-t border-slate-200/60 pt-8">
+                    <PanduanSection panduans={panduans} />
+                </div>
             </AuthenticatedLayout>
 
             <style dangerouslySetInnerHTML={{
