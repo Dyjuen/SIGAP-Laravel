@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePencairanRequest;
+use App\Mail\FundsReleasedMail;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
@@ -13,7 +14,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\FundsReleasedMail;
 use Inertia\Inertia;
 
 class PencairanController extends Controller
@@ -266,7 +266,7 @@ class PencairanController extends Controller
                 'recipient_name' => $pengusul->nama_lengkap,
                 'nama_kegiatan' => $kak->nama_kegiatan,
                 'jumlah' => $jumlah,
-                'action_link' => config('app.url') . "/kegiatan/{$kegiatan->kegiatan_id}",
+                'action_link' => config('app.url')."/kegiatan/{$kegiatan->kegiatan_id}",
             ];
 
             Mail::to($pengusul->email)->send(new FundsReleasedMail($data));

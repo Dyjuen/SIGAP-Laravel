@@ -34,14 +34,13 @@ class FundsReleasedMail extends Mailable implements ShouldQueue
             with: [
                 'title' => 'Dana Telah Dicairkan',
                 'recipient_name' => $this->mailData['recipient_name'],
-                'body' => "Dana untuk kegiatan <strong>{$this->mailData['nama_kegiatan']}</strong> sebesar <strong>Rp " . number_format($this->mailData['jumlah'], 0, ',', '.') . "</strong> telah dicairkan oleh Bendahara. Silakan ajukan LPJ maksimal 14 hari setelah pelaksanaan.",
+                'body' => "Dana untuk kegiatan <strong>{$this->mailData['nama_kegiatan']}</strong> sebesar <strong>Rp ".number_format($this->mailData['jumlah'], 0, ',', '.').'</strong> telah dicairkan oleh Bendahara. Silakan ajukan LPJ maksimal 14 hari setelah pelaksanaan.',
                 'action_link' => $this->mailData['action_link'],
                 'action_text' => 'Lihat Detail Kegiatan',
                 'status_color' => '#1ABDD4',
             ],
         );
     }
-
 
     /**
      * Get the attachments for the message.

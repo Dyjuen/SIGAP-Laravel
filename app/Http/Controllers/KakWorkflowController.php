@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\KAKWorkflowMail;
 use App\Models\KAK;
 use App\Models\KAKApproval;
 use App\Models\KAKLogStatus;
 use App\Models\MataAnggaran;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\KAKWorkflowMail;
-use App\Models\User;
 
 class KakWorkflowController extends Controller
 {
@@ -332,25 +332,25 @@ class KakWorkflowController extends Controller
     private function sendMailToVerifikator(KAK $kak, string $type)
     {
         $kak->load('pengusul');
-        
+
         // Find the specific Verifikator based on tipe_kegiatan_id
-        $verifikatorUsername = 'verifikator' . $kak->tipe_kegiatan_id;
+        $verifikatorUsername = 'verifikator'.$kak->tipe_kegiatan_id;
         $verifikator = User::where('username', $verifikatorUsername)->first();
 
         if ($verifikator && $verifikator->email) {
             $isResubmit = ($type === 'resubmitted');
             $data = [
-                'subject' => $isResubmit ? "🔄 KAK Sudah Direvisi - Perlu Review Ulang" : "🔔 KAK Baru Membutuhkan Verifikasi",
+                'subject' => $isResubmit ? '🔄 KAK Sudah Direvisi - Perlu Review Ulang' : '🔔 KAK Baru Membutuhkan Verifikasi',
                 'title' => $isResubmit ? 'KAK Telah Direvisi' : 'KAK Baru Disubmit',
                 'recipient_name' => $verifikator->nama_lengkap,
-                'body' => $isResubmit 
-                    ? "Halo <strong>Verifikator</strong>,<br><br>KAK yang sebelumnya diminta revisi telah diajukan kembali."
-                    : "Halo <strong>Verifikator</strong>,<br><br>Ada KAK baru yang telah disubmit dan membutuhkan verifikasi.",
+                'body' => $isResubmit
+                    ? 'Halo <strong>Verifikator</strong>,<br><br>KAK yang sebelumnya diminta revisi telah diajukan kembali.'
+                    : 'Halo <strong>Verifikator</strong>,<br><br>Ada KAK baru yang telah disubmit dan membutuhkan verifikasi.',
                 'details' => [
                     'Nama Kegiatan' => $kak->nama_kegiatan,
                     'Diajukan oleh' => $kak->pengusul->nama_lengkap,
                 ],
-                'action_link' => config('app.url') . "/kak/{$kak->kak_id}",
+                'action_link' => config('app.url')."/kak/{$kak->kak_id}",
                 'action_text' => 'Review KAK Sekarang',
                 'status_color' => '#1ABDD4',
             ];
@@ -359,7 +359,7 @@ class KakWorkflowController extends Controller
         }
     }
 
-    private function sendMailToPengusul(KAK $kak, string $type, string $catatan = null)
+    private function sendMailToPengusul(KAK $kak, string $type, ?string $catatan = null)
     {
         $kak->load('pengusul');
         $pengusul = $kak->pengusul;
@@ -369,19 +369,19 @@ class KakWorkflowController extends Controller
                 'approved' => [
                     'subject' => '✅ KAK Disetujui - SIGAP PNJ',
                     'title' => 'KAK Disetujui',
-                    'body' => "Selamat! KAK Anda telah disetujui oleh Verifikator. Silakan melanjutkan ke tahap pengajuan kegiatan.",
+                    'body' => 'Selamat! KAK Anda telah disetujui oleh Verifikator. Silakan melanjutkan ke tahap pengajuan kegiatan.',
                     'color' => '#28a745',
                 ],
                 'rejected' => [
                     'subject' => '❌ KAK Ditolak - SIGAP PNJ',
                     'title' => 'KAK Ditolak',
-                    'body' => "Mohon maaf, KAK Anda telah ditolak oleh Verifikator.<br><br><strong>Catatan:</strong> " . ($catatan ?? '-'),
+                    'body' => 'Mohon maaf, KAK Anda telah ditolak oleh Verifikator.<br><br><strong>Catatan:</strong> '.($catatan ?? '-'),
                     'color' => '#dc3545',
                 ],
                 'revised' => [
                     'subject' => '⚠️ KAK Perlu Revisi - SIGAP PNJ',
                     'title' => 'Permintaan Revisi KAK',
-                    'body' => "Verifikator telah mereview KAK Anda dan meminta beberapa perbaikan.<br><br><strong>Catatan:</strong> " . ($catatan ?? '-'),
+                    'body' => 'Verifikator telah mereview KAK Anda dan meminta beberapa perbaikan.<br><br><strong>Catatan:</strong> '.($catatan ?? '-'),
                     'color' => '#ffc107',
                 ],
             ];
@@ -396,7 +396,7 @@ class KakWorkflowController extends Controller
                     'details' => [
                         'Nama Kegiatan' => $kak->nama_kegiatan,
                     ],
-                    'action_link' => config('app.url') . "/kak/{$kak->kak_id}",
+                    'action_link' => config('app.url')."/kak/{$kak->kak_id}",
                     'action_text' => 'Lihat KAK',
                     'status_color' => $c['color'],
                 ];

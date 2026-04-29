@@ -52,7 +52,6 @@ class LPJWorkflowMail extends Mailable implements ShouldQueue
         );
     }
 
-
     /**
      * Get the attachments for the message.
      *

@@ -114,12 +114,12 @@ class PanduanController extends Controller
 
         if ($panduan->path_media && Storage::disk('supabase')->exists($panduan->path_media)) {
             $extension = pathinfo($panduan->path_media, PATHINFO_EXTENSION);
-            $filename = $panduan->judul_panduan . ($extension ? '.' . $extension : '');
-            
+            $filename = $panduan->judul_panduan.($extension ? '.'.$extension : '');
+
             // If request has stream=1, show inline (for iframe preview)
             if (request()->query('stream')) {
                 return Storage::disk('supabase')->response($panduan->path_media, $filename, [
-                    'Content-Disposition' => 'inline; filename="' . $filename . '"'
+                    'Content-Disposition' => 'inline; filename="'.$filename.'"',
                 ]);
             }
 

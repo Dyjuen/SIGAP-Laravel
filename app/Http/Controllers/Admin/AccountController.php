@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ChangePasswordRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Mail\PasswordResetMail;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\PasswordResetMail;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -87,7 +87,7 @@ class AccountController extends Controller
             Mail::to($user->email)->send(new PasswordResetMail([
                 'recipient_name' => $user->nama_lengkap,
                 'new_password' => $request->new_password,
-                'action_link' => config('app.url') . '/login',
+                'action_link' => config('app.url').'/login',
             ]));
         }
 
