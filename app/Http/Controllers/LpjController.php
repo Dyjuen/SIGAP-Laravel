@@ -7,20 +7,20 @@ use App\Http\Requests\CompleteLpjRequest;
 use App\Http\Requests\ResubmitLpjRequest;
 use App\Http\Requests\ReviseLpjRequest;
 use App\Http\Requests\SubmitLpjRequest;
+use App\Mail\LPJWorkflowMail;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
 use App\Models\KegiatanLogStatus;
 use App\Models\Satuan;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use App\Mail\LPJWorkflowMail;
-use App\Models\User;
 use Inertia\Inertia;
 
 class LpjController extends Controller
@@ -549,22 +549,24 @@ class LpjController extends Controller
 
     private function sendLpjMailToBendahara(Kegiatan $kegiatan, string $type)
     {
-        $bendahara = User::whereHas('role', function($q) { $q->where('nama_role', 'Bendahara'); })->first();
-        
+        $bendahara = User::whereHas('role', function ($q) {
+            $q->where('nama_role', 'Bendahara');
+        })->first();
+
         if ($bendahara && $bendahara->email) {
             $isResubmit = ($type === 'resubmitted');
             $data = [
-                'subject' => $isResubmit ? "🔄 LPJ Direvisi - Perlu Review Ulang" : "📋 LPJ Baru Perlu Review - SIGAP PNJ",
+                'subject' => $isResubmit ? '🔄 LPJ Direvisi - Perlu Review Ulang' : '📋 LPJ Baru Perlu Review - SIGAP PNJ',
                 'title' => 'Review LPJ Baru',
                 'recipient_name' => $bendahara->nama_lengkap,
-                'body' => $isResubmit 
-                    ? "Halo <strong>Bendahara</strong>,<br><br>LPJ yang sebelumnya diminta revisi telah diajukan kembali oleh pengusul."
-                    : "Halo <strong>Bendahara</strong>,<br><br>Ada LPJ baru yang telah disubmit dan memerlukan review Anda.",
+                'body' => $isResubmit
+                    ? 'Halo <strong>Bendahara</strong>,<br><br>LPJ yang sebelumnya diminta revisi telah diajukan kembali oleh pengusul.'
+                    : 'Halo <strong>Bendahara</strong>,<br><br>Ada LPJ baru yang telah disubmit dan memerlukan review Anda.',
                 'details' => [
                     'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
                     'Pengusul' => $kegiatan->kak->pengusul->nama_lengkap,
                 ],
-                'action_link' => config('app.url') . "/lpj/review/{$kegiatan->kegiatan_id}",
+                'action_link' => config('app.url')."/lpj/review/{$kegiatan->kegiatan_id}",
                 'status_color' => '#dc3545',
             ];
 
@@ -578,14 +580,14 @@ class LpjController extends Controller
 
         if ($pengusul && $pengusul->email) {
             $data = [
-                'subject' => "Status LPJ: " . strtoupper($type) . " - SIGAP PNJ",
+                'subject' => 'Status LPJ: '.strtoupper($type).' - SIGAP PNJ',
                 'title' => 'Update Status LPJ',
                 'recipient_name' => $pengusul->nama_lengkap,
                 'body' => $message,
                 'details' => [
                     'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
                 ],
-                'action_link' => config('app.url') . "/lpj",
+                'action_link' => config('app.url').'/lpj',
                 'status_color' => ($type === 'revised' ? '#ffc107' : '#28a745'),
             ];
 
