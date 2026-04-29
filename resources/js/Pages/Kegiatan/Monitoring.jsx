@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Search, X, Inbox, ChevronLeft, ChevronRight, FileText } from 'lucide-react';
+import { Search, X, Inbox, ChevronLeft, ChevronRight, FileText, Tag } from 'lucide-react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { clsx } from 'clsx';
@@ -46,7 +46,7 @@ export default function Monitoring({ auth, kegiatans, filters }) {
         setSearchQuery('');
     };
 
-    // Render stepper component for a single item
+    // Render stepper component for a single item (Desktop)
     const renderStepper = (item) => {
         const steps = [
             { number: "01", label: "Disetujui PPK", date: item.dates.accPPK },
@@ -88,6 +88,62 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    // Render vertical stepper for mobile
+    const renderMobileStepper = (item) => {
+        const steps = [
+            { label: "Disetujui PPK", date: item.dates.accPPK },
+            { label: "Disetujui WD2", date: item.dates.accWD2 },
+            { label: "Uang Muka", date: item.dates.uangMuka },
+            { label: "LPJ", date: item.dates.lpj },
+            { label: "Setor Fisik LPJ", date: item.dates.setorFisik }
+        ];
+
+        return (
+            <div className="space-y-4 mt-2">
+                {steps.map((step, index) => {
+                    const stepNumber = index + 1;
+                    const isCompleted = stepNumber < item.status;
+                    const isActive = stepNumber === item.status;
+
+                    return (
+                        <div key={index} className="flex gap-3">
+                            <div className="flex flex-col items-center">
+                                <div className={clsx(
+                                    "w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 z-10",
+                                    isCompleted ? "bg-cyan-600 text-white shadow-sm shadow-cyan-200" : 
+                                    isActive ? "bg-white border-2 border-cyan-500 text-cyan-500" : 
+                                    "bg-gray-100 text-gray-400"
+                                )}>
+                                    {isCompleted ? "✓" : stepNumber}
+                                </div>
+                                {index < steps.length - 1 && (
+                                    <div className={clsx(
+                                        "w-0.5 h-full -my-1",
+                                        isCompleted ? "bg-cyan-500" : "bg-gray-100"
+                                    )}></div>
+                                )}
+                            </div>
+                            <div className="pb-4">
+                                <div className={clsx(
+                                    "text-xs font-bold leading-none mb-1",
+                                    isCompleted || isActive ? "text-gray-800" : "text-gray-400"
+                                )}>
+                                    {step.label}
+                                </div>
+                                <div className={clsx(
+                                    "text-[10px]",
+                                    isCompleted ? "text-cyan-600 font-medium" : "text-gray-300"
+                                )}>
+                                    {step.date || "Menunggu..."}
+                                </div>
+                            </div>
                         </div>
                     );
                 })}
@@ -279,55 +335,89 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                         </div>
                     </div>
 
-                    {/* Main Table Card */}
-                    <div className="bg-white/70 backdrop-blur-md overflow-hidden sm:rounded-t-2xl border-x border-t border-gray-100/60 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-100/80">
-                                <thead className="bg-gray-50/80 backdrop-blur-sm">
-                                    <tr>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-16">No.</th>
-                                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[300px]">Kegiatan</th>
-                                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status Pemantauan</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white/40 divide-y divide-gray-50/50">
-                                    {kegiatans.data.length === 0 ? (
+                    {/* Main Table Content */}
+                    <div className="space-y-4">
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block bg-white/70 backdrop-blur-md overflow-hidden sm:rounded-t-2xl border-x border-t border-gray-100/60 shadow-sm relative animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-100/80">
+                                    <thead className="bg-gray-50/80 backdrop-blur-sm">
                                         <tr>
-                                            <td colSpan="3" className="text-center py-16">
-                                                <div className="flex flex-col items-center justify-center space-y-3">
-                                                    <Inbox className="w-12 h-12 text-gray-300" />
-                                                    <h3 className="text-lg font-bold text-gray-600">Tidak ada data kegiatan</h3>
-                                                    <p className="text-sm text-gray-500 font-medium">Belum ada kegiatan yang sesuai dengan pencarian Anda</p>
-                                                </div>
-                                            </td>
+                                            <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-16">No.</th>
+                                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-[300px]">Kegiatan</th>
+                                            <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status Pemantauan</th>
                                         </tr>
-                                    ) : (
-                                        kegiatans.data.map((item, index) => {
-                                            const globalIndex = (kegiatans.current_page - 1) * kegiatans.per_page + index + 1;
-                                            return (
-                                                <tr key={item.kegiatan_id} className="hover:bg-cyan-50/30 transition-colors duration-200 group">
-                                                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                        <span className="text-sm font-bold text-gray-500 group-hover:text-cyan-600 transition-colors">{globalIndex}</span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <div className="text-sm font-bold text-gray-900 group-hover:text-cyan-700 transition-colors mb-1">{item.nama_kegiatan}</div>
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                                                            Pengusul
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        {renderStepper(item)}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="bg-white/40 divide-y divide-gray-50/50">
+                                        {kegiatans.data.length === 0 ? (
+                                            <tr>
+                                                <td colSpan="3" className="text-center py-16">
+                                                    <div className="flex flex-col items-center justify-center space-y-3">
+                                                        <Inbox className="w-12 h-12 text-gray-300" />
+                                                        <h3 className="text-lg font-bold text-gray-600">Tidak ada data kegiatan</h3>
+                                                        <p className="text-sm text-gray-500 font-medium">Belum ada kegiatan yang sesuai dengan pencarian Anda</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            kegiatans.data.map((item, index) => {
+                                                const globalIndex = (kegiatans.current_page - 1) * kegiatans.per_page + index + 1;
+                                                return (
+                                                    <tr key={item.kegiatan_id} className="hover:bg-cyan-50/30 transition-colors duration-200 group">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                                                            <span className="text-sm font-bold text-gray-500 group-hover:text-cyan-600 transition-colors">{globalIndex}</span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="text-sm font-bold text-gray-900 group-hover:text-cyan-700 transition-colors mb-1">{item.nama_kegiatan}</div>
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                                                Pengusul
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            {renderStepper(item)}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
-                        {/* Pagination */}
-                        <KakPagination links={kegiatans.links} from={kegiatans.from} to={kegiatans.to} total={kegiatans.total} />
+                        {/* Mobile Card View */}
+                        <div className="md:hidden space-y-4">
+                            {kegiatans.data.length === 0 ? (
+                                <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-10 text-center border border-dashed border-gray-200">
+                                    <Inbox className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                                    <p className="text-gray-500 font-medium text-sm">Tidak ada data kegiatan</p>
+                                </div>
+                            ) : (
+                                kegiatans.data.map((item) => (
+                                    <div key={item.kegiatan_id} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group">
+                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-cyan-500 opacity-50"></div>
+                                        
+                                        <div className="mb-4">
+                                            <div className="text-sm font-bold text-gray-900 mb-1 leading-tight">{item.nama_kegiatan}</div>
+                                            <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                                                <Tag className="w-3 h-3" />
+                                                Pengusul
+                                            </div>
+                                        </div>
+
+                                        <div className="border-t border-gray-50 pt-4">
+                                            <div className="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-3">Progress Kegiatan</div>
+                                            {renderMobileStepper(item)}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Pagination Content Wrapper */}
+                        <div className="bg-white/70 backdrop-blur-md overflow-hidden rounded-b-2xl border-x border-b border-gray-100/60 shadow-sm animate-in fade-in duration-500">
+                            <KakPagination links={kegiatans.links} from={kegiatans.from} to={kegiatans.to} total={kegiatans.total} />
+                        </div>
                     </div>
                 </div>
             </div>

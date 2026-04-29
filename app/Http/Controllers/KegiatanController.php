@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ApproveKegiatanRequest;
 use App\Http\Requests\StoreKegiatanRequest;
+use App\Mail\KAKWorkflowMail;
 use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
@@ -12,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use App\Mail\KAKWorkflowMail;
 use Inertia\Inertia;
 
 class KegiatanController extends Controller
@@ -384,11 +384,11 @@ class KegiatanController extends Controller
                 'subject' => "✅ Kegiatan Disetujui oleh {$role} - SIGAP PNJ",
                 'title' => 'Kegiatan Disetujui',
                 'recipient_name' => $pengusul->nama_lengkap,
-                'body' => "Kegiatan Anda telah disetujui oleh <strong>{$role}</strong>. Status kegiatan saat ini: <strong>{$kak->status->nama_status}</strong>." . ($catatan ? "<br><br><strong>Catatan:</strong> {$catatan}" : ""),
+                'body' => "Kegiatan Anda telah disetujui oleh <strong>{$role}</strong>. Status kegiatan saat ini: <strong>{$kak->status->nama_status}</strong>.".($catatan ? "<br><br><strong>Catatan:</strong> {$catatan}" : ''),
                 'details' => [
                     'Nama Kegiatan' => $kak->nama_kegiatan,
                 ],
-                'action_link' => config('app.url') . "/kegiatan/{$kegiatan->kegiatan_id}",
+                'action_link' => config('app.url')."/kegiatan/{$kegiatan->kegiatan_id}",
                 'action_text' => 'Lihat Detail Kegiatan',
                 'status_color' => '#28a745',
             ];
