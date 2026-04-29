@@ -25,7 +25,7 @@ export default function KakPreviewModal({ isOpen, blobUrl, onClose }) {
 
     return (
         <div 
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md p-4 md:p-8 flex items-center justify-center transition-opacity duration-300 animate-in fade-in"
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md p-2 sm:p-4 md:p-8 flex items-center justify-center transition-opacity duration-300 animate-in fade-in"
             onMouseDown={handleBackdropMouseDown}
         >
             <div 

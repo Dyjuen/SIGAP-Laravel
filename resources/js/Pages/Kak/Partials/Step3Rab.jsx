@@ -91,14 +91,15 @@ export default function Step3Rab({
                                                     </tr>
                                                 )}
                                                 <AnimatePresence initial={false}>
-                                                    {categoryItems.map((item) => (
+                                                    {categoryItems.map((item, index) => (
                                                         <React.Fragment key={`rab-fragment-${item._id || item.originalIndex}`}>
                                                             <motion.tr
                                                                 layout
                                                                 initial={{ opacity: 0, scale: 0.95 }}
                                                                 animate={{ opacity: 1, scale: 1 }}
                                                                 exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                                                                className="text-sm bg-white"
+                                                                className="text-sm bg-white relative"
+                                                                style={{ zIndex: 100 - index }}
                                                             >
                                                                 <td className="px-2 py-2 w-48 align-top">
                                                                     <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
@@ -109,7 +110,7 @@ export default function Step3Rab({
                                                                     <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                         value={item.volume1 || ''} onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="-" />
                                                                 </td>
-                                                                <td className="px-1 py-2 align-top">
+                                                                <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
                                                                         value={item.satuan1_id || ''}
                                                                         onChange={(val) => updateRab(item.originalIndex, 'satuan1_id', val)}
@@ -124,7 +125,7 @@ export default function Step3Rab({
                                                                     <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                         value={item.volume2 || ''} onChange={e => updateRab(item.originalIndex, 'volume2', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
                                                                 </td>
-                                                                <td className="px-1 py-2 align-top">
+                                                                <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
                                                                         value={item.satuan2_id || ''}
                                                                         onChange={(val) => updateRab(item.originalIndex, 'satuan2_id', val)}
@@ -139,7 +140,7 @@ export default function Step3Rab({
                                                                     <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                         value={item.volume3 || ''} onChange={e => updateRab(item.originalIndex, 'volume3', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
                                                                 </td>
-                                                                <td className="px-1 py-2 align-top">
+                                                                <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
                                                                         value={item.satuan3_id || ''}
                                                                         onChange={(val) => updateRab(item.originalIndex, 'satuan3_id', val)}
@@ -198,10 +199,141 @@ export default function Step3Rab({
                                                             </motion.tr>
                                                         </React.Fragment>
                                                     ))}
+                                                    {/* Spacer row to allow dropdowns in the last rows to be visible without clipping by overflow-x-auto */}
+                                                    <tr className="border-0 pointer-events-none">
+                                                        <td colSpan={readOnly ? 9 : 10} className="p-0">
+                                                            <div className="h-64"></div>
+                                                        </td>
+                                                    </tr>
                                                 </AnimatePresence>
                                             </tbody>
                                         </table>
                                     </LayoutGroup>
+                                </div>
+
+                                {/* Mobile RAB Cards — visible below md breakpoint */}
+                                <div className="md:hidden space-y-3 mt-3">
+                                    {categoryItems.length === 0 && (
+                                        <p className="text-sm text-gray-400 italic text-center py-4">Belum ada item untuk kategori ini.</p>
+                                    )}
+                                    {categoryItems.map((item, cardIndex) => (
+                                        <div key={`rab-mobile-${item._id || item.originalIndex}`} className="rounded-2xl border border-gray-200 bg-white shadow-sm relative" style={{ zIndex: 100 - cardIndex }}>
+
+                                            {/* ── Card Header ── */}
+                                            <div className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-100 rounded-t-2xl">
+                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                                    Item #{cardIndex + 1}
+                                                </span>
+                                                <div className="flex items-center gap-1">
+                                                    {(isVerifikator || isPengusulFixing) && item.anggaran_id && (
+                                                        <CommentIcon
+                                                            hasComment={!!revisiData.anak?.t_kak_anggaran?.find(r => r.id === item.anggaran_id)?.catatan_verifikator || !!originalKak?.anggaran?.find(a => a.anggaran_id === item.anggaran_id)?.catatan_verifikator}
+                                                            isPastNote={!!originalKak?.anggaran?.find(a => a.anggaran_id === item.anggaran_id)?.catatan_verifikator && !revisiData.anak?.t_kak_anggaran?.find(r => r.id === item.anggaran_id)?.catatan_verifikator}
+                                                            isPengusul={isPengusul}
+                                                            onClick={() => {
+                                                                const existingNote = revisiData.anak?.t_kak_anggaran?.find(r => r.id === item.anggaran_id)?.catatan_verifikator;
+                                                                const oldNote = originalKak?.anggaran?.find(a => a.anggaran_id === item.anggaran_id)?.catatan_verifikator;
+                                                                openCommentModal(
+                                                                    { field: 'rab', type: 'anak', table: 't_kak_anggaran', id: item.anggaran_id },
+                                                                    `Catatan RAB: ${item.uraian}`,
+                                                                    existingNote || oldNote || '',
+                                                                    !!oldNote && !existingNote
+                                                                );
+                                                            }}
+                                                            className="!relative !right-auto !top-auto !translate-y-0 w-6 h-6"
+                                                        />
+                                                    )}
+                                                    {!readOnly && (
+                                                        <button type="button" onClick={() => removeRab(item.originalIndex)}
+                                                            className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors">
+                                                            <Trash size={15} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* ── Card Body ── */}
+                                            <div className="p-4 space-y-3">
+
+                                                {/* Uraian */}
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">Uraian / Nama Item</label>
+                                                    {readOnly ? (
+                                                        <p className="text-sm font-semibold text-gray-800">{item.uraian || '-'}</p>
+                                                    ) : (
+                                                        <input type="text"
+                                                            className="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2 px-3 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
+                                                            value={item.uraian || ''} onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)}
+                                                            disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." />
+                                                    )}
+                                                </div>
+
+                                                {/* Divider */}
+                                                <div className="border-t border-dashed border-gray-100" />
+
+                                                {/* Vol × Satuan Rows */}
+                                                {[
+                                                    { volKey: 'volume1', satKey: 'satuan1_id', label: 'Vol 1' },
+                                                    { volKey: 'volume2', satKey: 'satuan2_id', label: 'Vol 2' },
+                                                    { volKey: 'volume3', satKey: 'satuan3_id', label: 'Vol 3' },
+                                                ].map(({ volKey, satKey, label }) => (
+                                                    <div key={volKey} className="flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">{label}</span>
+                                                        <div className="flex-1 grid grid-cols-2 gap-2">
+                                                            {readOnly ? (
+                                                                <>
+                                                                    <p className="text-sm text-gray-700 font-medium text-center">{item[volKey] || '-'}</p>
+                                                                    <p className="text-sm text-gray-700 font-medium">
+                                                                        {satuan.find(s => s.satuan_id == item[satKey])?.nama_satuan || '-'}
+                                                                    </p>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <input type="number"
+                                                                        className="w-full rounded-lg border-gray-200 bg-gray-50 text-xs py-2 text-center focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
+                                                                        value={item[volKey] || ''} onChange={e => updateRab(item.originalIndex, volKey, e.target.value)}
+                                                                        disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
+                                                                    <CustomSelect
+                                                                        value={item[satKey] || ''}
+                                                                        onChange={(val) => updateRab(item.originalIndex, satKey, val)}
+                                                                        options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
+                                                                        placeholder="Satuan"
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        className="w-full rounded-lg py-2 pl-2 pr-7 text-xs"
+                                                                    />
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                {/* Divider */}
+                                                <div className="border-t border-dashed border-gray-100" />
+
+                                                {/* Harga Satuan */}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">Harga</span>
+                                                    <div className="flex-1">
+                                                        {readOnly ? (
+                                                            <p className="text-sm font-semibold text-gray-800 text-right">{formatCurrency(parseFloat(item.harga_satuan) || 0)}</p>
+                                                        ) : (
+                                                            <input type="number"
+                                                                className="w-full rounded-lg border-gray-200 bg-gray-50 text-xs py-2 text-right focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
+                                                                value={item.harga_satuan || ''} onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)}
+                                                                disabled={readOnly && !isPengusulFixing} placeholder="0" min="0" />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* ── Total Footer ── */}
+                                            <div className="flex items-center justify-between px-4 py-3 bg-cyan-50 border-t border-cyan-100 rounded-b-2xl">
+                                                <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest">Total Baris</span>
+                                                <span className="text-base font-extrabold text-cyan-700">{formatCurrency(calculateRowTotal(item))}</span>
+                                            </div>
+
+                                        </div>
+                                    ))}
                                 </div>
 
                                 {!readOnly && (

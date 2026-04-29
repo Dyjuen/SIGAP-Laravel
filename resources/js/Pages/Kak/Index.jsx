@@ -16,6 +16,14 @@ export default function KakIndex({ auth, kaks, filters }) {
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [previewBlobUrl, setPreviewBlobUrl] = useState(null);
     const [previewLoadingId, setPreviewLoadingId] = useState(null);
+    const [detailLoadingId, setDetailLoadingId] = useState(null);
+
+    const handleViewDetail = (id) => {
+        setDetailLoadingId(id);
+        router.get(route('kak.show', id), {}, {
+            onFinish: () => setDetailLoadingId(null)
+        });
+    };
 
 
 
@@ -170,7 +178,7 @@ export default function KakIndex({ auth, kaks, filters }) {
         <AuthenticatedLayout user={auth.user}>
             <Head title="Daftar KAK" />
 
-            <div className="py-8 relative min-h-screen">
+            <div className="pt-4 pb-8 sm:py-8 relative min-h-screen">
                 {/* Decorative background blobs */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
@@ -192,7 +200,8 @@ export default function KakIndex({ auth, kaks, filters }) {
                         auth={auth} 
                     />
 
-                    <KakTable 
+                    <div className="relative z-10">
+                        <KakTable 
                         kaks={kaks} 
                         auth={auth} 
                         handlePreviewPdf={handlePreviewPdf}
@@ -201,7 +210,10 @@ export default function KakIndex({ auth, kaks, filters }) {
                         handleResubmitKak={handleResubmitKak}
                         confirmDelete={confirmDelete}
                         previewLoadingId={previewLoadingId}
+                        detailLoadingId={detailLoadingId}
+                        handleViewDetail={handleViewDetail}
                     />
+                    </div>
 
                     <KakPagination kaks={kaks} />
                 </div>

@@ -1,4 +1,20 @@
 import { Link } from '@inertiajs/react';
+import { Fragment } from 'react';
+import { Menu, Transition } from '@headlessui/react';
+import {
+    MoreHorizontal,
+    Eye,
+    FileText,
+    Download,
+    Edit2,
+    Send,
+    RefreshCw,
+    Trash2,
+    XCircle,
+    User,
+    Calendar,
+    Tag
+} from 'lucide-react';
 
 export default function KakTable({
     kaks,
@@ -8,7 +24,9 @@ export default function KakTable({
     handleSubmitKak,
     handleResubmitKak,
     confirmDelete,
-    previewLoadingId
+    previewLoadingId,
+    detailLoadingId,
+    handleViewDetail
 }) {
     const getStatusBadge = (statusId, statusName) => {
         const colors = {
@@ -35,160 +53,273 @@ export default function KakTable({
         );
     };
 
-    return (
-        <div className="bg-white/70 backdrop-blur-md overflow-hidden sm:rounded-t-2xl border-x border-t border-gray-100/60 shadow-sm relative">
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-100/80">
-                    <thead className="bg-gray-50/80 backdrop-blur-sm">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kegiatan</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipe</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Pengusul</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
-                            <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white/40 divide-y divide-gray-50/50">
-                        {kaks.data.length > 0 ? (
-                            kaks.data.map((item) => (
-                                <tr key={item.kak_id} className="hover:bg-cyan-50/30 transition-colors duration-200 group">
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-bold text-gray-900 group-hover:text-cyan-700 transition-colors">{item.nama_kegiatan}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-600 bg-gray-100/80 border border-gray-200 px-2.5 py-1 rounded-md font-medium">{item.tipe_kegiatan?.nama_tipe}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {getStatusBadge(item.status_id, item.status?.nama_status)}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
-                                        {item.pengusul?.nama_lengkap}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                                        {new Date(item.tanggal_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                        <div className="flex justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
-                                            {/* Lihat Detail: Hidden for Verifikator */}
-                                            {auth.user.role_id !== 2 && (
-                                                <Link
-                                                    href={route('kak.show', item.kak_id)}
-                                                    className="flex items-center justify-center p-2 rounded-lg transition-all text-cyan-600 border border-cyan-200 bg-white hover:bg-cyan-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                    title="Lihat Detail"
-                                                >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                                </Link>
-                                            )}
+    const ActionMenu = ({ item }) => {
+        return (
+            <Menu as="div" className="relative inline-block text-left">
+                <div>
+                    <Menu.Button className="flex items-center justify-center w-9 h-9 rounded-xl transition-all text-gray-500 hover:text-cyan-600 hover:bg-cyan-50 border border-gray-100 bg-white hover:shadow-sm">
+                        <MoreHorizontal className="w-5 h-5" />
+                    </Menu.Button>
+                </div>
 
-                                            {/* PDF Preview */}
+                <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                >
+                    <Menu.Items className="absolute right-0 z-50 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-2xl bg-white/95 backdrop-blur-2xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] focus:outline-none overflow-hidden">
+                        <div className="px-1 py-1">
+
+                            {/* PDF Preview */}
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <button
+                                        onClick={(e) => handlePreviewPdf(e, route('kak.pdf.preview-blob', item.kak_id), item.kak_id)}
+                                        disabled={previewLoadingId === item.kak_id}
+                                        className={`${active ? 'bg-violet-50 text-violet-700' : 'text-gray-700'
+                                            } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors disabled:opacity-50`}
+                                    >
+                                        <FileText className={`mr-3 h-4 w-4 ${active ? 'text-violet-600' : 'text-gray-400'}`} />
+                                        {previewLoadingId === item.kak_id ? 'Loading...' : 'Preview PDF'}
+                                    </button>
+                                )}
+                            </Menu.Item>
+
+                            {/* PDF Download */}
+                            <Menu.Item>
+                                {({ active }) => (
+                                    <a
+                                        href={route('kak.pdf.download', item.kak_id)}
+                                        className={`${active ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                                            } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
+                                    >
+                                        <Download className={`mr-3 h-4 w-4 ${active ? 'text-emerald-600' : 'text-gray-400'}`} />
+                                        Download PDF
+                                    </a>
+                                )}
+                            </Menu.Item>
+                        </div>
+
+                        {/* Role Based Actions */}
+                        <div className="px-1 py-1">
+                            {/* Verifikator */}
+                            {auth.user.role_id === 2 && item.status_id === 2 && (
+                                <>
+                                    <Menu.Item>
+                                        {({ active }) => (
+                                            <Link
+                                                href={route('kak.show', item.kak_id)}
+                                                className={`${active ? 'bg-emerald-50 text-emerald-700' : 'text-gray-700'
+                                                    } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
+                                            >
+                                                <RefreshCw className={`mr-3 h-4 w-4 ${active ? 'text-emerald-600' : 'text-gray-400'}`} />
+                                                Review KAK
+                                            </Link>
+                                        )}
+                                    </Menu.Item>
+                                    <Menu.Item>
+                                        {({ active }) => (
                                             <button
-                                                type="button"
-                                                onClick={(e) => handlePreviewPdf(e, route('kak.pdf.preview-blob', item.kak_id), item.kak_id)}
-                                                disabled={previewLoadingId === item.kak_id}
-                                                className={`flex items-center justify-center p-2 rounded-lg transition-all border ${
-                                                    previewLoadingId === item.kak_id 
-                                                        ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed' 
-                                                        : 'text-violet-600 border-violet-200 bg-white hover:bg-violet-50 hover:-translate-y-0.5 hover:shadow-sm'
-                                                }`}
-                                                title="Preview PDF"
+                                                onClick={() => handleRejectKak(item)}
+                                                className={`${active ? 'bg-rose-50 text-rose-700' : 'text-gray-700'
+                                                    } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
                                             >
-                                                {previewLoadingId === item.kak_id ? (
-                                                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                ) : (
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                                )}
+                                                <XCircle className={`mr-3 h-4 w-4 ${active ? 'text-rose-600' : 'text-gray-400'}`} />
+                                                Tolak KAK
                                             </button>
+                                        )}
+                                    </Menu.Item>
+                                </>
+                            )}
 
-                                            {/* PDF Download */}
-                                            <a
-                                                href={route('kak.pdf.download', item.kak_id)}
-                                                className="flex items-center justify-center p-2 rounded-lg transition-all text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                title="Download PDF"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                            </a>
-
-                                            {/* Verifikator Actions */}
-                                            {auth.user.role_id === 2 && item.status_id === 2 && (
-                                                <>
-                                                    <Link
-                                                        href={route('kak.show', item.kak_id)}
-                                                        className="flex items-center justify-center p-2 rounded-lg transition-all text-emerald-600 border border-emerald-200 bg-white hover:bg-emerald-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                        title="Review KAK"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleRejectKak(item)}
-                                                        className="flex items-center justify-center p-2 rounded-lg transition-all text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                        title="Tolak KAK"
-                                                    >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                                    </button>
-                                                </>
-                                            )}
-
-                                            {/* Pengusul Actions */}
-                                            {auth.user.role_id === 3 && [1, 4, 5].includes(item.status_id) && item.pengusul_user_id === auth.user.id && (
+                            {/* Pengusul - Edit/Submit */}
+                            {auth.user.role_id === 3 && item.pengusul_user_id === auth.user.id && (
+                                <>
+                                    {[1, 4, 5].includes(item.status_id) && (
+                                        <Menu.Item>
+                                            {({ active }) => (
                                                 <Link
                                                     href={route('kak.edit', item.kak_id)}
-                                                    className="flex items-center justify-center p-2 rounded-lg transition-all text-blue-600 border border-blue-200 bg-white hover:bg-blue-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                    title="Edit"
+                                                    className={`${active ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                                        } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                    <Edit2 className={`mr-3 h-4 w-4 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
+                                                    Ubah / Edit
                                                 </Link>
                                             )}
-
-                                            {auth.user.role_id === 3 && item.status_id === 1 && item.pengusul_user_id === auth.user.id && (
+                                        </Menu.Item>
+                                    )}
+                                    {item.status_id === 1 && (
+                                        <Menu.Item>
+                                            {({ active }) => (
                                                 <button
                                                     onClick={() => handleSubmitKak(item)}
-                                                    className="flex items-center justify-center p-2 rounded-lg transition-all text-cyan-600 border border-cyan-200 bg-white hover:bg-cyan-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                    title="Kirim ke Verifikator"
+                                                    className={`${active ? 'bg-cyan-50 text-cyan-700' : 'text-gray-700'
+                                                        } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                                    <Send className={`mr-3 h-4 w-4 ${active ? 'text-cyan-600' : 'text-gray-400'}`} />
+                                                    Kirim Usulan
                                                 </button>
                                             )}
-
-                                            {auth.user.role_id === 3 && item.status_id === 5 && item.pengusul_user_id === auth.user.id && (
+                                        </Menu.Item>
+                                    )}
+                                    {item.status_id === 5 && (
+                                        <Menu.Item>
+                                            {({ active }) => (
                                                 <button
                                                     onClick={() => handleResubmitKak(item)}
-                                                    className="flex items-center justify-center p-2 rounded-lg transition-all text-amber-600 border border-amber-200 bg-white hover:bg-amber-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                    title="Kirim Kembali Hasil Revisi"
+                                                    className={`${active ? 'bg-amber-50 text-amber-700' : 'text-gray-700'
+                                                        } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                                                    <RefreshCw className={`mr-3 h-4 w-4 ${active ? 'text-amber-600' : 'text-gray-400'}`} />
+                                                    Kirim Ulang
                                                 </button>
                                             )}
-
-                                            {auth.user.role_id === 3 && [1, 4].includes(item.status_id) && item.pengusul_user_id === auth.user.id && (
+                                        </Menu.Item>
+                                    )}
+                                    {[1, 4].includes(item.status_id) && (
+                                        <Menu.Item>
+                                            {({ active }) => (
                                                 <button
                                                     onClick={() => confirmDelete(item)}
-                                                    className="flex items-center justify-center p-2 rounded-lg transition-all text-rose-600 border border-rose-200 bg-white hover:bg-rose-50 hover:-translate-y-0.5 hover:shadow-sm"
-                                                    title="Hapus"
+                                                    className={`${active ? 'bg-rose-50 text-rose-700' : 'text-gray-700'
+                                                        } group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors`}
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    <Trash2 className={`mr-3 h-4 w-4 ${active ? 'text-rose-600' : 'text-gray-400'}`} />
+                                                    Hapus
                                                 </button>
                                             )}
+                                        </Menu.Item>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </Menu.Items>
+                </Transition>
+            </Menu>
+        );
+    };
+
+    return (
+        <div className="space-y-6">
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white/70 backdrop-blur-md sm:rounded-2xl border border-gray-100 shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-100/80">
+                        <thead className="bg-gray-50/80 backdrop-blur-sm">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Kegiatan</th>
+                                <th className="hidden lg:table-cell px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tipe</th>
+                                <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="hidden lg:table-cell px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Pengusul</th>
+                                <th className="hidden xl:table-cell px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Tanggal</th>
+                                <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white/40 divide-y divide-gray-50/50">
+                            {kaks.data.length > 0 ? (
+                                kaks.data.map((item, index) => (
+                                    <tr key={item.kak_id} className="hover:bg-cyan-50/30 transition-colors duration-200 group relative" style={{ zIndex: kaks.data.length - index }}>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm font-bold text-gray-900 group-hover:text-cyan-700 transition-colors max-w-xs truncate" title={item.nama_kegiatan}>{item.nama_kegiatan}</div>
+                                        </td>
+                                        <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap">
+                                            <span className="text-sm text-gray-600 bg-gray-100/80 border border-gray-200 px-2.5 py-1 rounded-md font-medium">{item.tipe_kegiatan?.nama_tipe}</span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {getStatusBadge(item.status_id, item.status?.nama_status)}
+                                        </td>
+                                        <td className="hidden lg:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">
+                                            {item.pengusul?.nama_lengkap}
+                                        </td>
+                                        <td className="hidden xl:table-cell px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
+                                            {new Date(item.tanggal_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <ActionMenu item={item} />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="6" className="px-6 py-16 text-center">
+                                        <div className="flex flex-col items-center justify-center text-gray-400">
+                                            <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+                                            <p className="text-base font-semibold text-gray-500">Tidak ada data KAK</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="6" className="px-6 py-16 text-center">
-                                    <div className="flex flex-col items-center justify-center text-gray-400">
-                                        <svg className="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
-                                        <p className="text-base font-semibold text-gray-500">Tidak ada data KAK</p>
-                                        <p className="text-sm mt-1">Coba sesuaikan pencarian atau filter status Anda.</p>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Mobile Card Layout */}
+            <div className="md:hidden space-y-4 pb-8">
+                {kaks.data.length > 0 ? (
+                    kaks.data.map((item, index) => (
+                        <div key={item.kak_id} className="bg-white/80 backdrop-blur-sm rounded-2xl p-5 shadow-sm border border-gray-100/60 relative group" style={{ zIndex: kaks.data.length - index }}>
+                            {/* Accent line */}
+                            <div className="absolute top-0 left-0 w-1.5 h-full bg-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity rounded-l-2xl"></div>
+
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-bold text-gray-900 mb-1 leading-tight">{item.nama_kegiatan}</div>
+                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+                                        <Tag className="w-3.5 h-3.5" />
+                                        {item.tipe_kegiatan?.nama_tipe}
                                     </div>
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                                </div>
+                                <div className="ml-3 shrink-0">
+                                    {getStatusBadge(item.status_id, item.status?.nama_status)}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-5 border-t border-b border-gray-50 py-3">
+                                <div className="space-y-1">
+                                    <div className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Pengusul</div>
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold truncate">
+                                        <User className="w-3.5 h-3.5 text-cyan-500" />
+                                        {item.pengusul?.nama_lengkap}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="text-[10px] uppercase tracking-wider font-bold text-gray-400">Tanggal</div>
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-700 font-semibold">
+                                        <Calendar className="w-3.5 h-3.5 text-violet-500" />
+                                        {new Date(item.tanggal_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between">
+                                <button
+                                    onClick={() => handleViewDetail(item.kak_id)}
+                                    disabled={detailLoadingId === item.kak_id}
+                                    className="flex-1 mr-3 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-cyan-600 text-white text-xs font-bold shadow-md shadow-cyan-100 hover:bg-cyan-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {detailLoadingId === item.kak_id ? (
+                                        <RefreshCw className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Eye className="w-4 h-4" />
+                                    )}
+                                    {detailLoadingId === item.kak_id ? 'Mohon Tunggu...' : 'Lihat Detail Usulan'}
+                                </button>
+                                <ActionMenu item={item} />
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-10 text-center border border-dashed border-gray-200">
+                        <p className="text-gray-500 font-medium text-sm">Tidak ada data usulan KAK</p>
+                    </div>
+                )}
+
             </div>
         </div>
     );

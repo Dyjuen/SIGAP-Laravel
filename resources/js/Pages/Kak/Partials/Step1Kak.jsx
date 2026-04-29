@@ -77,10 +77,57 @@ export default function Step1Kak({
     ];
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8">
-            {/* Sidebar Menu */}
-            <div className="w-full lg:w-72 shrink-0">
-                <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 sticky top-4 p-1">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+            {/* ── Mobile Sub-Nav: Icon Strip ── (hidden on lg+) */}
+            <div className="lg:hidden w-full">
+                {/* Step icon strip with connecting line */}
+                <div className="relative flex items-center justify-between px-2">
+                    {/* Background connector line with active progress */}
+                    <div className="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-0.5 bg-gray-200 z-0">
+                        <div 
+                            className="absolute left-0 top-0 h-full bg-emerald-500 transition-all duration-500 ease-in-out"
+                            style={{ width: `${(menuItems.findIndex(m => m.id === subStep) / (menuItems.length - 1)) * 100}%` }}
+                        />
+                    </div>
+
+                    {menuItems.map((item, index) => {
+                        const IconComponent = item.icon;
+                        const isActive = subStep === item.id;
+                        const isCompleted = menuItems.indexOf(menuItems.find(m => m.id === subStep)) > index;
+                        return (
+                            <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => setSubStep(item.id)}
+                                className="relative z-10 flex flex-col items-center gap-1.5 focus:outline-none"
+                            >
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 border-2
+                                    ${isActive
+                                        ? 'bg-cyan-500 border-cyan-500 text-white shadow-lg shadow-cyan-200 scale-110'
+                                        : isCompleted
+                                            ? 'bg-emerald-500 border-emerald-500 text-white'
+                                            : 'bg-white border-gray-200 text-gray-400'
+                                    }`}
+                                >
+                                    <IconComponent size={18} />
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Current step label */}
+                <div className="mt-3 text-center">
+                    <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm font-bold">
+                        {(() => { const IconComponent = menuItems.find(m => m.id === subStep)?.icon; return IconComponent ? <IconComponent size={14} /> : null; })()}
+                        {menuItems.find(m => m.id === subStep)?.label}
+                    </span>
+                </div>
+            </div>
+
+            {/* ── Desktop Sub-Nav: Vertical Sidebar ── (hidden below lg) */}
+            <div className="hidden lg:block w-72 shrink-0">
+                <div className="flex flex-col gap-2 lg:sticky lg:top-4 p-1">
                     {menuItems.map((item) => {
                         const IconComponent = item.icon;
                         return (
@@ -88,7 +135,7 @@ export default function Step1Kak({
                                 key={item.id}
                                 type="button"
                                 onClick={() => setSubStep(item.id)}
-                                className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 text-left min-w-[200px] lg:w-full border-2
+                                className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 text-left w-full border-2
                                 ${subStep === item.id
                                         ? 'bg-cyan-50 border-cyan-400 text-cyan-700 shadow-sm translate-x-2'
                                         : 'bg-white border-transparent text-gray-500 hover:bg-gray-50'}`}
@@ -499,7 +546,7 @@ export default function Step1Kak({
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex items-center gap-2 mt-6">
+                                                    <div className="flex items-center gap-2 mt-2 md:mt-6">
                                                         {(isVerifikator || isPengusulFixing) && item.target_id && (
                                                             <CommentIcon
                                                                 hasComment={!!revisiData.anak?.t_kak_target?.find(r => r.id === item.target_id)?.catatan_verifikator || !!originalKak?.targets?.find(t => t.target_id === item.target_id)?.catatan_verifikator}

@@ -13,7 +13,7 @@ export default function CustomSelect({ value, onChange, options, placeholder = "
                             {selectedOption.colorClass && (
                                 <span className={`w-2 h-2 rounded-full ${selectedOption.colorClass}`}></span>
                             )}
-                            <span className="block truncate text-gray-700 font-medium">{selectedOption.label}</span>
+                            <span className="block truncate px-1 text-gray-700 font-medium">{selectedOption.label}</span>
                         </div>
                         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
                             <svg className="w-4 h-4 text-gray-400 group-focus-within:text-cyan-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -44,7 +44,7 @@ export default function CustomSelect({ value, onChange, options, placeholder = "
                                             {option.colorClass && (
                                                 <span className={`w-2 h-2 rounded-full ${option.colorClass}`}></span>
                                             )}
-                                            <span className={`block truncate ${selected ? 'font-bold text-cyan-700' : 'font-medium'}`}>
+                                            <span className={`block truncate px-1 ${selected ? 'font-bold text-cyan-700' : 'font-medium'}`}>
                                                 {option.label}
                                             </span>
                                             {selected ? (

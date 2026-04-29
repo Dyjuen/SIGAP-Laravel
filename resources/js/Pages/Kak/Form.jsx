@@ -498,7 +498,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         <AuthenticatedLayout user={auth.user}>
             <Head title={isEdit ? 'Edit KAK' : 'Usulan KAK'} />
 
-            <div className="py-8 relative min-h-screen">
+            <div className="pt-4 pb-8 sm:py-8 relative min-h-screen">
                 {/* Decorative background blobs */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
@@ -506,13 +506,13 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                     <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
                 </div>
 
-                <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-8">
+                <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto xl:max-w-[95%] space-y-4 sm:space-y-8">
                     <PageHeader 
                         title={readOnly ? 'Detail KAK' : (isEdit ? 'Edit KAK' : 'Usulan KAK Baru')} 
                         description={readOnly ? 'Informasi rincian Kerangka Acuan Kerja.' : (isEdit ? 'Perbarui informasi dan rincian Kerangka Acuan Kerja yang telah dibuat.' : 'Lengkapi informasi di bawah ini untuk membuat usulan Kerangka Acuan Kerja (KAK) baru.')}
                     />
 
-                    <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto_1fr] items-center gap-4 mb-8 w-full">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] items-center gap-4 mb-4 sm:mb-8 w-full">
                         <div className="hidden xl:block"></div>
                         
                         <div className="flex justify-center">
@@ -521,7 +521,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                         
                         <div className="flex justify-center xl:justify-end">
                             {readOnly && kak && (
-                                <div className="flex items-center gap-3">
+                                <div className="flex flex-wrap items-center gap-2">
                                     <button
                                         type="button"
                                         onClick={(e) => handlePreviewPdf(e, route('kak.pdf.preview-blob', kak.kak_id))}
@@ -627,7 +627,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                         </AnimatePresence>
 
                         {/* Navigation Buttons */}
-                        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
+                        <div className="flex flex-wrap justify-between items-center gap-3 mt-8 pt-6 border-t border-gray-200">
                             <button
                                 type="button"
                                 onClick={prevStep}
@@ -717,7 +717,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             />
 
             {isPreviewOpen && previewBlobUrl && (
-                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-4 md:p-8">
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm p-2 sm:p-4 md:p-8">
                     <div className="h-full w-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
                             <h3 className="text-sm md:text-base font-semibold text-gray-800">Preview PDF</h3>
