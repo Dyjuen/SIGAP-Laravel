@@ -1,14 +1,32 @@
 <?php
 
+use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\MasterDataController;
+use App\Http\Controllers\Admin\PanduanController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardDirekturController;
+use App\Http\Controllers\KakController;
+use App\Http\Controllers\KakWorkflowController;
+use App\Http\Controllers\KegiatanController;
+use App\Http\Controllers\LampiranController;
+use App\Http\Controllers\LandingPageController;
+use App\Http\Controllers\LpjController;
+use App\Http\Controllers\PencairanController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', \App\Http\Controllers\LandingPageController::class);
-Route::post('/chatbot/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])->name('chatbot.chat');
+Route::get('/', LandingPageController::class);
+Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
 
-Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])
     ->name('dashboard');
+
+Route::middleware(['auth', 'role:Rektorat'])->group(function () {
+    Route::get('/dashboard/direktur', [DashboardDirekturController::class, 'index'])->name('dashboard.direktur');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -17,85 +35,85 @@ Route::middleware('auth')->group(function () {
 
     // KAK Routes
     Route::middleware('role:Admin,Verifikator,Pengusul,Bendahara,Rektorat')->group(function () {
-        Route::resource('kak', \App\Http\Controllers\KakController::class);
-        Route::get('/kak/{kak}/pdf/preview', [\App\Http\Controllers\KakController::class, 'previewPdf'])->name('kak.pdf.preview');
-        Route::get('/kak/{kak}/pdf/preview-blob', [\App\Http\Controllers\KakController::class, 'previewPdfBlob'])->name('kak.pdf.preview-blob');
-        Route::get('/kak/{kak}/pdf/download', [\App\Http\Controllers\KakController::class, 'exportPdf'])->name('kak.pdf.download');
+        Route::resource('kak', KakController::class);
+        Route::get('/kak/{kak}/pdf/preview', [KakController::class, 'previewPdf'])->name('kak.pdf.preview');
+        Route::get('/kak/{kak}/pdf/preview-blob', [KakController::class, 'previewPdfBlob'])->name('kak.pdf.preview-blob');
+        Route::get('/kak/{kak}/pdf/download', [KakController::class, 'exportPdf'])->name('kak.pdf.download');
 
         // KAK Workflow Routes
-        Route::post('/kak/{kak}/submit', [\App\Http\Controllers\KakWorkflowController::class, 'submit'])->name('kak.submit');
-        Route::post('/kak/{kak}/approve', [\App\Http\Controllers\KakWorkflowController::class, 'approve'])->name('kak.approve');
-        Route::post('/kak/{kak}/reject', [\App\Http\Controllers\KakWorkflowController::class, 'reject'])->name('kak.reject');
-        Route::post('/kak/{kak}/revise', [\App\Http\Controllers\KakWorkflowController::class, 'revise'])->name('kak.revise');
-        Route::post('/kak/{kak}/resubmit', [\App\Http\Controllers\KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
+        Route::post('/kak/{kak}/submit', [KakWorkflowController::class, 'submit'])->name('kak.submit');
+        Route::post('/kak/{kak}/approve', [KakWorkflowController::class, 'approve'])->name('kak.approve');
+        Route::post('/kak/{kak}/reject', [KakWorkflowController::class, 'reject'])->name('kak.reject');
+        Route::post('/kak/{kak}/revise', [KakWorkflowController::class, 'revise'])->name('kak.revise');
+        Route::post('/kak/{kak}/resubmit', [KakWorkflowController::class, 'resubmit'])->name('kak.resubmit');
     });
 
     // Kegiatan Routes
-    Route::get('/kegiatan/monitoring', [\App\Http\Controllers\KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
+    Route::get('/kegiatan/monitoring', [KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
     Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Rektorat')->group(function () {
-        Route::resource('kegiatan', \App\Http\Controllers\KegiatanController::class)->only(['index', 'store', 'show']);
-        Route::post('/kegiatan/{kegiatan}/approve', [\App\Http\Controllers\KegiatanController::class, 'approve'])->name('kegiatan.approve');
+        Route::resource('kegiatan', KegiatanController::class)->only(['index', 'store', 'show']);
+        Route::post('/kegiatan/{kegiatan}/approve', [KegiatanController::class, 'approve'])->name('kegiatan.approve');
     });
 
     // Pencairan Routes
-    Route::get('/pencairan', [\App\Http\Controllers\PencairanController::class, 'index'])->name('pencairan.index');
-    Route::get('/kegiatan/{kegiatan}/pencairan/sisa-dana', [\App\Http\Controllers\PencairanController::class, 'sisaDana'])->name('pencairan.sisa-dana');
-    Route::post('/kegiatan/{kegiatan}/pencairan', [\App\Http\Controllers\PencairanController::class, 'store'])->name('pencairan.store');
-    Route::post('/kegiatan/{kegiatan}/pencairan/selesai', [\App\Http\Controllers\PencairanController::class, 'selesai'])->name('pencairan.selesai');
+    Route::get('/pencairan', [PencairanController::class, 'index'])->name('pencairan.index');
+    Route::get('/kegiatan/{kegiatan}/pencairan/sisa-dana', [PencairanController::class, 'sisaDana'])->name('pencairan.sisa-dana');
+    Route::post('/kegiatan/{kegiatan}/pencairan', [PencairanController::class, 'store'])->name('pencairan.store');
+    Route::post('/kegiatan/{kegiatan}/pencairan/selesai', [PencairanController::class, 'selesai'])->name('pencairan.selesai');
 
     // Lampiran (Attachments)
     Route::prefix('lampiran')->group(function () {
-        Route::get('/anggaran/{anggaran}', [\App\Http\Controllers\LampiranController::class, 'index'])->name('lampiran.index');
-        Route::post('/anggaran/{anggaran}', [\App\Http\Controllers\LampiranController::class, 'store'])->name('lampiran.store');
-        Route::get('/{lampiran}', [\App\Http\Controllers\LampiranController::class, 'show'])->name('lampiran.show');
-        Route::get('/{lampiran}/stream', [\App\Http\Controllers\LampiranController::class, 'stream'])->name('lampiran.stream');
-        Route::delete('/{lampiran}', [\App\Http\Controllers\LampiranController::class, 'destroy'])->name('lampiran.destroy');
-        Route::post('/{lampiran}/catatan', [\App\Http\Controllers\LampiranController::class, 'saveCatatan'])->name('lampiran.catatan');
-        Route::post('/{lampiran}/approve', [\App\Http\Controllers\LampiranController::class, 'approve'])->name('lampiran.approve');
-        Route::post('/{lampiran}/resubmit', [\App\Http\Controllers\LampiranController::class, 'resubmit'])->name('lampiran.resubmit');
-        Route::get('/{lampiran}/history', [\App\Http\Controllers\LampiranController::class, 'history'])->name('lampiran.history');
+        Route::get('/anggaran/{anggaran}', [LampiranController::class, 'index'])->name('lampiran.index');
+        Route::post('/anggaran/{anggaran}', [LampiranController::class, 'store'])->name('lampiran.store');
+        Route::get('/{lampiran}', [LampiranController::class, 'show'])->name('lampiran.show');
+        Route::get('/{lampiran}/stream', [LampiranController::class, 'stream'])->name('lampiran.stream');
+        Route::delete('/{lampiran}', [LampiranController::class, 'destroy'])->name('lampiran.destroy');
+        Route::post('/{lampiran}/catatan', [LampiranController::class, 'saveCatatan'])->name('lampiran.catatan');
+        Route::post('/{lampiran}/approve', [LampiranController::class, 'approve'])->name('lampiran.approve');
+        Route::post('/{lampiran}/resubmit', [LampiranController::class, 'resubmit'])->name('lampiran.resubmit');
+        Route::get('/{lampiran}/history', [LampiranController::class, 'history'])->name('lampiran.history');
     });
 
     // LPJ (Laporan Pertanggungjawaban)
-    Route::get('/lpj', [\App\Http\Controllers\LpjController::class, 'index'])->name('lpj.index');
+    Route::get('/lpj', [LpjController::class, 'index'])->name('lpj.index');
     Route::prefix('kegiatan/{kegiatan}/lpj')->group(function () {
-        Route::get('/review', [\App\Http\Controllers\LpjController::class, 'review'])->name('lpj.review');
-        Route::post('/submit', [\App\Http\Controllers\LpjController::class, 'submit'])->name('lpj.submit');
-        Route::post('/revise', [\App\Http\Controllers\LpjController::class, 'revise'])->name('lpj.revise');
-        Route::post('/resubmit', [\App\Http\Controllers\LpjController::class, 'resubmit'])->name('lpj.resubmit');
-        Route::post('/approve', [\App\Http\Controllers\LpjController::class, 'approve'])->name('lpj.approve');
-        Route::post('/complete', [\App\Http\Controllers\LpjController::class, 'complete'])->name('lpj.complete');
+        Route::get('/review', [LpjController::class, 'review'])->name('lpj.review');
+        Route::post('/submit', [LpjController::class, 'submit'])->name('lpj.submit');
+        Route::post('/revise', [LpjController::class, 'revise'])->name('lpj.revise');
+        Route::post('/resubmit', [LpjController::class, 'resubmit'])->name('lpj.resubmit');
+        Route::post('/approve', [LpjController::class, 'approve'])->name('lpj.approve');
+        Route::post('/complete', [LpjController::class, 'complete'])->name('lpj.complete');
     });
 });
 
 require __DIR__.'/auth.php';
 
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
-    Route::get('/user-management', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('admin.users.index');
-    Route::post('/user-management', [\App\Http\Controllers\Admin\AccountController::class, 'store'])->name('admin.users.store');
-    Route::put('/user-management/{user}', [\App\Http\Controllers\Admin\AccountController::class, 'update'])->name('admin.users.update');
-    Route::put('/user-management/{user}/change-password', [\App\Http\Controllers\Admin\AccountController::class, 'changePassword'])->name('admin.users.change-password');
-    Route::delete('/user-management/{user}', [\App\Http\Controllers\Admin\AccountController::class, 'destroy'])->name('admin.users.destroy');
+    Route::get('/user-management', [AccountController::class, 'index'])->name('admin.users.index');
+    Route::post('/user-management', [AccountController::class, 'store'])->name('admin.users.store');
+    Route::put('/user-management/{user}', [AccountController::class, 'update'])->name('admin.users.update');
+    Route::put('/user-management/{user}/change-password', [AccountController::class, 'changePassword'])->name('admin.users.change-password');
+    Route::delete('/user-management/{user}', [AccountController::class, 'destroy'])->name('admin.users.destroy');
 
     // Panduan Routes
-    Route::get('/panduan', [\App\Http\Controllers\Admin\PanduanController::class, 'index'])->name('admin.panduan.index');
-    Route::post('/panduan', [\App\Http\Controllers\Admin\PanduanController::class, 'store'])->name('admin.panduan.store');
-    Route::put('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'update'])->name('admin.panduan.update');
-    Route::delete('/panduan/{panduan}', [\App\Http\Controllers\Admin\PanduanController::class, 'destroy'])->name('admin.panduan.destroy');
+    Route::get('/panduan', [PanduanController::class, 'index'])->name('admin.panduan.index');
+    Route::post('/panduan', [PanduanController::class, 'store'])->name('admin.panduan.store');
+    Route::put('/panduan/{panduan}', [PanduanController::class, 'update'])->name('admin.panduan.update');
+    Route::delete('/panduan/{panduan}', [PanduanController::class, 'destroy'])->name('admin.panduan.destroy');
 
     // Logs Routes
-    Route::get('/logs', [\App\Http\Controllers\Admin\LogController::class, 'index'])->name('admin.logs.index');
+    Route::get('/logs', [LogController::class, 'index'])->name('admin.logs.index');
 
     // Master Data Routes
     Route::prefix('master')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\MasterDataController::class, 'index'])->name('admin.master.index');
-        Route::get('/{type}', [\App\Http\Controllers\Admin\MasterDataController::class, 'indexResource'])->name('admin.master.resource.index');
-        Route::post('/{type}', [\App\Http\Controllers\Admin\MasterDataController::class, 'store'])->name('admin.master.store');
-        Route::put('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'update'])->name('admin.master.update');
-        Route::delete('/{type}/{id}', [\App\Http\Controllers\Admin\MasterDataController::class, 'destroy'])->name('admin.master.destroy');
+        Route::get('/', [MasterDataController::class, 'index'])->name('admin.master.index');
+        Route::get('/{type}', [MasterDataController::class, 'indexResource'])->name('admin.master.resource.index');
+        Route::post('/{type}', [MasterDataController::class, 'store'])->name('admin.master.store');
+        Route::put('/{type}/{id}', [MasterDataController::class, 'update'])->name('admin.master.update');
+        Route::delete('/{type}/{id}', [MasterDataController::class, 'destroy'])->name('admin.master.destroy');
     });
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('admin.panduan.download');
+    Route::get('/panduan/{panduan}/download', [PanduanController::class, 'download'])->name('admin.panduan.download');
 });

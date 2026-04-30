@@ -1,0 +1,24 @@
+{
+    "name": "dika5/sigap-pnj",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "files": [
+            "app/helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "DikaPutra1205",
+            "email": "duia.putra12@gmail.com"
+        }
+    ],
+    "require": {
+        "robmorgan/phinx": "^0.16.10",
+        "firebase/php-jwt": "^6.11",
+        "tecnickcom/tcpdf": "^6.10",
+        "vlucas/phpdotenv": "^5.6",
+        "phpmailer/phpmailer": "^7.0"
+    }
+}

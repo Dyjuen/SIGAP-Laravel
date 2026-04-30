@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Iku;
 use App\Models\KategoriBelanja;
+use App\Models\KegiatanStatus;
 use App\Models\MataAnggaran;
+use App\Models\Role;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
 use Illuminate\Http\RedirectResponse;
@@ -96,7 +98,7 @@ class MasterDataController extends Controller
             'searchable' => ['kode', 'nama'],
         ],
         'roles' => [
-            'model' => \App\Models\Role::class,
+            'model' => Role::class,
             'title' => 'Role & Izin',
             'readonly' => true, // Roles are critical, best not to delete via generic CRUD for now
             'primary_key' => 'role_id',
@@ -109,7 +111,7 @@ class MasterDataController extends Controller
             'searchable' => ['nama_role'],
         ],
         'kegiatan-status' => [
-            'model' => \App\Models\KegiatanStatus::class,
+            'model' => KegiatanStatus::class,
             'title' => 'Status Kegiatan',
             'readonly' => true, // Status workflow is hardcoded in logic usually
             'primary_key' => 'status_id',

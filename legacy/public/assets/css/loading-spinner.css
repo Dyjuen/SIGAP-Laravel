@@ -1,0 +1,140 @@
+/**
+ * Custom Loading Spinner Styles
+ * Extends SpinKit with SIGAP-PNJ brand colors
+ */
+
+/* Brand-specific spinner colors */
+.sk-chase-primary {
+  --sk-color: #00BCD4; /* Primary cyan */
+}
+
+.sk-chase-secondary {
+  --sk-color: #0097A7; /* Darker cyan */
+}
+
+.sk-chase-danger {
+  --sk-color: #EF4444; /* Red */
+}
+
+.sk-chase-success {
+  --sk-color: #10B981; /* Green */
+}
+
+.sk-chase-warning {
+  --sk-color: #F59E0B; /* Yellow */
+}
+
+.sk-chase-white {
+  --sk-color: #FFFFFF; /* White for buttons */
+}
+
+/* Size variants */
+.sk-chase-sm {
+  --sk-size: 20px;
+}
+
+.sk-chase-md {
+  --sk-size: 30px;
+}
+
+.sk-chase-lg {
+  --sk-size: 50px;
+}
+
+.sk-chase-xl {
+  --sk-size: 70px;
+}
+
+/* Loading container styles */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+}
+
+.loading-message {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Table loading state */
+.table-loading {
+  padding: 2rem !important;
+  text-align: center;
+}
+
+/* Button loading state */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.btn-loading .sk-chase {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
+/* Overlay loading (fullscreen) */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-overlay .sk-chase {
+  --sk-size: 60px;
+}
+
+.loading-overlay-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Fade in animation for loading states */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.loading-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+/* Pulse animation for loading text */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\MataAnggaran;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MataAnggaran>
+ * @extends Factory<MataAnggaran>
  */
 class MataAnggaranFactory extends Factory
 {

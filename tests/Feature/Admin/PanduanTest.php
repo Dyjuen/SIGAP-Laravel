@@ -55,7 +55,7 @@ class PanduanTest extends TestCase
 
     public function test_admin_can_create_document_panduan(): void
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('guide.pdf', 100, 'application/pdf');
 
@@ -76,7 +76,7 @@ class PanduanTest extends TestCase
 
         // Assert file exists using the hash name standard behavior of store()
         // We need to check if ANY file exists in panduan/ folder
-        $files = Storage::disk('public')->files('panduan');
+        $files = Storage::disk('supabase')->files('panduan');
         $this->assertNotEmpty($files);
     }
 
@@ -129,10 +129,10 @@ class PanduanTest extends TestCase
 
     public function test_admin_can_delete_panduan(): void
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('delete.pdf', 100);
-        $path = $file->store('panduan', 'public');
+        $path = $file->store('panduan', 'supabase');
 
         $panduan = Panduan::create([
             'judul_panduan' => 'To Delete',
@@ -145,7 +145,7 @@ class PanduanTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('m_panduan', ['panduan_id' => $panduan->panduan_id]);
-        $this->assertFalse(Storage::disk('public')->exists($path));
+        $this->assertFalse(Storage::disk('supabase')->exists($path));
     }
 
     public function test_validation_requires_judul(): void
@@ -177,7 +177,7 @@ class PanduanTest extends TestCase
 
     public function test_validation_rejects_invalid_file_type(): void
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('malicious.exe', 100);
 
@@ -193,10 +193,10 @@ class PanduanTest extends TestCase
 
     public function test_admin_can_download_document(): void
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('test.pdf', 100);
-        $path = $file->store('panduan', 'public');
+        $path = $file->store('panduan', 'supabase');
 
         $panduan = Panduan::create([
             'judul_panduan' => 'Downloadable',

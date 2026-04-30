@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -14,7 +15,7 @@ class SharedPropsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
     }
 
     public function test_role_id_is_shared_in_auth_user_props(): void

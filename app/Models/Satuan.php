@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\SatuanFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Satuan extends Model
 {
-    /** @use HasFactory<\Database\Factories\SatuanFactory> */
+    /** @use HasFactory<SatuanFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'm_satuan';

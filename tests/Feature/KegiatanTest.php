@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -26,7 +27,7 @@ class KegiatanTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
 
         $this->pengusul = User::factory()->create(['role_id' => 3]);
         $this->ppk = User::factory()->create(['role_id' => 4]);
@@ -84,7 +85,7 @@ class KegiatanTest extends TestCase
 
     public function test_pengusul_can_submit_kegiatan()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
         $file = UploadedFile::fake()->create('surat.pdf', 100);
 
@@ -136,7 +137,7 @@ class KegiatanTest extends TestCase
 
     public function test_pengusul_cannot_submit_duplicate_kegiatan_for_same_kak()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
         $file = UploadedFile::fake()->create('surat.pdf', 100);
 
@@ -174,7 +175,7 @@ class KegiatanTest extends TestCase
 
     public function test_oversized_file_rejection()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
         $file = UploadedFile::fake()->create('surat.pdf', 6000); // 6MB (limit is 5MB)
 
@@ -190,7 +191,7 @@ class KegiatanTest extends TestCase
 
     public function test_invalid_file_type_rejection()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
         $file = UploadedFile::fake()->create('surat.exe', 100);
 
@@ -206,7 +207,7 @@ class KegiatanTest extends TestCase
 
     public function test_ppk_can_approve_kegiatan()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
 
         $this->actingAs($this->pengusul)->post('/kegiatan', [
@@ -244,7 +245,7 @@ class KegiatanTest extends TestCase
 
     public function test_wadir_cannot_approve_while_at_ppk_level()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
 
         $this->actingAs($this->pengusul)->post('/kegiatan', [
@@ -266,7 +267,7 @@ class KegiatanTest extends TestCase
 
     public function test_pengusul_cannot_approve()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
 
         $this->actingAs($this->pengusul)->post('/kegiatan', [
@@ -287,7 +288,7 @@ class KegiatanTest extends TestCase
 
     public function test_wadir_can_approve_after_ppk()
     {
-        Storage::fake('public');
+        Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
 
         $this->actingAs($this->pengusul)->post('/kegiatan', [

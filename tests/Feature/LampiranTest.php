@@ -6,6 +6,7 @@ use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\KegiatanLampiran;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -32,7 +33,7 @@ class LampiranTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
 
         $this->admin = User::factory()->create(['role_id' => 1]);
         $this->verifikator = User::factory()->create(['role_id' => 2]);

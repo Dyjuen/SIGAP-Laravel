@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\KegiatanLampiranFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class KegiatanLampiran extends Model
 {
-    /** @use HasFactory<\Database\Factories\KegiatanLampiranFactory> */
+    /** @use HasFactory<KegiatanLampiranFactory> */
     use HasFactory;
 
     protected $table = 't_kegiatan_lampiran';

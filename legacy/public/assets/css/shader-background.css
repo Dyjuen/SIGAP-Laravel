@@ -1,0 +1,45 @@
+/* Shader Background Styles */
+
+/* Ensure the roles section has proper stacking context */
+#landingRoles {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Canvas styling */
+#rolesShaderBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure content is above shader */
+#landingRoles > .container {
+  position: relative;
+  z-index: 10;
+}
+
+/* Optional: Fade in animation */
+@keyframes fadeInShader {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.3;
+  }
+}
+
+#rolesShaderBg {
+  animation: fadeInShader 1s ease-in-out;
+}
+
+/* Performance optimization */
+#rolesShaderBg {
+  will-change: transform;
+  transform: translateZ(0);
+}

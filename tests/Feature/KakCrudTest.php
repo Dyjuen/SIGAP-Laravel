@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Iku;
 use App\Models\KAK;
+use App\Models\KAKManfaat;
 use App\Models\KategoriBelanja;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -20,7 +22,7 @@ class KakCrudTest extends TestCase
     {
         parent::setUp();
         // Seed master data
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
     }
 
     public function test_authenticated_user_can_view_kak_index(): void
@@ -208,7 +210,7 @@ class KakCrudTest extends TestCase
         $tipe = TipeKegiatan::first();
 
         // Simulate failure by throwing an exception when saving a child model
-        \App\Models\KAKManfaat::creating(function () {
+        KAKManfaat::creating(function () {
             throw new \Exception('Simulated DB Failure');
         });
 
@@ -261,7 +263,7 @@ class KakCrudTest extends TestCase
         $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]);
 
         // Create initial child
-        \App\Models\KAKManfaat::create(['kak_id' => $kak->kak_id, 'manfaat' => 'Old Manfaat']);
+        KAKManfaat::create(['kak_id' => $kak->kak_id, 'manfaat' => 'Old Manfaat']);
 
         $updatedData = [
             'kak' => [

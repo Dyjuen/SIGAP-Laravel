@@ -1,0 +1,40 @@
+﻿# Environment
+.env
+.env.local
+
+# Composer
+/api/vendor/
+
+# Cache & Logs
+/api/cache/*
+!/api/cache/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+
+# Uploads
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+uploads/**/.htaccess
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup
+backup_*/
+
+# Phinx
+/database/.phinxlog
+
+/vendor
+
+/cache
+
+config/

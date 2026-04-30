@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Iku;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Iku>
+ * @extends Factory<Iku>
  */
 class IkuFactory extends Factory
 {

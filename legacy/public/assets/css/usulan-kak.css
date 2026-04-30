@@ -1,0 +1,56 @@
+/* Styles for Usulan KAK Pages */
+
+/* General Layout */
+.layout-wrapper {
+  background-image: url('/assets/img/backgrounds/BG.png') !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.content-wrapper {
+  background: transparent !important;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* StepUsulanKak specific styles */
+.layout-navbar, .content-footer, .layout-menu {
+  background: #FFFFFF !important;
+}
+
+.app-brand-text {
+  color: #00BCD4 !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+.menu-inner .menu-item.active > .menu-link {
+  background: #00BCD4 !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  margin: 0 0.5rem;
+  backdrop-filter: blur(5px);
+}
+
+.container-xxl {
+  max-width: 96% !important;
+}
+
+/* Step content visibility */
+.main-step-content {
+  display: none;
+}
+
+.main-step-content.active {
+  display: block;
+}
+
+.step-content {
+  display: none;
+}
+
+.step-content.active {
+  display: block;
+}

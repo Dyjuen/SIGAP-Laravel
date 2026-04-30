@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\KAK;
+use App\Models\KAKAnggaran;
+use App\Models\KAKManfaat;
 use App\Models\MataAnggaran;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,7 +18,7 @@ class KakWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
     }
 
     private function createVerifikator($tipeId = 1)
@@ -104,12 +107,12 @@ class KakWorkflowTest extends TestCase
         $kak = KAK::factory()->review()->create(['pengusul_user_id' => $pengusul->user_id, 'tipe_kegiatan_id' => $tipeId]);
 
         // Create some child records
-        $anggaran = \App\Models\KAKAnggaran::create([
+        $anggaran = KAKAnggaran::create([
             'kak_id' => $kak->kak_id,
             'kategori_belanja_id' => 1,
             'uraian' => 'Test Uraian',
         ]);
-        $manfaat = \App\Models\KAKManfaat::create([
+        $manfaat = KAKManfaat::create([
             'kak_id' => $kak->kak_id,
             'manfaat' => 'Test Manfaat',
         ]);
