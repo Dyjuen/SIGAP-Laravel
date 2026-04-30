@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -62,8 +63,8 @@ class AuthenticationTest extends TestCase
     public function test_authenticated_user_is_redirected_to_role_dashboard(): void
     {
         // Create roles
-        $adminRole = \App\Models\Role::create(['role_id' => 1, 'nama_role' => 'Admin']);
-        $verifRole = \App\Models\Role::create(['role_id' => 2, 'nama_role' => 'Verifikator']);
+        $adminRole = Role::create(['role_id' => 1, 'nama_role' => 'Admin']);
+        $verifRole = Role::create(['role_id' => 2, 'nama_role' => 'Verifikator']);
 
         // Admin User
         $admin = User::factory()->create([

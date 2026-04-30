@@ -7,8 +7,10 @@ use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
+use App\Models\KegiatanLogStatus;
 use App\Models\Satuan;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -29,7 +31,7 @@ class LpjTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
 
         $this->pengusul = User::factory()->create(['role_id' => 3]);
         $this->pengusulLain = User::factory()->create(['role_id' => 3]);
@@ -275,7 +277,7 @@ class LpjTest extends TestCase
         $response2->assertSessionHasErrors(['message']);
 
         // Only one log should exist
-        $logCount = \App\Models\KegiatanLogStatus::where('kegiatan_id', $kegiatan->kegiatan_id)
+        $logCount = KegiatanLogStatus::where('kegiatan_id', $kegiatan->kegiatan_id)
             ->where('status_id_baru', 11)
             ->count();
         $this->assertEquals(1, $logCount);

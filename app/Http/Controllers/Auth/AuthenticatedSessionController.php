@@ -38,6 +38,7 @@ class AuthenticatedSessionController extends Controller
 
         $redirectPath = match ($role) {
             'Admin' => '/admin/user-management',
+            'Rektorat' => '/dashboard/direktur',
             default => '/dashboard',
         };
 

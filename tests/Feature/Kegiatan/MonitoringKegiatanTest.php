@@ -6,7 +6,9 @@ use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class MonitoringKegiatanTest extends TestCase
@@ -17,7 +19,7 @@ class MonitoringKegiatanTest extends TestCase
     {
         parent::setUp();
         // Seed master data required for KAK and Kegiatan
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
     }
 
     private function createVerifikator($tipeId = 1)
@@ -52,7 +54,7 @@ class MonitoringKegiatanTest extends TestCase
 
         // Assert that inertia views the page and passes props
         $response->assertInertia(
-            fn (\Inertia\Testing\AssertableInertia $page) => $page
+            fn (AssertableInertia $page) => $page
                 ->component('Kegiatan/Monitoring')
                 ->has('kegiatans.data', 1)
                 ->where('kegiatans.data.0.kegiatan_id', $kegiatan1->kegiatan_id)
@@ -75,7 +77,7 @@ class MonitoringKegiatanTest extends TestCase
         $response->assertStatus(200);
 
         $response->assertInertia(
-            fn (\Inertia\Testing\AssertableInertia $page) => $page
+            fn (AssertableInertia $page) => $page
                 ->component('Kegiatan/Monitoring')
                 ->has('kegiatans.data', 1)
                 ->where('kegiatans.data.0.kegiatan_id', $kegiatan1->kegiatan_id)
@@ -98,7 +100,7 @@ class MonitoringKegiatanTest extends TestCase
         $response->assertStatus(200);
 
         $response->assertInertia(
-            fn (\Inertia\Testing\AssertableInertia $page) => $page
+            fn (AssertableInertia $page) => $page
                 ->component('Kegiatan/Monitoring')
                 ->has('kegiatans.data', 2)
         );
@@ -131,7 +133,7 @@ class MonitoringKegiatanTest extends TestCase
         $response->assertStatus(200);
 
         $response->assertInertia(
-            fn (\Inertia\Testing\AssertableInertia $page) => $page
+            fn (AssertableInertia $page) => $page
                 ->component('Kegiatan/Monitoring')
                 ->has('kegiatans.data', 1)
                 ->where('kegiatans.data.0.status', 2) // Step 2 (Wadir2) is active

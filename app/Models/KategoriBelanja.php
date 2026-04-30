@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\KategoriBelanjaFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class KategoriBelanja extends Model
 {
-    /** @use HasFactory<\Database\Factories\KategoriBelanjaFactory> */
+    /** @use HasFactory<KategoriBelanjaFactory> */
     use HasFactory;
 
     protected $table = 'm_kategori_belanja';

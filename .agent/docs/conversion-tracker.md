@@ -14,7 +14,7 @@ This document tracks the migration of features from the native PHP application t
 | **Pencairan (Disbursement)** | `PencairanController` | `PencairanDana` | ✅ Completed | ✅ | ✅ | ✅ |
 | **LPJ (Reports)** | `KegiatanAnggaran`, `LpjController` | (Logic mainly in controller) | ✅ Completed | ✅ | ✅ | ⬜ |
 | **Dashboard** | `DashboardController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
-| **Dashboard Direktur** | `DashboardDirekturController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |
+| **Dashboard Direktur** | `DashboardDirekturController` | `KAK`, `KAKAnggaran`, `Kegiatan`, `KegiatanApproval`, `PencairanDana`, `User`, `Panduan` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Notifications** | `MailService`, `NotificationController` | `Notifikasi` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Logs** | `LogController` | `Log` | ✅ Completed | ✅ | ✅ | ✅ |
 | **Wadir / PPK** | `WadirController` | - | ⬜ Not Started | ⬜ | ⬜ | ⬜ |

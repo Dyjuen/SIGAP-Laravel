@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ApproveLampiranRequest;
 use App\Http\Requests\SaveCatatanRequest;
 use App\Http\Requests\StoreLampiranRequest;
 use App\Models\KAKAnggaran;
@@ -172,7 +173,7 @@ class LampiranController extends Controller
     /**
      * Approve a lampiran and cleanup history.
      */
-    public function approve(\App\Http\Requests\ApproveLampiranRequest $request, KegiatanLampiran $lampiran): JsonResponse
+    public function approve(ApproveLampiranRequest $request, KegiatanLampiran $lampiran): JsonResponse
     {
         return DB::transaction(function () use ($lampiran) {
             $lampiran->update([

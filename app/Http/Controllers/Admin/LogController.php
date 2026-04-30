@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\LogAktivitas;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,7 +14,7 @@ class LogController extends Controller
     {
         $filters = $request->only(['role', 'log_type', 'start_date', 'end_date']);
 
-        $logs = \App\Models\LogAktivitas::with(['user.role', 'kak', 'kegiatan.kak', 'oldStatus', 'newStatus'])
+        $logs = LogAktivitas::with(['user.role', 'kak', 'kegiatan.kak', 'oldStatus', 'newStatus'])
             ->filter($filters)
             ->orderBy('created_at', 'desc')
             ->paginate(15)

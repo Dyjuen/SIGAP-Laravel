@@ -7,6 +7,7 @@ use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,7 +26,7 @@ class PencairanTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
 
         $this->pengusul = User::factory()->create(['role_id' => 3]);
         $this->pengusulLain = User::factory()->create(['role_id' => 3]);

@@ -20,6 +20,10 @@ class DashboardController extends Controller
         $role = $user->getRoleName();
         $panduans = $this->getPanduans($user->role_id);
 
+        if ($role === 'Rektorat') {
+            return redirect()->route('dashboard.direktur');
+        }
+
         return match ($role) {
             'Bendahara' => $this->bendaharaDashboard($request, $panduans),
             'Pengusul' => $this->pengusulDashboard($request, $panduans),

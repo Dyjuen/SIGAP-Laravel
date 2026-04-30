@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PencairanController extends Controller
 {
@@ -22,7 +23,7 @@ class PencairanController extends Controller
      * Display the Bendahara's pencairan list page.
      * Only shows kegiatan where Bendahara-Cair approval is Aktif.
      */
-    public function index(Request $request): \Inertia\Response
+    public function index(Request $request): Response
     {
         $user = $request->user();
 

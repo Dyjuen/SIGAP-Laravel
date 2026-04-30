@@ -22,13 +22,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class LpjController extends Controller
 {
     /**
      * Display the LPJ index page for Admin, Bendahara, and Pengusul.
      */
-    public function index(Request $request): \Inertia\Response
+    public function index(Request $request): Response
     {
         $user = $request->user();
         $role = $user->getRoleName();
@@ -190,7 +191,7 @@ class LpjController extends Controller
     /**
      * Review LPJ (Bendahara or Pengusul).
      */
-    public function review(Request $request, Kegiatan $kegiatan): \Inertia\Response
+    public function review(Request $request, Kegiatan $kegiatan): Response
     {
         $user = $request->user();
         if (! $this->canAccessLpj($user, $kegiatan)) {

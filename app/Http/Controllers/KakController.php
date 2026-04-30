@@ -12,6 +12,7 @@ use App\Models\KAKManfaat;
 use App\Models\KAKTahapan;
 use App\Models\KAKTarget;
 use App\Models\KategoriBelanja;
+use App\Models\MataAnggaran;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -149,7 +150,7 @@ class KakController extends Controller
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
             'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
-            'mata_anggaran' => \App\Models\MataAnggaran::all(),
+            'mata_anggaran' => MataAnggaran::all(),
         ]);
     }
 
@@ -179,7 +180,7 @@ class KakController extends Controller
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
             'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
-            'mata_anggaran' => \App\Models\MataAnggaran::all(),
+            'mata_anggaran' => MataAnggaran::all(),
         ]);
     }
 
