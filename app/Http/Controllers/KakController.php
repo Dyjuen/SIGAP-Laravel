@@ -80,7 +80,7 @@ class KakController extends Controller
             'tipe_kegiatan' => TipeKegiatan::all(),
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
-            'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
+            'kategori_belanja' => KategoriBelanja::whereRaw('is_active = true')->orderBy('urutan')->get(),
             'master_iku' => Iku::all(), // Duplicate for clarity in props if needed
         ]);
     }
@@ -149,7 +149,7 @@ class KakController extends Controller
             'tipe_kegiatan' => TipeKegiatan::all(),
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
-            'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
+            'kategori_belanja' => KategoriBelanja::whereRaw('is_active = true')->orderBy('urutan')->get(),
             'mata_anggaran' => MataAnggaran::all(),
         ]);
     }
@@ -179,7 +179,7 @@ class KakController extends Controller
             'tipe_kegiatan' => TipeKegiatan::all(),
             'satuan' => Satuan::all(),
             'iku' => Iku::all(),
-            'kategori_belanja' => KategoriBelanja::where('is_active', true)->orderBy('urutan')->get(),
+            'kategori_belanja' => KategoriBelanja::whereRaw('is_active = true')->orderBy('urutan')->get(),
             'mata_anggaran' => MataAnggaran::all(),
         ]);
     }

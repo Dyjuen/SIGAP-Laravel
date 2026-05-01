@@ -42,7 +42,7 @@ class MasterDataController extends Controller
     {
         return response()->json([
             'success' => true,
-            'data' => KategoriBelanja::where('is_active', true)
+            'data' => KategoriBelanja::whereRaw('is_active = true')
                 ->orderBy('urutan')
                 ->get(),
             'message' => 'Data Kategori Belanja berhasil diambil.',
