@@ -20,7 +20,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
             {/* Main Content Wrapper */}
             <div
                 className={clsx(
-                    "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
+                    "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out min-w-0 overflow-x-hidden",
                     isSidebarExpanded ? "lg:ml-[280px]" : "lg:ml-[80px]"
                 )}
             >
