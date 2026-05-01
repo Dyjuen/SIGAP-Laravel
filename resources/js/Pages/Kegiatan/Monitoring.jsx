@@ -1,10 +1,111 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Head, router, Link } from '@inertiajs/react';
-import { Search, X, Inbox, ChevronLeft, ChevronRight, FileText, Tag, CheckCircle2, Clock, Circle, ArrowRight, Plus } from 'lucide-react';
+import { Search, X, Inbox, FileText, Tag, CheckCircle2, Clock, Circle, ArrowRight, Plus, Activity, CheckCircle, Timer } from 'lucide-react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { clsx } from 'clsx';
 import KakPagination from '../Kak/Components/KakPagination';
+
+// ─── Counter Animation Hook ───────────────────────────────────────────────────
+function useCounterAnimation(target, duration = 1500) {
+    const [count, setCount] = useState(0);
+    const animRef = useRef(null);
+
+    useEffect(() => {
+        if (!target || target === 0) { setCount(0); return; }
+        let start = 0;
+        const increment = target / (duration / 16);
+        const animate = () => {
+            start += increment;
+            if (start < target) {
+                setCount(Math.floor(start));
+                animRef.current = requestAnimationFrame(animate);
+            } else {
+                setCount(target);
+            }
+        };
+        const timer = setTimeout(() => {
+            animRef.current = requestAnimationFrame(animate);
+        }, 200);
+        return () => { clearTimeout(timer); if (animRef.current) cancelAnimationFrame(animRef.current); };
+    }, [target, duration]);
+
+    return count;
+}
+
+// ─── Custom Animated Clock Icon ────────────────────────────────────────────────
+const AnimatedClockIcon = ({ size = 20, className }) => (
+    <div className={clsx("relative flex items-center justify-center", className)} style={{ width: size, height: size }}>
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-current">
+            <circle cx="12" cy="12" r="10" />
+            {/* Hour Needle */}
+            <line 
+                x1="12" y1="12" x2="12" y2="7" 
+                className="animate-clock-hour" 
+                style={{ transformOrigin: '12px 12px' }} 
+            />
+            {/* Minute Needle */}
+            <line 
+                x1="12" y1="12" x2="17" y2="12" 
+                className="animate-clock-minute" 
+                style={{ transformOrigin: '12px 12px' }} 
+            />
+            <circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none" />
+        </svg>
+    </div>
+);
+
+// ─── Local Stat Card Component ────────────────────────────────────────────────
+function StatCard({ label, subtitle, value, color = 'cyan', delay = 0, icon: Icon }) {
+    const animatedValue = useCounterAnimation(value || 0);
+    const isCyan = color === 'cyan';
+    
+    return (
+        <div 
+            className={clsx(
+                "relative overflow-hidden rounded-[32px] p-8 transition-all duration-700 group animate-fade-in-up min-h-[180px] flex flex-col justify-between border shadow-2xl",
+                isCyan 
+                    ? "bg-gradient-to-br from-cyan-500 to-cyan-600 border-cyan-400/50 shadow-cyan-500/20 text-white" 
+                    : "bg-white/70 backdrop-blur-xl border-white/60 shadow-slate-200/50 text-slate-800"
+            )}
+            style={{ animationDelay: `${delay}ms` }}
+        >
+            {/* Rim Lighting Effect */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+            
+            <div className="relative z-10">
+                <div className={clsx("text-[10px] font-black uppercase tracking-[0.2em] mb-3", isCyan ? "text-cyan-100/80" : "text-cyan-500")}>
+                    {subtitle}
+                </div>
+                <div className="text-2xl font-black tracking-tight leading-tight group-hover:translate-x-1 transition-transform duration-500">
+                    {label}
+                </div>
+            </div>
+
+            <div className="flex items-end justify-between relative z-10">
+                <div className="text-5xl font-black tracking-tighter drop-shadow-sm">
+                    {animatedValue}
+                </div>
+                {Icon && (
+                    <div className={clsx(
+                        "p-4 rounded-2xl transition-all duration-700 group-hover:scale-110 group-hover:rotate-6 shadow-inner",
+                        isCyan ? "bg-white/20 text-white border border-white/10" : "bg-cyan-50 text-cyan-500 border border-cyan-100/50"
+                    )}>
+                        <Icon size={26} strokeWidth={2.5} />
+                    </div>
+                )}
+            </div>
+
+            {/* Background Decorative Element */}
+            <div className={clsx(
+                "absolute -right-6 -bottom-6 text-[120px] font-black opacity-[0.03] pointer-events-none select-none transition-all duration-1000 group-hover:scale-125 group-hover:-rotate-12",
+                isCyan ? "text-white" : "text-slate-900"
+            )}>
+                {value}
+            </div>
+        </div>
+    );
+}
 
 function debounce(func, wait) {
     let timeout;
@@ -22,7 +123,7 @@ function debounce(func, wait) {
     return executedFunction;
 }
 
-export default function Monitoring({ auth, kegiatans, filters }) {
+export default function Monitoring({ auth, kegiatans, stats, filters }) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
 
     const performSearch = useCallback(
@@ -57,7 +158,7 @@ export default function Monitoring({ auth, kegiatans, filters }) {
         return (
             <div className={clsx(
                 "flex items-center w-full px-2",
-                isMobileView ? "min-w-[400px] py-2" : "min-w-[500px] py-4"
+                isMobileView ? "min-w-[400px] py-4" : "min-w-[500px] py-6"
             )}>
                 {steps.map((step, index) => {
                     const isCompleted = step.id < item.status;
@@ -70,32 +171,32 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                             <div className="relative flex flex-col items-center group flex-1">
                                 {/* Step Circle */}
                                 <div className={clsx(
-                                    "rounded-lg flex items-center justify-center transition-all duration-500 z-10",
-                                    isMobileView ? "w-7 h-7" : "w-8 h-8 sm:w-10 sm:h-10 sm:rounded-xl",
-                                    isCompleted ? "bg-cyan-500 text-white shadow-lg shadow-cyan-100 scale-105" :
-                                    isActive ? "bg-white border-[3px] border-cyan-500 text-cyan-500 shadow-xl shadow-cyan-50 scale-110" :
-                                    "bg-slate-50 text-slate-300 border border-slate-100"
+                                    "rounded-2xl flex items-center justify-center transition-all duration-500 z-10",
+                                    isMobileView ? "w-8 h-8" : "w-10 h-10 sm:w-12 sm:h-12",
+                                    isCompleted ? "bg-gradient-to-br from-cyan-400 to-cyan-600 text-white shadow-lg shadow-cyan-200 scale-105" :
+                                    isActive ? "bg-white border-[3px] border-cyan-500 text-cyan-500 shadow-xl shadow-cyan-100 scale-110" :
+                                    "bg-slate-50 text-slate-300 border-2 border-slate-100"
                                 )}>
-                                    {isCompleted ? <CheckCircle2 size={isMobileView ? 14 : 16} className="sm:size-5" strokeWidth={3} /> : 
-                                     isActive ? <Clock size={isMobileView ? 14 : 16} className="sm:size-5 animate-spin-slow" strokeWidth={3} /> : 
-                                     <Circle size={isMobileView ? 12 : 14} className="sm:size-4" strokeWidth={3} />}
+                                    {isCompleted ? <CheckCircle2 size={isMobileView ? 16 : 22} strokeWidth={3} /> : 
+                                     isActive ? <AnimatedClockIcon size={isMobileView ? 18 : 24} /> : 
+                                     <Circle size={isMobileView ? 14 : 18} strokeWidth={3} />}
                                 </div>
 
                                 {/* Step Label */}
                                 <div className={clsx(
                                     "absolute flex flex-col items-center w-24",
-                                    isMobileView ? "top-9" : "top-12"
+                                    isMobileView ? "top-9" : "top-14"
                                 )}>
                                     <span className={clsx(
                                         "font-black uppercase tracking-[0.05em] text-center transition-colors duration-300",
                                         isMobileView ? "text-[8px]" : "text-[10px]",
-                                        isCompleted || isActive ? "text-slate-700" : "text-slate-300"
+                                        isCompleted || isActive ? "text-slate-800" : "text-slate-300"
                                     )}>
                                         {step.label}
                                     </span>
                                     {date && (
                                         <span className={clsx(
-                                            "font-black text-cyan-600 mt-1 bg-cyan-50/80 px-2 py-0.5 rounded-md border border-cyan-100/50 backdrop-blur-sm",
+                                            "font-black text-cyan-600 mt-1.5 bg-cyan-50/80 px-2 py-0.5 rounded-md border border-cyan-100/50 backdrop-blur-sm shadow-sm",
                                             isMobileView ? "text-[7px]" : "text-[9px]"
                                         )}>
                                             {date}
@@ -107,11 +208,11 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                                 {!isLast && (
                                     <div className={clsx(
                                         "absolute bg-slate-100 z-0 overflow-hidden rounded-full",
-                                        isMobileView ? "left-[calc(50%+14px)] top-3.5 w-[calc(100%-28px)] h-[2px]" : "left-[calc(50%+16px)] sm:left-[calc(50%+20px)] top-4 sm:top-5 w-[calc(100%-32px)] sm:w-[calc(100%-40px)] h-[3px]"
+                                        isMobileView ? "left-[calc(50%+16px)] top-4 w-[calc(100%-32px)] h-[3px]" : "left-[calc(50%+20px)] sm:left-[calc(50%+24px)] top-5 sm:top-6 w-[calc(100%-40px)] sm:w-[calc(100%-48px)] h-[4px]"
                                     )}>
                                         <div 
                                             className={clsx(
-                                                "h-full bg-gradient-to-r from-cyan-400 to-cyan-600 transition-all duration-1000 ease-out",
+                                                "h-full bg-gradient-to-r from-cyan-400 to-cyan-600 transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(34,211,238,0.5)]",
                                                 isCompleted ? "w-full" : "w-0"
                                             )}
                                         />
@@ -137,17 +238,54 @@ export default function Monitoring({ auth, kegiatans, filters }) {
         >
             <Head title="Pemantauan Kegiatan" />
 
-            <div className="py-6 sm:py-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-7xl mx-auto space-y-8">
-                    {/* Actions Row */}
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 w-full">
-                        <div className="relative w-full sm:w-96 group min-w-0">
+            <div className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-slate-50/30 min-h-screen relative overflow-hidden selection:bg-cyan-500/30">
+                {/* Noise Texture Overlay */}
+                <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[100] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+                    <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-cyan-200/20 blur-[120px] rounded-full animate-float" />
+                    <div className="absolute bottom-[-5%] left-[-5%] w-[30%] h-[30%] bg-blue-200/10 blur-[100px] rounded-full animate-float-slow" />
+                </div>
+
+                <div className="max-w-7xl mx-auto space-y-12 relative z-10">
+                    {/* ... stats grid remains same ... */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <StatCard 
+                            subtitle="SISTEM" 
+                            label="Total Usulan" 
+                            value={stats?.total || 0} 
+                            color="cyan" 
+                            delay={100} 
+                            icon={Activity}
+                        />
+                        <StatCard 
+                            subtitle="PROSES" 
+                            label="Sedang Berjalan" 
+                            value={stats?.running || 0} 
+                            color="white" 
+                            delay={200} 
+                            icon={Timer}
+                        />
+                        <StatCard 
+                            subtitle="STATUS" 
+                            label="Telah Selesai" 
+                            value={stats?.completed || 0} 
+                            color="white" 
+                            delay={300} 
+                            icon={CheckCircle}
+                        />
+                    </div>
+
+                    {/* Actions & Filters Row */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/40 backdrop-blur-md p-4 rounded-[28px] border border-white shadow-sm">
+                        <div className="relative w-full md:w-96 group">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                                <Search size={18} strokeWidth={2.5} />
+                                <Search size={20} strokeWidth={2.5} />
                             </div>
                             <input
                                 type="text"
-                                className="block w-full pl-11 pr-11 py-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 transition-all shadow-sm"
+                                className="block w-full pl-12 pr-11 py-3.5 bg-white/80 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm"
                                 placeholder="Cari nama kegiatan..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -157,7 +295,7 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                                     className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition-colors"
                                     onClick={handleClearSearch}
                                 >
-                                    <X size={16} strokeWidth={2.5} />
+                                    <X size={18} strokeWidth={2.5} />
                                 </button>
                             )}
                         </div>
@@ -165,46 +303,50 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                         {auth.user.role_id === 3 && (
                             <Link
                                 href={route('kak.create')}
-                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3.5 bg-[#00bcd4] text-white rounded-xl font-black text-sm hover:bg-cyan-500 transition-all shadow-sm active:scale-95"
+                                className="w-full md:w-auto flex items-center justify-center gap-2.5 px-8 py-4 bg-[#00bcd4] text-white rounded-2xl font-black text-sm hover:bg-cyan-500 hover:shadow-lg hover:shadow-cyan-500/30 transition-all active:scale-95 group"
                             >
-                                <Plus size={18} strokeWidth={3} />
+                                <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" />
                                 <span>Usulan Baru</span>
                             </Link>
                         )}
                     </div>
 
                     {/* Content Section */}
-                    <div className="space-y-4 animate-fade-in-up">
+                    <div className="space-y-6 animate-fade-in-up">
                         {/* Mobile View: Cards */}
-                        <div className="md:hidden space-y-4">
+                        <div className="md:hidden space-y-6">
                             {kegiatans.data.length === 0 ? (
-                                <div className="bg-white rounded-[24px] p-10 text-center border border-slate-100 shadow-sm">
-                                    <Inbox size={48} className="mx-auto text-slate-200 mb-4" />
-                                    <p className="text-slate-400 font-bold text-sm">Belum Ada Kegiatan</p>
+                                <div className="bg-white/70 backdrop-blur-md rounded-[32px] p-16 text-center border border-white shadow-sm">
+                                    <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-200">
+                                        <Inbox size={48} strokeWidth={1.5} />
+                                    </div>
+                                    <p className="text-slate-800 font-black text-lg">Belum Ada Kegiatan</p>
+                                    <p className="text-slate-400 font-bold text-xs mt-2">Daftar usulan Anda akan muncul di sini.</p>
                                 </div>
                             ) : (
                                 kegiatans.data.map((item, index) => (
-                                    <div key={item.kegiatan_id} className="bg-white rounded-[24px] p-5 border border-slate-100 shadow-sm space-y-5">
-                                        <div className="flex items-start gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-black text-slate-400 shrink-0">
+                                    <div key={item.kegiatan_id} className="bg-white/80 backdrop-blur-md rounded-[32px] p-6 border border-white shadow-sm hover:shadow-md transition-shadow space-y-6">
+                                        <div className="flex items-start gap-5">
+                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex items-center justify-center text-sm font-black text-slate-500 shrink-0 shadow-sm">
                                                 {(kegiatans.current_page - 1) * kegiatans.per_page + index + 1}
                                             </div>
-                                            <div className="space-y-1.5 flex-1 min-w-0">
-                                                <div className="text-[15px] font-black text-slate-800 leading-tight break-words">
+                                            <div className="space-y-2 flex-1 min-w-0">
+                                                <div className="text-lg font-black text-slate-800 leading-tight break-words">
                                                     {item.nama_kegiatan}
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-50 text-[8px] font-black text-slate-400 border border-slate-200 uppercase tracking-widest">
-                                                        #{item.kegiatan_id}
+                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-[9px] font-black text-slate-500 border border-slate-200 uppercase tracking-widest">
+                                                        <Tag size={12} strokeWidth={3} /> #{item.kegiatan_id}
                                                     </span>
-                                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-cyan-50 text-[8px] font-black text-cyan-600 border border-cyan-100 uppercase tracking-widest">
+                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-cyan-50 text-[9px] font-black text-cyan-600 border border-cyan-100 uppercase tracking-widest">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></div>
                                                         Aktif
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <div className="overflow-x-auto pb-8 pt-2">
+                                        <div className="overflow-x-auto pb-12 pt-2 -mx-2 px-2 scrollbar-hide">
                                             {renderStepper(item, true)}
                                         </div>
                                     </div>
@@ -213,36 +355,44 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                         </div>
 
                         {/* Desktop View: Table */}
-                        <div className="hidden md:block bg-white rounded-[24px] shadow-sm border border-slate-100">
+                        <div className="hidden md:block bg-white/60 backdrop-blur-xl rounded-[40px] shadow-2xl shadow-slate-200/40 border border-white relative overflow-visible min-h-[400px]">
+                            {/* Rim Lighting Effect */}
+                            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent z-20"></div>
+
                             <div className="overflow-x-auto md:overflow-visible min-h-[150px] max-w-full">
-                                <table className="w-full text-left border-collapse min-w-full">
+                                <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-slate-50/50 border-b border-slate-100">
-                                            <th className="px-4 sm:px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 sm:w-20 text-center">No.</th>
-                                            <th className="px-4 sm:px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[200px] sm:min-w-[250px] md:w-[400px]">Detail Kegiatan</th>
-                                            <th className="px-4 sm:px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Progress Alur Kerja</th>
+                                        <tr className="border-b border-slate-100/50">
+                                            <th className="px-10 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] w-24 text-center">No.</th>
+                                            <th className="px-8 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em]">Detail Kegiatan</th>
+                                            <th className="px-8 py-8 text-[11px] font-black text-slate-400 uppercase tracking-[0.25em] text-center">Progress Alur Kerja</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-50">
+                                    <tbody className="divide-y divide-slate-100/30">
                                         {kegiatans.data.length === 0 ? (
                                             <tr>
-                                                <td colSpan="3" className="text-center py-24 px-10">
-                                                    <div className="max-w-md mx-auto flex flex-col items-center gap-6">
-                                                        <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200">
-                                                            <Inbox size={32} strokeWidth={1.5} />
+                                                <td colSpan="3" className="text-center py-32 px-10">
+                                                    <div className="max-w-md mx-auto flex flex-col items-center gap-8 animate-fade-in-up">
+                                                        <div className="relative">
+                                                            <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center text-slate-200 shadow-inner">
+                                                                <Inbox size={48} strokeWidth={1} />
+                                                            </div>
+                                                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-white shadow-lg animate-bounce">
+                                                                <Plus size={16} strokeWidth={3} />
+                                                            </div>
                                                         </div>
-                                                        <div className="space-y-1">
-                                                            <h3 className="text-lg font-black text-slate-800 tracking-tight">Belum Ada Kegiatan</h3>
-                                                            <p className="text-slate-400 font-bold text-xs leading-relaxed text-center">
-                                                                Sepertinya Anda belum memiliki usulan kegiatan yang aktif.
+                                                        <div className="space-y-2">
+                                                            <h3 className="text-2xl font-black text-slate-800 tracking-tight">Belum Ada Kegiatan</h3>
+                                                            <p className="text-slate-400 font-bold text-sm leading-relaxed text-center max-w-xs">
+                                                                Sepertinya Anda belum memiliki usulan kegiatan yang aktif saat ini. Mari mulai buat usulan baru!
                                                             </p>
                                                         </div>
                                                         {auth.user.role_id === 3 && (
                                                             <Link
                                                                 href={route('kak.create')}
-                                                                className="flex items-center gap-2 px-5 py-2.5 bg-cyan-500 text-white rounded-lg font-black text-xs hover:bg-cyan-600 transition-all shadow-sm"
+                                                                className="flex items-center gap-3 px-8 py-4 bg-cyan-500 text-white rounded-2xl font-black text-sm hover:bg-cyan-600 transition-all shadow-lg shadow-cyan-500/20 active:scale-95"
                                                             >
-                                                                Buat Usulan KAK <ArrowRight size={14} strokeWidth={3} />
+                                                                Buat Usulan KAK <ArrowRight size={18} strokeWidth={3} />
                                                             </Link>
                                                         )}
                                                     </div>
@@ -252,30 +402,37 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                                             kegiatans.data.map((item, index) => {
                                                 const globalIndex = (kegiatans.current_page - 1) * kegiatans.per_page + index + 1;
                                                 return (
-                                                    <tr key={item.kegiatan_id} className="group hover:bg-slate-50/30 transition-all duration-300">
-                                                        <td className="px-4 sm:px-6 py-6 sm:py-8 whitespace-nowrap text-center">
-                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white border border-slate-100 flex items-center justify-center text-[10px] sm:text-xs font-black text-slate-400 group-hover:bg-cyan-500 group-hover:text-white group-hover:border-cyan-400 transition-all duration-300 shadow-sm mx-auto">
+                                                    <tr 
+                                                        key={item.kegiatan_id} 
+                                                        className="group relative hover:bg-white/90 transition-all duration-500 animate-fade-in-up"
+                                                        style={{ animationDelay: `${400 + (index * 100)}ms` }}
+                                                    >
+                                                        <td className="px-10 py-10 whitespace-nowrap text-center relative">
+                                                            {/* Hover Accent Line */}
+                                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-cyan-500 scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top rounded-r-full z-20"></div>
+                                                            
+                                                            <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-xs font-black text-slate-400 group-hover:bg-cyan-500 group-hover:text-white group-hover:border-cyan-400 group-hover:rotate-6 transition-all duration-500 shadow-sm mx-auto relative z-10">
                                                                 {globalIndex < 10 ? `0${globalIndex}` : globalIndex}
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 sm:px-6 py-6 sm:py-8">
-                                                            <div className="space-y-2">
-                                                                <div className="text-sm sm:text-[15px] font-black text-slate-800 leading-tight group-hover:text-cyan-600 transition-colors duration-300">
+                                                        <td className="px-8 py-10">
+                                                            <div className="space-y-3">
+                                                                <div className="text-lg font-black text-slate-800 leading-tight group-hover:text-cyan-600 group-hover:translate-x-1 transition-all duration-500">
                                                                     {item.nama_kegiatan}
                                                                 </div>
-                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-[9px] font-black text-slate-500 border border-slate-200 uppercase tracking-widest group-hover:bg-white transition-colors">
-                                                                        <Tag size={10} strokeWidth={3} /> #{item.kegiatan_id}
+                                                                <div className="flex flex-wrap items-center gap-3">
+                                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 text-[10px] font-black text-slate-500 border border-slate-100 uppercase tracking-widest group-hover:bg-white transition-colors">
+                                                                        <Tag size={12} strokeWidth={3} /> #{item.kegiatan_id}
                                                                     </span>
-                                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-50 text-[9px] font-black text-cyan-600 border border-cyan-100 uppercase tracking-widest">
-                                                                        <div className="w-1 h-1 rounded-full bg-cyan-500 animate-pulse"></div>
+                                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-50 text-[10px] font-black text-cyan-600 border border-cyan-100 uppercase tracking-widest group-hover:bg-cyan-100/50 transition-colors">
+                                                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></div>
                                                                         Aktif
                                                                     </span>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 sm:px-6 py-6 sm:py-8">
-                                                            <div className="bg-white/50 rounded-xl p-1 border border-transparent group-hover:border-slate-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-300">
+                                                        <td className="px-8 py-10">
+                                                            <div className="bg-slate-50/50 rounded-3xl p-2 border border-transparent group-hover:border-slate-100 group-hover:bg-white transition-all duration-500">
                                                                 {renderStepper(item)}
                                                             </div>
                                                         </td>
@@ -290,7 +447,7 @@ export default function Monitoring({ auth, kegiatans, filters }) {
 
                         {/* Pagination Area */}
                         {kegiatans.total > kegiatans.per_page && (
-                            <div className="bg-white/50 rounded-[24px] px-8 py-5 border border-slate-100 shadow-sm">
+                            <div className="bg-white/40 backdrop-blur-md rounded-[28px] px-8 py-6 border border-white shadow-sm flex justify-center animate-fade-in-up" style={{ animationDelay: '800ms' }}>
                                 <KakPagination links={kegiatans.links} from={kegiatans.from} to={kegiatans.to} total={kegiatans.total} />
                             </div>
                         )}
@@ -301,19 +458,55 @@ export default function Monitoring({ auth, kegiatans, filters }) {
             <style dangerouslySetInnerHTML={{
                 __html: `
                     @keyframes fade-in-up {
-                        from { opacity: 0; transform: translateY(20px); }
+                        from { opacity: 0; transform: translateY(30px); }
                         to { opacity: 1; transform: translateY(0); }
                     }
                     .animate-fade-in-up {
                         opacity: 0;
                         animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     }
-                    .animate-spin-slow {
+                    .animate-clock-minute {
                         animation: spin 3s linear infinite;
+                    }
+                    .animate-clock-hour {
+                        animation: spin 18s linear infinite;
                     }
                     @keyframes spin {
                         from { transform: rotate(0deg); }
                         to { transform: rotate(360deg); }
+                    }
+                    @keyframes float {
+                        0%, 100% { transform: translateY(0) scale(1); }
+                        50% { transform: translateY(-20px) scale(1.05); }
+                    }
+                    .animate-float {
+                        animation: float 8s ease-in-out infinite;
+                    }
+                    .animate-float-slow {
+                        animation: float 12s ease-in-out infinite reverse;
+                    }
+                    .scrollbar-hide::-webkit-scrollbar {
+                        display: none;
+                    }
+                    .scrollbar-hide {
+                        -ms-overflow-style: none;
+                        scrollbar-width: none;
+                    }
+                    /* Custom Scrollbar */
+                    ::-webkit-scrollbar {
+                        width: 8px;
+                        height: 8px;
+                    }
+                    ::-webkit-scrollbar-track {
+                        background: #f8fafc;
+                    }
+                    ::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 10px;
+                        border: 2px solid #f8fafc;
+                    }
+                    ::-webkit-scrollbar-thumb:hover {
+                        background: #06b6d4;
                     }
                 `
             }} />

@@ -368,8 +368,37 @@ class KegiatanController extends Controller
 
         $kegiatans->setCollection($mappedKegiatans);
 
+        // Calculate Stats
+        $statsQuery = Kegiatan::query();
+        if ($role === 'Pengusul') {
+            $statsQuery->whereHas('kak', function ($q) use ($user) {
+                $q->where('pengusul_user_id', $user->user_id);
+            });
+        } elseif ($role === 'Verifikator') {
+            preg_match('/verifikator(\d+)/i', $user->username, $matches);
+            if (isset($matches[1])) {
+                $tipeKegiatanId = $matches[1];
+                $statsQuery->whereHas('kak', function ($q) use ($tipeKegiatanId) {
+                    $q->where('tipe_kegiatan_id', $tipeKegiatanId);
+                });
+            }
+        }
+
+        $monitoringStats = [
+            'total' => $statsQuery->count(),
+            'running' => (clone $statsQuery)->whereHas('kak', function($q) {
+                $q->whereNotIn('status_id', [5, 10]); 
+            })->whereHas('approvals', function($q) {
+                $q->where('approval_level', 'Bendahara-Setor')->where('status', '!=', 'Disetujui');
+            })->count(),
+            'completed' => (clone $statsQuery)->whereHas('approvals', function($q) {
+                $q->where('approval_level', 'Bendahara-Setor')->where('status', 'Disetujui');
+            })->count(),
+        ];
+
         return Inertia::render('Kegiatan/Monitoring', [
             'kegiatans' => $kegiatans,
+            'stats' => $monitoringStats,
             'filters' => $request->only(['search']),
         ]);
     }
