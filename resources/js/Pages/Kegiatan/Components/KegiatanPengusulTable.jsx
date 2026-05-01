@@ -81,7 +81,7 @@ export default function KegiatanPengusulTable({ approvedKaks, onOpenSubmitModal,
         );
     };
     return (
-        <div className="bg-white/70 backdrop-blur-md overflow-hidden sm:rounded-2xl border border-gray-100/60 shadow-sm relative">
+        <div className="bg-white/70 backdrop-blur-md sm:rounded-2xl border border-gray-100/60 shadow-sm relative">
             <div className="p-6 border-b border-gray-100/80">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                     <span className="p-2 bg-blue-100/80 rounded-lg">
@@ -94,7 +94,7 @@ export default function KegiatanPengusulTable({ approvedKaks, onOpenSubmitModal,
             {approvedKaks.length > 0 ? (
                 <>
                     {/* Desktop View */}
-                    <div className="hidden md:block overflow-x-auto">
+                    <div className="hidden md:block md:overflow-visible overflow-x-auto min-h-[150px]">
                         <table className="min-w-full divide-y divide-gray-100/80">
                             <thead className="bg-gray-50/80 backdrop-blur-sm">
                                 <tr>
