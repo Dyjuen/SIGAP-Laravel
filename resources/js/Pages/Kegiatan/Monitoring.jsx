@@ -213,8 +213,8 @@ export default function Monitoring({ auth, kegiatans, filters }) {
                         </div>
 
                         {/* Desktop View: Table */}
-                        <div className="hidden md:block bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden">
-                            <div className="overflow-x-auto max-w-full">
+                        <div className="hidden md:block bg-white rounded-[24px] shadow-sm border border-slate-100">
+                            <div className="overflow-x-auto md:overflow-visible min-h-[150px] max-w-full">
                                 <table className="w-full text-left border-collapse min-w-full">
                                     <thead>
                                         <tr className="bg-slate-50/50 border-b border-slate-100">

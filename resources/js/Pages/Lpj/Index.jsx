@@ -233,8 +233,8 @@ export default function Index({ auth, kegiatans, flash }) {
                     {/* Main Content Area */}
                     <div className="space-y-4">
                         {/* Desktop Table View */}
-                        <div className="hidden md:block bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 overflow-hidden animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-                            <div className="overflow-x-auto">
+                        <div className="hidden md:block bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+                            <div className="overflow-x-auto md:overflow-visible min-h-[150px]">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-50/50 border-b border-slate-100">

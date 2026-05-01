@@ -208,7 +208,7 @@ export default function KakTable({
         <div className="space-y-6">
             {/* Desktop Table */}
             <div className="hidden md:block bg-white/70 backdrop-blur-md sm:rounded-2xl border border-gray-100 shadow-sm">
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto md:overflow-visible min-h-[150px]">
                     <table className="min-w-full divide-y divide-gray-100/80">
                         <thead className="bg-gray-50/80 backdrop-blur-sm">
                             <tr>

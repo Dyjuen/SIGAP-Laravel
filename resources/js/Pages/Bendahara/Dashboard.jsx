@@ -243,7 +243,7 @@ export default function BendaharaDashboard({ auth, kegiatans = [], stats = {}, p
                     </div>
 
                     {/* ── Data Table Card ── */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 animate-fade-in-up" style={{ animationDelay: '600ms' }}>
                         {/* Header */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-6 pt-6 pb-4">
                             <h3 className="text-xl font-black text-slate-800">
@@ -262,7 +262,7 @@ export default function BendaharaDashboard({ auth, kegiatans = [], stats = {}, p
                         </div>
 
                         {/* Table */}
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto md:overflow-visible min-h-[150px]">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-50/80 border-y border-slate-100">

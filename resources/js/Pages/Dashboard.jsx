@@ -124,14 +124,14 @@ function PengusulDashboard({ stats, recentKaks }) {
             {/* Tables Area - side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Pemantauan Kegiatan */}
-                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                     <div className="flex justify-between items-center px-8 py-6">
                         <h3 className="text-lg font-black text-slate-800">Pemantauan Kegiatan</h3>
                         <Link href={route('kegiatan.monitoring')} className="text-xs font-black text-cyan-500 hover:text-cyan-600 transition-colors uppercase tracking-wider">
                             Lihat Semua
                         </Link>
                     </div>
-                    <div className="overflow-x-auto px-4 pb-4">
+                    <div className="overflow-x-auto md:overflow-visible min-h-[150px] px-4 pb-4">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-slate-50">
@@ -168,14 +168,14 @@ function PengusulDashboard({ stats, recentKaks }) {
                 </div>
 
                 {/* Pemantauan LPJ */}
-                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '500ms' }}>
+                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 animate-fade-in-up" style={{ animationDelay: '500ms' }}>
                     <div className="flex justify-between items-center px-8 py-6">
                         <h3 className="text-lg font-black text-slate-800">Pemantauan LPJ</h3>
                         <Link href={route('kegiatan.monitoring')} className="text-xs font-black text-cyan-500 hover:text-cyan-600 transition-colors uppercase tracking-wider">
                             Lihat Semua
                         </Link>
                     </div>
-                    <div className="overflow-x-auto px-4 pb-4">
+                    <div className="overflow-x-auto md:overflow-visible min-h-[150px] px-4 pb-4">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-slate-50">
@@ -229,7 +229,7 @@ function ApproverDashboard({ stats, pendingKegiatan, roleName }) {
             </div>
 
             {/* Table Area */}
-            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                 <div className="flex justify-between items-center px-8 py-6">
                     <div>
                         <h3 className="text-xl font-black text-slate-800">Menunggu Persetujuan Anda</h3>
@@ -239,7 +239,7 @@ function ApproverDashboard({ stats, pendingKegiatan, roleName }) {
                         Lihat Semua <ArrowRight size={14} />
                     </Link>
                 </div>
-                <div className="overflow-x-auto px-4 pb-4">
+                <div className="overflow-x-auto md:overflow-visible min-h-[150px] px-4 pb-4">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-slate-50">
@@ -298,7 +298,7 @@ function VerifikatorDashboard({ stats, recentKaks }) {
             </div>
 
             {/* Table Area */}
-            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
                 <div className="flex justify-between items-center px-8 py-6">
                     <div>
                         <h3 className="text-xl font-black text-slate-800">Usulan Menunggu Review</h3>
@@ -308,7 +308,7 @@ function VerifikatorDashboard({ stats, recentKaks }) {
                         Lihat Semua <ArrowRight size={14} />
                     </Link>
                 </div>
-                <div className="overflow-x-auto px-4 pb-4">
+                <div className="overflow-x-auto md:overflow-visible min-h-[150px] px-4 pb-4">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-slate-50">

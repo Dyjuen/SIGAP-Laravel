@@ -192,7 +192,7 @@ export default function Show({ auth, kegiatan }) {
                     </div>
 
                     {/* RAB Section */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-slate-100">
+                    <div className="bg-white shadow-sm sm:rounded-2xl border border-slate-100">
                         <div className="p-6 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                                 <Calculator className="w-5 h-5 text-cyan-500" />
@@ -207,7 +207,7 @@ export default function Show({ auth, kegiatan }) {
                             </Link>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto md:overflow-visible min-h-[150px]">
                             <table className="min-w-full divide-y divide-slate-200">
                                 <thead className="bg-slate-50">
                                     <tr>

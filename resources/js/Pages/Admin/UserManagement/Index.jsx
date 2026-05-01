@@ -206,8 +206,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
                     </div>
 
                     {/* Table Card */}
-                    <div className="bg-white overflow-hidden shadow-xl sm:rounded-2xl border border-gray-100">
-                        <div className="overflow-x-auto">
+                    <div className="bg-white shadow-xl sm:rounded-2xl border border-gray-100">
+                        <div className="overflow-x-auto md:overflow-visible min-h-[150px]">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50/50">
                                     <tr>
