@@ -25,16 +25,28 @@ class LoginRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'username' => ['required', 'string', 'min:3', 'max:50'],
-            'password' => ['required', 'string'],
+            'username' => ['required', 'string', 'alpha_num', 'min:3', 'max:50'],
+            'password' => ['required', 'string', 'min:6'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'username.required' => 'Username harus diisi.',
+            'username.alpha_num' => 'Username hanya boleh berisi huruf dan angka.',
+            'username.min' => 'Username minimal 3 karakter.',
+            'username.max' => 'Username maksimal 50 karakter.',
+            'password.required' => 'Password harus diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
         ];
     }
 

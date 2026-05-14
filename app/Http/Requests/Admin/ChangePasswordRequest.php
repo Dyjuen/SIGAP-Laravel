@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -24,7 +23,7 @@ class ChangePasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'new_password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'new_password' => ['required', 'confirmed', 'string', 'min:8', 'max:100'],
         ];
     }
 }

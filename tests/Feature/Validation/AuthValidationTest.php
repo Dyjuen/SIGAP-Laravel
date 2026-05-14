@@ -56,8 +56,8 @@ class AuthValidationTest extends TestCase
      */
     public function test_register_validation_rules()
     {
-        $admin = User::factory()->create();
-        Role::create(['nama_role' => 'Admin']);
+        $role = Role::create(['nama_role' => 'Admin', 'role_id' => 1]);
+        $admin = User::factory()->create(['role_id' => $role->role_id]);
         
         // 1. Required fields
         $response = $this->actingAs($admin)

@@ -53,7 +53,7 @@ class AccountController extends Controller
             'password_hash' => Hash::make($request->password),
             'nama_lengkap' => $request->nama_lengkap,
             'email' => $request->email,
-            'role_id' => $request->role_id,
+            'role_id' => $request->role_ids[0] ?? null,
         ]);
 
         return redirect()->back()->with('success', 'User berhasil ditambahkan.');
@@ -67,7 +67,7 @@ class AccountController extends Controller
         $user->update([
             'nama_lengkap' => $request->nama_lengkap,
             'email' => $request->email,
-            'role_id' => $request->role_id,
+            'role_id' => $request->role_ids[0] ?? null,
         ]);
 
         return redirect()->back()->with('success', 'Profil user berhasil diupdate.');
