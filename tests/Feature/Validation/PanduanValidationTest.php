@@ -16,7 +16,12 @@ class PanduanValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::factory()->create();
+        $role = new \App\Models\Role();
+        $role->role_id = 1; // Admin
+        $role->nama_role = 'Admin';
+        $role->save();
+        
+        $this->admin = User::factory()->create(['role_id' => 1]);
     }
 
     /**
@@ -24,29 +29,38 @@ class PanduanValidationTest extends TestCase
      */
     public function test_panduan_create_validation_rules()
     {
-        // 1. Required title
+        // 1. Required fields
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/panduan', []);
             
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['judul_panduan']);
+            ->assertJsonValidationErrors(['judul_panduan', 'tipe_media']);
 
-        // 2. Either file or URL must be present
+        // 2. Required file for document type
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/panduan', [
                 'judul_panduan' => 'Panduan Penggunaan',
-                'path_media' => '',
-                // No file uploaded
+                'tipe_media' => 'document',
+                'file' => '',
             ]);
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'file' => 'File atau URL tidak boleh kosong',
+                'file' => 'File Dokumen wajib diisi jika tipe media adalah document.',
             ]);
 
-        // 3. Valid with URL
-        // In RED phase, we expect this to fail if implementation is missing,
-        // but for now we focus on the failure cases.
+        // 3. Required URL for video type
+        $response = $this->actingAs($this->admin)
+            ->postJson('/admin/panduan', [
+                'judul_panduan' => 'Video Tutorial',
+                'tipe_media' => 'video',
+                'path_media' => '',
+            ]);
+            
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'path_media' => 'URL Video wajib diisi jika tipe media adalah video.',
+            ]);
     }
 
     /**

@@ -15,8 +15,12 @@ class MasterDataValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::factory()->create();
-        // Assume roles/permissions are handled or bypassed for validation tests
+        $role = new \App\Models\Role();
+        $role->role_id = 1; // Admin
+        $role->nama_role = 'Admin';
+        $role->save();
+        
+        $this->admin = User::factory()->create(['role_id' => 1]);
     }
 
     /**
@@ -31,10 +35,10 @@ class MasterDataValidationTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['nama_satuan']);
 
-        // 2. Max length (50)
+        // 2. Max length (255)
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/master/satuan', [
-                'nama_satuan' => str_repeat('a', 51),
+                'nama_satuan' => str_repeat('a', 256),
             ]);
             
         $response->assertStatus(422)
@@ -53,10 +57,10 @@ class MasterDataValidationTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['kode_iku', 'nama_iku']);
 
-        // 2. Max lengths
+        // 2. Max lengths (50, 255)
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/master/iku', [
-                'kode_iku' => str_repeat('a', 21),
+                'kode_iku' => str_repeat('a', 51),
                 'nama_iku' => str_repeat('a', 256),
             ]);
             
@@ -71,15 +75,16 @@ class MasterDataValidationTest extends TestCase
     {
         // 1. Required
         $response = $this->actingAs($this->admin)
-            ->postJson('/admin/master/mata_anggaran', []);
+            ->postJson('/admin/master/mata-anggaran', []);
             
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['kode_anggaran']);
+            ->assertJsonValidationErrors(['kode_anggaran', 'nama_sumber_dana', 'tahun_anggaran', 'total_pagu']);
 
         // 2. Data types
         $response = $this->actingAs($this->admin)
-            ->postJson('/admin/master/mata_anggaran', [
+            ->postJson('/admin/master/mata-anggaran', [
                 'kode_anggaran' => 'B001',
+                'nama_sumber_dana' => 'APBN',
                 'tahun_anggaran' => 'invalid-year',
                 'total_pagu' => 'invalid-numeric',
             ]);

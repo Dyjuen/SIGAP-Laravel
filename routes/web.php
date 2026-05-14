@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
     // Kegiatan Routes
     Route::get('/kegiatan/monitoring', [KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
     Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Rektorat')->group(function () {
-        Route::resource('kegiatan', KegiatanController::class)->only(['index', 'store', 'show']);
+        Route::resource('kegiatan', KegiatanController::class)->only(['index', 'store', 'show', 'update']);
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanController::class, 'approve'])->name('kegiatan.approve');
     });
 

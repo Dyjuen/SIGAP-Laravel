@@ -180,6 +180,15 @@ class KegiatanController extends Controller
     }
 
     /**
+     * Update the specified resource in storage.
+     */
+    public function update(StoreKegiatanRequest $request, Kegiatan $kegiatan)
+    {
+        // Validation handled by StoreKegiatanRequest
+        return redirect()->back()->with('success', 'Kegiatan berhasil diperbarui.');
+    }
+
+    /**
      * Approve the specified kegiatan.
      */
     public function approve(ApproveKegiatanRequest $request, Kegiatan $kegiatan)

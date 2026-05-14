@@ -15,7 +15,40 @@ class PencairanValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        
+        // Roles
+        $verifRole = new \App\Models\Role();
+        $verifRole->role_id = 2;
+        $verifRole->nama_role = 'Verifikator';
+        $verifRole->save();
+
+        $pengusulRole = new \App\Models\Role();
+        $pengusulRole->role_id = 3;
+        $pengusulRole->nama_role = 'Pengusul';
+        $pengusulRole->save();
+
+        $bendaharaRole = new \App\Models\Role();
+        $bendaharaRole->role_id = 4;
+        $bendaharaRole->nama_role = 'Bendahara';
+        $bendaharaRole->save();
+
+        // Statuses
+        \App\Models\KegiatanStatus::firstOrCreate(['status_id' => 1], ['nama_status' => 'Draft']);
+        \App\Models\KegiatanStatus::firstOrCreate(['status_id' => 2], ['nama_status' => 'Review']);
+
+        $this->user = User::factory()->create(['role_id' => 4]);
+        
+        // Create dummy KAK and Kegiatan
+        $this->kak = \App\Models\KAK::factory()->create([
+            'kak_id' => 1,
+            'status_id' => 2, // Review
+            'tipe_kegiatan_id' => 1,
+        ]);
+        
+        $this->kegiatan = new \App\Models\Kegiatan();
+        $this->kegiatan->kegiatan_id = 1;
+        $this->kegiatan->kak_id = 1;
+        $this->kegiatan->save();
     }
 
     /**
@@ -29,7 +62,7 @@ class PencairanValidationTest extends TestCase
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'nominal_pencairan',
+                'nominal_pencairan' => 'Nominal pencairan harus diisi.',
             ]);
 
         // 2. Minimum 1
@@ -40,7 +73,7 @@ class PencairanValidationTest extends TestCase
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'nominal_pencairan',
+                'nominal_pencairan' => 'Nominal pencairan minimal adalah 1.',
             ]);
     }
 
@@ -49,15 +82,17 @@ class PencairanValidationTest extends TestCase
      */
     public function test_pencairan_reject_validation_rules()
     {
-        // Rejection requires catatan_bendahara min 10
-        $response = $this->actingAs($this->user)
+        // KAK Rejection by Verifikator requires 'catatan'
+        $verifikator = User::factory()->create(['username' => 'verifikator1', 'role_id' => 2]);
+        
+        $response = $this->actingAs($verifikator)
             ->postJson('/kak/1/reject', [
-                'catatan_bendahara' => 'Short', // Too short
+                'catatan' => '', // Empty
             ]);
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'catatan_bendahara',
+                'catatan',
             ]);
     }
 }

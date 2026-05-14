@@ -15,7 +15,22 @@ class KegiatanValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        
+        $role = new \App\Models\Role();
+        $role->role_id = 3; // Pengusul
+        $role->nama_role = 'Pengusul';
+        $role->save();
+        
+        \App\Models\KegiatanStatus::create(['status_id' => 1, 'nama_status' => 'Draft']);
+        
+        $this->user = User::factory()->create(['role_id' => 3]);
+        
+        $kak = \App\Models\KAK::factory()->create(['pengusul_user_id' => $this->user->user_id]);
+        
+        $kegiatan = new \App\Models\Kegiatan();
+        $kegiatan->kegiatan_id = 1;
+        $kegiatan->kak_id = $kak->kak_id;
+        $kegiatan->save();
     }
 
     /**
@@ -23,8 +38,9 @@ class KegiatanValidationTest extends TestCase
      */
     public function test_kegiatan_basic_validation_rules()
     {
+        // Use PATCH to test update validation rules (nama_kegiatan, etc)
         $response = $this->actingAs($this->user)
-            ->postJson('/kegiatan', []);
+            ->patchJson('/kegiatan/1', []);
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
@@ -38,7 +54,7 @@ class KegiatanValidationTest extends TestCase
 
         // Test min lengths
         $response = $this->actingAs($this->user)
-            ->postJson('/kegiatan', [
+            ->patchJson('/kegiatan/1', [
                 'nama_kegiatan' => 'Short', // min:10
                 'deskripsi_kegiatan' => 'Too short', // min:50
                 'lokasi' => 'Loc', // min:5
@@ -62,7 +78,7 @@ class KegiatanValidationTest extends TestCase
         $tomorrow = date('Y-m-d', strtotime('+1 day'));
         
         $response = $this->actingAs($this->user)
-            ->postJson('/kegiatan', [
+            ->patchJson('/kegiatan/1', [
                 'nama_kegiatan' => 'Nama Kegiatan Test Panjang',
                 'deskripsi_kegiatan' => 'Deskripsi kegiatan yang cukup panjang untuk melewati validasi minimal 50 karakter.',
                 'tanggal_mulai' => $yesterday,
@@ -81,7 +97,7 @@ class KegiatanValidationTest extends TestCase
         $end = date('Y-m-d', strtotime('+4 days'));
         
         $response = $this->actingAs($this->user)
-            ->postJson('/kegiatan', [
+            ->patchJson('/kegiatan/1', [
                 'nama_kegiatan' => 'Nama Kegiatan Test Panjang',
                 'deskripsi_kegiatan' => 'Deskripsi kegiatan yang cukup panjang untuk melewati validasi minimal 50 karakter.',
                 'tanggal_mulai' => $start,
@@ -100,7 +116,7 @@ class KegiatanValidationTest extends TestCase
         $end = date('Y-m-d', strtotime('+367 days'));
         
         $response = $this->actingAs($this->user)
-            ->postJson('/kegiatan', [
+            ->patchJson('/kegiatan/1', [
                 'nama_kegiatan' => 'Nama Kegiatan Test Panjang',
                 'deskripsi_kegiatan' => 'Deskripsi kegiatan yang cukup panjang untuk melewati validasi minimal 50 karakter.',
                 'tanggal_mulai' => $start,

@@ -15,7 +15,12 @@ class KAKValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $role = new \App\Models\Role();
+        $role->role_id = 3;
+        $role->nama_role = 'Pengusul';
+        $role->save();
+        
+        $this->user = User::factory()->create(['role_id' => 3]);
     }
 
     /**
@@ -130,7 +135,7 @@ class KAKValidationTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/kak', [
                 'rab' => [
-                    ['uraian' => '', 'volume1' => '', 'satuan1_id' => '', 'harga_satuan' => '']
+                    ['uraian' => '', 'volume1' => '', 'satuan1_id' => '', 'harga_satuan' => '', 'kategori_belanja_id' => '']
                 ]
             ]);
             
@@ -140,6 +145,7 @@ class KAKValidationTest extends TestCase
                 'rab.0.volume1',
                 'rab.0.satuan1_id',
                 'rab.0.harga_satuan',
+                'rab.0.kategori_belanja_id',
             ]);
     }
 }
