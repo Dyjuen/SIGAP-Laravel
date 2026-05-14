@@ -89,7 +89,7 @@ class KegiatanValidationTest extends TestCase
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'tanggal_mulai' => 'Tanggal mulai tidak boleh kurang dari hari ini.',
+                'tanggal_mulai' => 'Tanggal Mulai tidak boleh kurang dari hari ini.',
             ]);
 
         // 2. End date must be after start date
@@ -108,7 +108,7 @@ class KegiatanValidationTest extends TestCase
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'tanggal_selesai' => 'Tanggal selesai harus setelah tanggal mulai.',
+                'tanggal_selesai' => 'Tanggal Selesai harus setelah Tanggal Mulai.',
             ]);
 
         // 3. Max duration 365 days

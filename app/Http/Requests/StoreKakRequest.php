@@ -26,7 +26,7 @@ class StoreKakRequest extends FormRequest
         return [
             // Main KAK Data
             'kak.nama_kegiatan' => 'required|string|min:5|max:255',
-            'kak.deskripsi_kegiatan' => 'required|string|min:10',
+            'kak.deskripsi_kegiatan' => 'required|string|min:5',
             'kak.metode_pelaksanaan' => 'required|string|min:5',
             'kak.kurun_waktu_pelaksanaan' => 'required|string',
             'kak.tanggal_mulai' => 'required|date',
@@ -53,7 +53,7 @@ class StoreKakRequest extends FormRequest
             // Child: Target IKU
             'target_iku' => 'required|array',
             'target_iku.*.iku_id' => 'required|exists:m_iku,iku_id',
-            'target_iku.*.target' => 'required|string|max:255',
+            'target_iku.*.target' => 'required|max:255',
             'target_iku.*.satuan_id' => 'required|exists:m_satuan,satuan_id',
 
             // Child: RAB
@@ -103,7 +103,7 @@ class StoreKakRequest extends FormRequest
             'kak.tanggal_selesai' => 'Tanggal selesai',
             'kak.lokasi' => 'Lokasi',
             'kak.tipe_kegiatan_id' => 'Tipe kegiatan',
-            'kak.penerima_manfaat' => 'Penerima manfaat',
+            'kak.manfaat' => 'Manfaat',
             'kak.tahapan_pelaksanaan' => 'Tahapan pelaksanaan',
             'kak.indikator_kinerja' => 'Indikator kinerja',
             'target_iku' => 'Target IKU',

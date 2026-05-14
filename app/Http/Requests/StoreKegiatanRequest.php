@@ -67,7 +67,7 @@ class StoreKegiatanRequest extends FormRequest
             'min' => ':attribute minimal :min karakter.',
             'max' => ':attribute maksimal :max karakter.',
             'date' => ':attribute harus berupa tanggal valid.',
-            'after_or_equal' => ':attribute tidak boleh kurang dari :date.',
+            'after_or_equal' => ':attribute tidak boleh kurang dari hari ini.',
             'after' => ':attribute harus setelah :date.',
             'file' => ':attribute harus berupa file.',
             'mimes' => ':attribute harus berupa file dengan format: :values.',

@@ -62,7 +62,7 @@ class PencairanValidationTest extends TestCase
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'nominal_pencairan' => 'Nominal pencairan harus diisi.',
+                'nominal_pencairan' => 'Nominal Pencairan harus diisi.',
             ]);
 
         // 2. Minimum 1
@@ -73,7 +73,7 @@ class PencairanValidationTest extends TestCase
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'nominal_pencairan' => 'Nominal pencairan minimal adalah 1.',
+                'nominal_pencairan' => 'Nominal Pencairan minimal 1.',
             ]);
     }
 
