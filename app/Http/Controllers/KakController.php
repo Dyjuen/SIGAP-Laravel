@@ -262,7 +262,7 @@ class KakController extends Controller
     private function insertChildren(KAK $kak, $request, $isUpdate = false)
     {
         // 1. Manfaat (Frontend sends array of strings)
-        $manfaatData = collect($request->input('kak.manfaat', []))->filter(fn ($m) => ! empty($m['manfaat']));
+        $manfaatData = collect($request->input('kak.manfaat', []))->filter(fn ($m) => ! empty($m['value']));
         $incomingManfaatIds = $manfaatData->pluck('manfaat_id')->filter()->all();
         if ($isUpdate) {
             $kak->manfaat()->whereNotIn('manfaat_id', $incomingManfaatIds)->delete();
@@ -270,12 +270,12 @@ class KakController extends Controller
         foreach ($manfaatData as $m) {
             if (! empty($m['manfaat_id'])) {
                 $kak->manfaat()->where('manfaat_id', $m['manfaat_id'])->update([
-                    'manfaat' => $m['manfaat'],
+                    'manfaat' => $m['value'],
                 ]);
             } else {
                 KAKManfaat::create([
                     'kak_id' => $kak->kak_id,
-                    'manfaat' => $m['manfaat'],
+                    'manfaat' => $m['value'],
                 ]);
             }
         }

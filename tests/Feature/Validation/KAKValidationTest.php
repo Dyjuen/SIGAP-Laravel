@@ -40,6 +40,7 @@ class KAKValidationTest extends TestCase
                 'kak.tanggal_mulai',
                 'kak.tanggal_selesai',
                 'kak.lokasi',
+                'kak.sasaran_utama',
             ]);
     }
 
@@ -51,16 +52,15 @@ class KAKValidationTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/kak', [
                 'kak' => [
-                    'penerima_manfaat' => [
-                        ['sasaran_utama' => '', 'manfaat' => '']
+                    'manfaat' => [
+                        ['value' => '']
                     ]
                 ]
             ]);
             
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
-                'kak.penerima_manfaat.0.sasaran_utama',
-                'kak.penerima_manfaat.0.manfaat',
+                'kak.manfaat.0.value',
             ]);
     }
 

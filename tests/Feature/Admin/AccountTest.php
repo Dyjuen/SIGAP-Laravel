@@ -67,9 +67,9 @@ class AccountTest extends TestCase
             'nama_lengkap' => 'New User',
             'username' => 'newuser',
             'email' => 'newuser@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'role_id' => 3,
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role_ids' => [3],
         ];
 
         $response = $this->actingAs($admin)
@@ -90,7 +90,7 @@ class AccountTest extends TestCase
         $updateData = [
             'nama_lengkap' => 'Updated Name',
             'email' => 'updated@example.com',
-            'role_id' => 2, // Promote to Verifikator
+            'role_ids' => [2], // Promote to Verifikator
         ];
 
         $response = $this->actingAs($admin)

@@ -32,15 +32,15 @@ class StoreKakRequest extends FormRequest
             'kak.tanggal_mulai' => 'required',
             'kak.tanggal_selesai' => 'required|after_or_equal:kak.tanggal_mulai',
             'kak.lokasi' => 'required',
-            'kak.tipe_kegiatan_id' => 'required',
+            'kak.tipe_kegiatan_id' => 'required|exists:m_tipe_kegiatan,tipe_kegiatan_id',
+            'kak.sasaran_utama' => 'required',
 
-            // Child: Penerima Manfaat
-            'kak.penerima_manfaat' => 'required|array',
-            'kak.penerima_manfaat.*.sasaran_utama' => 'required',
-            'kak.penerima_manfaat.*.manfaat' => 'required',
+            // Child: Manfaat
+            'kak.manfaat' => 'required|array|min:1',
+            'kak.manfaat.*.value' => 'required',
 
             // Child: Tahapan Pelaksanaan
-            'kak.tahapan_pelaksanaan' => 'required|array',
+            'kak.tahapan_pelaksanaan' => 'required|array|min:1',
             'kak.tahapan_pelaksanaan.*.nama_tahapan' => 'required',
             'kak.tahapan_pelaksanaan.*.urutan' => 'required',
 
@@ -52,17 +52,17 @@ class StoreKakRequest extends FormRequest
 
             // Child: Target IKU
             'target_iku' => 'required|array',
-            'target_iku.*.iku_id' => 'required',
+            'target_iku.*.iku_id' => 'required|exists:m_iku,iku_id',
             'target_iku.*.target' => 'required',
-            'target_iku.*.satuan_id' => 'required',
+            'target_iku.*.satuan_id' => 'required|exists:m_satuan,satuan_id',
 
             // Child: RAB
             'rab' => 'required|array',
             'rab.*.uraian' => 'required',
             'rab.*.volume1' => 'required|numeric|min:0',
-            'rab.*.satuan1_id' => 'required',
+            'rab.*.satuan1_id' => 'required|exists:m_satuan,satuan_id',
             'rab.*.harga_satuan' => 'required|numeric|min:0',
-            'rab.*.kategori_belanja_id' => 'required',
+            'rab.*.kategori_belanja_id' => 'required|exists:m_kategori_belanja,kategori_belanja_id',
         ];
     }
 

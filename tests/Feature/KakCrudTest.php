@@ -61,17 +61,18 @@ class KakCrudTest extends TestCase
                 'deskripsi_kegiatan' => 'Description',
                 'metode_pelaksanaan' => 'Method',
                 'kurun_waktu_pelaksanaan' => '1 Month',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-31',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(30)->toDateString(),
                 'lokasi' => 'Campus',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => [['manfaat' => 'Manfaat 1'], ['manfaat' => 'Manfaat 2']],
+                'sasaran_utama' => 'Sasaran A',
+                'manfaat' => [['value' => 'Manfaat 1'], ['value' => 'Manfaat 2']],
                 'tahapan_pelaksanaan' => [
                     ['nama_tahapan' => 'Step 1', 'urutan' => 1],
                     ['nama_tahapan' => 'Step 2', 'urutan' => 2],
                 ],
                 'indikator_kinerja' => [
-                    ['bulan_indikator' => 'Jan', 'deskripsi_target' => 'Target 1', 'persentase_target' => 50],
+                    ['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target 1', 'persentase_target' => 50],
                 ],
             ],
             'target_iku' => [
@@ -91,10 +92,10 @@ class KakCrudTest extends TestCase
         $response = $this->actingAs($user)->post(route('kak.store'), $data);
 
         $response->assertRedirect(route('kak.index'));
-        $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => 'New Activity']);
+        $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => 'New Activity', 'sasaran_utama' => 'Sasaran A']);
         $this->assertDatabaseHas('t_kak_manfaat', ['manfaat' => 'Manfaat 1']);
         $this->assertDatabaseHas('t_kak_tahapan', ['nama_tahapan' => 'Step 1']);
-        $this->assertDatabaseHas('t_kak_target', ['bulan_indikator' => 'Jan', 'deskripsi_target' => 'Target 1', 'persentase_target' => 50]);
+        $this->assertDatabaseHas('t_kak_target', ['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target 1', 'persentase_target' => 50]);
         $this->assertDatabaseHas('t_kak_iku', ['iku_id' => $iku->iku_id]);
         $this->assertDatabaseHas('t_kak_anggaran', ['uraian' => 'Item 1']);
     }
@@ -127,20 +128,26 @@ class KakCrudTest extends TestCase
         $updatedData = [
             'kak' => [
                 'nama_kegiatan' => 'Updated Activity',
-                'deskripsi_kegiatan' => 'New Desc',
+                'deskripsi_kegiatan' => 'New Desc New Desc New Desc New Desc New Desc New Desc',
                 'metode_pelaksanaan' => 'New Method',
                 'kurun_waktu_pelaksanaan' => '2 Months',
-                'tanggal_mulai' => '2025-02-01',
-                'tanggal_selesai' => '2025-03-31',
+                'tanggal_mulai' => now()->addDays(2)->toDateString(),
+                'tanggal_selesai' => now()->addDays(60)->toDateString(),
                 'lokasi' => 'New Loc',
                 'tipe_kegiatan_id' => 1,
-                'manfaat' => [['manfaat' => 'New Manfaat']],
-                // Empty children to test clearing
-                'tahapan_pelaksanaan' => [],
-                'indikator_kinerja' => [],
+                'sasaran_utama' => 'New Sasaran',
+                'manfaat' => [['value' => 'New Manfaat']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Step 1', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Februari', 'deskripsi_target' => 'Target 1', 'persentase_target' => 50]],
             ],
-            'target_iku' => [],
-            'rab' => [],
+            'target_iku' => [['iku_id' => 1, 'target' => 10, 'satuan_id' => 1]],
+            'rab' => [[
+                'kategori_belanja_id' => 1,
+                'uraian' => 'Item 1',
+                'volume1' => 10,
+                'satuan1_id' => 1,
+                'harga_satuan' => 1000,
+            ]],
         ];
 
         $response = $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
@@ -158,19 +165,26 @@ class KakCrudTest extends TestCase
         $dummyData = [
             'kak' => [
                 'nama_kegiatan' => 'Valid',
-                'deskripsi_kegiatan' => 'Desc',
+                'deskripsi_kegiatan' => 'Description description description description description',
                 'metode_pelaksanaan' => 'Met',
                 'kurun_waktu_pelaksanaan' => '1',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-02',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(2)->toDateString(),
                 'lokasi' => 'Loc',
                 'tipe_kegiatan_id' => 1,
-                'manfaat' => [],
-                'tahapan_pelaksanaan' => [],
-                'indikator_kinerja' => [],
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'Manfaat']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Tahapan', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target', 'persentase_target' => 50]],
             ],
-            'target_iku' => [],
-            'rab' => [],
+            'target_iku' => [['iku_id' => 1, 'target' => 10, 'satuan_id' => 1]],
+            'rab' => [[
+                'kategori_belanja_id' => 1,
+                'uraian' => 'Item',
+                'volume1' => 1,
+                'satuan1_id' => 1,
+                'harga_satuan' => 1000,
+            ]],
         ];
 
         $response = $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $dummyData);
@@ -200,7 +214,7 @@ class KakCrudTest extends TestCase
     public function test_validation_rejects_missing_required_fields(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
-        $response = $this->actingAs($user)->post(route('kak.store'), []);
+        $response = $this->actingAs($user)->post(route('kak.store'), ['kak' => []]);
         $response->assertSessionHasErrors(['kak.nama_kegiatan']);
     }
 
@@ -217,19 +231,26 @@ class KakCrudTest extends TestCase
         $data = [
             'kak' => [
                 'nama_kegiatan' => 'Rollback Test Activity',
-                'deskripsi_kegiatan' => 'Description',
+                'deskripsi_kegiatan' => 'Description description description description description',
                 'metode_pelaksanaan' => 'Method',
                 'kurun_waktu_pelaksanaan' => '1 Month',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-31',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(30)->toDateString(),
                 'lokasi' => 'Campus',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => [['manfaat' => 'Manfaat 1']], // This will trigger the exception
-                'tahapan_pelaksanaan' => [],
-                'indikator_kinerja' => [],
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'Manfaat 1']], // This will trigger the exception
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Tahapan', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target', 'persentase_target' => 50]],
             ],
-            'target_iku' => [],
-            'rab' => [],
+            'target_iku' => [['iku_id' => 1, 'target' => 10, 'satuan_id' => 1]],
+            'rab' => [[
+                'kategori_belanja_id' => 1,
+                'uraian' => 'Item',
+                'volume1' => 1,
+                'satuan1_id' => 1,
+                'harga_satuan' => 1000,
+            ]],
         ];
 
         $this->withoutExceptionHandling();
@@ -259,6 +280,11 @@ class KakCrudTest extends TestCase
 
     public function test_update_with_empty_children_clears_old_records(): void
     {
+        // Since we now REQUIRE at least 1 child via validation, 
+        // we test "clearing" by sending a NEW single child that replaces the old one.
+        // Or we test that sending empty fails (already covered by validation tests).
+        // Let's test replacement.
+        
         $user = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]);
 
@@ -267,24 +293,32 @@ class KakCrudTest extends TestCase
 
         $updatedData = [
             'kak' => [
-                'nama_kegiatan' => 'Vid',
-                'deskripsi_kegiatan' => 'Desc',
+                'nama_kegiatan' => 'Valid',
+                'deskripsi_kegiatan' => 'Description description description description description',
                 'metode_pelaksanaan' => 'Met',
                 'kurun_waktu_pelaksanaan' => '1',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-02',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(2)->toDateString(),
                 'lokasi' => 'Loc',
                 'tipe_kegiatan_id' => 1,
-                'manfaat' => [], // Empty
-                'tahapan_pelaksanaan' => [],
-                'indikator_kinerja' => [],
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'New Manfaat']], // Replacement
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Tahapan', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target', 'persentase_target' => 50]],
             ],
-            'target_iku' => [],
-            'rab' => [],
+            'target_iku' => [['iku_id' => 1, 'target' => 10, 'satuan_id' => 1]],
+            'rab' => [[
+                'kategori_belanja_id' => 1,
+                'uraian' => 'Item',
+                'volume1' => 1,
+                'satuan1_id' => 1,
+                'harga_satuan' => 1000,
+            ]],
         ];
 
         $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
         $this->assertDatabaseMissing('t_kak_manfaat', ['manfaat' => 'Old Manfaat']);
+        $this->assertDatabaseHas('t_kak_manfaat', ['manfaat' => 'New Manfaat']);
     }
 
     public function test_update_preserves_child_ids(): void
@@ -299,19 +333,21 @@ class KakCrudTest extends TestCase
         $data = [
             'kak' => [
                 'nama_kegiatan' => 'Original Activity',
-                'deskripsi_kegiatan' => 'Desc',
+                'deskripsi_kegiatan' => 'Description description description description description',
                 'metode_pelaksanaan' => 'Method',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-31',
+                'kurun_waktu_pelaksanaan' => '1 Month',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(30)->toDateString(),
                 'lokasi' => 'Campus',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => [['manfaat' => 'Old Manfaat']],
-                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Old Tahapan']],
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'Old Manfaat']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Old Tahapan', 'urutan' => 1]],
                 'indikator_kinerja' => [
-                    ['bulan_indikator' => 'Jan', 'deskripsi_target' => 'Old Target', 'persentase_target' => 10],
+                    ['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Old Target', 'persentase_target' => 10],
                 ],
             ],
-            'target_iku' => [],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => 10, 'satuan_id' => $satuan->satuan_id]],
             'rab' => [
                 [
                     'kategori_belanja_id' => $kategori->kategori_belanja_id,
@@ -336,19 +372,21 @@ class KakCrudTest extends TestCase
         $updatedData = [
             'kak' => [
                 'nama_kegiatan' => 'Updated Activity',
-                'deskripsi_kegiatan' => 'Desc',
+                'deskripsi_kegiatan' => 'Description description description description description',
                 'metode_pelaksanaan' => 'Method',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-31',
+                'kurun_waktu_pelaksanaan' => '1 Month',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(30)->toDateString(),
                 'lokasi' => 'Campus',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => [['manfaat_id' => $manfaatId, 'manfaat' => 'Updated Manfaat']],
-                'tahapan_pelaksanaan' => [['tahapan_id' => $tahapanId, 'nama_tahapan' => 'Updated Tahapan']],
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['manfaat_id' => $manfaatId, 'value' => 'Updated Manfaat']],
+                'tahapan_pelaksanaan' => [['tahapan_id' => $tahapanId, 'nama_tahapan' => 'Updated Tahapan', 'urutan' => 1]],
                 'indikator_kinerja' => [
-                    ['target_id' => $targetId, 'bulan_indikator' => 'Feb', 'deskripsi_target' => 'Updated Target', 'persentase_target' => 20],
+                    ['target_id' => $targetId, 'bulan_indikator' => 'Februari', 'deskripsi_target' => 'Updated Target', 'persentase_target' => 20],
                 ],
             ],
-            'target_iku' => [],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => 10, 'satuan_id' => $satuan->satuan_id]],
             'rab' => [
                 [
                     'anggaran_id' => $anggaranId,
@@ -394,8 +432,26 @@ class KakCrudTest extends TestCase
         $data = [
             'kak' => [
                 'nama_kegiatan' => 'Test',
+                'deskripsi_kegiatan' => 'Description description description description description',
+                'metode_pelaksanaan' => 'Met',
+                'kurun_waktu_pelaksanaan' => '1',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(2)->toDateString(),
+                'lokasi' => 'Loc',
                 'tipe_kegiatan_id' => 9999, // Invalid
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'Manfaat']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Tahapan', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target', 'persentase_target' => 50]],
             ],
+            'target_iku' => [['iku_id' => 1, 'target' => 10, 'satuan_id' => 1]],
+            'rab' => [[
+                'kategori_belanja_id' => 1,
+                'uraian' => 'Item',
+                'volume1' => 1,
+                'satuan1_id' => 1,
+                'harga_satuan' => 1000,
+            ]],
         ];
         $response = $this->actingAs($user)->post(route('kak.store'), $data);
         $response->assertSessionHasErrors(['kak.tipe_kegiatan_id']);
@@ -422,22 +478,29 @@ class KakCrudTest extends TestCase
             'kak' => [
                 // Minimal required fields
                 'nama_kegiatan' => 'Dupe Test',
-                'deskripsi_kegiatan' => 'Desc',
+                'deskripsi_kegiatan' => 'Description description description description description',
                 'metode_pelaksanaan' => 'Met',
                 'kurun_waktu_pelaksanaan' => '1',
-                'tanggal_mulai' => '2025-01-01',
-                'tanggal_selesai' => '2025-01-02',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(2)->toDateString(),
                 'lokasi' => 'Loc',
                 'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
-                'manfaat' => [],
-                'tahapan_pelaksanaan' => [],
-                'indikator_kinerja' => [],
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'Manfaat']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'Tahapan', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Januari', 'deskripsi_target' => 'Target', 'persentase_target' => 50]],
             ],
             'target_iku' => [
                 ['iku_id' => $iku->iku_id, 'target' => 10, 'satuan_id' => $satuan->satuan_id],
                 ['iku_id' => $iku->iku_id, 'target' => 20, 'satuan_id' => $satuan->satuan_id], // Duplicate
             ],
-            'rab' => [],
+            'rab' => [[
+                'kategori_belanja_id' => 1,
+                'uraian' => 'Item',
+                'volume1' => 1,
+                'satuan1_id' => 1,
+                'harga_satuan' => 1000,
+            ]],
         ];
 
         $this->actingAs($user)->post(route('kak.store'), $data);

@@ -68,15 +68,49 @@ class PanduanValidationTest extends TestCase
      */
     public function test_panduan_update_validation_rules()
     {
-        // Assuming we have a way to create a guide first
-        // For RED phase, we just hit the endpoint and expect skip of media validation
+        $panduan = \App\Models\Panduan::create([
+            'judul_panduan' => 'Old Title',
+            'tipe_media' => 'document',
+            'path_media' => 'old/path.pdf'
+        ]);
+
+        // 1. Successful update of title and role
         $response = $this->actingAs($this->admin)
-            ->putJson('/admin/panduan/1', [
+            ->putJson("/admin/panduan/{$panduan->panduan_id}", [
                 'judul_panduan' => 'Updated Title',
-                // path_media and file are missing, should still pass title validation
+                'tipe_media' => 'document',
+                'target_role_id' => 1
             ]);
             
-        // If it returns 422 for missing file/URL during UPDATE, then it's failing the legacy logic.
+        $response->assertStatus(302); // Redirect back
+        $this->assertDatabaseHas('m_panduan', [
+            'panduan_id' => $panduan->panduan_id,
+            'judul_panduan' => 'Updated Title',
+            'target_role_id' => 1
+        ]);
+
+        // 2. Switching from document to video requires path_media
+        $response = $this->actingAs($this->admin)
+            ->putJson("/admin/panduan/{$panduan->panduan_id}", [
+                'judul_panduan' => 'Switch to Video',
+                'tipe_media' => 'video',
+                'path_media' => ''
+            ]);
+            
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['path_media']);
+
+        // 3. Switching from video back to document requires file
+        $panduan->update(['tipe_media' => 'video', 'path_media' => 'https://youtube.com/watch?v=123']);
+        $response = $this->actingAs($this->admin)
+            ->putJson("/admin/panduan/{$panduan->panduan_id}", [
+                'judul_panduan' => 'Switch back to Doc',
+                'tipe_media' => 'document',
+                'file' => ''
+            ]);
+            
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['file']);
     }
 
     /**
@@ -84,8 +118,18 @@ class PanduanValidationTest extends TestCase
      */
     public function test_panduan_file_size_validation_message()
     {
-        // We can't easily simulate UPLOAD_ERR_INI_SIZE via UploadedFile::fake()
-        // but we can test if the validator returns the correct legacy message
-        // when we simulate the error condition.
+        $file = UploadedFile::fake()->create('large.pdf', 20480); // 20MB, exceeds 10MB limit
+
+        $response = $this->actingAs($this->admin)
+            ->postJson('/admin/panduan', [
+                'judul_panduan' => 'Too Big',
+                'tipe_media' => 'document',
+                'file' => $file
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'file' => 'File Dokumen tidak boleh lebih dari 10240 kilobyte.',
+            ]);
     }
 }
