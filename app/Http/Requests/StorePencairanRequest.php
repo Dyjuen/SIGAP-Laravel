@@ -32,10 +32,18 @@ class StorePencairanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nominal_pencairan.required' => 'Nominal pencairan harus diisi.',
-            'nominal_pencairan.numeric' => 'Nominal pencairan harus berupa angka.',
-            'nominal_pencairan.min' => 'Nominal pencairan minimal adalah 1.',
-            'keterangan.max' => 'Keterangan maksimal 1000 karakter.',
+            'required' => ':attribute harus diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'max' => ':attribute maksimal :max karakter.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'nominal_pencairan' => 'Nominal Pencairan',
+            'keterangan' => 'Keterangan',
         ];
     }
 }

@@ -29,4 +29,16 @@ class ApproveKegiatanRequest extends FormRequest
             'catatan' => 'nullable|string|max:1000',
         ];
     }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'catatan.max' => 'Catatan maksimal :max karakter.',
+        ];
+    }
 }

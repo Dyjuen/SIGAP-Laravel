@@ -10,7 +10,7 @@ export default function Step1Kak({
     data, setData, errors, readOnly = false, tipe_kegiatan = [],
     subStep, setSubStep,
     isVerifikator = false, isPengusul = false, isPengusulFixing = false,
-    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null
+    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null,
 }) {
 
     const updateKak = (field, value) => {
@@ -170,7 +170,7 @@ export default function Step1Kak({
 
                                     {/* Nama Kegiatan */}
                                     <div className="relative group/field">
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Nama Kegiatan <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Nama Kegiatan {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
@@ -179,6 +179,7 @@ export default function Step1Kak({
                                                 onChange={(e) => updateKak('nama_kegiatan', e.target.value)}
                                                 placeholder="Masukkan nama kegiatan..."
                                                 disabled={readOnly && !isPengusulFixing}
+                                                required
                                             />
                                             {/* Revision Comments */}
                                             {(isVerifikator || isPengusulFixing) && (
@@ -200,7 +201,7 @@ export default function Step1Kak({
 
                                     {/* Tipe Kegiatan (Select) */}
                                     <div className="relative group/field">
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Tipe Kegiatan <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Tipe Kegiatan {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <CustomSelect
                                                 value={data.kak.tipe_kegiatan_id || ''}
@@ -208,6 +209,7 @@ export default function Step1Kak({
                                                 options={tipe_kegiatan.map(t => ({ value: t.tipe_kegiatan_id, label: t.nama_tipe }))}
                                                 placeholder="Pilih Tipe Kegiatan"
                                                 disabled={readOnly && !isPengusulFixing}
+                                                required
                                                 className="w-full rounded-xl py-2.5 pl-4 pr-12 text-sm"
                                             />
                                             {/* Revision Comments */}
@@ -230,7 +232,7 @@ export default function Step1Kak({
 
                                     {/* Deskripsi / Gambaran Umum */}
                                     <div className="relative group/field">
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Gambaran Umum Kegiatan</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Gambaran Umum Kegiatan {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <textarea
                                                 className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 min-h-[150px] resize-y disabled:opacity-70 disabled:cursor-not-allowed pr-12"
@@ -238,6 +240,7 @@ export default function Step1Kak({
                                                 onChange={(e) => updateKak('deskripsi_kegiatan', e.target.value)}
                                                 placeholder="Jelaskan gambaran umum kegiatan..."
                                                 disabled={readOnly && !isPengusulFixing}
+                                                required
                                             ></textarea>
                                             {/* Revision Comments */}
                                             {(isVerifikator || isPengusulFixing) && (
@@ -267,13 +270,14 @@ export default function Step1Kak({
 
                                     {/* Sasaran Utama */}
                                     <div className="relative group/field">
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Sasaran Utama</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Sasaran Utama {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <textarea
                                                 className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 min-h-[100px] disabled:opacity-70 disabled:cursor-not-allowed pr-12"
                                                 value={data.kak.sasaran_utama}
                                                 onChange={(e) => updateKak('sasaran_utama', e.target.value)}
                                                 disabled={readOnly && !isPengusulFixing}
+                                                required
                                             ></textarea>
                                             {(isVerifikator || isPengusulFixing) && (
                                                 <CommentIcon
@@ -296,7 +300,7 @@ export default function Step1Kak({
                                     {/* Manfaat Loop */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
-                                            <label className="block text-sm font-bold text-gray-700">Output Kegiatan / Manfaat</label>
+                                            <label className="block text-sm font-bold text-gray-700">Output Kegiatan / Manfaat {<span className="text-red-500">*</span>}</label>
                                         </div>
                                         <div className="space-y-3">
                                             <AnimatePresence mode="popLayout">
@@ -319,10 +323,11 @@ export default function Step1Kak({
                                                                 <input
                                                                     type="text"
                                                                     className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12"
-                                                                    value={item.value} // Access value property
+                                                                    value={item.value}
                                                                     onChange={(e) => updateManfaat(index, e.target.value)}
                                                                     placeholder={`Manfaat ${index + 1}`}
                                                                     disabled={readOnly && !isPengusulFixing}
+                                                                    required
                                                                 />
                                                                 {(isVerifikator || isPengusulFixing) && item.manfaat_id && (
                                                                     <CommentIcon
@@ -373,13 +378,14 @@ export default function Step1Kak({
 
                                     {/* Metode Pelaksanaan */}
                                     <div className="relative group/field">
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">Metode Pelaksanaan</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">Metode Pelaksanaan {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <textarea
                                                 className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 min-h-[150px] disabled:opacity-70 disabled:cursor-not-allowed pr-12"
                                                 value={data.kak.metode_pelaksanaan || ''}
                                                 onChange={(e) => updateKak('metode_pelaksanaan', e.target.value)}
                                                 disabled={readOnly && !isPengusulFixing}
+                                                required
                                             ></textarea>
                                             {(isVerifikator || isPengusulFixing) && (
                                                 <CommentIcon
@@ -402,7 +408,7 @@ export default function Step1Kak({
                                     {/* Tahapan Pelaksanaan */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
-                                            <label className="block text-sm font-bold text-gray-700">Tahapan Pelaksanaan</label>
+                                            <label className="block text-sm font-bold text-gray-700">Tahapan Pelaksanaan {<span className="text-red-500">*</span>}</label>
                                         </div>
                                         <div className="space-y-3">
                                             <AnimatePresence mode="popLayout">
@@ -423,6 +429,7 @@ export default function Step1Kak({
                                                                 onChange={(e) => updateTahapan(index, e.target.value)}
                                                                 placeholder="Nama Tahapan"
                                                                 disabled={readOnly && !isPengusulFixing}
+                                                                required
                                                             />
                                                             {(isVerifikator || isPengusulFixing) && item.tahapan_id && (
                                                                 <CommentIcon
@@ -507,6 +514,7 @@ export default function Step1Kak({
                                                                 ]}
                                                                 placeholder="Pilih Bulan"
                                                                 disabled={readOnly && !isPengusulFixing}
+                                                                required
                                                                 className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
                                                             />
                                                         </div>
@@ -519,6 +527,7 @@ export default function Step1Kak({
                                                                 onChange={(e) => updateIndikator(index, 'deskripsi_target', e.target.value)}
                                                                 placeholder="Contoh: Tersedianya dokumen laporan"
                                                                 disabled={readOnly && !isPengusulFixing}
+                                                                required
                                                             />
                                                         </div>
                                                         <div className="md:col-span-3">
@@ -540,6 +549,7 @@ export default function Step1Kak({
                                                                     min="0"
                                                                     max="100"
                                                                     disabled={readOnly && !isPengusulFixing}
+                                                                    required
                                                                 />
                                                                 <span className="text-sm font-bold text-gray-500">%</span>
                                                             </div>
@@ -601,7 +611,7 @@ export default function Step1Kak({
 
                                         <div className="flex flex-col gap-6">
                                             <div className="relative group/field">
-                                                <label className="block text-sm font-bold text-gray-700 mb-1">Periode Pelaksanaan</label>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">Periode Pelaksanaan {<span className="text-red-500">*</span>}</label>
                                                 <div className="relative hide-dp-clear">
                                                     <Datepicker
                                                         primaryColor="cyan"
@@ -650,7 +660,7 @@ export default function Step1Kak({
                                                     <input type="hidden" name="kurun_waktu_pelaksanaan" value={getDurationText(data.kak.tanggal_mulai, data.kak.tanggal_selesai)} />
                                                 </div>
 
-                                                <label className="block text-sm font-bold text-gray-700 mb-1">Lokasi Pelaksanaan <span className="text-red-500">*</span></label>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">Lokasi Pelaksanaan {<span className="text-red-500">*</span>}</label>
                                                 <div className="relative">
                                                     <input
                                                         type="text"
@@ -659,6 +669,7 @@ export default function Step1Kak({
                                                         onChange={(e) => updateKak('lokasi', e.target.value)}
                                                         placeholder="Contoh: Gedung Direktorat Lt.2, Kampus PNJ"
                                                         disabled={readOnly && !isPengusulFixing}
+                                                        required
                                                     />
                                                     {(isVerifikator || isPengusulFixing) && (
                                                         <CommentIcon

@@ -1,10 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Head, useForm, router } from '@inertiajs/react'; // Import router from @inertiajs/react
+import { Head, useForm, router, usePage } from '@inertiajs/react'; // Import usePage
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 
 export default function UserManagementIndex({ auth, users, roles }) {
+    const { is_production } = usePage().props;
     // State
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -86,19 +87,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
-        // If password is provided, handle change password concurrently or just warn user
-        // The implementation plan had separate endpoints, but here we can try to do profile update.
-        // If password fields are filled, we might need a separate call or specific logic.
-        // For simplicity and matching the native flow which separated them or allowed both, 
-        // let's stick to updating profile first.
-        // Wait, native had 'Update Profile' and 'Change Password' as separate actions or potentially combined.
-        // My controller has separate methods. 
-        // Let's call update profile. If password is set, call change password.
-
-        // 1. Update Profile
         putEdit(route('admin.users.update', editingUser.user_id), {
             onSuccess: () => {
-                // 2. If password is set, Change Password
                 if (editData.new_password) {
                     router.put(route('admin.users.change-password', editingUser.user_id), {
                         new_password: editData.new_password,
@@ -108,7 +98,6 @@ export default function UserManagementIndex({ auth, users, roles }) {
                             closeEditModal();
                         },
                         onError: (errors) => {
-                            // Map errors to editData errors if possible, or just show toast
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal Mengubah Password',
@@ -120,7 +109,6 @@ export default function UserManagementIndex({ auth, users, roles }) {
                     closeEditModal();
                 }
             },
-            // On error of profile update, it stays open with errors
         });
     };
 
@@ -345,6 +333,9 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                             placeholder="Masukkan nama lengkap"
                                             value={addData.nama_lengkap}
                                             onChange={e => setAddData('nama_lengkap', e.target.value)}
+                                            required={is_production}
+                                            minLength={is_production ? 3 : undefined}
+                                            maxLength={is_production ? 100 : undefined}
                                         />
                                     </div>
                                     {errorsAdd.nama_lengkap && <p className="mt-1 text-xs text-red-500">{errorsAdd.nama_lengkap}</p>}
@@ -359,6 +350,10 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                             placeholder="Username"
                                             value={addData.username}
                                             onChange={e => setAddData('username', e.target.value)}
+                                            required={is_production}
+                                            minLength={is_production ? 3 : undefined}
+                                            maxLength={is_production ? 50 : undefined}
+                                            pattern={is_production ? "^[a-zA-Z0-9]+$" : undefined}
                                         />
                                         {errorsAdd.username && <p className="mt-1 text-xs text-red-500">{errorsAdd.username}</p>}
                                     </div>
@@ -368,6 +363,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                             className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
                                             value={addData.role_id}
                                             onChange={e => setAddData('role_id', e.target.value)}
+                                            required={is_production}
                                         >
                                             <option value="">Pilih Peran</option>
                                             {roles.map(role => (
@@ -386,6 +382,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                         placeholder="contoh@email.com"
                                         value={addData.email}
                                         onChange={e => setAddData('email', e.target.value)}
+                                        required={is_production}
+                                        maxLength={is_production ? 100 : undefined}
                                     />
                                     {errorsAdd.email && <p className="mt-1 text-xs text-red-500">{errorsAdd.email}</p>}
                                 </div>
@@ -398,6 +396,9 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                         placeholder="Min. 8 karakter"
                                         value={addData.password}
                                         onChange={e => setAddData('password', e.target.value)}
+                                        required={is_production}
+                                        minLength={is_production ? 8 : undefined}
+                                        maxLength={is_production ? 100 : undefined}
                                     />
                                     {errorsAdd.password && <p className="mt-1 text-xs text-red-500">{errorsAdd.password}</p>}
                                 </div>
@@ -409,6 +410,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                         placeholder="Ulangi password"
                                         value={addData.password_confirmation}
                                         onChange={e => setAddData('password_confirmation', e.target.value)}
+                                        required={is_production}
                                     />
                                 </div>
 
@@ -458,6 +460,9 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                         className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
                                         value={editData.nama_lengkap}
                                         onChange={e => setEditData('nama_lengkap', e.target.value)}
+                                        required={is_production}
+                                        minLength={is_production ? 3 : undefined}
+                                        maxLength={is_production ? 100 : undefined}
                                     />
                                     {errorsEdit.nama_lengkap && <p className="mt-1 text-xs text-red-500">{errorsEdit.nama_lengkap}</p>}
                                 </div>
@@ -469,6 +474,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                         className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
                                         value={editData.email}
                                         onChange={e => setEditData('email', e.target.value)}
+                                        required={is_production}
+                                        maxLength={is_production ? 100 : undefined}
                                     />
                                     {errorsEdit.email && <p className="mt-1 text-xs text-red-500">{errorsEdit.email}</p>}
                                 </div>
@@ -479,6 +486,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                         className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
                                         value={editData.role_id}
                                         onChange={e => setEditData('role_id', e.target.value)}
+                                        required={is_production}
                                     >
                                         {roles.map(role => (
                                             <option key={role.role_id} value={role.role_id}>{role.nama_role}</option>
@@ -498,6 +506,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                                 placeholder="Kosongkan jika tetap"
                                                 value={editData.new_password}
                                                 onChange={e => setEditData('new_password', e.target.value)}
+                                                minLength={is_production ? 8 : undefined}
+                                                maxLength={is_production ? 100 : undefined}
                                             />
                                             {errorsEdit.new_password && <p className="mt-1 text-xs text-red-500">{errorsEdit.new_password}</p>}
                                         </div>

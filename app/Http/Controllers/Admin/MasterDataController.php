@@ -24,8 +24,8 @@ class MasterDataController extends Controller
             'readonly' => false,
             'primary_key' => 'iku_id',
             'fields' => [
-                ['name' => 'kode_iku', 'label' => 'Kode IKU', 'type' => 'text'],
-                ['name' => 'nama_iku', 'label' => 'Nama IKU', 'type' => 'text'],
+                ['name' => 'kode_iku', 'label' => 'Kode IKU', 'type' => 'text', 'required' => true, 'maxLength' => 50],
+                ['name' => 'nama_iku', 'label' => 'Nama IKU', 'type' => 'text', 'required' => true, 'maxLength' => 255],
             ],
             'validation_rules' => [
                 'kode_iku' => 'required|string|max:50',
@@ -116,7 +116,7 @@ class MasterDataController extends Controller
             'readonly' => true, // Status workflow is hardcoded in logic usually
             'primary_key' => 'status_id',
             'fields' => [
-                ['name' => 'nama_status', 'label' => 'Nama Status', 'type' => 'text'],
+                ['name' => 'nama_status', 'label' => 'Nama Status', 'type' => 'text', 'required' => true, 'maxLength' => 50],
             ],
             'validation_rules' => [
                 'nama_status' => 'required|string|max:50|unique:m_kegiatan_status,nama_status',
@@ -128,7 +128,7 @@ class MasterDataController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Master/Index', [
-            'types' => collect($this->allowedTypes)->map(fn ($item, $key) => [
+            'types' => collect($this->allowedTypes)->map(fn($item, $key) => [
                 'key' => $key,
                 'title' => $item['title'],
                 'readonly' => $item['readonly'],
@@ -138,7 +138,7 @@ class MasterDataController extends Controller
 
     public function indexResource(Request $request, string $type): Response
     {
-        abort_if(! isset($this->allowedTypes[$type]), 404);
+        abort_if(!isset($this->allowedTypes[$type]), 404);
 
         $config = $this->allowedTypes[$type];
         $modelClass = $config['model'];
@@ -148,7 +148,7 @@ class MasterDataController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($config, $request) {
                 foreach ($config['searchable'] as $column) {
-                    $q->orWhere($column, 'like', '%'.$request->search.'%');
+                    $q->orWhere($column, 'like', '%' . $request->search . '%');
                 }
             });
         }
@@ -172,7 +172,7 @@ class MasterDataController extends Controller
 
     public function store(Request $request, string $type): RedirectResponse
     {
-        abort_if(! isset($this->allowedTypes[$type]), 404);
+        abort_if(!isset($this->allowedTypes[$type]), 404);
         $config = $this->allowedTypes[$type];
 
         if ($config['readonly']) {
@@ -181,7 +181,17 @@ class MasterDataController extends Controller
 
         $modelClass = $config['model'];
 
-        $validatedData = $request->validate($config['validation_rules']);
+        $validatedData = $request->validate($config['validation_rules'], [
+            'required' => ':attribute harus diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute maksimal :max karakter.',
+            'integer' => ':attribute harus berupa angka bulat.',
+            'digits' => ':attribute harus berjumlah :digits digit.',
+            'numeric' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'unique' => ':attribute sudah ada di sistem.',
+            'boolean' => ':attribute harus berupa ya/tidak.',
+        ]);
 
         $modelClass::create($validatedData);
 
@@ -190,7 +200,7 @@ class MasterDataController extends Controller
 
     public function update(Request $request, string $type, string $id): RedirectResponse
     {
-        abort_if(! isset($this->allowedTypes[$type]), 404);
+        abort_if(!isset($this->allowedTypes[$type]), 404);
         $config = $this->allowedTypes[$type];
 
         if ($config['readonly']) {
@@ -200,7 +210,17 @@ class MasterDataController extends Controller
         $modelClass = $config['model'];
         $item = $modelClass::findOrFail($id);
 
-        $validatedData = $request->validate($config['validation_rules']);
+        $validatedData = $request->validate($config['validation_rules'], [
+            'required' => ':attribute harus diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'max' => ':attribute maksimal :max karakter.',
+            'integer' => ':attribute harus berupa angka bulat.',
+            'digits' => ':attribute harus berjumlah :digits digit.',
+            'numeric' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'unique' => ':attribute sudah ada di sistem.',
+            'boolean' => ':attribute harus berupa ya/tidak.',
+        ]);
 
         $item->update($validatedData);
 
@@ -209,7 +229,7 @@ class MasterDataController extends Controller
 
     public function destroy(string $type, string $id): RedirectResponse
     {
-        abort_if(! isset($this->allowedTypes[$type]), 404);
+        abort_if(!isset($this->allowedTypes[$type]), 404);
         $config = $this->allowedTypes[$type];
 
         if ($config['readonly']) {

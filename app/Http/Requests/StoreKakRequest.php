@@ -25,40 +25,40 @@ class StoreKakRequest extends FormRequest
     {
         return [
             // Main KAK Data
-            'kak.nama_kegiatan' => 'required',
-            'kak.deskripsi_kegiatan' => 'required',
-            'kak.metode_pelaksanaan' => 'required',
-            'kak.kurun_waktu_pelaksanaan' => 'required',
-            'kak.tanggal_mulai' => 'required',
-            'kak.tanggal_selesai' => 'required|after_or_equal:kak.tanggal_mulai',
-            'kak.lokasi' => 'required',
+            'kak.nama_kegiatan' => 'required|string|min:5|max:255',
+            'kak.deskripsi_kegiatan' => 'required|string|min:10',
+            'kak.metode_pelaksanaan' => 'required|string|min:5',
+            'kak.kurun_waktu_pelaksanaan' => 'required|string',
+            'kak.tanggal_mulai' => 'required|date',
+            'kak.tanggal_selesai' => 'required|date|after_or_equal:kak.tanggal_mulai',
+            'kak.lokasi' => 'required|string|max:255',
             'kak.tipe_kegiatan_id' => 'required|exists:m_tipe_kegiatan,tipe_kegiatan_id',
-            'kak.sasaran_utama' => 'required',
+            'kak.sasaran_utama' => 'required|string|max:255',
 
             // Child: Manfaat
             'kak.manfaat' => 'required|array|min:1',
-            'kak.manfaat.*.value' => 'required',
+            'kak.manfaat.*.value' => 'required|string|max:255',
 
             // Child: Tahapan Pelaksanaan
             'kak.tahapan_pelaksanaan' => 'required|array|min:1',
-            'kak.tahapan_pelaksanaan.*.nama_tahapan' => 'required',
-            'kak.tahapan_pelaksanaan.*.urutan' => 'required',
+            'kak.tahapan_pelaksanaan.*.nama_tahapan' => 'required|string|max:255',
+            'kak.tahapan_pelaksanaan.*.urutan' => 'required|integer',
 
             // Child: Indikator Kinerja
             'kak.indikator_kinerja' => 'required|array',
-            'kak.indikator_kinerja.*.bulan_indikator' => 'required',
-            'kak.indikator_kinerja.*.deskripsi_target' => 'required',
-            'kak.indikator_kinerja.*.persentase_target' => 'required',
+            'kak.indikator_kinerja.*.bulan_indikator' => 'required|string',
+            'kak.indikator_kinerja.*.deskripsi_target' => 'required|string|max:255',
+            'kak.indikator_kinerja.*.persentase_target' => 'required|numeric|min:0|max:100',
 
             // Child: Target IKU
             'target_iku' => 'required|array',
             'target_iku.*.iku_id' => 'required|exists:m_iku,iku_id',
-            'target_iku.*.target' => 'required',
+            'target_iku.*.target' => 'required|string|max:255',
             'target_iku.*.satuan_id' => 'required|exists:m_satuan,satuan_id',
 
             // Child: RAB
             'rab' => 'required|array',
-            'rab.*.uraian' => 'required',
+            'rab.*.uraian' => 'required|string|max:255',
             'rab.*.volume1' => 'required|numeric|min:0',
             'rab.*.satuan1_id' => 'required|exists:m_satuan,satuan_id',
             'rab.*.harga_satuan' => 'required|numeric|min:0',
@@ -75,10 +75,15 @@ class StoreKakRequest extends FormRequest
     {
         return [
             'required' => ':attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
             'array' => ':attribute harus berupa array.',
             'numeric' => ':attribute harus berupa angka.',
+            'integer' => ':attribute harus berupa angka bulat.',
             'min' => ':attribute minimal :min.',
+            'max' => ':attribute maksimal :max.',
             'after_or_equal' => ':attribute harus setelah atau sama dengan :date.',
+            'exists' => ':attribute yang dipilih tidak valid.',
+            'date' => ':attribute harus berupa format tanggal yang valid.',
         ];
     }
 

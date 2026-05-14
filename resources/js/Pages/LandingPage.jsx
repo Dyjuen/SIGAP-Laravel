@@ -415,20 +415,20 @@ export default function LandingPage({ auth }) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                             <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
-                            <input type="text" id="name" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="Budi Hartono" required />
+                            <input type="text" id="name" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="Budi Hartono" required maxLength={100} />
                             </div>
                             <div>
                             <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">Alamat Email</label>
-                            <input type="email" id="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="budihartono@gmail.com" required />
+                            <input type="email" id="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="budihartono@gmail.com" required maxLength={100} />
                             </div>
                         </div>
                         <div>
                             <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
-                            <input type="tel" id="phone" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="+62 812 3456 7890" required />
+                            <input type="tel" id="phone" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all hover:border-cyan-300" placeholder="+62 812 3456 7890" required maxLength={20} />
                         </div>
                         <div>
                             <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">Pesan</label>
-                            <textarea id="message" rows="5" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all resize-none hover:border-cyan-300" placeholder="Tulis pesan Anda di sini..." required></textarea>
+                            <textarea id="message" rows="5" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#33C8DA] focus:border-transparent outline-none transition-all resize-none hover:border-cyan-300" placeholder="Tulis pesan Anda di sini..." required maxLength={1000}></textarea>
                         </div>
                         <button type="submit" className="w-full bg-[#33C8DA] text-white px-6 py-4 rounded-lg font-semibold hover:bg-[#2BA9B8] transition-colors duration-300 shadow-md hover:shadow-lg">
                             Kirim Pesan

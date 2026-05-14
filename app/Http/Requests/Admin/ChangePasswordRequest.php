@@ -26,4 +26,19 @@ class ChangePasswordRequest extends FormRequest
             'new_password' => ['required', 'confirmed', 'string', 'min:8', 'max:100'],
         ];
     }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'new_password.required' => 'Password baru harus diisi.',
+            'new_password.confirmed' => 'Konfirmasi password tidak sesuai.',
+            'new_password.min' => 'Password baru minimal :min karakter.',
+            'new_password.max' => 'Password baru maksimal :max karakter.',
+        ];
+    }
 }

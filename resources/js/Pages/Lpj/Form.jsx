@@ -375,7 +375,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                     {/* Vol 1 */}
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100/50">
                                                                         <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                            value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="-" />
+                                                                            value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="-" required />
                                                                     </td>
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100">
                                                                         <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
@@ -411,7 +411,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                                     {/* Harga */}
                                                                     <td className="px-2 py-2 align-top border-r border-slate-100">
                                                                         <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 text-right focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                            value={realisasiItem.harga_satuan ? formatInputCurrency(realisasiItem.harga_satuan) : ''} onChange={e => handleRealisasiChange(item.anggaran_id, 'harga_satuan', e.target.value)} disabled={!isEditingPengusul} placeholder="Rp 0" />
+                                                                            value={realisasiItem.harga_satuan ? formatInputCurrency(realisasiItem.harga_satuan) : ''} onChange={e => handleRealisasiChange(item.anggaran_id, 'harga_satuan', e.target.value)} disabled={!isEditingPengusul} placeholder="Rp 0" required />
                                                                     </td>
                                                                     <td className="px-4 py-2 text-right font-bold text-gray-700 bg-cyan-50/30 align-top whitespace-nowrap">
                                                                         <div className="py-2">{formatCurrency(calculateRowTotal(realisasiItem))}</div>
@@ -651,11 +651,13 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                             <label className="block text-sm font-bold text-slate-700">Catatan Reviewer:</label>
                             <textarea
                                 ref={commentInputRef}
-                                className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-cyan-500 focus:ring-0 transition-colors h-32 resize-none"
-                                placeholder={isReviewingBendahara ? (commentModalConfig?.isArchived ? "Dokumen ini dihapus. Catatan tidak dapat diubah." : "Masukkan catatan...") : "Belum ada catatan."}
+                                className="w-full p-4 border-2 border-slate-200 rounded-xl focus:border-cyan-500 focus:ring-0 transition-all h-40 resize-none shadow-inner"
+                                placeholder={isReviewingBendahara ? (commentModalConfig?.isArchived ? "Dokumen ini dihapus. Catatan tidak dapat diubah." : "Berikan catatan spesifik mengapa item atau dokumen ini perlu direvisi...") : "Belum ada catatan."}
                                 value={commentText}
                                 onChange={(e) => setCommentText(e.target.value)}
                                 disabled={!isReviewingBendahara || commentModalConfig?.isArchived}
+                                maxLength={1000}
+                                required={isReviewingBendahara}
                             />
                         </div>
 

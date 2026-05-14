@@ -3,7 +3,7 @@ import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react'; // Import usePage
 import { useRef } from 'react';
 
 export default function UpdatePasswordForm({ className = '' }) {
@@ -74,6 +74,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="current-password"
+                        required
                     />
 
                     <InputError
@@ -93,6 +94,9 @@ export default function UpdatePasswordForm({ className = '' }) {
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="new-password"
+                        required
+                        minLength={8}
+                        maxLength={100}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
@@ -113,6 +117,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="new-password"
+                        required
                     />
 
                     <InputError

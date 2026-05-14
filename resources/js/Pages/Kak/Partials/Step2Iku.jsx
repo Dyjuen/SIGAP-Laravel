@@ -8,7 +8,7 @@ import CustomSelect from '@/Components/CustomSelect';
 export default function Step2Iku({
     data, setData, errors, iku = [], satuan = [], readOnly = false,
     isVerifikator = false, isPengusul = false, isPengusulFixing = false,
-    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null
+    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null,
 }) {
 
     const addTargetIku = () => setData('target_iku', [...data.target_iku, { _id: Math.random(), iku_id: '', target: '', satuan_id: '' }]);
@@ -47,20 +47,21 @@ export default function Step2Iku({
                                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                         {/* IKU Select */}
                                         <div className="md:col-span-6">
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Kinerja Utama</label>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Kinerja Utama {<span className="text-red-500">*</span>}</label>
                                             <CustomSelect
                                                 value={item.iku_id}
                                                 onChange={(val) => updateTargetIku(index, 'iku_id', val)}
                                                 options={iku.map(i => ({ value: i.iku_id, label: `${i.kode_iku} - ${i.nama_iku}` }))}
                                                 placeholder="Pilih IKU"
                                                 disabled={readOnly}
+                                                required
                                                 className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
                                             />
                                         </div>
 
                                         {/* Target Input */}
                                         <div className="md:col-span-3">
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Target</label>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1">Target {<span className="text-red-500">*</span>}</label>
                                             <input
                                                 type="number"
                                                 className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -69,18 +70,20 @@ export default function Step2Iku({
                                                 placeholder="0"
                                                 min="0"
                                                 disabled={readOnly}
+                                                required
                                             />
                                         </div>
 
                                         {/* Satuan Select */}
                                         <div className="md:col-span-2">
-                                            <label className="block text-xs font-bold text-gray-500 mb-1">Satuan</label>
+                                            <label className="block text-xs font-bold text-gray-500 mb-1">Satuan {<span className="text-red-500">*</span>}</label>
                                             <CustomSelect
                                                 value={item.satuan_id}
                                                 onChange={(val) => updateTargetIku(index, 'satuan_id', val)}
                                                 options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
                                                 placeholder="Satuan"
                                                 disabled={readOnly}
+                                                required
                                                 className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
                                             />
                                         </div>

@@ -59,11 +59,22 @@ class StoreLampiranRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'file.required' => 'File lampiran wajib diunggah.',
-            'file.file' => 'Input harus berupa file.',
-            'file.max' => 'Ukuran file maksimal adalah 10 MB.',
-            'file.mimes' => 'Format file tidak didukung. Gunakan file Gambar (JPG, JPEG, PNG) atau PDF.',
-            'catatan.max' => 'Catatan maksimal 500 karakter.',
+            'required' => ':attribute wajib diisi.',
+            'file' => ':attribute harus berupa file.',
+            'max' => 'Ukuran :attribute maksimal adalah :max KB.',
+            'mimes' => 'Format :attribute tidak didukung. Gunakan file :values.',
+            'string' => ':attribute harus berupa teks.',
+        ];
+    }
+
+    /**
+     * Custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'file' => 'File lampiran',
+            'catatan' => 'Catatan',
         ];
     }
 }

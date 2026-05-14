@@ -9,7 +9,8 @@ export default function UpdateProfileInformation({
     status,
     className = '',
 }) {
-    const user = usePage().props.auth.user;
+    const { auth } = usePage().props;
+    const user = auth.user;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
         useForm({
@@ -47,6 +48,8 @@ export default function UpdateProfileInformation({
                         required
                         isFocused
                         autoComplete="name"
+                        minLength={3}
+                        maxLength={100}
                     />
 
                     <InputError className="mt-2" message={errors.nama_lengkap} />
@@ -63,12 +66,11 @@ export default function UpdateProfileInformation({
                         onChange={(e) => setData('email', e.target.value)}
                         required
                         autoComplete="username"
+                        maxLength={100}
                     />
 
                     <InputError className="mt-2" message={errors.email} />
                 </div>
-
-
 
                 <div className="flex items-center gap-4">
                     <PrimaryButton disabled={processing}>Save</PrimaryButton>

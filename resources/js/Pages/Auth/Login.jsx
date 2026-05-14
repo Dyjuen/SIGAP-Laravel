@@ -3,7 +3,7 @@ import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -57,6 +57,10 @@ export default function Login({ status, canResetPassword }) {
                             isFocused={true}
                             placeholder="Masukkan nama pengguna Anda"
                             onChange={(e) => setData('username', e.target.value)}
+                            required
+                            minLength={3}
+                            maxLength={50}
+                            pattern="^[a-zA-Z0-9]+$"
                         />
                     </div>
                     <InputError message={errors.username} className="mt-2" />
@@ -75,6 +79,8 @@ export default function Login({ status, canResetPassword }) {
                             autoComplete="current-password"
                             placeholder="Masukkan kata sandi Anda"
                             onChange={(e) => setData('password', e.target.value)}
+                            required
+                            minLength={6}
                         />
                     </div>
                     <InputError message={errors.password} className="mt-2" />

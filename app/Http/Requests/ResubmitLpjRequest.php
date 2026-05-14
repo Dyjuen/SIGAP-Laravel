@@ -21,19 +21,41 @@ class ResubmitLpjRequest extends FormRequest
     {
         return [
             'realisasi' => ['nullable', 'array'],
-            'realisasi.*' => ['array'],
+            'realisasi.*.volume1' => ['required', 'numeric', 'min:0'],
+            'realisasi.*.satuan1_id' => ['required', 'integer', 'exists:m_satuan,satuan_id'],
+            'realisasi.*.volume2' => ['nullable', 'numeric', 'min:0'],
+            'realisasi.*.satuan2_id' => ['nullable', 'integer', 'exists:m_satuan,satuan_id'],
+            'realisasi.*.volume3' => ['nullable', 'numeric', 'min:0'],
+            'realisasi.*.satuan3_id' => ['nullable', 'integer', 'exists:m_satuan,satuan_id'],
+            'realisasi.*.harga_satuan' => ['required', 'numeric', 'min:0'],
             'files_to_delete' => ['nullable', 'array'],
-            'files_to_delete.*' => ['integer'],
+            'files_to_delete.*' => ['integer', 'exists:t_kegiatan_lampiran,lampiran_id'],
             'bukti' => ['nullable', 'array'],
-            'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png'],
+            'bukti.*' => ['nullable', 'array'],
+            'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'bukti.*.*.max' => 'Ukuran file maksimal 10 MB.',
-            'bukti.*.*.mimes' => 'Format file harus berupa gambar (jpg, jpeg, png).',
+            'required' => ':attribute wajib diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'exists' => ':attribute tidak valid.',
+            'file' => ':attribute harus berupa file.',
+            'mimes' => ':attribute harus berupa file dengan format: :values.',
+            'max' => ':attribute maksimal :max KB.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'realisasi.*.volume1' => 'Volume 1',
+            'realisasi.*.satuan1_id' => 'Satuan 1',
+            'realisasi.*.harga_satuan' => 'Harga Satuan',
+            'bukti.*.*' => 'Bukti Dokumen',
         ];
     }
 }

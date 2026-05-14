@@ -31,9 +31,16 @@ class SaveCatatanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'catatan_reviewer.required' => 'Catatan reviewer wajib diisi.',
-            'catatan_reviewer.min' => 'Catatan reviewer minimal 5 karakter.',
-            'catatan_reviewer.max' => 'Catatan reviewer maksimal 1000 karakter.',
+            'required' => ':attribute wajib diisi.',
+            'min' => ':attribute minimal :min karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'catatan_reviewer' => 'Catatan Reviewer',
         ];
     }
 }

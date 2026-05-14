@@ -164,6 +164,7 @@ export default function ChatbotBubble() {
                             onKeyDown={e => e.key === 'Enter' && sendMessage()}
                             placeholder="Tulis pesan Anda..."
                             className="flex-1 px-4 py-3 border border-gray-300 rounded-full text-sm outline-none focus:border-[#33C8DA] focus:ring-2 focus:ring-[#33C8DA]/20 transition-all"
+                            maxLength={1000}
                         />
                         <button
                             onClick={() => sendMessage()}

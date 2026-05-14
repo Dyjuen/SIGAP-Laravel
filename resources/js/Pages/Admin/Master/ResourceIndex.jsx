@@ -175,6 +175,8 @@ export default function ResourceIndex({ auth, type, title, readonly, primaryKey,
                                     className="mt-1 block w-full"
                                     value={data[field.name] || ''}
                                     onChange={(e) => setData(field.name, e.target.value)}
+                                    required={field.required}
+                                    maxLength={field.maxLength}
                                     // simple boolean support check
                                     {...(field.type === 'checkbox' ? { checked: data[field.name], value: undefined, onChange: (e) => setData(field.name, e.target.checked) } : {})}
                                 />

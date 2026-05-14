@@ -31,6 +31,19 @@ class ReviseLpjRequest extends FormRequest
 
     public function messages(): array
     {
-        return [];
+        return [
+            'required' => ':attribute wajib diisi.',
+            'integer' => ':attribute harus berupa angka bulat.',
+            'exists' => ':attribute tidak valid.',
+            'max' => ':attribute maksimal :max karakter.',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'lampiran_comments.*.catatan_reviewer' => 'Catatan revisi dokumen',
+            'anggaran_comments.*.catatan_reviewer' => 'Catatan revisi anggaran',
+        ];
     }
 }

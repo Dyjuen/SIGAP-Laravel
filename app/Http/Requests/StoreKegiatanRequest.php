@@ -62,8 +62,18 @@ class StoreKegiatanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tanggal_mulai.after_or_equal' => 'Tanggal mulai tidak boleh kurang dari hari ini.',
-            'tanggal_selesai.after' => 'Tanggal selesai harus setelah tanggal mulai.',
+            'required' => ':attribute wajib diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'min' => ':attribute minimal :min karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+            'date' => ':attribute harus berupa tanggal valid.',
+            'after_or_equal' => ':attribute tidak boleh kurang dari :date.',
+            'after' => ':attribute harus setelah :date.',
+            'file' => ':attribute harus berupa file.',
+            'mimes' => ':attribute harus berupa file dengan format: :values.',
+            'max' => ':attribute maksimal :max KB.',
+            'exists' => ':attribute yang dipilih tidak valid.',
+            'integer' => ':attribute harus berupa angka bulat.',
         ];
     }
 

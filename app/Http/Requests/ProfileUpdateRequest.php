@@ -12,7 +12,7 @@ class ProfileUpdateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -37,9 +37,26 @@ class ProfileUpdateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nama_lengkap.required' => 'Nama lengkap harus diisi.',
-            'email.required' => 'Email harus diisi.',
-            'email.unique' => 'Email sudah digunakan oleh user lain.',
+            'required' => ':attribute harus diisi.',
+            'string' => ':attribute harus berupa teks.',
+            'min' => ':attribute minimal :min karakter.',
+            'max' => ':attribute maksimal :max karakter.',
+            'email' => ':attribute harus berupa alamat email yang valid.',
+            'unique' => ':attribute sudah digunakan oleh user lain.',
+            'lowercase' => ':attribute harus menggunakan huruf kecil.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'nama_lengkap' => 'Nama Lengkap',
+            'email' => 'Alamat Email',
         ];
     }
 }

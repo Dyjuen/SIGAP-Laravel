@@ -106,7 +106,7 @@ export default function KegiatanSubmitModal({
                                                 name="file-upload" 
                                                 type="file" 
                                                 className="sr-only"
-                                                accept=".pdf,.doc,.docx"
+                                                accept={".pdf,.doc,.docx"}
                                                 onChange={e => setData('surat_pengantar', e.target.files[0])}
                                                 required
                                             />

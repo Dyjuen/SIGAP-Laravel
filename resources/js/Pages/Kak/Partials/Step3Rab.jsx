@@ -8,7 +8,7 @@ import CustomSelect from '@/Components/CustomSelect';
 export default function Step3Rab({
     data, setData, errors, kategori_belanja = [], satuan = [], readOnly = false,
     isVerifikator = false, isPengusul = false, isPengusulFixing = false,
-    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null
+    openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null,
 }) {
 
     // --- Dynamic Field Handlers ---
@@ -103,12 +103,12 @@ export default function Step3Rab({
                                                             >
                                                                 <td className="px-2 py-2 w-48 align-top">
                                                                     <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.uraian || ''} onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." />
+                                                                        value={item.uraian || ''} onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." required />
                                                                 </td>
                                                                 {/* Vol 1 */}
                                                                 <td className="px-1 py-2 align-top">
                                                                     <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.volume1 || ''} onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="-" />
+                                                                        value={item.volume1 || ''} onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="-" required />
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
@@ -117,6 +117,7 @@ export default function Step3Rab({
                                                                         options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
                                                                         placeholder="-"
                                                                         disabled={readOnly && !isPengusulFixing}
+                                                                        required
                                                                         className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
                                                                     />
                                                                 </td>
@@ -153,7 +154,7 @@ export default function Step3Rab({
                                                                 {/* Harga */}
                                                                 <td className="px-2 py-2 align-top">
                                                                     <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-right focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.harga_satuan || ''} onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="0" />
+                                                                        value={item.harga_satuan || ''} onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="0" required />
                                                                 </td>
                                                                 <td className="px-4 py-2 text-right font-bold text-gray-700 bg-gray-50/50 align-top">
                                                                     <div className="py-2">{formatCurrency(calculateRowTotal(item))}</div>
@@ -257,14 +258,14 @@ export default function Step3Rab({
 
                                                 {/* Uraian */}
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">Uraian / Nama Item</label>
+                                                    <label className="block text-[10px] font-bold text-gray-400 mb-1 uppercase tracking-widest">Uraian / Nama Item {<span className="text-red-500">*</span>}</label>
                                                     {readOnly ? (
                                                         <p className="text-sm font-semibold text-gray-800">{item.uraian || '-'}</p>
                                                     ) : (
                                                         <input type="text"
                                                             className="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2 px-3 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
                                                             value={item.uraian || ''} onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)}
-                                                            disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." />
+                                                            disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." required />
                                                     )}
                                                 </div>
 
@@ -273,12 +274,12 @@ export default function Step3Rab({
 
                                                 {/* Vol × Satuan Rows */}
                                                 {[
-                                                    { volKey: 'volume1', satKey: 'satuan1_id', label: 'Vol 1' },
-                                                    { volKey: 'volume2', satKey: 'satuan2_id', label: 'Vol 2' },
-                                                    { volKey: 'volume3', satKey: 'satuan3_id', label: 'Vol 3' },
-                                                ].map(({ volKey, satKey, label }) => (
+                                                    { volKey: 'volume1', satKey: 'satuan1_id', label: 'Vol 1', required: true },
+                                                    { volKey: 'volume2', satKey: 'satuan2_id', label: 'Vol 2', required: false },
+                                                    { volKey: 'volume3', satKey: 'satuan3_id', label: 'Vol 3', required: false },
+                                                ].map(({ volKey, satKey, label, required }) => (
                                                     <div key={volKey} className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">{label}</span>
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">{label} {required && <span className="text-red-500">*</span>}</span>
                                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                                             {readOnly ? (
                                                                 <>
@@ -292,13 +293,14 @@ export default function Step3Rab({
                                                                     <input type="number"
                                                                         className="w-full rounded-lg border-gray-200 bg-gray-50 text-xs py-2 text-center focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
                                                                         value={item[volKey] || ''} onChange={e => updateRab(item.originalIndex, volKey, e.target.value)}
-                                                                        disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
+                                                                        disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" required={required} />
                                                                     <CustomSelect
                                                                         value={item[satKey] || ''}
                                                                         onChange={(val) => updateRab(item.originalIndex, satKey, val)}
                                                                         options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
                                                                         placeholder="Satuan"
                                                                         disabled={readOnly && !isPengusulFixing}
+                                                                        required={required}
                                                                         className="w-full rounded-lg py-2 pl-2 pr-7 text-xs"
                                                                     />
                                                                 </>
@@ -312,7 +314,7 @@ export default function Step3Rab({
 
                                                 {/* Harga Satuan */}
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">Harga</span>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">Harga {<span className="text-red-500">*</span>}</span>
                                                     <div className="flex-1">
                                                         {readOnly ? (
                                                             <p className="text-sm font-semibold text-gray-800 text-right">{formatCurrency(parseFloat(item.harga_satuan) || 0)}</p>
@@ -320,7 +322,7 @@ export default function Step3Rab({
                                                             <input type="number"
                                                                 className="w-full rounded-lg border-gray-200 bg-gray-50 text-xs py-2 text-right focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
                                                                 value={item.harga_satuan || ''} onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)}
-                                                                disabled={readOnly && !isPengusulFixing} placeholder="0" min="0" />
+                                                                disabled={readOnly && !isPengusulFixing} placeholder="0" min="0" required />
                                                         )}
                                                     </div>
                                                 </div>

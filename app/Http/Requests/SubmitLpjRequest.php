@@ -24,25 +24,45 @@ class SubmitLpjRequest extends FormRequest
     {
         return [
             'realisasi' => ['required', 'array', 'min:1'],
-            'realisasi.*.volume1' => ['nullable', 'numeric'],
-            'realisasi.*.satuan1_id' => ['nullable', 'integer'],
-            'realisasi.*.volume2' => ['nullable', 'numeric'],
-            'realisasi.*.satuan2_id' => ['nullable', 'integer'],
-            'realisasi.*.volume3' => ['nullable', 'numeric'],
-            'realisasi.*.satuan3_id' => ['nullable', 'integer'],
-            'realisasi.*.harga_satuan' => ['nullable', 'string'],
+            'realisasi.*.volume1' => ['required', 'numeric', 'min:0'],
+            'realisasi.*.satuan1_id' => ['required', 'integer', 'exists:m_satuan,satuan_id'],
+            'realisasi.*.volume2' => ['nullable', 'numeric', 'min:0'],
+            'realisasi.*.satuan2_id' => ['nullable', 'integer', 'exists:m_satuan,satuan_id'],
+            'realisasi.*.volume3' => ['nullable', 'numeric', 'min:0'],
+            'realisasi.*.satuan3_id' => ['nullable', 'integer', 'exists:m_satuan,satuan_id'],
+            'realisasi.*.harga_satuan' => ['required', 'numeric', 'min:0'],
             'bukti' => ['nullable', 'array'],
-            'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png'],
+            'bukti.*' => ['nullable', 'array'],
+            'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
         ];
     }
 
     public function messages(): array
     {
         return [
+            'required' => ':attribute wajib diisi.',
+            'numeric' => ':attribute harus berupa angka.',
+            'min' => ':attribute minimal :min.',
+            'exists' => ':attribute tidak valid.',
+            'file' => ':attribute harus berupa file.',
+            'mimes' => ':attribute harus berupa file dengan format: :values.',
+            'max' => ':attribute maksimal :max KB.',
             'realisasi.required' => 'Data realisasi tidak boleh kosong.',
             'realisasi.min' => 'Data realisasi tidak boleh kosong.',
-            'bukti.*.*.max' => 'Ukuran file maksimal 10 MB.',
-            'bukti.*.*.mimes' => 'Format file harus berupa gambar (jpg, jpeg, png).',
+        ];
+    }
+
+    public function attributes(): array
+    {
+        return [
+            'realisasi.*.volume1' => 'Volume 1',
+            'realisasi.*.satuan1_id' => 'Satuan 1',
+            'realisasi.*.volume2' => 'Volume 2',
+            'realisasi.*.satuan2_id' => 'Satuan 2',
+            'realisasi.*.volume3' => 'Volume 3',
+            'realisasi.*.satuan3_id' => 'Satuan 3',
+            'realisasi.*.harga_satuan' => 'Harga Satuan',
+            'bukti.*.*' => 'Bukti Dokumen',
         ];
     }
 }
