@@ -33,6 +33,7 @@ function clearAll() {
     document.getElementById('emptyState').style.display = '';
     document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
     analysisData = null;
+    undoStack = [];
 }
 
 // ---- ZOOM & PAN ----
@@ -138,6 +139,7 @@ function analyze() {
     
     analysisData = { nodes, edges, vg, totalP, predicates, paths, coverage, positions, svgW, svgH, offX, offY, maxX };
     manualLabelPos.clear();
+    undoStack = [];
     
     // Render all tabs
     renderFlowgraph();
@@ -159,6 +161,57 @@ let manualEdgePos = new Map(); // Legacy global offsets
 let manualEdgeWaypoints = new Map(); // Array of {x, y}
 let selectedEdgeId = null;
 let dragWaypointIdx = -1;
+
+function snap(v) { return Math.round(v / 10) * 10; }
+
+// ---- UNDO / HISTORY ----
+let undoStack = [];
+const MAX_UNDO = 50;
+let stateBeforeDrag = null;
+let hasDragged = false;
+
+function captureLayoutState() {
+    if (!analysisData) return null;
+    return {
+        positions: new Map(Array.from(analysisData.positions).map(([k, v]) => [k, { ...v }])),
+        manualLabelPos: new Map(Array.from(manualLabelPos).map(([k, v]) => [k, { ...v }])),
+        manualEdgeWaypoints: new Map(Array.from(manualEdgeWaypoints).map(([k, v]) => [k, v.map(p => ({ ...p }))])),
+        manualEdgePos: new Map(Array.from(manualEdgePos).map(([k, v]) => [k, { ...v }]))
+    };
+}
+
+function applyLayoutState(state) {
+    if (!state || !analysisData) return;
+    analysisData.positions = state.positions;
+    manualLabelPos = state.manualLabelPos;
+    manualEdgeWaypoints = state.manualEdgeWaypoints;
+    manualEdgePos = state.manualEdgePos;
+    renderFlowgraph();
+}
+
+function pushUndo() {
+    if (stateBeforeDrag && hasDragged) {
+        undoStack.push(stateBeforeDrag);
+        if (undoStack.length > MAX_UNDO) undoStack.shift();
+    }
+    stateBeforeDrag = null;
+    hasDragged = false;
+}
+
+function undo() {
+    if (undoStack.length > 0) {
+        const prevState = undoStack.pop();
+        applyLayoutState(prevState);
+    }
+}
+
+// Global Undo Shortcut
+window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+    }
+});
 
 // ---- SVG FLOWGRAPH RENDERING ----
 function renderFlowgraph() {
@@ -207,34 +260,35 @@ function renderFlowgraph() {
         // Generate default waypoints if none exist
         if (!waypoints) {
             const mEdge = manualEdgePos.get(edgeId) || {x: 0, y: 0};
+            const snX = snap(mEdge.x), snY = snap(mEdge.y);
+            
             if (y2 <= y1 - from.h) {
                 // Loop
-                const rx = maxX + offX + 60 + mEdge.x;
+                const rx = snap(maxX + offX + 60) + snX;
                 waypoints = [{x: x1, y: y1+20}, {x: rx, y: y1+20}, {x: rx, y: y2-20}, {x: x2, y: y2-20}];
-            } else if (Math.abs(x1 - x2) < 5 && mEdge.x === 0) {
+            } else if (Math.abs(x1 - x2) < 5 && snX === 0) {
                 // Straight
                 waypoints = [];
             } else {
                 // Orthogonal
-                const midY = y1 + (y2 - y1) / 2 + mEdge.y;
-                const midX = x1 + (Math.abs(x1 - x2) < 5 ? mEdge.x : 0);
+                const midY = snap(y1 + (y2 - y1) / 2) + snY;
+                const midX = x1 + snX;
                 waypoints = [{x: midX, y: midY}, {x: x2, y: midY}];
             }
-            // We don't save yet to keep them dynamic until manual edit
         }
 
         let pathD = `M${x1},${y1}`;
-        (waypoints || []).forEach(p => pathD += ` L${p.x},${p.y}`);
+        (waypoints || []).forEach(p => pathD += ` L${snap(p.x)},${snap(p.y)}`);
         pathD += ` L${x2},${y2}`;
 
         let labelX, labelY, labelAnchor = 'middle';
         if (waypoints && waypoints.length > 0) {
             const midIdx = Math.floor(waypoints.length / 2);
-            labelX = waypoints[midIdx].x;
-            labelY = waypoints[midIdx].y - 10;
+            labelX = snap(waypoints[midIdx].x);
+            labelY = snap(waypoints[midIdx].y) - 10;
         } else {
-            labelX = (x1 + x2) / 2 + 10;
-            labelY = (y1 + y2) / 2;
+            labelX = snap((x1 + x2) / 2 + 10);
+            labelY = snap((y1 + y2) / 2);
             labelAnchor = 'start';
         }
 
@@ -252,7 +306,7 @@ function renderFlowgraph() {
         // Waypoint handles
         if (isSelected && waypoints) {
             waypoints.forEach((p, idx) => {
-                html += `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#fff" stroke="#388bfd" stroke-width="2" class="waypoint-handle" data-edge="${edgeId}" data-idx="${idx}" style="cursor: move;" />`;
+                html += `<circle cx="${snap(p.x)}" cy="${snap(p.y)}" r="4" fill="#fff" stroke="#388bfd" stroke-width="2" class="waypoint-handle" data-edge="${edgeId}" data-idx="${idx}" style="cursor: move;" />`;
             });
         }
         html += `</g>`;
@@ -262,9 +316,8 @@ function renderFlowgraph() {
             const edgeId = `${e.from}->${e.to}`;
             const mPos = manualLabelPos.get(edgeId) || {x: 0, y: 0};
             
-            if (!labelX) { labelX = (x1+x2)/2; labelY = (y1+y2)/2; }
-            labelX += mPos.x;
-            labelY += mPos.y;
+            labelX += snap(mPos.x);
+            labelY += snap(mPos.y);
             
             const tw = e.label.length * 6.5;
             let bgX = labelX - tw/2;
@@ -282,8 +335,8 @@ function renderFlowgraph() {
     nodes.forEach(n => {
         const pos = positions.get(n.id);
         if (!pos) return;
-        const x = pos.x + offX - pos.w/2;
-        const y = pos.y + offY;
+        const x = snap(pos.x + offX - pos.w/2);
+        const y = snap(pos.y + offY);
         const c = nodeColors[n.type] || nodeColors.stmt;
         const isDiamond = ['if','elseif','loop','ternary'].includes(n.type);
         
@@ -364,6 +417,10 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
     // Deselect edge if clicking background
     if (!target && e.button === 0) selectedEdgeId = null;
 
+    // Capture state before any potential modification
+    stateBeforeDrag = captureLayoutState();
+    hasDragged = false;
+
     // Right Click (Button 2) for Panning
     if (e.button === 2) {
         isPanning = true;
@@ -415,18 +472,16 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
                     const insertIdx = findNearestSegmentIndex(svgP, fullPath);
                     pts.splice(insertIdx, 0, {x: svgP.x, y: svgP.y});
                     
+                    hasDragged = true; // Immediate change
                     isDragging = true;
                     dragType = 'waypoint';
                     dragId = edgeId;
                     dragWaypointIdx = insertIdx;
                 } else {
-                    // Regular drag moves the whole edge (all waypoints)
+                    // For edge drag, we use legacy offset instead of forcing waypoints
                     isDragging = true;
                     dragType = 'edge';
                     dragId = edgeId;
-                    if (!manualEdgeWaypoints.has(edgeId)) {
-                        manualEdgeWaypoints.set(edgeId, initializeWaypointsForEdge(edgeId));
-                    }
                 }
             }
             flowgraphSvg.style.cursor = 'grabbing';
@@ -510,6 +565,8 @@ window.addEventListener('mousemove', (e) => {
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
     
+    if (isDragging) hasDragged = true;
+    
     if (dragType === 'node') {
         const pos = analysisData.positions.get(dragId);
         pos.x += dx;
@@ -543,7 +600,11 @@ window.addEventListener('mousemove', (e) => {
     renderFlowgraph();
 });
 
-window.addEventListener('mouseup', () => {
+window.addEventListener('mouseup', (e) => {
+    if (isDragging) {
+        pushUndo();
+    }
+    
     isDragging = false;
     isPanning = false;
     dragType = null;
