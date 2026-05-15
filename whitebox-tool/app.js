@@ -157,35 +157,50 @@ function analyze() {
 
 // ---- MANUAL DRAG STATE ----
 let manualLabelPos = new Map();
-let manualEdgePos = new Map(); // Legacy global offsets
-let manualEdgeWaypoints = new Map(); // Array of {x, y}
+const manualEdgeWaypoints = new Map(); // edgeId -> [{x, y}, ...]
+const manualEdgePos = new Map();       // edgeId -> {x, y} (legacy offset)
+const manualAnchorOffsets = new Map();  // edgeId-(source|target) -> {x, y}
+let undoStack = [];
 let selectedEdgeId = null;
 let dragWaypointIdx = -1;
+let dragSegmentIdx = -1;
+let dragAnchorType = null; // 'source' or 'target'
 
 function snap(v) { return Math.round(v / 10) * 10; }
 
 // ---- UNDO / HISTORY ----
-let undoStack = [];
 const MAX_UNDO = 50;
 let stateBeforeDrag = null;
 let hasDragged = false;
 
 function captureLayoutState() {
     if (!analysisData) return null;
+    const anchors = {};
+    manualAnchorOffsets.forEach((val, key) => anchors[key] = { ...val });
+
     return {
-        positions: new Map(Array.from(analysisData.positions).map(([k, v]) => [k, { ...v }])),
-        manualLabelPos: new Map(Array.from(manualLabelPos).map(([k, v]) => [k, { ...v }])),
-        manualEdgeWaypoints: new Map(Array.from(manualEdgeWaypoints).map(([k, v]) => [k, v.map(p => ({ ...p }))])),
-        manualEdgePos: new Map(Array.from(manualEdgePos).map(([k, v]) => [k, { ...v }]))
+        positions: JSON.parse(JSON.stringify(Array.from(analysisData.positions.entries()))),
+        labelOffsets: JSON.parse(JSON.stringify(Array.from(manualLabelPos.entries()))),
+        waypoints: JSON.parse(JSON.stringify(Array.from(manualEdgeWaypoints.entries()))),
+        edgeOffsets: JSON.parse(JSON.stringify(Array.from(manualEdgePos.entries()))),
+        anchors
     };
 }
 
-function applyLayoutState(state) {
+function restoreLayoutState(state) {
     if (!state || !analysisData) return;
-    analysisData.positions = state.positions;
-    manualLabelPos = state.manualLabelPos;
-    manualEdgeWaypoints = state.manualEdgeWaypoints;
-    manualEdgePos = state.manualEdgePos;
+    analysisData.positions.clear();
+    state.positions.forEach(([k, v]) => analysisData.positions.set(k, v));
+    manualLabelPos.clear();
+    state.labelOffsets.forEach(([k, v]) => manualLabelPos.set(k, v));
+    manualEdgeWaypoints.clear();
+    state.waypoints.forEach(([k, v]) => manualEdgeWaypoints.set(k, v));
+    manualEdgePos.clear();
+    state.edgeOffsets.forEach(([k, v]) => manualEdgePos.set(k, v));
+    manualAnchorOffsets.clear();
+    if (state.anchors) {
+        Object.entries(state.anchors).forEach(([k, v]) => manualAnchorOffsets.set(k, v));
+    }
     renderFlowgraph();
 }
 
@@ -201,7 +216,7 @@ function pushUndo() {
 function undo() {
     if (undoStack.length > 0) {
         const prevState = undoStack.pop();
-        applyLayoutState(prevState);
+        restoreLayoutState(prevState);
     }
 }
 
@@ -244,6 +259,8 @@ function renderFlowgraph() {
     </defs>
     <g id="svgViewport" transform="translate(${panX}, ${panY}) scale(${currentZoom})">`;
     
+    const allOffsets = computeAllAnchorOffsets(edges);
+    
     // Draw edges — ORTHOGONAL (garis lurus siku-siku)
     edges.forEach(e => {
         const from = positions.get(e.from);
@@ -251,9 +268,14 @@ function renderFlowgraph() {
         if (!from || !to) return;
         
         const edgeId = `${e.from}->${e.to}`;
-        const x1 = from.x + offX, y1 = from.y + offY + from.h;
-        const x2 = to.x + offX;
-        const y2 = to.y + offY - 4; 
+        const dOff = allOffsets.get(edgeId) || {sourceOffX: 0, targetOffX: 0, midYJitter: 0};
+
+        // Respect manual anchor offsets if present
+        const sOff = manualAnchorOffsets.get(`${edgeId}-source`) || {x: dOff.sourceOffX, y: from.h};
+        const tOff = manualAnchorOffsets.get(`${edgeId}-target`) || {x: dOff.targetOffX, y: -4};
+
+        const x1 = from.x + offX + sOff.x, y1 = from.y + offY + sOff.y;
+        const x2 = to.x + offX + tOff.x, y2 = to.y + offY + tOff.y;
         
         let waypoints = manualEdgeWaypoints.get(edgeId);
         
@@ -264,14 +286,14 @@ function renderFlowgraph() {
             
             if (y2 <= y1 - from.h) {
                 // Loop
-                const rx = snap(maxX + offX + 60) + snX;
+                const rx = snap(maxX + offX + 60) + snX + (dOff.idxIn * 5);
                 waypoints = [{x: x1, y: y1+20}, {x: rx, y: y1+20}, {x: rx, y: y2-20}, {x: x2, y: y2-20}];
             } else if (Math.abs(x1 - x2) < 5 && snX === 0) {
                 // Straight
                 waypoints = [];
             } else {
                 // Orthogonal
-                const midY = snap(y1 + (y2 - y1) / 2) + snY;
+                const midY = snap(y1 + (y2 - y1) / 2) + snY + dOff.midYJitter;
                 const midX = x1 + snX;
                 waypoints = [{x: midX, y: midY}, {x: x2, y: midY}];
             }
@@ -450,38 +472,48 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
                 const edgeId = target.getAttribute('data-edge');
                 selectedEdgeId = edgeId;
 
-                // Shift + Click to add waypoint
-                if (e.shiftKey) {
-                    const svgP = getSVGPoint(e);
+                const svgP = getSVGPoint(e);
+                const path = getEdgeFullPath(edgeId);
+                const x1 = path[0].x, y1 = path[0].y;
+                const x2 = path[path.length-1].x, y2 = path[path.length-1].y;
+
+                const distSource = Math.hypot(svgP.x - x1, svgP.y - y1);
+                const distTarget = Math.hypot(svgP.x - x2, svgP.y - y2);
+
+                if (distSource < 20) {
+                    isDragging = true;
+                    dragType = 'anchor';
+                    dragAnchorType = 'source';
+                    dragId = edgeId;
+                } else if (distTarget < 20) {
+                    isDragging = true;
+                    dragType = 'anchor';
+                    dragAnchorType = 'target';
+                    dragId = edgeId;
+                } else if (e.shiftKey) {
+                    // Shift + Click to add waypoint
                     if (!manualEdgeWaypoints.has(edgeId)) {
                         manualEdgeWaypoints.set(edgeId, initializeWaypointsForEdge(edgeId));
                     }
-                    
                     const pts = manualEdgeWaypoints.get(edgeId);
-                    const { nodes, edges, positions, offX, offY } = analysisData;
-                    const edgeData = edges.find(edge => `${edge.from}->${edge.to}` === edgeId);
-                    const from = positions.get(edgeData.from);
-                    const to = positions.get(edgeData.to);
-                    
-                    const fullPath = [
-                        {x: from.x + offX, y: from.y + offY + from.h},
-                        ...pts,
-                        {x: to.x + offX, y: to.y + offY - 4}
-                    ];
-
-                    const insertIdx = findNearestSegmentIndex(svgP, fullPath);
+                    const insertIdx = findNearestSegmentIndex(svgP, path);
                     pts.splice(insertIdx, 0, {x: svgP.x, y: svgP.y});
                     
-                    hasDragged = true; // Immediate change
+                    hasDragged = true;
                     isDragging = true;
                     dragType = 'waypoint';
                     dragId = edgeId;
                     dragWaypointIdx = insertIdx;
                 } else {
-                    // For edge drag, we use legacy offset instead of forcing waypoints
                     isDragging = true;
                     dragType = 'edge';
                     dragId = edgeId;
+                    const pts = manualEdgeWaypoints.get(edgeId);
+                    if (pts) {
+                        dragSegmentIdx = findNearestSegmentIndex(svgP, path);
+                    } else {
+                        dragSegmentIdx = -1;
+                    }
                 }
             }
             flowgraphSvg.style.cursor = 'grabbing';
@@ -506,7 +538,7 @@ function findNearestSegmentIndex(p, path) {
         let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
         t = Math.max(0, Math.min(1, t));
         
-        const dist = Math.sqrt((p.x - (a.x + t * (b.x - a.x)))**2 + (p.y - (a.y + t * (a.y - b.y)))**2);
+        const dist = Math.sqrt((p.x - (a.x + t * (b.x - a.x)))**2 + (p.y - (a.y + t * (b.y - a.y)))**2);
         
         if (dist < minDist) {
             minDist = dist;
@@ -524,6 +556,61 @@ function getSVGPoint(e) {
     pt.y = e.clientY;
     const transformed = pt.matrixTransform(document.getElementById('svgViewport').getScreenCTM().inverse());
     return transformed;
+}
+
+function computeAllAnchorOffsets(edges) {
+    const incomingMap = new Map();
+    const outgoingMap = new Map();
+    edges.forEach(e => {
+        incomingMap.set(e.to, (incomingMap.get(e.to) || 0) + 1);
+        outgoingMap.set(e.from, (outgoingMap.get(e.from) || 0) + 1);
+    });
+    
+    const incomingProcessed = new Map();
+    const outgoingProcessed = new Map();
+    const offsets = new Map();
+    
+    edges.forEach(e => {
+        const edgeId = `${e.from}->${e.to}`;
+        const totalIn = incomingMap.get(e.to) || 1;
+        const idxIn = incomingProcessed.get(e.to) || 0;
+        incomingProcessed.set(e.to, idxIn + 1);
+
+        const totalOut = outgoingMap.get(e.from) || 1;
+        const idxOut = outgoingProcessed.get(e.from) || 0;
+        outgoingProcessed.set(e.from, idxOut + 1);
+
+        const sourceOffX = totalOut > 1 ? (idxOut - (totalOut - 1) / 2) * 12 : 0;
+        const targetOffX = totalIn > 1 ? (idxIn - (totalIn - 1) / 2) * 12 : 0;
+        const midYJitter = totalIn > 1 ? (idxIn - (totalIn - 1) / 2) * 8 : 0;
+        
+        offsets.set(edgeId, { sourceOffX, targetOffX, midYJitter, idxIn, idxOut });
+    });
+    return offsets;
+}
+
+function getEdgeFullPath(edgeId) {
+    if (!analysisData) return [];
+    const { edges, positions, offX, offY } = analysisData;
+    const e = edges.find(edge => `${edge.from}->${edge.to}` === edgeId);
+    if (!e) return [];
+    
+    const from = positions.get(e.from);
+    const to = positions.get(e.to);
+    
+    // Get automatic distribution offsets for this edge
+    const allOffsets = computeAllAnchorOffsets(edges);
+    const dOff = allOffsets.get(edgeId) || {sourceOffX: 0, targetOffX: 0, midYJitter: 0};
+
+    // Priority: Manual > Automatic Distribution
+    const sOff = manualAnchorOffsets.get(`${edgeId}-source`) || {x: dOff.sourceOffX, y: from.h};
+    const tOff = manualAnchorOffsets.get(`${edgeId}-target`) || {x: dOff.targetOffX, y: -4};
+    
+    const x1 = from.x + offX + sOff.x, y1 = from.y + offY + sOff.y;
+    const x2 = to.x + offX + tOff.x, y2 = to.y + offY + tOff.y;
+    
+    const pts = manualEdgeWaypoints.get(edgeId) || [];
+    return [{x: x1, y: y1}, ...pts, {x: x2, y: y2}];
 }
 
 function initializeWaypointsForEdge(edgeId) {
@@ -581,15 +668,54 @@ window.addEventListener('mousemove', (e) => {
             pts[dragWaypointIdx].x += dx;
             pts[dragWaypointIdx].y += dy;
         }
+    } else if (dragType === 'anchor') {
+        const svgP = getSVGPoint(e);
+        const { edges, positions, offX, offY } = analysisData;
+        const edgeData = edges.find(ed => `${ed.from}->${ed.to}` === dragId);
+        const nodeId = (dragAnchorType === 'source') ? edgeData.from : edgeData.to;
+        const node = positions.get(nodeId);
+
+        // Slide along perimeter logic
+        const relX = svgP.x - (node.x + offX);
+        const relY = svgP.y - (node.y + offY);
+        
+        const distL = Math.abs(relX + node.w/2);
+        const distR = Math.abs(relX - node.w/2);
+        const distT = Math.abs(relY);
+        const distB = Math.abs(relY - node.h);
+        
+        const min = Math.min(distL, distR, distT, distB);
+        let finalX = relX, finalY = relY;
+        
+        if (min === distL) { finalX = -node.w/2; finalY = Math.max(0, Math.min(node.h, relY)); }
+        else if (min === distR) { finalX = node.w/2; finalY = Math.max(0, Math.min(node.h, relY)); }
+        else if (min === distT) { finalY = 0; finalX = Math.max(-node.w/2, Math.min(node.w/2, relX)); }
+        else { finalY = node.h; finalX = Math.max(-node.w/2, Math.min(node.w/2, relX)); }
+
+        manualAnchorOffsets.set(`${dragId}-${dragAnchorType}`, { x: finalX, y: finalY });
     } else if (dragType === 'edge') {
         const pts = manualEdgeWaypoints.get(dragId);
-        if (pts) {
-            pts.forEach(p => {
-                p.x += dx;
-                p.y += dy;
-            });
+        if (pts && dragSegmentIdx !== -1) {
+            const i = dragSegmentIdx;
+            const fullPath = getEdgeFullPath(dragId);
+            const s = fullPath[i], en = fullPath[i+1];
+            
+            const isHorizontal = Math.abs(s.y - en.y) < 5;
+            const isVertical = Math.abs(s.x - en.x) < 5;
+
+            if (i > 0 && pts[i-1]) {
+                if (isHorizontal) pts[i-1].y += dy;
+                else if (isVertical) pts[i-1].x += dx;
+                else { pts[i-1].x += dx; pts[i-1].y += dy; }
+            }
+            if (i < pts.length && pts[i]) {
+                if (isHorizontal) pts[i].y += dy;
+                else if (isVertical) pts[i].x += dx;
+                else { pts[i].x += dx; pts[i].y += dy; }
+            }
+        } else if (pts) {
+            pts.forEach(p => { p.x += dx; p.y += dy; });
         } else {
-            // Fallback for legacy global offset if waypoints not initialized
             const off = manualEdgePos.get(dragId) || {x: 0, y: 0};
             if (!manualEdgePos.has(dragId)) manualEdgePos.set(dragId, off);
             off.x += dx;
