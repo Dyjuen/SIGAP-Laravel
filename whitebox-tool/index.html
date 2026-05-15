@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whitebox Testing Tool — Flowgraph & Cyclomatic Complexity</title>
+    <meta name="description" content="Tool interaktif untuk membuat flowgraph, menghitung Cyclomatic Complexity (McCabe), menentukan independent path, dan menganalisis statement & decision coverage.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ============ HEADER ============ -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <div class="brand-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Whitebox Testing Tool</h1>
+                    <p class="tagline">Flowgraph · McCabe V(G) · Independent Path · Coverage</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-ghost" onclick="loadExample()" title="Muat contoh data KegiatanController:store">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    Contoh
+                </button>
+                <button class="btn btn-ghost" onclick="toggleGuide()" title="Buka panduan format input">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Panduan
+                </button>
+                <button class="btn btn-ghost" onclick="clearAll()" title="Bersihkan semua input dan hasil">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============ GUIDE MODAL ============ -->
+    <div class="guide-overlay" id="guideOverlay" onclick="toggleGuide()">
+        <div class="guide-modal" onclick="event.stopPropagation()">
+            <div class="guide-header">
+                <h2>📖 Panduan Format Input</h2>
+                <button class="btn-close" onclick="toggleGuide()">&times;</button>
+            </div>
+            <div class="guide-body">
+                <h3>Format Node</h3>
+                <pre><code>&lt;id&gt;:&lt;type&gt;:&lt;label&gt;:&lt;complexity&gt;</code></pre>
+                <table class="guide-table">
+                    <thead><tr><th>Type</th><th>Deskripsi</th><th>Complexity</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>entry</code></td><td>Titik awal fungsi</td><td>0</td></tr>
+                        <tr><td><code>exit</code></td><td>Titik akhir / return</td><td>0</td></tr>
+                        <tr><td><code>stmt</code></td><td>Statement biasa</td><td>0</td></tr>
+                        <tr><td><code>if</code></td><td>Percabangan IF</td><td>≥1</td></tr>
+                        <tr><td><code>elseif</code></td><td>Percabangan ELSEIF</td><td>≥1</td></tr>
+                        <tr><td><code>loop</code></td><td>Looping (for, foreach, while)</td><td>≥1</td></tr>
+                        <tr><td><code>try</code></td><td>Blok Try</td><td>0</td></tr>
+                        <tr><td><code>catch</code></td><td>Blok Catch (exception path)</td><td>1</td></tr>
+                        <tr><td><code>ternary</code></td><td>Operator ternary <code>? :</code></td><td>1</td></tr>
+                        <tr><td><code>merge</code></td><td>Titik penggabungan alur</td><td>0</td></tr>
+                    </tbody>
+                </table>
+                <h3>Format Edge</h3>
+                <pre><code>&lt;from&gt;-&gt;&lt;to&gt;
+&lt;from&gt;-&gt;&lt;to&gt;(TRUE)
+&lt;from&gt;-&gt;&lt;to&gt;(FALSE)
+&lt;from&gt;-&gt;&lt;to&gt;(Label Kustom)</code></pre>
+                <h3>Komentar</h3>
+                <pre><code># Baris ini adalah komentar dan akan diabaikan</code></pre>
+                <h3>Contoh Lengkap</h3>
+<pre><code># Node Definition
+1:entry:function store($request):0
+2:stmt:$kak = KAK::findOrFail():0
+3:if:$kak->kegiatan()->exists():1
+4:stmt:return back() error duplikat:0
+5:if:$kak->status_id !== 3:1
+6:stmt:return back() error belum acc:0
+7:stmt:DB::beginTransaction():0
+8:stmt:Kegiatan::create():0
+9:exit:return redirect success:0
+
+# Edge Definition
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6(TRUE)
+5->7(FALSE)
+7->8
+8->9</code></pre>
+                <h3>Tips</h3>
+                <ul>
+                    <li>Untuk operator <code>&&</code> atau <code>||</code>, tambahkan <strong>+1 Complexity</strong> per operator.</li>
+                    <li>Contoh: <code>if ($a && $b)</code> → Complexity = <strong>2</strong></li>
+                    <li>Node ID harus unik (angka positif).</li>
+                    <li>Setiap graph harus punya minimal 1 node <code>entry</code> dan 1 node <code>exit</code>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ MAIN LAYOUT ============ -->
+    <main class="app-main">
+        <!-- LEFT: Input Panel -->
+        <section class="panel panel-input">
+            <div class="panel-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    Input Definisi
+                </h2>
+            </div>
+            <div class="panel-body">
+                <!-- Function Name -->
+                <div class="input-group">
+                    <label for="functionName">Nama Fungsi</label>
+                    <input type="text" id="functionName" placeholder="Contoh: KegiatanController:store" spellcheck="false">
+                </div>
+
+                <!-- Node Definition -->
+                <div class="input-group">
+                    <label for="nodeInput">
+                        Definisi Node
+                        <span class="label-hint">Format: <code>id:type:label:complexity</code></span>
+                    </label>
+                    <textarea id="nodeInput" rows="12" placeholder="# Contoh:
+1:entry:public function store($request):0
+2:stmt:$kak = KAK::findOrFail():0
+3:if:$kak->kegiatan()->exists():1
+4:stmt:return back() error:0
+5:exit:end:0" spellcheck="false"></textarea>
+                    <div class="input-meta">
+                        <span id="nodeCount">0 node</span>
+                        <span id="nodeErrors" class="error-text"></span>
+                    </div>
+                </div>
+
+                <!-- Edge Definition -->
+                <div class="input-group">
+                    <label for="edgeInput">
+                        Definisi Edge
+                        <span class="label-hint">Format: <code>from->to</code> atau <code>from->to(LABEL)</code></span>
+                    </label>
+                    <textarea id="edgeInput" rows="10" placeholder="# Contoh:
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+4->5" spellcheck="false"></textarea>
+                    <div class="input-meta">
+                        <span id="edgeCount">0 edge</span>
+                        <span id="edgeErrors" class="error-text"></span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="action-bar">
+                    <button class="btn btn-primary btn-lg" onclick="analyze()" id="analyzeBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Analisis & Generate
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT: Output Panel -->
+        <section class="panel panel-output">
+            <div class="panel-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    Hasil Analisis
+                </h2>
+                <div class="tab-bar">
+                    <button class="tab active" data-tab="flowgraph" onclick="switchTab('flowgraph')">Flowgraph</button>
+                    <button class="tab" data-tab="complexity" onclick="switchTab('complexity')">V(G)</button>
+                    <button class="tab" data-tab="paths" onclick="switchTab('paths')">Paths</button>
+                    <button class="tab" data-tab="coverage" onclick="switchTab('coverage')">Coverage</button>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="copySummary()" id="copySummaryBtn" style="margin-left: auto;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Summary
+                </button>
+            </div>
+            <div class="panel-body panel-results" id="resultsContainer">
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    <p>Masukkan definisi node & edge, lalu klik <strong>"Analisis & Generate"</strong></p>
+                </div>
+
+                <!-- Tab: Flowgraph -->
+                <div class="tab-content" id="tab-flowgraph" style="display:none;">
+                    <div class="flowgraph-toolbar">
+                        <button class="btn btn-sm btn-ghost" onclick="zoomIn()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                            Zoom In
+                        </button>
+                        <button class="btn btn-sm btn-ghost" onclick="zoomOut()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                            Zoom Out
+                        </button>
+                        <button class="btn btn-sm btn-ghost" onclick="resetZoom()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                            Reset
+                        </button>
+                        <button class="btn btn-sm btn-ghost" onclick="fitToView()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            Fit
+                        </button>
+                        <button class="btn btn-sm btn-ghost" onclick="exportSVG()" title="Export SVG">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            SVG
+                        </button>
+                        <button class="btn btn-sm btn-ghost" onclick="exportPNG()" title="Export PNG">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                            PNG
+                        </button>
+                        <button class="btn btn-sm btn-ghost" onclick="exportPDF()" title="Print / Export PDF">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            PDF
+                        </button>
+                    </div>
+                    <div class="flowgraph-container" id="flowgraphContainer">
+                        <svg id="flowgraphSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+                    </div>
+                </div>
+
+                <!-- Tab: Complexity -->
+                <div class="tab-content" id="tab-complexity" style="display:none;">
+                    <div id="complexityResult"></div>
+                </div>
+
+                <!-- Tab: Paths -->
+                <div class="tab-content" id="tab-paths" style="display:none;">
+                    <div id="pathsResult"></div>
+                </div>
+
+                <!-- Tab: Coverage -->
+                <div class="tab-content" id="tab-coverage" style="display:none;">
+                    <div id="coverageResult"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============ FOOTER ============ -->
+    <footer class="app-footer">
+        <p>Whitebox Testing Tool &mdash; SIGAP PNJ &copy; 2026</p>
+    </footer>
+
+    <script src="engine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

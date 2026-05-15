@@ -1,0 +1,147 @@
+================================================================
+  GUIDEBOOK — FORMAT INPUT WHITEBOX TESTING TOOL
+  Panduan lengkap cara menggunakan tool ini
+================================================================
+
+CARA PAKAI:
+1. Buka file index.html di browser (double-click)
+2. Isi "Nama Fungsi" (opsional, untuk judul)
+3. Isi "Definisi Node" sesuai format di bawah
+4. Isi "Definisi Edge" sesuai format di bawah
+5. Klik "Analisis & Generate"
+6. Lihat hasil di 4 tab: Flowgraph, V(G), Paths, Coverage
+7. Shortcut: Ctrl+Enter untuk langsung Analisis
+
+================================================================
+FORMAT NODE
+================================================================
+
+Setiap baris = 1 node, dengan format:
+
+    <id>:<type>:<label>:<complexity>
+
+Keterangan:
+- id         : Angka unik positif (1, 2, 3, ...)
+- type       : Jenis node (lihat tabel di bawah)
+- label      : Deskripsi singkat (potongan kode)
+- complexity : Angka predicate complexity (0 jika bukan decision)
+
+TABEL TIPE NODE:
++----------+----------------------------------+-------------------+
+| Type     | Deskripsi                        | Default Complexity|
++----------+----------------------------------+-------------------+
+| entry    | Titik awal fungsi                | 0                 |
+| exit     | Titik akhir / return             | 0                 |
+| stmt     | Statement biasa (assignment, dll)| 0                 |
+| if       | Percabangan IF                   | 1                 |
+| elseif   | Percabangan ELSEIF               | 1                 |
+| loop     | Looping (for, foreach, while)    | 1                 |
+| try      | Blok Try                         | 0                 |
+| catch    | Blok Catch (exception path)      | 1                 |
+| ternary  | Operator ternary (? :)           | 1                 |
+| merge    | Titik penggabungan alur          | 0                 |
++----------+----------------------------------+-------------------+
+
+ATURAN COMPLEXITY:
+- Setiap operator && atau || di dalam satu IF = +1 complexity
+  Contoh:
+    if ($a && $b)         → Complexity = 2
+    if ($a || $b || $c)   → Complexity = 3
+    if ($a)               → Complexity = 1
+    
+KOMENTAR:
+- Baris yang diawali # akan diabaikan (komentar)
+
+CONTOH NODE:
+    # Fungsi KegiatanController:store
+    1:entry:public function store($request):0
+    2:stmt:$kak = KAK::findOrFail():0
+    3:if:$kak->kegiatan()->exists():1
+    4:stmt:return back() error:0
+    5:if:$kak->status_id !== 3:1
+    6:stmt:return back() error:0
+    7:exit:end:0
+
+================================================================
+FORMAT EDGE (KONEKSI ANTAR NODE)
+================================================================
+
+Setiap baris = 1 edge (panah), dengan format:
+
+    <from>-><to>
+    <from>-><to>(LABEL)
+
+Keterangan:
+- from  : ID node asal
+- to    : ID node tujuan
+- LABEL : (Opsional) Keterangan cabang, contoh: TRUE, FALSE
+
+CONTOH EDGE:
+    1->2
+    2->3
+    3->4(TRUE)
+    3->5(FALSE)
+    5->6(TRUE)
+    5->7(FALSE)
+
+================================================================
+TIPS & TRIK
+================================================================
+
+1. SELALU mulai dengan 1 node "entry" dan akhiri dengan
+   minimal 1 node "exit".
+
+2. Untuk IF-ELSE, buat 2 edge dari node IF:
+   - Satu ke cabang TRUE
+   - Satu ke cabang FALSE
+
+3. Untuk LOOP (foreach/while), buat edge loop-back:
+   - Node Loop -> Node Body (Loop Body)
+   - Node Body -> Node Loop (Next Iteration)  
+   - Node Loop -> Node Selanjutnya (Loop Exit)
+
+4. Untuk TRY-CATCH:
+   - Node Try -> Node di dalam Try (normal flow)
+   - Node Try -> Node Catch (Exception)
+
+5. Gunakan tombol "Contoh" di header untuk melihat
+   contoh lengkap dari KegiatanController:store.
+
+6. Hasil bisa di-export sebagai file SVG untuk
+   ditempelkan ke laporan atau presentasi.
+
+================================================================
+CONTOH LENGKAP: PencairanController:store
+================================================================
+
+=== NODE ===
+1:entry:public function store($request, $kegiatan):0
+2:stmt:$bendaharaCairApproval = query approval:0
+3:if:! $bendaharaCairApproval:1
+4:stmt:return redirect() withErrors:0
+5:stmt:$nominal = (float) $request->nominal:0
+6:stmt:$summary = computeSisaDana():0
+7:if:$nominal > $summary['sisa_dana']:1
+8:stmt:return redirect() withErrors 'melebihi sisa':0
+9:stmt:PencairanDana::create([...]):0
+10:exit:return redirect() success:0
+
+=== EDGE ===
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6
+6->7
+7->8(TRUE)
+7->9(FALSE)
+9->10
+
+=== HASIL YANG DIHARAPKAN ===
+V(G) = 2 + 1 = 3
+Independent Paths:
+  Path 1: 1→2→3(T)→4         [Approval tidak aktif]
+  Path 2: 1→2→3(F)→5→6→7(T)→8  [Nominal > sisa]
+  Path 3: 1→2→3(F)→5→6→7(F)→9→10 [Normal sukses]
+
+================================================================
