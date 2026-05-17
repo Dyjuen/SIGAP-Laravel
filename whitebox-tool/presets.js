@@ -4,13 +4,12 @@
    ============================================================ */
 
 const PRESETS = {
-
     // ════════════════════════════════════════════════════════════
     // MODUL 1: MANAJEMEN PANDUAN
     // ════════════════════════════════════════════════════════════
 
-    'PanduanController:store': {
-        module: 'Modul Manajemen Panduan',
+    "PanduanController:store": {
+        module: "Modul Manajemen Panduan",
         node: `# PanduanController:store
 1:entry:public function store(StorePanduanRequest $request):0
 2:stmt:$data = $request->validated(); $pathMedia = null;:0
@@ -29,11 +28,11 @@ const PRESETS = {
 5->6(TRUE)
 5->7(FALSE)
 6->7
-7->8`
+7->8`,
     },
 
-    'PanduanController:update': {
-        module: 'Modul Manajemen Panduan',
+    "PanduanController:update": {
+        module: "Modul Manajemen Panduan",
         node: `# PanduanController:update
 1:entry:public function update(UpdatePanduanRequest $request, Panduan $panduan):0
 2:stmt:$data = $request->validated();:0
@@ -66,11 +65,11 @@ const PRESETS = {
 10->11
 11->13
 12->13
-13->14`
+13->14`,
     },
 
-    'PanduanController:destroy': {
-        module: 'Modul Manajemen Panduan',
+    "PanduanController:destroy": {
+        module: "Modul Manajemen Panduan",
         node: `# PanduanController:destroy
 1:entry:public function destroy(Panduan $panduan):0
 2:if:$panduan->tipe_media === 'document' && $panduan->path_media:2
@@ -82,11 +81,11 @@ const PRESETS = {
 2->3(TRUE)
 2->4(FALSE)
 3->4
-4->5`
+4->5`,
     },
 
-    'PanduanController:download': {
-        module: 'Modul Manajemen Panduan',
+    "PanduanController:download": {
+        module: "Modul Manajemen Panduan",
         node: `# PanduanController:download
 1:entry:public function download(Panduan $panduan):0
 2:if:$panduan->tipe_media === 'video':1
@@ -105,16 +104,15 @@ const PRESETS = {
 4->9(FALSE)
 5->6
 6->7(TRUE)
-6->8(FALSE)`
+6->8(FALSE)`,
     },
-
 
     // ════════════════════════════════════════════════════════════
     // MODUL 2: DASHBOARD
     // ════════════════════════════════════════════════════════════
 
-    'DashboardController:index': {
-        module: 'Modul Dashboard',
+    "DashboardController:index": {
+        module: "Modul Dashboard",
         node: `# DashboardController:index
 1:entry:public function index(Request $request):0
 2:stmt:$user = $request->user(); $role = $user->getRoleName(); $panduans = $this->getPanduans(...);:0
@@ -145,11 +143,11 @@ const PRESETS = {
 11->12(TRUE)
 11->13(FALSE)
 13->14(TRUE)
-13->15(FALSE)`
+13->15(FALSE)`,
     },
 
-    'DashboardController:verifikatorDashboard': {
-        module: 'Modul Dashboard',
+    "DashboardController:verifikatorDashboard": {
+        module: "Modul Dashboard",
         node: `# DashboardController:verifikatorDashboard
 1:entry:private function verifikatorDashboard(Request $request, $panduans):0
 2:stmt:$user = $request->user(); $tipeKegiatanId = null;:0
@@ -163,11 +161,11 @@ const PRESETS = {
 3->4(TRUE)
 3->5(FALSE)
 4->5
-5->6`
+5->6`,
     },
 
-    'DashboardDirekturController:getVideos': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:getVideos": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:getVideos
 1:entry:private function getVideos():0
 2:stmt:$panduan = Panduan::all(); $videos = [];:0
@@ -200,11 +198,11 @@ const PRESETS = {
 11->12(TRUE)
 11->3(FALSE/Next Iteration)
 12->3(Next Iteration)
-3->13(Loop Exit)`
+3->13(Loop Exit)`,
     },
 
-    'DashboardDirekturController:getOverview': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:getOverview": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:getOverview
 1:entry:private function getOverview(Carbon $startDate):0
 2:stmt:$totalKak = ...; $kegiatanSelesai = ...; $kegiatanBerlangsung = ...; $danaDiminta = ...; $danaTerserap = ...;:0
@@ -215,11 +213,11 @@ const PRESETS = {
 1->2
 2->3
 3->4
-4->5`
+4->5`,
     },
 
-    'DashboardDirekturController:getByJurusan': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:getByJurusan": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:getByJurusan
 1:entry:private function getByJurusan(Carbon $startDate):0
 2:stmt:$users = User::all(); $jurusanUsers = [];:0
@@ -254,11 +252,11 @@ const PRESETS = {
 12->13
 13->9(Next Iteration)
 9->14(Loop Exit)
-14->15`
+14->15`,
     },
 
-    'DashboardDirekturController:getTrends': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:getTrends": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:getTrends
 1:entry:private function getTrends(Carbon $startDate):0
 2:stmt:$trends = []; $curr = ...; $end = ...;:0
@@ -270,11 +268,11 @@ const PRESETS = {
 2->3
 3->4(Loop Body)
 4->3(Next Iteration)
-3->5(Loop Exit)`
+3->5(Loop Exit)`,
     },
 
-    'DashboardDirekturController:parseJurusan': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:parseJurusan": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:parseJurusan
 1:entry:private function parseJurusan($namaLengkap):0
 2:if:! $namaLengkap:1
@@ -292,11 +290,11 @@ const PRESETS = {
 5->6(Loop Body)
 6->7(TRUE)
 6->5(FALSE/Next Iteration)
-5->8(Loop Exit)`
+5->8(Loop Exit)`,
     },
 
-    'DashboardDirekturController:calculateBudgetGrowth': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:calculateBudgetGrowth": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:calculateBudgetGrowth
 1:entry:private function calculateBudgetGrowth(Carbon $startDate):0
 2:stmt:$currentStart = ...; $currentEnd = ...; $daysDiff = ...; $previousStart = ...; $previousEnd = ...; $currentBudget = ...; $previousBudget = ...;:0
@@ -309,11 +307,11 @@ const PRESETS = {
 2->3
 3->4(TRUE)
 3->5(FALSE)
-5->6`
+5->6`,
     },
 
-    'DashboardDirekturController:getStartDate': {
-        module: 'Modul Dashboard',
+    "DashboardDirekturController:getStartDate": {
+        module: "Modul Dashboard",
         node: `# DashboardDirekturController:getStartDate
 1:entry:private function getStartDate($period):0
 2:if:$period === '3months':1
@@ -334,16 +332,15 @@ const PRESETS = {
 6->7(TRUE)
 6->8(FALSE)
 8->9(TRUE)
-8->10(FALSE)`
+8->10(FALSE)`,
     },
-
 
     // ════════════════════════════════════════════════════════════
     // MODUL 3: PPK-WD2 WORKFLOW
     // ════════════════════════════════════════════════════════════
 
-    'KakWorkflowController:submit': {
-        module: 'Modul PPK-WD2',
+    "KakWorkflowController:submit": {
+        module: "Modul PPK-WD2",
         node: `# KakWorkflowController:submit
 1:entry:public function submit(KAK $kak):0
 2:stmt:$this->authorizeOwner($kak);:0
@@ -356,11 +353,11 @@ const PRESETS = {
 2->3
 3->4(TRUE)
 3->5(FALSE)
-5->6`
+5->6`,
     },
 
-    'KakWorkflowController:approve': {
-        module: 'Modul PPK-WD2',
+    "KakWorkflowController:approve": {
+        module: "Modul PPK-WD2",
         node: `# KakWorkflowController:approve
 1:entry:public function approve(Request $request, KAK $kak):0
 2:stmt:$this->authorizeVerifikator($kak);:0
@@ -384,11 +381,11 @@ const PRESETS = {
 7->9(FALSE)
 8->10
 9->10
-10->11`
+10->11`,
     },
 
-    'KakWorkflowController:reject': {
-        module: 'Modul PPK-WD2',
+    "KakWorkflowController:reject": {
+        module: "Modul PPK-WD2",
         node: `# KakWorkflowController:reject
 1:entry:public function reject(Request $request, KAK $kak):0
 2:stmt:$this->authorizeVerifikator($kak);:0
@@ -401,11 +398,11 @@ const PRESETS = {
 2->3
 3->4(TRUE)
 3->5(FALSE)
-5->6`
+5->6`,
     },
 
-    'KakWorkflowController:revise': {
-        module: 'Modul PPK-WD2',
+    "KakWorkflowController:revise": {
+        module: "Modul PPK-WD2",
         node: `# KakWorkflowController:revise
 1:entry:public function revise(Request $request, KAK $kak):0
 2:stmt:$this->authorizeVerifikator($kak);:0
@@ -444,11 +441,11 @@ const PRESETS = {
 14->12(Next Iteration)
 12->10(Loop Exit/Next Iteration)
 10->15(Loop Exit)
-15->16`
+15->16`,
     },
 
-    'KegiatanController:approve': {
-        module: 'Modul PPK-WD2',
+    "KegiatanController:approve": {
+        module: "Modul PPK-WD2",
         node: `# KegiatanController:approve
 1:entry:public function approve(ApproveKegiatanRequest $request, Kegiatan $kegiatan):0
 2:stmt:$user = $request->user(); $role = $user->getRoleName(); $activeApproval = $kegiatan->activeApproval()->first();:0
@@ -514,11 +511,11 @@ const PRESETS = {
 26->27
 8->28(Exception)
 28->29
-29->30`
+29->30`,
     },
 
-    'PencairanController:selesai': {
-        module: 'Modul PPK-WD2',
+    "PencairanController:selesai": {
+        module: "Modul PPK-WD2",
         node: `# PencairanController:selesai
 1:entry:public function selesai(Request $request, Kegiatan $kegiatan):0
 2:stmt:$user = $request->user();:0
@@ -558,8 +555,242 @@ const PRESETS = {
 15->16
 9->17(Exception)
 17->18
-18->19`
-    }
+18->19`,
+    },
+
+    // ════════════════════════════════════════════════════════════
+    // MODUL 6: LAPORAN PERTANGGUNGJAWABAN (LPJ)
+    // ════════════════════════════════════════════════════════════
+
+    "LpjController:submit": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjController:submit
+1:entry:public function submit(SubmitLpjRequest $request, Kegiatan $kegiatan):0
+2:stmt:$uploadedFiles = []:0
+3:try:try block:1
+4:stmt:DB::transaction() => $kegiatan->lockForUpdate():0
+5:if:$kegiatan->lpj_submitted_at !== null:1
+6:exit:return redirect()->back() error:0
+7:loop:foreach $request->realisasi as $anggaranId:1
+8:if:$anggaran exists && kak_id match:1
+9:stmt:$anggaran->update(realisasi data):0
+10:if:$request->file('bukti') exists:1
+11:loop:foreach $files as $file:1
+12:if:!$path => file store failed:1
+13:stmt:throw new \\Exception():0
+14:stmt:KegiatanLampiran::create():0
+15:stmt:$kak->update(status_id => 11):0
+16:if:$approval->status === 'Aktif':1
+17:stmt:$approval->update(status => 'Aktif'):0
+18:stmt:KegiatanLogStatus::create() + sendMail():0
+19:exit:return redirect() success:0
+20:catch:catch (\\Exception):1
+21:stmt:$this->cleanupFiles($uploadedFiles):0
+22:exit:return redirect()->back() error:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5
+5->6(TRUE)
+5->7(FALSE)
+6->19
+7->8(Loop Body)
+8->9(TRUE)
+8->7(FALSE/Next)
+9->7(Next Iteration)
+7->10(After Loop)
+10->11(TRUE)
+10->15(FALSE)
+11->12(Loop Body)
+12->13(TRUE)
+12->14(FALSE)
+13->20(Exception)
+14->11(Next Iteration)
+11->15(After Loop)
+15->16
+16->17(TRUE)
+16->18(FALSE)
+17->18
+18->19
+12->20(Exception)
+20->21
+21->22`,
+    },
+
+    "LpjController:revise": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjController:revise
+1:entry:public function revise(ReviseLpjRequest $request, Kegiatan $kegiatan):0
+2:stmt:DB::transaction() => $kegiatan->lockForUpdate():0
+3:stmt:KegiatanLampiran::clear comments:0
+4:stmt:KAKAnggaran::clear comments:0
+5:if:$request->has('lampiran_comments'):1
+6:loop:foreach $request->lampiran_comments as $comment:1
+7:stmt:$lampiran = KegiatanLampiran::find():0
+8:if:$lampiran exists:1
+9:stmt:$lampiran->update(catatan_reviewer):0
+10:if:$request->has('anggaran_comments'):1
+11:loop:foreach $request->anggaran_comments as $comment:1
+12:stmt:$anggaran = KAKAnggaran::find():0
+13:if:$anggaran exists:1
+14:stmt:$anggaran->update(catatan_verifikator):0
+15:stmt:$approval = KegiatanApproval::where(Bendahara-LPJ):0
+16:if:!$approval:1
+17:exit:return redirect()->back() error:0
+18:stmt:$approval->update(status => 'Revisi'):0
+19:stmt:$kak->update(status_id => 12):0
+20:stmt:KegiatanLogStatus::create() + sendMail():0
+21:exit:return redirect() success:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5
+5->6(TRUE)
+5->10(FALSE)
+6->7(Loop Body)
+7->8
+8->9(TRUE)
+8->6(FALSE/Next)
+9->6(Next Iteration)
+6->10(After Loop)
+10->11(TRUE)
+10->15(FALSE)
+11->12(Loop Body)
+12->13
+13->14(TRUE)
+13->11(FALSE/Next)
+14->11(Next Iteration)
+11->15(After Loop)
+15->16
+16->17(TRUE)
+16->18(FALSE)
+17->21
+18->19
+19->20
+20->21`,
+    },
+
+    "LpjController:resubmit": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjController:resubmit
+1:entry:public function resubmit(ResubmitLpjRequest $request, Kegiatan $kegiatan):0
+2:stmt:$uploadedFiles = []:0
+3:try:try block:1
+4:stmt:DB::transaction() => $kegiatan->lockForUpdate():0
+5:stmt:$approval = KegiatanApproval::where(Bendahara-LPJ):0
+6:if:$approval->status !== 'Revisi':1
+7:exit:return redirect()->back() error:0
+8:if:$request->files_to_delete exists:1
+9:stmt:KegiatanLampiran::whereIn()->update(archived):0
+10:if:$request->realisasi exists:1
+11:loop:foreach $request->realisasi as $anggaranId:1
+12:stmt:$anggaran = KAKAnggaran::find():0
+13:if:$anggaran exists && kak match:1
+14:stmt:$anggaran->update(realisasi):0
+15:if:$request->file('bukti') exists:1
+16:loop:foreach $files as $file:1
+17:if:!$path => store failed:1
+18:stmt:throw new \\Exception():0
+19:stmt:KegiatanLampiran::create():0
+20:stmt:$approval->update(status => 'Aktif'):0
+21:stmt:$kak->update(status_id => 11):0
+22:stmt:KegiatanLogStatus::create() + sendMail():0
+23:exit:return redirect() success:0
+24:catch:catch (\\Exception):1
+25:stmt:$this->cleanupFiles($uploadedFiles):0
+26:exit:return redirect()->back() error:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5
+5->6
+6->7(TRUE)
+6->8(FALSE)
+7->23
+8->9(TRUE)
+8->10(FALSE)
+9->10
+10->11(TRUE)
+10->15(FALSE)
+11->12(Loop Body)
+12->13
+13->14(TRUE)
+13->11(FALSE/Next)
+14->11(Next Iteration)
+11->15(After Loop)
+15->16(TRUE)
+15->20(FALSE)
+16->17(Loop Body)
+17->18(TRUE)
+17->19(FALSE)
+18->24(Exception)
+19->16(Next Iteration)
+16->20(After Loop)
+20->21
+21->22
+22->23
+17->24(Exception)
+24->25
+25->26`,
+    },
+
+    "LpjController:approve": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjController:approve
+1:entry:public function approve(ApproveLpjRequest $request, Kegiatan $kegiatan):0
+2:stmt:DB::transaction() => $kegiatan->lockForUpdate():0
+3:stmt:$approval = KegiatanApproval::where(Bendahara-LPJ):0
+4:if:!$approval || status not in ['Aktif','Revisi']:1
+5:exit:return redirect()->back() error:0
+6:stmt:$approval->update(status => 'Disetujui'):0
+7:stmt:$nextApproval = KegiatanApproval::where(Bendahara-Setor):0
+8:if:$nextApproval exists:1
+9:stmt:$nextApproval->update(status => 'Aktif'):0
+10:stmt:$kak->update(status_id => 13):0
+11:stmt:KegiatanLogStatus::create() + sendMail():0
+12:exit:return redirect() success:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5(TRUE)
+4->6(FALSE)
+5->12
+6->7
+7->8
+8->9(TRUE)
+8->10(FALSE)
+9->10
+10->11
+11->12`,
+    },
+
+    "LpjController:complete": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjController:complete
+1:entry:public function complete(CompleteLpjRequest $request, Kegiatan $kegiatan):0
+2:stmt:DB::transaction() => $kegiatan->lockForUpdate():0
+3:stmt:$approval = KegiatanApproval::where(Bendahara-Setor):0
+4:if:!$approval || level !== 'Bendahara-Setor':1
+5:exit:return redirect()->back() error:0
+6:stmt:$approval->update(status => 'Disetujui'):0
+7:stmt:$kak->update(status_id => 14):0
+8:stmt:KegiatanLogStatus::create() + sendMail():0
+9:exit:return redirect() success:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5(TRUE)
+4->6(FALSE)
+5->9
+6->7
+7->8
+8->9`,
+    },
 };
 
 // Helper untuk mengelompokkan
