@@ -1118,3 +1118,47 @@ document.addEventListener('keydown', function(e) {
         analyze();
     }
 });
+
+// ---- PRESET DROPDOWN ----
+function populatePresetDropdown() {
+    if (typeof PRESETS === 'undefined') return;
+    const select = document.getElementById('presetSelect');
+    if (!select) return;
+    
+    const modules = getPresetsByModule();
+    for (const [modName, fns] of Object.entries(modules)) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = modName;
+        fns.forEach(fn => {
+            const option = document.createElement('option');
+            option.value = fn.id;
+            option.textContent = fn.id;
+            optgroup.appendChild(option);
+        });
+        select.appendChild(optgroup);
+    }
+}
+
+function loadSelectedPreset(presetId) {
+    if (!presetId || typeof PRESETS === 'undefined' || !PRESETS[presetId]) return;
+    
+    const preset = PRESETS[presetId];
+    document.getElementById('functionName').value = presetId;
+    document.getElementById('nodeInput').value = preset.node;
+    document.getElementById('edgeInput').value = preset.edge;
+    
+    // Update counters
+    const nLines = preset.node.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
+    const eLines = preset.edge.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
+    document.getElementById('nodeCount').textContent = nLines + ' node';
+    document.getElementById('edgeCount').textContent = eLines + ' edge';
+    
+    // Automatically analyze
+    analyze();
+}
+
+// Initialize dropdown on load
+window.addEventListener('DOMContentLoaded', () => {
+    populatePresetDropdown();
+});
+

@@ -862,3 +862,41 @@ input::placeholder {
         display: none;
     }
 }
+
+/* ============ PRESET DROPDOWN ============ */
+.preset-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.preset-select {
+    appearance: none;
+    background: rgba(56, 139, 253, 0.1);
+    border: 1px solid rgba(56, 139, 253, 0.4);
+    color: var(--accent-blue);
+    padding: 6px 32px 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+    height: 32px;
+}
+
+.preset-select:hover {
+    background: rgba(56, 139, 253, 0.15);
+    border-color: rgba(56, 139, 253, 0.6);
+}
+
+.preset-dropdown-container::after {
+    content: "▼";
+    font-size: 0.6rem;
+    color: var(--accent-blue);
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}

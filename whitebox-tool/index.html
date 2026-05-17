@@ -27,6 +27,12 @@
                 </div>
             </div>
             <div class="header-actions">
+                <div class="preset-dropdown-container">
+                    <select id="presetSelect" class="btn btn-primary preset-select" onchange="loadSelectedPreset(this.value)" title="Pilih preset fungsi dari modul SIGAP">
+                        <option value="">-- Pilih Preset Fungsi --</option>
+                        <!-- Diisi oleh app.js -->
+                    </select>
+                </div>
                 <button class="btn btn-ghost" onclick="loadExample()" title="Muat contoh data KegiatanController:store">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     Contoh
@@ -107,8 +113,10 @@
         </div>
     </div>
 
+
+
     <!-- ============ MAIN LAYOUT ============ -->
-    <main class="app-main">
+    <main class="app-main" id="appMain">
         <!-- LEFT: Input Panel -->
         <section class="panel panel-input">
             <div class="panel-header">
@@ -257,6 +265,7 @@
     </footer>
 
     <script src="engine.js"></script>
+    <script src="presets.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
