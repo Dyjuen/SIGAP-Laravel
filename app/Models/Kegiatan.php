@@ -16,6 +16,10 @@ class Kegiatan extends Model
         'tanggal_mulai_final' => 'date',
         'tgl_batas_lpj' => 'datetime',
         'lpj_submitted_at' => 'datetime',
+        'spk_kesesuaian_waktu' => 'integer',
+        'spk_ketepatan_anggaran' => 'integer',
+        'spk_kesesuaian_output' => 'integer',
+        'spk_ketepatan_lpj' => 'integer',
     ];
 
     public function kak()

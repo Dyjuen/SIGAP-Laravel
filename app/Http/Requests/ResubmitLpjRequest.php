@@ -33,6 +33,8 @@ class ResubmitLpjRequest extends FormRequest
             'bukti' => ['nullable', 'array'],
             'bukti.*' => ['nullable', 'array'],
             'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
+            'spk_kesesuaian_waktu' => ['required', 'integer', 'between:50,100'],
+            'spk_kesesuaian_output' => ['required', 'integer', 'in:0,100'],
         ];
     }
 
@@ -46,6 +48,8 @@ class ResubmitLpjRequest extends FormRequest
             'file' => ':attribute harus berupa file.',
             'mimes' => ':attribute harus berupa file dengan format: :values.',
             'max' => ':attribute maksimal :max KB.',
+            'between' => ':attribute harus bernilai antara :min dan :max.',
+            'in' => ':attribute harus bernilai :values.',
         ];
     }
 
@@ -56,6 +60,8 @@ class ResubmitLpjRequest extends FormRequest
             'realisasi.*.satuan1_id' => 'Satuan 1',
             'realisasi.*.harga_satuan' => 'Harga Satuan',
             'bukti.*.*' => 'Bukti Dokumen',
+            'spk_kesesuaian_waktu' => 'Kesesuaian Waktu',
+            'spk_kesesuaian_output' => 'Kesesuaian Output (IKU)',
         ];
     }
 }

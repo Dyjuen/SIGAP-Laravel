@@ -116,6 +116,10 @@ class LpjTest extends TestCase
                     'harga_satuan' => '2000000',
                 ],
             ],
+            'spk_kesesuaian_waktu' => 85,
+            'spk_ketepatan_anggaran' => 90,
+            'spk_kesesuaian_output' => 100,
+            'spk_ketepatan_lpj' => 95,
         ];
     }
 
@@ -174,6 +178,10 @@ class LpjTest extends TestCase
         // Verify kegiatan was updated
         $kegiatan->refresh();
         $this->assertNotNull($kegiatan->lpj_submitted_at);
+        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
+        $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
 
         // Verify KAK status updated to 11 (Review LPJ)
         $this->assertDatabaseHas('t_kak', [
@@ -391,11 +399,19 @@ class LpjTest extends TestCase
             ->where('approval_level', 'Bendahara-LPJ')
             ->update(['status' => 'Revisi']);
 
+        $payload = $this->buildRealisasiPayload($kegiatan);
         $response = $this->actingAs($this->pengusul)
-            ->post(route('lpj.resubmit', $kegiatan));
+            ->post(route('lpj.resubmit', $kegiatan), $payload);
 
         $response->assertStatus(302);
         $response->assertSessionHas('success');
+
+        // Verify kegiatan was updated with SPK
+        $kegiatan->refresh();
+        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
+        $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
 
         // Approval should be back to Aktif
         $this->assertDatabaseHas('t_kegiatan_approval', [
@@ -436,8 +452,9 @@ class LpjTest extends TestCase
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
         $this->submitLpj($kegiatan); // status 11, approval = Aktif (not Revisi)
 
+        $payload = $this->buildRealisasiPayload($kegiatan);
         $response = $this->actingAs($this->pengusul)
-            ->post(route('lpj.resubmit', $kegiatan));
+            ->post(route('lpj.resubmit', $kegiatan), $payload);
 
         $response->assertStatus(302);
         $response->assertSessionHasErrors(['message']);
@@ -466,10 +483,11 @@ class LpjTest extends TestCase
             ->where('approval_level', 'Bendahara-LPJ')
             ->update(['status' => 'Revisi']);
 
+        $payload = array_merge($this->buildRealisasiPayload($kegiatan), [
+            'files_to_delete' => [$lampiran->lampiran_id],
+        ]);
         $response = $this->actingAs($this->pengusul)
-            ->post(route('lpj.resubmit', $kegiatan), [
-                'files_to_delete' => [$lampiran->lampiran_id],
-            ]);
+            ->post(route('lpj.resubmit', $kegiatan), $payload);
 
         $response->assertStatus(302);
         $response->assertSessionHas('success');
@@ -506,10 +524,11 @@ class LpjTest extends TestCase
         // Pass non-existent lampiran IDs to try to trigger a failure scenario
         // In a real scenario, this tests that partial archive + failure doesn't leave
         // the DB in an inconsistent state. The controller should handle gracefully.
+        $payload = array_merge($this->buildRealisasiPayload($kegiatan), [
+            'files_to_delete' => [999999],
+        ]);
         $response = $this->actingAs($this->pengusul)
-            ->post(route('lpj.resubmit', $kegiatan), [
-                'files_to_delete' => [999999],
-            ]);
+            ->post(route('lpj.resubmit', $kegiatan), $payload);
 
         // Should either succeed (ignoring non-existent) or fail cleanly
         $response->assertStatus(302);

@@ -340,9 +340,3 @@ export default function PanduanIndex({ auth, panduan, roles }) {
         </AuthenticatedLayout>
     );
 }
-          )}
-        </AuthenticatedLayout>
-    );
-}
-);
-}

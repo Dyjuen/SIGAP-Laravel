@@ -146,12 +146,21 @@ class LpjController extends Controller
                     }
                 }
 
+                // Calculate SPK Scores automatically
+                $spkScores = $this->calculateSpkScores($kegiatan);
+
                 // 3. Update status
                 $kak = $kegiatan->kak;
                 $oldStatus = $kak->status_id;
                 $newStatus = 11; // Review LPJ
 
-                $kegiatan->update(['lpj_submitted_at' => now()]);
+                $kegiatan->update([
+                    'lpj_submitted_at' => now(),
+                    'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                    'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
+                    'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
+                    'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
+                ]);
                 $kak->update(['status_id' => $newStatus]);
 
                 // 4. Activate Approval
@@ -383,12 +392,21 @@ class LpjController extends Controller
                     }
                 }
 
+                // Calculate SPK Scores automatically
+                $spkScores = $this->calculateSpkScores($kegiatan);
+
                 // 4. Update status back to Review
                 $kak = $kegiatan->kak;
                 $oldStatus = $kak->status_id;
                 $newStatus = 11;
 
-                $kegiatan->update(['lpj_submitted_at' => now()]);
+                $kegiatan->update([
+                    'lpj_submitted_at' => now(),
+                    'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                    'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
+                    'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
+                    'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
+                ]);
                 $kak->update(['status_id' => $newStatus]);
 
                 $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
@@ -539,6 +557,47 @@ class LpjController extends Controller
         $price = (float) (isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : 0);
 
         return $v1 * $v2 * $v3 * $price;
+    }
+
+    /**
+     * Calculate automatic SPK scores.
+     */
+    private function calculateSpkScores(Kegiatan $kegiatan): array
+    {
+        // 1. Calculate Ketepatan Anggaran score (50 - 100)
+        $totalBudget = 0;
+        $totalRealization = 0;
+        $anggarans = \App\Models\KAKAnggaran::where('kak_id', $kegiatan->kak_id)->get();
+        foreach ($anggarans as $anggaran) {
+            $totalBudget += (float) $anggaran->jumlah_diusulkan;
+            $totalRealization += (float) ($anggaran->realisasi_jumlah ?? 0);
+        }
+
+        $ketepatanAnggaran = 100;
+        if ($totalBudget > 0) {
+            $ratio = $totalRealization / $totalBudget;
+            if (abs($ratio - 1) >= 0.001) {
+                // Penalty: deduct based on deviation percentage, minimum 50
+                $differencePercentage = abs(1 - $ratio) * 100;
+                $ketepatanAnggaran = (int) max(50, round(100 - $differencePercentage));
+            }
+        }
+
+        // 2. Calculate Ketepatan LPJ score (50 - 100)
+        $ketepatanLpj = 100;
+        if ($kegiatan->tgl_batas_lpj) {
+            $deadline = \Carbon\Carbon::parse($kegiatan->tgl_batas_lpj);
+            $submissionTime = now();
+            if ($submissionTime->gt($deadline)) {
+                $daysLate = $submissionTime->diffInDays($deadline);
+                $ketepatanLpj = (int) max(50, 100 - ($daysLate * 5));
+            }
+        }
+
+        return [
+            'spk_ketepatan_anggaran' => $ketepatanAnggaran,
+            'spk_ketepatan_lpj' => $ketepatanLpj,
+        ];
     }
 
     private function cleanupFiles(array $paths): void
