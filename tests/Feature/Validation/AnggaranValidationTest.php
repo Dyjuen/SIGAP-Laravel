@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Validation;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,11 +16,11 @@ class AnggaranValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $role = new \App\Models\Role();
+        $role = new Role;
         $role->role_id = 3;
         $role->nama_role = 'Pengusul';
         $role->save();
-        
+
         $this->user = User::factory()->create(['role_id' => 3]);
     }
 
@@ -36,19 +37,19 @@ class AnggaranValidationTest extends TestCase
                 'lokasi' => 'Test',
                 'tipe_kegiatan_id' => 1,
                 'penerima_manfaat' => [
-                    ['sasaran_utama' => 'Test', 'manfaat' => 'Test']
+                    ['sasaran_utama' => 'Test', 'manfaat' => 'Test'],
                 ],
                 'tahapan_pelaksanaan' => [
-                    ['nama_tahapan' => 'Test', 'urutan' => 1]
+                    ['nama_tahapan' => 'Test', 'urutan' => 1],
                 ],
                 'indikator_kinerja' => [
-                    ['bulan_indikator' => 1, 'deskripsi_target' => 'Test', 'persentase_target' => 100]
+                    ['bulan_indikator' => 1, 'deskripsi_target' => 'Test', 'persentase_target' => 100],
                 ],
             ],
             'target_iku' => [
-                ['iku_id' => 1, 'target' => 100, 'satuan_id' => 1]
+                ['iku_id' => 1, 'target' => 100, 'satuan_id' => 1],
             ],
-            'rab' => []
+            'rab' => [],
         ];
     }
 
@@ -60,12 +61,12 @@ class AnggaranValidationTest extends TestCase
         // 1. Required fields
         $payload = $this->getBasePayload();
         $payload['rab'] = [
-            ['uraian' => '', 'volume1' => '', 'satuan1_id' => '', 'harga_satuan' => '', 'kategori_belanja_id' => '']
+            ['uraian' => '', 'volume1' => '', 'satuan1_id' => '', 'harga_satuan' => '', 'kategori_belanja_id' => ''],
         ];
-        
+
         $response = $this->actingAs($this->user)
             ->postJson('/kak', $payload);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'rab.0.uraian',
@@ -84,12 +85,12 @@ class AnggaranValidationTest extends TestCase
                 'satuan1_id' => 1,
                 'harga_satuan' => -1000,
                 'kategori_belanja_id' => 1,
-            ]
+            ],
         ];
-        
+
         $response = $this->actingAs($this->user)
             ->postJson('/kak', $payload);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'rab.0.volume1',

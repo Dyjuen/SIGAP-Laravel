@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Validation;
 
+use App\Models\Panduan;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -16,11 +18,11 @@ class PanduanValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $role = new \App\Models\Role();
+        $role = new Role;
         $role->role_id = 1; // Admin
         $role->nama_role = 'Admin';
         $role->save();
-        
+
         $this->admin = User::factory()->create(['role_id' => 1]);
     }
 
@@ -32,7 +34,7 @@ class PanduanValidationTest extends TestCase
         // 1. Required fields
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/panduan', []);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['judul_panduan', 'tipe_media']);
 
@@ -43,7 +45,7 @@ class PanduanValidationTest extends TestCase
                 'tipe_media' => 'document',
                 'file' => '',
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'file' => 'File Dokumen wajib diisi jika tipe media adalah document.',
@@ -56,7 +58,7 @@ class PanduanValidationTest extends TestCase
                 'tipe_media' => 'video',
                 'path_media' => '',
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'path_media' => 'URL Video wajib diisi jika tipe media adalah video.',
@@ -68,10 +70,10 @@ class PanduanValidationTest extends TestCase
      */
     public function test_panduan_update_validation_rules()
     {
-        $panduan = \App\Models\Panduan::create([
+        $panduan = Panduan::create([
             'judul_panduan' => 'Old Title',
             'tipe_media' => 'document',
-            'path_media' => 'old/path.pdf'
+            'path_media' => 'old/path.pdf',
         ]);
 
         // 1. Successful update of title and role
@@ -79,14 +81,14 @@ class PanduanValidationTest extends TestCase
             ->putJson("/admin/panduan/{$panduan->panduan_id}", [
                 'judul_panduan' => 'Updated Title',
                 'tipe_media' => 'document',
-                'target_role_id' => 1
+                'target_role_id' => 1,
             ]);
-            
+
         $response->assertStatus(302); // Redirect back
         $this->assertDatabaseHas('m_panduan', [
             'panduan_id' => $panduan->panduan_id,
             'judul_panduan' => 'Updated Title',
-            'target_role_id' => 1
+            'target_role_id' => 1,
         ]);
 
         // 2. Switching from document to video requires path_media
@@ -94,9 +96,9 @@ class PanduanValidationTest extends TestCase
             ->putJson("/admin/panduan/{$panduan->panduan_id}", [
                 'judul_panduan' => 'Switch to Video',
                 'tipe_media' => 'video',
-                'path_media' => ''
+                'path_media' => '',
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['path_media']);
 
@@ -106,9 +108,9 @@ class PanduanValidationTest extends TestCase
             ->putJson("/admin/panduan/{$panduan->panduan_id}", [
                 'judul_panduan' => 'Switch back to Doc',
                 'tipe_media' => 'document',
-                'file' => ''
+                'file' => '',
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['file']);
     }
@@ -124,7 +126,7 @@ class PanduanValidationTest extends TestCase
             ->postJson('/admin/panduan', [
                 'judul_panduan' => 'Too Big',
                 'tipe_media' => 'document',
-                'file' => $file
+                'file' => $file,
             ]);
 
         $response->assertStatus(422)

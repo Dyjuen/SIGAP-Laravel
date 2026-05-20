@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class StoreKegiatanRequest extends FormRequest
 {
@@ -42,8 +43,8 @@ class StoreKegiatanRequest extends FormRequest
                 'date',
                 'after:tanggal_mulai',
                 function ($attribute, $value, $fail) {
-                    $start = \Illuminate\Support\Carbon::parse($this->tanggal_mulai);
-                    $end = \Illuminate\Support\Carbon::parse($value);
+                    $start = Carbon::parse($this->tanggal_mulai);
+                    $end = Carbon::parse($value);
                     if ($start->diffInDays($end) > 365) {
                         $fail('Durasi kegiatan maksimal 365 hari (1 tahun).');
                     }
@@ -56,8 +57,6 @@ class StoreKegiatanRequest extends FormRequest
 
     /**
      * Get the error messages for the defined validation rules.
-     *
-     * @return array
      */
     public function messages(): array
     {
@@ -79,8 +78,6 @@ class StoreKegiatanRequest extends FormRequest
 
     /**
      * Get custom attributes for validator errors.
-     *
-     * @return array
      */
     public function attributes(): array
     {

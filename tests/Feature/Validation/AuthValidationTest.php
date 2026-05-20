@@ -29,7 +29,7 @@ class AuthValidationTest extends TestCase
             'username' => 'a!', // non-alphanumeric and too short
             'password' => '123', // too short
         ]);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'username' => [
@@ -38,13 +38,13 @@ class AuthValidationTest extends TestCase
                 ],
                 'password' => 'Password minimal 6 karakter.',
             ]);
-            
+
         // 3. Max length
         $response = $this->postJson('/login', [
             'username' => str_repeat('a', 51),
             'password' => 'password123',
         ]);
-        
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'username' => 'Username maksimal 50 karakter.',
@@ -58,11 +58,11 @@ class AuthValidationTest extends TestCase
     {
         $role = Role::create(['nama_role' => 'Admin', 'role_id' => 1]);
         $admin = User::factory()->create(['role_id' => $role->role_id]);
-        
+
         // 1. Required fields
         $response = $this->actingAs($admin)
             ->postJson('/admin/user-management', []);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'username',
@@ -77,7 +77,7 @@ class AuthValidationTest extends TestCase
             'username' => 'existinguser',
             'email' => 'existing@example.com',
         ]);
-        
+
         $response = $this->actingAs($admin)
             ->postJson('/admin/user-management', [
                 'username' => 'existinguser',
@@ -87,7 +87,7 @@ class AuthValidationTest extends TestCase
                 'nama_lengkap' => 'New User',
                 'role_ids' => [1],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'username' => 'Username sudah digunakan.',
@@ -104,7 +104,7 @@ class AuthValidationTest extends TestCase
                 'nama_lengkap' => 'New User',
                 'role_ids' => [1],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'password' => 'Konfirmasi password tidak sama.',
@@ -120,7 +120,7 @@ class AuthValidationTest extends TestCase
                 'nama_lengkap' => 'New User',
                 'role_ids' => [], // Empty array
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'role_ids' => 'Role harus dipilih minimal 1.',
@@ -136,7 +136,7 @@ class AuthValidationTest extends TestCase
             'username' => 'myuser',
             'email' => 'my@example.com',
         ]);
-        
+
         $otherUser = User::factory()->create([
             'username' => 'otheruser',
             'email' => 'other@example.com',
@@ -148,7 +148,7 @@ class AuthValidationTest extends TestCase
                 'nama_lengkap' => 'My Name',
                 'email' => 'other@example.com',
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'email' => 'Email sudah digunakan oleh user lain.',
@@ -160,7 +160,7 @@ class AuthValidationTest extends TestCase
                 'nama_lengkap' => 'My Name',
                 'email' => 'my@example.com',
             ]);
-            
+
         // In RED phase, we expect implementation to be missing or different,
         // so we check if it fails with specific legacy messages.
     }

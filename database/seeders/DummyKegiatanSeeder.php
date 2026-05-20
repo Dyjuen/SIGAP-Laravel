@@ -3,13 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\KAK;
-use App\Models\Kegiatan;
-use App\Models\KegiatanApproval;
 use App\Models\KAKAnggaran;
+use App\Models\KAKIku;
 use App\Models\KAKManfaat;
 use App\Models\KAKTahapan;
 use App\Models\KAKTarget;
-use App\Models\KAKIku;
+use App\Models\Kegiatan;
+use App\Models\KegiatanApproval;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -47,7 +47,7 @@ class DummyKegiatanSeeder extends Seeder
     {
         $kak = KAK::create([
             'nama_kegiatan' => $name,
-            'deskripsi_kegiatan' => 'Deskripsi untuk ' . $name,
+            'deskripsi_kegiatan' => 'Deskripsi untuk '.$name,
             'metode_pelaksanaan' => 'Metode Pelaksanaan',
             'tanggal_mulai' => now()->addDays(rand(1, 30))->format('Y-m-d'),
             'tanggal_selesai' => now()->addDays(31)->format('Y-m-d'),
@@ -62,17 +62,17 @@ class DummyKegiatanSeeder extends Seeder
 
         $kegiatan = Kegiatan::create([
             'kak_id' => $kak->kak_id,
-            'penanggung_jawab_manual' => 'PJ ' . $name,
-            'pelaksana_manual' => 'Panitia ' . $name,
+            'penanggung_jawab_manual' => 'PJ '.$name,
+            'pelaksana_manual' => 'Panitia '.$name,
             'tanggal_mulai_final' => $kak->tanggal_mulai,
         ]);
 
         $steps = ['PPK', 'Wadir2', 'Bendahara-Cair', 'Bendahara-LPJ', 'Bendahara-Setor'];
-        
+
         foreach ($steps as $index => $level) {
             $stepNum = $index + 1;
             $status = 'Menunggu';
-            
+
             if ($stepNum < $activeStep) {
                 $status = 'Disetujui';
             } elseif ($stepNum === $activeStep) {

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Validation;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,11 +16,11 @@ class KAKValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $role = new \App\Models\Role();
+        $role = new Role;
         $role->role_id = 3;
         $role->nama_role = 'Pengusul';
         $role->save();
-        
+
         $this->user = User::factory()->create(['role_id' => 3]);
     }
 
@@ -30,7 +31,7 @@ class KAKValidationTest extends TestCase
     {
         $response = $this->actingAs($this->user)
             ->postJson('/kak', ['kak' => []]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'kak.nama_kegiatan',
@@ -53,11 +54,11 @@ class KAKValidationTest extends TestCase
             ->postJson('/kak', [
                 'kak' => [
                     'manfaat' => [
-                        ['value' => '']
-                    ]
-                ]
+                        ['value' => ''],
+                    ],
+                ],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'kak.manfaat.0.value',
@@ -73,11 +74,11 @@ class KAKValidationTest extends TestCase
             ->postJson('/kak', [
                 'kak' => [
                     'tahapan_pelaksanaan' => [
-                        ['nama_tahapan' => '', 'urutan' => '']
-                    ]
-                ]
+                        ['nama_tahapan' => '', 'urutan' => ''],
+                    ],
+                ],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'kak.tahapan_pelaksanaan.0.nama_tahapan',
@@ -94,11 +95,11 @@ class KAKValidationTest extends TestCase
             ->postJson('/kak', [
                 'kak' => [
                     'indikator_kinerja' => [
-                        ['bulan_indikator' => '', 'deskripsi_target' => '', 'persentase_target' => '']
-                    ]
-                ]
+                        ['bulan_indikator' => '', 'deskripsi_target' => '', 'persentase_target' => ''],
+                    ],
+                ],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'kak.indikator_kinerja.0.bulan_indikator',
@@ -115,10 +116,10 @@ class KAKValidationTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/kak', [
                 'target_iku' => [
-                    ['iku_id' => '', 'target' => '', 'satuan_id' => '']
-                ]
+                    ['iku_id' => '', 'target' => '', 'satuan_id' => ''],
+                ],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'target_iku.0.iku_id',
@@ -135,10 +136,10 @@ class KAKValidationTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson('/kak', [
                 'rab' => [
-                    ['uraian' => '', 'volume1' => '', 'satuan1_id' => '', 'harga_satuan' => '', 'kategori_belanja_id' => '']
-                ]
+                    ['uraian' => '', 'volume1' => '', 'satuan1_id' => '', 'harga_satuan' => '', 'kategori_belanja_id' => ''],
+                ],
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'rab.0.uraian',

@@ -395,12 +395,12 @@ class KegiatanController extends Controller
 
         $monitoringStats = [
             'total' => $statsQuery->count(),
-            'running' => (clone $statsQuery)->whereHas('kak', function($q) {
-                $q->whereNotIn('status_id', [5, 10]); 
-            })->whereHas('approvals', function($q) {
+            'running' => (clone $statsQuery)->whereHas('kak', function ($q) {
+                $q->whereNotIn('status_id', [5, 10]);
+            })->whereHas('approvals', function ($q) {
                 $q->where('approval_level', 'Bendahara-Setor')->where('status', '!=', 'Disetujui');
             })->count(),
-            'completed' => (clone $statsQuery)->whereHas('approvals', function($q) {
+            'completed' => (clone $statsQuery)->whereHas('approvals', function ($q) {
                 $q->where('approval_level', 'Bendahara-Setor')->where('status', 'Disetujui');
             })->count(),
         ];

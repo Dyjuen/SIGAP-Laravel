@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Validation;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -15,11 +16,11 @@ class MasterDataValidationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $role = new \App\Models\Role();
+        $role = new Role;
         $role->role_id = 1; // Admin
         $role->nama_role = 'Admin';
         $role->save();
-        
+
         $this->admin = User::factory()->create(['role_id' => 1]);
     }
 
@@ -31,7 +32,7 @@ class MasterDataValidationTest extends TestCase
         // 1. Required
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/master/satuan', []);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['nama_satuan']);
 
@@ -40,7 +41,7 @@ class MasterDataValidationTest extends TestCase
             ->postJson('/admin/master/satuan', [
                 'nama_satuan' => str_repeat('a', 256),
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['nama_satuan']);
     }
@@ -53,7 +54,7 @@ class MasterDataValidationTest extends TestCase
         // 1. Required
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/master/iku', []);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['kode_iku', 'nama_iku']);
 
@@ -63,7 +64,7 @@ class MasterDataValidationTest extends TestCase
                 'kode_iku' => str_repeat('a', 51),
                 'nama_iku' => str_repeat('a', 256),
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['kode_iku', 'nama_iku']);
     }
@@ -76,7 +77,7 @@ class MasterDataValidationTest extends TestCase
         // 1. Required
         $response = $this->actingAs($this->admin)
             ->postJson('/admin/master/mata-anggaran', []);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['kode_anggaran', 'nama_sumber_dana', 'tahun_anggaran', 'total_pagu']);
 
@@ -88,7 +89,7 @@ class MasterDataValidationTest extends TestCase
                 'tahun_anggaran' => 'invalid-year',
                 'total_pagu' => 'invalid-numeric',
             ]);
-            
+
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['tahun_anggaran', 'total_pagu']);
     }

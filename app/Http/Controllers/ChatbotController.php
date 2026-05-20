@@ -27,7 +27,7 @@ PROMPT;
     public function chat(Request $request)
     {
         $request->validate([
-            'message' => 'required|string|max:1000'
+            'message' => 'required|string|max:1000',
         ], [
             'required' => 'Pesan tidak boleh kosong.',
             'string' => 'Pesan harus berupa teks.',

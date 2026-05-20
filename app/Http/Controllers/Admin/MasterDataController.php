@@ -128,7 +128,7 @@ class MasterDataController extends Controller
     public function index(): Response
     {
         return Inertia::render('Admin/Master/Index', [
-            'types' => collect($this->allowedTypes)->map(fn($item, $key) => [
+            'types' => collect($this->allowedTypes)->map(fn ($item, $key) => [
                 'key' => $key,
                 'title' => $item['title'],
                 'readonly' => $item['readonly'],
@@ -138,7 +138,7 @@ class MasterDataController extends Controller
 
     public function indexResource(Request $request, string $type): Response
     {
-        abort_if(!isset($this->allowedTypes[$type]), 404);
+        abort_if(! isset($this->allowedTypes[$type]), 404);
 
         $config = $this->allowedTypes[$type];
         $modelClass = $config['model'];
@@ -148,7 +148,7 @@ class MasterDataController extends Controller
         if ($request->search) {
             $query->where(function ($q) use ($config, $request) {
                 foreach ($config['searchable'] as $column) {
-                    $q->orWhere($column, 'like', '%' . $request->search . '%');
+                    $q->orWhere($column, 'like', '%'.$request->search.'%');
                 }
             });
         }
@@ -172,7 +172,7 @@ class MasterDataController extends Controller
 
     public function store(Request $request, string $type): RedirectResponse
     {
-        abort_if(!isset($this->allowedTypes[$type]), 404);
+        abort_if(! isset($this->allowedTypes[$type]), 404);
         $config = $this->allowedTypes[$type];
 
         if ($config['readonly']) {
@@ -200,7 +200,7 @@ class MasterDataController extends Controller
 
     public function update(Request $request, string $type, string $id): RedirectResponse
     {
-        abort_if(!isset($this->allowedTypes[$type]), 404);
+        abort_if(! isset($this->allowedTypes[$type]), 404);
         $config = $this->allowedTypes[$type];
 
         if ($config['readonly']) {
@@ -229,7 +229,7 @@ class MasterDataController extends Controller
 
     public function destroy(string $type, string $id): RedirectResponse
     {
-        abort_if(!isset($this->allowedTypes[$type]), 404);
+        abort_if(! isset($this->allowedTypes[$type]), 404);
         $config = $this->allowedTypes[$type];
 
         if ($config['readonly']) {
