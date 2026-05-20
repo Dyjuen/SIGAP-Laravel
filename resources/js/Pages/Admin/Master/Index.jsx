@@ -28,6 +28,18 @@ export default function Index({ auth, types }) {
                                 </p>
                             </Link>
                         ))}
+                        
+                        <Link
+                            href={route('admin.spk.index')}
+                            className="block p-6 bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-lg shadow hover:shadow-md hover:bg-blue-50/50 transition-all group"
+                        >
+                            <h5 className="mb-2 text-2xl font-bold tracking-tight text-blue-900 group-hover:text-blue-700 transition-colors flex items-center gap-2">
+                                📊 Manajemen SPK
+                            </h5>
+                            <p className="font-normal text-slate-600">
+                                Atur bobot kriteria, konstrain nilai, dan lihat hasil evaluasi kinerja kegiatan (DSS) secara real-time.
+                            </p>
+                        </Link>
                     </div>
                 </div>
             </div>

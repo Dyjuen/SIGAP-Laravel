@@ -8,6 +8,7 @@ use App\Models\KegiatanStatus;
 use App\Models\MataAnggaran;
 use App\Models\Role;
 use App\Models\Satuan;
+use App\Models\SpkConfig;
 use App\Models\TipeKegiatan;
 use Illuminate\Database\Seeder;
 
@@ -132,7 +133,7 @@ class MasterDataSeeder extends Seeder
             ['iku_id' => 4, 'kode_iku' => 'IKU-4', 'nama_iku' => 'Praktisi Mengajar di Dalam Kampus'],
             ['iku_id' => 5, 'kode_iku' => 'IKU-5', 'nama_iku' => 'Hasil Kerja Dosen Digunakan oleh Masyarakat'],
             ['iku_id' => 6, 'kode_iku' => 'IKU-6', 'nama_iku' => 'Program Studi Bekerjasama dengan Mitra Kelas Dunia'],
-            ['iku_id' => 7, 'kode_iku' => 'IKU-7', 'nama_iku' => 'Kelas yang Kolaboratif dan Partisipatif'],
+            ['iku_id' => 7, 'kode_iku' => 'IKU-7', 'nama_iku' => 'Kelas yang Kolaboratif and Partisipatif'],
             ['iku_id' => 8, 'kode_iku' => 'IKU-8', 'nama_iku' => 'Program Studi Berstandar Internasional'],
         ];
         foreach ($iku as $row) {
@@ -177,5 +178,10 @@ class MasterDataSeeder extends Seeder
         foreach ($kategoriBelanja as $row) {
             KategoriBelanja::updateOrCreate(['kategori_belanja_id' => $row['kategori_belanja_id']], $row);
         }
+
+        // ============================================
+        // 8. INITIAL SPK CONFIG SEEDING (Self-Healing)
+        // ============================================
+        SpkConfig::getActive();
     }
 }

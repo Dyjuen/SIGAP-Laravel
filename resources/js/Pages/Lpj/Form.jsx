@@ -9,7 +9,7 @@ import Swal from 'sweetalert2';
 import clsx from 'clsx';
 import Modal from '@/Components/Modal';
 
-export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
+export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_config }) {
     const isPengusul = auth.user.role_id === 3;
     const isBendahara = auth.user.role_id === 6;
     const isAdmin = auth.user.role_id === 1;
@@ -67,6 +67,23 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
     const [commentText, setCommentText] = useState('');
     const [viewerConfig, setViewerConfig] = useState(null); // { url: string, name: string }
 
+    // SPK Config resolution with defensive defaults
+    const config = spk_config || {
+        weight_waktu: 25.00,
+        weight_anggaran: 25.00,
+        weight_output: 25.00,
+        weight_lpj: 25.00,
+        waktu_min: 50,
+        waktu_max: 100,
+        anggaran_min: 50,
+        anggaran_max: 100,
+        output_min: 0,
+        output_max: 100,
+        lpj_min: 50,
+        lpj_max: 100,
+        lpj_penalty_per_day: 5,
+    };
+
     // Automatic SPK Calculations
     const totalBudget = anggaran.reduce((sum, item) => sum + parseFloat(item.jumlah_diusulkan || 0), 0);
     const totalRealization = Object.values(data.realisasi).reduce((sum, item) => {
@@ -77,14 +94,14 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
         return sum + (v1 * v2 * v3 * price);
     }, 0);
 
-    let predictedAnggaranScore = 100;
+    let predictedAnggaranScore = config.anggaran_max;
     if (totalBudget > 0) {
         const ratio = totalRealization / totalBudget;
         const diff = Math.abs(1 - ratio) * 100;
-        predictedAnggaranScore = Math.max(50, Math.round(100 - diff));
+        predictedAnggaranScore = Math.max(config.anggaran_min, Math.min(config.anggaran_max, Math.round(config.anggaran_max - diff)));
     }
 
-    let predictedLpjScore = 100;
+    let predictedLpjScore = config.lpj_max;
     if (kegiatan.lpj_submitted_at) {
         predictedLpjScore = kegiatan.spk_ketepatan_lpj;
     } else if (kegiatan.tgl_batas_lpj) {
@@ -93,13 +110,13 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
         if (now > deadline) {
             const diffTime = Math.abs(now - deadline);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            predictedLpjScore = Math.max(50, 100 - (diffDays * 5));
+            predictedLpjScore = Math.max(config.lpj_min, Math.min(config.lpj_max, config.lpj_max - (diffDays * config.lpj_penalty_per_day)));
         }
     }
 
     const isSubmitted = kegiatan.lpj_submitted_at !== null;
-    const finalAnggaranScore = isSubmitted ? (kegiatan.spk_ketepatan_anggaran ?? 100) : predictedAnggaranScore;
-    const finalLpjScore = isSubmitted ? (kegiatan.spk_ketepatan_lpj ?? 100) : predictedLpjScore;
+    const finalAnggaranScore = isSubmitted ? (kegiatan.spk_ketepatan_anggaran ?? config.anggaran_max) : predictedAnggaranScore;
+    const finalLpjScore = isSubmitted ? (kegiatan.spk_ketepatan_lpj ?? config.lpj_max) : predictedLpjScore;
     const finalWaktuScore = isSubmitted ? (kegiatan.spk_kesesuaian_waktu ?? 0) : (data.spk_kesesuaian_waktu || 0);
     const finalOutputScore = isSubmitted ? (kegiatan.spk_kesesuaian_output ?? 0) : (data.spk_kesesuaian_output || 0);
 
@@ -641,16 +658,16 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                 <input
                                                     type="number"
                                                     className="w-full rounded-xl border-gray-200 text-sm py-3 px-4 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                    min="50"
-                                                    max="100"
+                                                    min={config.waktu_min}
+                                                    max={config.waktu_max}
                                                     required
                                                     value={data.spk_kesesuaian_waktu}
                                                     onChange={e => setData('spk_kesesuaian_waktu', e.target.value)}
                                                     disabled={!isEditingPengusul}
-                                                    placeholder="Nilai (50 - 100)"
+                                                    placeholder={`Nilai (${config.waktu_min} - ${config.waktu_max})`}
                                                 />
                                                 <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                                                    Konstrain 50-100. Nilai kesesuaian waktu pelaksanaan acara dibanding jadwal KAK original.
+                                                    Konstrain {config.waktu_min}-{config.waktu_max}. Nilai kesesuaian waktu pelaksanaan acara dibanding jadwal KAK original (Bobot: {config.weight_waktu}%).
                                                 </p>
                                                 {errors.spk_kesesuaian_waktu && (
                                                     <p className="text-xs text-red-500 font-bold">{errors.spk_kesesuaian_waktu}</p>
@@ -670,11 +687,11 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                     disabled={!isEditingPengusul}
                                                 >
                                                     <option value="">- Pilih Kesesuaian IKU -</option>
-                                                    <option value="0">0 - Output Tidak Sesuai IKU</option>
-                                                    <option value="100">100 - Output Sesuai IKU</option>
+                                                    <option value={config.output_min}>{config.output_min} - Output Tidak Sesuai IKU</option>
+                                                    <option value={config.output_max}>{config.output_max} - Output Sesuai IKU</option>
                                                 </select>
                                                 <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                                                    Hanya boleh bernilai 0 (tidak sesuai) atau 100 (sesuai indikator IKU KAK).
+                                                    Hanya boleh bernilai {config.output_min} (tidak sesuai) atau {config.output_max} (sesuai indikator IKU KAK) (Bobot: {config.weight_output}%).
                                                 </p>
                                                 {errors.spk_kesesuaian_output && (
                                                     <p className="text-xs text-red-500 font-bold">{errors.spk_kesesuaian_output}</p>
@@ -696,7 +713,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                         Ketepatan Penggunaan Anggaran
                                                     </label>
                                                     <span className="text-sm font-extrabold text-slate-600 bg-slate-200/80 px-2.5 py-1 rounded-lg">
-                                                        {finalAnggaranScore} / 100
+                                                        {finalAnggaranScore} / {config.anggaran_max}
                                                     </span>
                                                 </div>
                                                 <p className="text-[11px] text-slate-500 font-medium leading-normal">
@@ -704,7 +721,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                     Realisasi Saat Ini: <strong>Rp {totalRealization.toLocaleString('id-ID')}</strong>
                                                 </p>
                                                 <p className="text-[10px] text-slate-400 font-normal leading-normal italic">
-                                                    Sistem memberikan skor 100 jika realisasi 100% pas dengan anggaran. Penyimpangan (lebih/kurang) mengurangi skor secara proporsional (min. 50).
+                                                    Sistem memberikan skor {config.anggaran_max} jika realisasi 100% pas dengan anggaran. Penyimpangan (lebih/kurang) mengurangi skor secara proporsional (min. {config.anggaran_min}) (Bobot: {config.weight_anggaran}%).
                                                 </p>
                                             </div>
 
@@ -715,7 +732,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                         Ketepatan Penyampaian LPJ
                                                     </label>
                                                     <span className="text-sm font-extrabold text-slate-600 bg-slate-200/80 px-2.5 py-1 rounded-lg">
-                                                        {finalLpjScore} / 100
+                                                        {finalLpjScore} / {config.lpj_max}
                                                     </span>
                                                 </div>
                                                 <p className="text-[11px] text-slate-500 font-medium leading-normal">
@@ -727,7 +744,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                                     )}
                                                 </p>
                                                 <p className="text-[10px] text-slate-400 font-normal leading-normal italic">
-                                                    Sistem memberikan skor 100 jika diserahkan sebelum deadline. Keterlambatan dikenakan penalty -5 poin per hari (min. 50).
+                                                    Sistem memberikan skor {config.lpj_max} jika diserahkan sebelum deadline. Keterlambatan dikenakan penalty -{config.lpj_penalty_per_day} poin per hari (min. {config.lpj_min}) (Bobot: {config.weight_lpj}%).
                                                 </p>
                                             </div>
                                         </div>
@@ -737,17 +754,19 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans }) {
                                     {finalWaktuScore !== '' && finalOutputScore !== '' && (
                                         <div className="mt-6 p-4 bg-cyan-50/50 rounded-2xl border border-cyan-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 animate-fade-in">
                                             <div>
-                                                <h5 className="font-extrabold text-cyan-800 text-sm">Rata-rata Skor Kinerja SPK Kegiatan (Prediksi)</h5>
+                                                <h5 className="font-extrabold text-cyan-800 text-sm">Nilai Kinerja SPK Kegiatan (Weighted Score)</h5>
                                                 <p className="text-[11px] text-cyan-600 font-medium mt-0.5 leading-relaxed">
-                                                    Skor akhir dari 4 variabel (2 kualitatif + 2 kuantitatif otomatis).
+                                                    Skor akhir hasil kalkulasi bobot dinamis: ({config.weight_waktu}% Waktu, {config.weight_anggaran}% Anggaran, {config.weight_output}% Output, {config.weight_lpj}% LPJ).
                                                 </p>
                                             </div>
                                             <div className="text-left sm:text-right shrink-0">
                                                 <span className="text-3xl font-black text-cyan-600">
-                                                    {((parseFloat(finalWaktuScore) +
-                                                      parseFloat(finalOutputScore) +
-                                                      parseFloat(finalAnggaranScore) +
-                                                      parseFloat(finalLpjScore)) / 4).toFixed(1)}
+                                                    {((
+                                                        (parseFloat(finalWaktuScore || 0) * config.weight_waktu) +
+                                                        (parseFloat(finalOutputScore || 0) * config.weight_output) +
+                                                        (parseFloat(finalAnggaranScore || 0) * config.weight_anggaran) +
+                                                        (parseFloat(finalLpjScore || 0) * config.weight_lpj)
+                                                    ) / 100.0).toFixed(2)}
                                                 </span>
                                                 <span className="text-xs text-cyan-500/80 font-extrabold ml-1">/ 100</span>
                                             </div>

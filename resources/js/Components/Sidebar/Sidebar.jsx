@@ -141,6 +141,11 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
                     href: route('admin.master.resource.index', 'iku'),
                     active: route().current('admin.master.resource.index', 'iku')
                 },
+                {
+                    label: 'Manajemen SPK',
+                    href: route('admin.spk.index'),
+                    active: route().current('admin.spk.index')
+                },
             ]
         }
     ];

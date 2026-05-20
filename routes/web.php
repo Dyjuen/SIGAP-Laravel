@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AccountController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\MasterDataController;
 use App\Http\Controllers\Admin\PanduanController;
+use App\Http\Controllers\Admin\SpkController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardDirekturController;
@@ -103,6 +104,10 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->group(function () {
 
     // Logs Routes
     Route::get('/logs', [LogController::class, 'index'])->name('admin.logs.index');
+
+    // SPK Management Routes
+    Route::get('/spk', [SpkController::class, 'index'])->name('admin.spk.index');
+    Route::post('/spk/config', [SpkController::class, 'updateConfig'])->name('admin.spk.config.update');
 
     // Master Data Routes
     Route::prefix('master')->group(function () {

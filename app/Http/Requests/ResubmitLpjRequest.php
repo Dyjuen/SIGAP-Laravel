@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\SpkConfig;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ResubmitLpjRequest extends FormRequest
@@ -19,6 +20,8 @@ class ResubmitLpjRequest extends FormRequest
 
     public function rules(): array
     {
+        $config = SpkConfig::getActive();
+
         return [
             'realisasi' => ['nullable', 'array'],
             'realisasi.*.volume1' => ['required', 'numeric', 'min:0'],
@@ -33,8 +36,8 @@ class ResubmitLpjRequest extends FormRequest
             'bukti' => ['nullable', 'array'],
             'bukti.*' => ['nullable', 'array'],
             'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
-            'spk_kesesuaian_waktu' => ['required', 'integer', 'between:50,100'],
-            'spk_kesesuaian_output' => ['required', 'integer', 'in:0,100'],
+            'spk_kesesuaian_waktu' => ['required', 'integer', "between:{$config->waktu_min},{$config->waktu_max}"],
+            'spk_kesesuaian_output' => ['required', 'integer', "in:{$config->output_min},{$config->output_max}"],
         ];
     }
 

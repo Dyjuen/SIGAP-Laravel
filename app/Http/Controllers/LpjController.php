@@ -14,7 +14,9 @@ use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
 use App\Models\KegiatanLogStatus;
 use App\Models\Satuan;
+use App\Models\SpkConfig;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -227,6 +229,7 @@ class LpjController extends Controller
             'anggaran' => $anggaran,
             'lampiran' => $lampirans,
             'satuans' => Satuan::all(),
+            'spk_config' => SpkConfig::getActive(),
         ]);
     }
 
@@ -564,33 +567,35 @@ class LpjController extends Controller
      */
     private function calculateSpkScores(Kegiatan $kegiatan): array
     {
-        // 1. Calculate Ketepatan Anggaran score (50 - 100)
+        $config = SpkConfig::getActive();
+
+        // 1. Calculate Ketepatan Anggaran score (anggaran_min - anggaran_max)
         $totalBudget = 0;
         $totalRealization = 0;
-        $anggarans = \App\Models\KAKAnggaran::where('kak_id', $kegiatan->kak_id)->get();
+        $anggarans = KAKAnggaran::where('kak_id', $kegiatan->kak_id)->get();
         foreach ($anggarans as $anggaran) {
             $totalBudget += (float) $anggaran->jumlah_diusulkan;
             $totalRealization += (float) ($anggaran->realisasi_jumlah ?? 0);
         }
 
-        $ketepatanAnggaran = 100;
+        $ketepatanAnggaran = $config->anggaran_max;
         if ($totalBudget > 0) {
             $ratio = $totalRealization / $totalBudget;
             if (abs($ratio - 1) >= 0.001) {
-                // Penalty: deduct based on deviation percentage, minimum 50
+                // Penalty: deduct based on deviation percentage, bounded by min/max
                 $differencePercentage = abs(1 - $ratio) * 100;
-                $ketepatanAnggaran = (int) max(50, round(100 - $differencePercentage));
+                $ketepatanAnggaran = (int) max($config->anggaran_min, min($config->anggaran_max, round($config->anggaran_max - $differencePercentage)));
             }
         }
 
-        // 2. Calculate Ketepatan LPJ score (50 - 100)
-        $ketepatanLpj = 100;
+        // 2. Calculate Ketepatan LPJ score (lpj_min - lpj_max)
+        $ketepatanLpj = $config->lpj_max;
         if ($kegiatan->tgl_batas_lpj) {
-            $deadline = \Carbon\Carbon::parse($kegiatan->tgl_batas_lpj);
-            $submissionTime = now();
+            $deadline = Carbon::parse($kegiatan->tgl_batas_lpj);
+            $submissionTime = $kegiatan->lpj_submitted_at ? Carbon::parse($kegiatan->lpj_submitted_at) : now();
             if ($submissionTime->gt($deadline)) {
                 $daysLate = $submissionTime->diffInDays($deadline);
-                $ketepatanLpj = (int) max(50, 100 - ($daysLate * 5));
+                $ketepatanLpj = (int) max($config->lpj_min, min($config->lpj_max, $config->lpj_max - ($daysLate * $config->lpj_penalty_per_day)));
             }
         }
 
