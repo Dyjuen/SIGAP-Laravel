@@ -24,6 +24,7 @@ class SpkTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutVite();
 
         // Run seeders including MasterDataSeeder to setup roles and SPK configs
         $this->seed(MasterDataSeeder::class);

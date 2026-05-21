@@ -14,6 +14,7 @@ class Kegiatan extends Model
 
     protected $casts = [
         'tanggal_mulai_final' => 'date',
+        'tanggal_selesai_final' => 'date',
         'tgl_batas_lpj' => 'datetime',
         'lpj_submitted_at' => 'datetime',
         'spk_kesesuaian_waktu' => 'integer',

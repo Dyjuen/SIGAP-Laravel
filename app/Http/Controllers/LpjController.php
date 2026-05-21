@@ -478,6 +478,13 @@ class LpjController extends Controller
                 $nextApproval->update(['status' => 'Aktif']);
             }
 
+            // Recalculate final SPK scores on approval
+            $spkScores = $this->calculateSpkScores($kegiatan);
+            $kegiatan->update([
+                'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
+                'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
+            ]);
+
             $kak = $kegiatan->kak;
             $oldStatus = $kak->status_id;
             $newStatus = 13; // Setor Fisik Dokumen
@@ -590,11 +597,15 @@ class LpjController extends Controller
 
         // 2. Calculate Ketepatan LPJ score (lpj_min - lpj_max)
         $ketepatanLpj = $config->lpj_max;
-        if ($kegiatan->tgl_batas_lpj) {
-            $deadline = Carbon::parse($kegiatan->tgl_batas_lpj);
-            $submissionTime = $kegiatan->lpj_submitted_at ? Carbon::parse($kegiatan->lpj_submitted_at) : now();
-            if ($submissionTime->gt($deadline)) {
-                $daysLate = $submissionTime->diffInDays($deadline);
+        $bendaharaLpj = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
+            ->where('approval_level', 'Bendahara-LPJ')
+            ->first();
+        if ($bendaharaLpj && $bendaharaLpj->activated_at) {
+            $start = Carbon::parse($bendaharaLpj->activated_at);
+            $end = $bendaharaLpj->approved_at ? Carbon::parse($bendaharaLpj->approved_at) : now();
+            $daysTaken = $start->diffInDays($end);
+            if ($daysTaken > 14) {
+                $daysLate = $daysTaken - 14;
                 $ketepatanLpj = (int) max($config->lpj_min, min($config->lpj_max, $config->lpj_max - ($daysLate * $config->lpj_penalty_per_day)));
             }
         }

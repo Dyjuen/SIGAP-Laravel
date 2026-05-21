@@ -14,13 +14,28 @@ import {
     Award,
     Download,
     X,
-    Sparkles
+    Sparkles,
+    Sliders,
+    ChevronDown,
+    ChevronUp,
+    AlertTriangle,
+    CheckCircle,
+    Maximize2,
+    List,
+    Eye,
+    Calculator,
+    Target,
+    BarChart2
 } from 'lucide-react';
+import gsap from 'gsap';
 import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
     BarElement,
+    PointElement,
+    LineElement,
+    Filler,
     Title,
     Tooltip,
     Legend,
@@ -32,6 +47,9 @@ ChartJS.register(
     CategoryScale,
     LinearScale,
     BarElement,
+    PointElement,
+    LineElement,
+    Filler,
     Title,
     Tooltip,
     Legend,
@@ -57,15 +75,96 @@ const formatMoneyShort = (amount) => {
 };
 
 export default function Dashboard({ dashboardData }) {
-    const { overview, by_jurusan, trends, recent_activities, videos, period } = dashboardData;
+    const { overview, by_jurusan, trends, recent_activities, videos, period, topsis_activities, spk_config } = dashboardData;
 
     const [selectedUnit, setSelectedUnit] = useState(null);
+    const [isSwitching, setIsSwitching] = useState(false);
+    const [expandedJurusan, setExpandedJurusan] = useState(null);
+    const [showTechnicalAudit, setShowTechnicalAudit] = useState(false);
+    const [focusYAxis, setFocusYAxis] = useState(false);
+    const [showTrendsTable, setShowTrendsTable] = useState(false);
+    const [topsisDetailModal, setTopsisDetailModal] = useState(null); // activity object | null
+    const [topsisModalTab, setTopsisModalTab] = useState(0); // 0=Raw, 1=Normalisasi, 2=Ideal, 3=Skor
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            gsap.set('.kpi-card', { opacity: 0, y: 20 });
+            gsap.set('.dashboard-section', { opacity: 0, y: 30 });
+
+            gsap.to('.kpi-card', {
+                opacity: 1,
+                y: 0,
+                duration: 0.6,
+                stagger: 0.08,
+                ease: 'power2.out',
+                clearProps: 'opacity,transform'
+            });
+
+            gsap.to('.dashboard-section', {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.12,
+                ease: 'power2.out',
+                clearProps: 'opacity,transform'
+            });
+        }, 150);
+
+        return () => clearTimeout(timer);
+    }, [period]);
+
+    // Use pre-calculated TOPSIS values from backend (includes debug data for audit modal)
+    const activeTopsis = React.useMemo(() => {
+        if (!topsis_activities || topsis_activities.length === 0) {
+            return { activities: [], jurusans: [] };
+        }
+
+        // Backend already sorted by topsis_score desc
+        const activities = topsis_activities;
+
+        // Group by department
+        const groups = {};
+        activities.forEach(act => {
+            if (!groups[act.jurusan]) groups[act.jurusan] = [];
+            groups[act.jurusan].push(act);
+        });
+
+        const jurusans = Object.keys(groups).map(jurusan => {
+            const acts = groups[jurusan];
+            const avg_score = acts.reduce((sum, val) => sum + val.topsis_score, 0) / acts.length;
+            const avg_c1 = acts.reduce((sum, val) => sum + val.c1, 0) / acts.length;
+            const avg_c2 = acts.reduce((sum, val) => sum + val.c2, 0) / acts.length;
+            const avg_c3 = acts.reduce((sum, val) => sum + val.c3, 0) / acts.length;
+            const avg_c4 = acts.reduce((sum, val) => sum + val.c4, 0) / acts.length;
+
+            return {
+                nama_jurusan: jurusan,
+                avg_score,
+                avg_c1,
+                avg_c2,
+                avg_c3,
+                avg_c4,
+                activities: acts,
+                kak_diajukan: by_jurusan.find(j => j.nama_jurusan === jurusan)?.kak_diajukan || 0,
+                kegiatan_selesai: by_jurusan.find(j => j.nama_jurusan === jurusan)?.kegiatan_selesai || 0,
+                persentase_serapan: by_jurusan.find(j => j.nama_jurusan === jurusan)?.persentase_serapan || 0,
+                dana_diminta: by_jurusan.find(j => j.nama_jurusan === jurusan)?.dana_diminta || 0,
+                dana_terserap: by_jurusan.find(j => j.nama_jurusan === jurusan)?.dana_terserap || 0,
+            };
+        });
+
+        jurusans.sort((a, b) => b.avg_score - a.avg_score);
+
+        return { activities, jurusans };
+    }, [topsis_activities, by_jurusan]);
 
     const handlePeriodChange = (newPeriod) => {
+        setIsSwitching(true);
         router.get(route('dashboard.direktur'), { period: newPeriod }, {
             preserveState: true,
             preserveScroll: true,
-            only: ['dashboardData']
+            only: ['dashboardData'],
+            onFinish: () => setIsSwitching(false)
         });
     };
 
@@ -89,26 +188,117 @@ export default function Dashboard({ dashboardData }) {
     const isGrowing = currentTotal >= prevTotal;
     const growth = overview.budget_growth || 0;
 
+    const getRankExplanation = (jur) => {
+        const reasons = [];
+        if (jur.avg_c1 >= 85) reasons.push("pelaksanaan kegiatan sangat tepat waktu");
+        if (jur.avg_c2 >= 85) reasons.push("realisasi anggaran efisien sesuai KAK");
+        if (jur.avg_c3 >= 85) reasons.push("penyelesaian output sesuai target");
+        if (jur.avg_c4 >= 85) reasons.push("administrasi LPJ tertib dan disiplin");
+
+        const challenges = [];
+        if (jur.avg_c1 < 70) challenges.push("penjadwalan kegiatan kurang konsisten");
+        if (jur.avg_c2 < 70) challenges.push("deviasi realisasi anggaran cukup tinggi");
+        if (jur.avg_c4 < 70) challenges.push("pelaporan LPJ sering terlambat");
+
+        if (reasons.length > 0) {
+            let text = reasons.slice(0, 2).join(", ");
+            if (challenges.length > 0) {
+                text += `, namun perlu perhatian khusus pada ${challenges.slice(0, 1).join("")}`;
+            }
+            return text.charAt(0).toUpperCase() + text.slice(1) + ".";
+        } else if (challenges.length > 0) {
+            return `Perlu perbaikan intensif pada aspek ${challenges.join(" serta ")}.`;
+        }
+        return "Secara umum, kinerja administrasi dan ketepatan pelaksanaan kegiatan berada pada level stabil.";
+    };
+
+    const getAiSummary = () => {
+        if (!activeTopsis.jurusans || activeTopsis.jurusans.length === 0) {
+            return "Belum ada analisis data kinerja terdaftar untuk periode ini.";
+        }
+
+        const topJurusan = activeTopsis.jurusans[0];
+        const lowJurusan = activeTopsis.jurusans[activeTopsis.jurusans.length - 1];
+        
+        let summary = `Unit ${topJurusan.nama_jurusan} memimpin dengan kinerja administrasi terbaik (Indeks: ${topJurusan.avg_score.toFixed(4)}), didukung oleh ketepatan waktu dan LPJ yang sangat tertib.`;
+        
+        if (lowJurusan && lowJurusan.nama_jurusan !== topJurusan.nama_jurusan) {
+            if (lowJurusan.avg_c4 < 70) {
+                summary += ` Sebaliknya, unit ${lowJurusan.nama_jurusan} memerlukan pendampingan intensif karena rendahnya tingkat kepatuhan waktu penyerahan LPJ (rata-rata ${lowJurusan.avg_c4.toFixed(1)}%).`;
+            } else if (lowJurusan.avg_c2 < 70) {
+                summary += ` Sebaliknya, unit ${lowJurusan.nama_jurusan} perlu dievaluasi dalam perencanaan anggaran karena deviasi realisasi dana yang cukup tinggi.`;
+            } else {
+                summary += ` Unit ${lowJurusan.nama_jurusan} berada di posisi terbawah dan memerlukan akselerasi peningkatan tata kelola administrasi kegiatan.`;
+            }
+        }
+
+        return summary;
+    };
+
+    const activeTrends = React.useMemo(() => {
+        if (focusYAxis) {
+            // Filter out months that have zero activities and zero budget rencana and zero realisasi
+            return trends.filter(t => t.total_kegiatan > 0 || t.dana_diminta > 0 || t.dana_terserap > 0);
+        }
+        return trends;
+    }, [trends, focusYAxis]);
+
     const trendsChartData = {
-        labels: trends.map(t => t.periode),
+        labels: activeTrends.map(t => t.periode),
         datasets: [
             {
+                type: 'line',
+                label: 'Realisasi Serapan (Juta)',
+                data: activeTrends.map(t => t.dana_terserap / 1000000),
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.08)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 2.5,
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                yAxisID: 'y',
+                order: 1
+            },
+            {
+                type: 'bar',
                 label: 'Rencana Anggaran (Juta)',
-                data: trends.map(t => t.dana_diminta / 1000000),
-                backgroundColor: '#e2e8f0',
-                borderRadius: 4,
-                barPercentage: 0.6,
-                categoryPercentage: 0.7,
+                data: activeTrends.map(t => t.dana_diminta / 1000000),
+                backgroundColor: '#f1f5f9',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                borderRadius: 6,
+                barPercentage: 0.45,
+                categoryPercentage: 0.6,
+                yAxisID: 'y',
+                order: 3
+            },
+            {
+                type: 'line',
+                label: 'Jumlah Kegiatan',
+                data: activeTrends.map(t => t.total_kegiatan),
+                borderColor: '#f59e0b',
+                backgroundColor: '#f59e0b',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.35,
+                yAxisID: 'y1',
                 order: 2
             },
             {
-                label: 'Realisasi Serapan (Juta)',
-                data: trends.map(t => t.dana_terserap / 1000000),
-                backgroundColor: '#06b6d4',
-                borderRadius: 4,
-                barPercentage: 0.4,
-                categoryPercentage: 0.7,
-                order: 1
+                type: 'line',
+                label: 'Perlu Perhatian (Hambatan)',
+                data: activeTrends.map(t => t.perlu_perhatian || 0),
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                borderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                tension: 0.35,
+                yAxisID: 'y1',
+                order: 4
             }
         ]
     };
@@ -116,21 +306,95 @@ export default function Dashboard({ dashboardData }) {
     const trendsChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
         plugins: {
-            legend: { position: 'top', align: 'end' },
+            legend: {
+                position: 'top',
+                align: 'end',
+                labels: {
+                    boxWidth: 12,
+                    boxHeight: 12,
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 11,
+                        weight: '600'
+                    },
+                    padding: 20
+                }
+            },
             tooltip: {
-                mode: 'index', intersect: false,
+                backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                titleColor: '#0f172a',
+                bodyColor: '#334155',
+                borderColor: '#e2e8f0',
+                borderWidth: 1,
+                padding: 12,
+                titleFont: {
+                    family: "'Inter', sans-serif",
+                    size: 12,
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    family: "'Inter', sans-serif",
+                    size: 11
+                },
                 callbacks: {
-                    label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw} Jt`
+                    label: (ctx) => {
+                        if (ctx.dataset.yAxisID === 'y1') {
+                            return ` ${ctx.dataset.label}: ${ctx.raw} Kegiatan`;
+                        }
+                        return ` ${ctx.dataset.label}: Rp ${ctx.raw.toFixed(1)} Jt`;
+                    }
                 }
             }
         },
         scales: {
-            x: { grid: { display: false } },
+            x: {
+                grid: { display: false },
+                ticks: {
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 10,
+                        weight: '600'
+                    },
+                    color: '#64748b'
+                }
+            },
             y: {
+                type: 'linear',
+                display: true,
+                position: 'left',
+                beginAtZero: !focusYAxis,
                 grid: { color: '#f1f5f9', borderDash: [5, 5] },
-                beginAtZero: true,
-                ticks: { callback: (val) => val + ' Jt' }
+                ticks: {
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 10
+                    },
+                    color: '#64748b',
+                    callback: (val) => val + ' Jt'
+                }
+            },
+            y1: {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                beginAtZero: !focusYAxis,
+                grid: { drawOnChartArea: false },
+                ticks: {
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 10
+                    },
+                    color: '#64748b',
+                    callback: (val) => val + ' Keg',
+                    precision: 0
+                }
             }
         }
     };
@@ -188,6 +452,255 @@ export default function Dashboard({ dashboardData }) {
         }]
     };
 
+    // ── TOPSIS Detail Modal Component ──────────────────────────────────────────────
+    const TopsisDetailModal = ({ act, onClose }) => {
+        if (!act) return null;
+        const tabs = [
+            { label: 'Nilai Kriteria', icon: <Calculator size={14} /> },
+            { label: 'Normalisasi', icon: <BarChart2 size={14} /> },
+            { label: 'Solusi Ideal', icon: <Target size={14} /> },
+            { label: 'Skor Akhir', icon: <Award size={14} /> },
+        ];
+
+        const c1d = act.c1_debug || {};
+        const c2d = act.c2_debug || {};
+        const c3d = act.c3_debug || {};
+        const c4d = act.c4_debug || {};
+
+        const sourceLabel = (s) => s === 'calculated' ? '🔢 Dihitung otomatis' : s === 'stored' ? '💾 Nilai tersimpan' : '⚠️ Default';
+        const fmt6 = (n) => (n != null ? parseFloat(n).toFixed(6) : '—');
+        const fmt4 = (n) => (n != null ? parseFloat(n).toFixed(4) : '—');
+        const fmtRp = (n) => n != null ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n) : '—';
+
+        return (
+            <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
+                onClick={onClose}
+            >
+                <div
+                    className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                    onClick={e => e.stopPropagation()}
+                >
+                    {/* Modal Header */}
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between bg-gradient-to-r from-cyan-50 to-white">
+                        <div>
+                            <div className="text-xs font-bold text-cyan-600 uppercase tracking-wider mb-1">Detail Perhitungan TOPSIS</div>
+                            <h3 className="text-sm font-extrabold text-slate-800 leading-snug">{act.nama_kegiatan}</h3>
+                            <div className="text-xs text-slate-500 mt-0.5">{act.jurusan}</div>
+                        </div>
+                        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-lg hover:bg-slate-100">
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex border-b border-slate-100 bg-slate-50/50">
+                        {tabs.map((tab, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setTopsisModalTab(i)}
+                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-[11px] font-bold transition-all border-b-2 ${
+                                    topsisModalTab === i
+                                        ? 'border-cyan-500 text-cyan-600 bg-white'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/60'
+                                }`}
+                            >
+                                {tab.icon} {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="overflow-y-auto flex-1 p-5">
+
+                        {/* Tab 0: Nilai Kriteria Mentah */}
+                        {topsisModalTab === 0 && (
+                            <div className="space-y-4">
+                                <p className="text-xs text-slate-500">Nilai mentah setiap kriteria sebelum normalisasi. Semua kriteria berskala 0–100.</p>
+
+                                {/* C1 */}
+                                <div className="border border-slate-100 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-extrabold text-cyan-700">C1 – Kesesuaian Waktu</span>
+                                        <span className="text-lg font-black text-cyan-500">{act.c1}</span>
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c1d.source)}</span></div>
+                                        {c1d.source === 'calculated' && (<>
+                                            <div className="flex justify-between"><span>Rencana ({c1d.tgl_mulai_rencana} → {c1d.tgl_selesai_rencana})</span><span className="font-bold">{c1d.durasi_rencana} hari</span></div>
+                                            <div className="flex justify-between"><span>Aktual ({c1d.tgl_mulai_aktual} → {c1d.tgl_selesai_aktual})</span><span className="font-bold">{c1d.durasi_aktual} hari</span></div>
+                                            <div className="flex justify-between"><span>Deviasi</span><span className="font-bold text-amber-600">{c1d.deviasi_persen}%</span></div>
+                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C1 = max(50, 100 – {c1d.deviasi_persen}%)</span><span>= {act.c1}</span></div>
+                                        </>)}
+                                    </div>
+                                </div>
+
+                                {/* C2 */}
+                                <div className="border border-slate-100 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-extrabold text-cyan-700">C2 – Ketepatan Anggaran</span>
+                                        <span className="text-lg font-black text-cyan-500">{act.c2}</span>
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c2d.source)}</span></div>
+                                        {c2d.source === 'calculated' && (<>
+                                            <div className="flex justify-between"><span>Rencana (KAK)</span><span className="font-bold">{fmtRp(c2d.anggaran_rencana)}</span></div>
+                                            <div className="flex justify-between"><span>Realisasi</span><span className="font-bold">{fmtRp(c2d.anggaran_aktual)}</span></div>
+                                            <div className="flex justify-between"><span>Deviasi</span><span className="font-bold text-amber-600">{c2d.deviasi_persen}%</span></div>
+                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C2 = max(50, 100 – {c2d.deviasi_persen}%)</span><span>= {act.c2}</span></div>
+                                        </>)}
+                                    </div>
+                                </div>
+
+                                {/* C3 */}
+                                <div className="border border-slate-100 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-extrabold text-cyan-700">C3 – Kesesuaian Output (IKU)</span>
+                                        <span className="text-lg font-black text-cyan-500">{act.c3}</span>
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c3d.source)}</span></div>
+                                        {c3d.source === 'calculated' && (<>
+                                            <div className="flex justify-between"><span>Total IKU</span><span className="font-bold">{c3d.total_iku}</span></div>
+                                            <div className="flex justify-between"><span>IKU Terpenuhi</span><span className="font-bold text-emerald-600">{c3d.terpenuhi}</span></div>
+                                            <div className="flex justify-between"><span>Persentase</span><span className="font-bold">{c3d.persentase}%</span></div>
+                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C3 = ⌊{c3d.terpenuhi}/{c3d.total_iku} × 100⌋</span><span>= {act.c3}</span></div>
+                                        </>)}
+                                    </div>
+                                </div>
+
+                                {/* C4 */}
+                                <div className="border border-slate-100 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-extrabold text-cyan-700">C4 – Ketepatan LPJ</span>
+                                        <span className="text-lg font-black text-cyan-500">{act.c4}</span>
+                                    </div>
+                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c4d.source)}</span></div>
+                                        {c4d.source === 'calculated' && (<>
+                                            <div className="flex justify-between"><span>Hari di Bendahara-LPJ</span><span className="font-bold">{c4d.hari_di_lpj ?? '—'} hari</span></div>
+                                            <div className="flex justify-between"><span>Hari Terlambat (maks 14)</span><span className={`font-bold ${c4d.hari_terlambat > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{c4d.hari_terlambat ?? 0} hari</span></div>
+                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C4 = max(50, 100 – {c4d.hari_terlambat ?? 0})</span><span>= {act.c4}</span></div>
+                                        </>)}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tab 1: Normalisasi & Pembobotan */}
+                        {topsisModalTab === 1 && (
+                            <div className="space-y-4">
+                                <p className="text-xs text-slate-500">Normalisasi menggunakan akar Euclidean seluruh dataset: <code className="bg-slate-100 px-1 rounded">r_ij = c_ij / √(Σc_ij²)</code>. Nilai berbobot: <code className="bg-slate-100 px-1 rounded">v_ij = r_ij × w_j</code>.</p>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-[11px] border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-slate-200">
+                                                <th className="px-3 py-2 text-left font-black text-slate-600">Kriteria</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">Nilai (c)</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">Norm (√Σc²)</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">r = c/norm</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">Bobot (w)</th>
+                                                <th className="px-3 py-2 text-center font-black text-cyan-600">v = r × w</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {[['C1 Waktu', act.c1, act.norm_c1, act.r1, act.w1, act.v1],
+                                              ['C2 Anggaran', act.c2, act.norm_c2, act.r2, act.w2, act.v2],
+                                              ['C3 Output', act.c3, act.norm_c3, act.r3, act.w3, act.v3],
+                                              ['C4 LPJ', act.c4, act.norm_c4, act.r4, act.w4, act.v4]].map(([label, c, norm, r, w, v]) => (
+                                                <tr key={label} className="hover:bg-slate-50/50">
+                                                    <td className="px-3 py-2 font-bold text-slate-700">{label}</td>
+                                                    <td className="px-3 py-2 text-center">{c}</td>
+                                                    <td className="px-3 py-2 text-center text-slate-500">{fmt4(norm)}</td>
+                                                    <td className="px-3 py-2 text-center">{fmt6(r)}</td>
+                                                    <td className="px-3 py-2 text-center">{w}%</td>
+                                                    <td className="px-3 py-2 text-center font-bold text-cyan-600">{fmt6(v)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tab 2: Solusi Ideal */}
+                        {topsisModalTab === 2 && (
+                            <div className="space-y-4">
+                                <p className="text-xs text-slate-500">Solusi ideal positif (A⁺) adalah nilai berbobot maksimum per kriteria di seluruh dataset. Solusi ideal negatif (A⁻) adalah nilai minimum.</p>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-[11px] border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50 border-b border-slate-200">
+                                                <th className="px-3 py-2 text-left font-black text-slate-600">Kriteria</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">v (Kegiatan ini)</th>
+                                                <th className="px-3 py-2 text-center font-black text-emerald-600">A⁺ (Ideal Positif)</th>
+                                                <th className="px-3 py-2 text-center font-black text-rose-500">A⁻ (Ideal Negatif)</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">(v – A⁺)²</th>
+                                                <th className="px-3 py-2 text-center font-black text-slate-600">(v – A⁻)²</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {[['C1', act.v1, act.ideal_pos?.v1, act.ideal_neg?.v1],
+                                              ['C2', act.v2, act.ideal_pos?.v2, act.ideal_neg?.v2],
+                                              ['C3', act.v3, act.ideal_pos?.v3, act.ideal_neg?.v3],
+                                              ['C4', act.v4, act.ideal_pos?.v4, act.ideal_neg?.v4]].map(([label, v, aPos, aNeg]) => {
+                                                const dPos2 = v != null && aPos != null ? Math.pow(v - aPos, 2) : null;
+                                                const dNeg2 = v != null && aNeg != null ? Math.pow(v - aNeg, 2) : null;
+                                                return (
+                                                    <tr key={label} className="hover:bg-slate-50/50">
+                                                        <td className="px-3 py-2 font-bold text-slate-700">{label}</td>
+                                                        <td className="px-3 py-2 text-center">{fmt6(v)}</td>
+                                                        <td className="px-3 py-2 text-center text-emerald-600 font-bold">{fmt6(aPos)}</td>
+                                                        <td className="px-3 py-2 text-center text-rose-500 font-bold">{fmt6(aNeg)}</td>
+                                                        <td className="px-3 py-2 text-center text-slate-500">{dPos2 != null ? dPos2.toFixed(8) : '—'}</td>
+                                                        <td className="px-3 py-2 text-center text-slate-500">{dNeg2 != null ? dNeg2.toFixed(8) : '—'}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tab 3: Skor Akhir */}
+                        {topsisModalTab === 3 && (
+                            <div className="space-y-4">
+                                <p className="text-xs text-slate-500">Jarak ke ideal dihitung menggunakan akar jumlah kuadrat deviasi. Skor TOPSIS adalah: <code className="bg-slate-100 px-1 rounded">C = S⁻ / (S⁺ + S⁻)</code></p>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                                        <div className="text-[10px] uppercase font-black text-slate-500 mb-1">S⁺ (Jarak ke A⁺)</div>
+                                        <div className="text-2xl font-black text-rose-500">{fmt6(act.s_pos)}</div>
+                                        <div className="text-[10px] text-slate-400 mt-1">= √Σ(v – A⁺)²</div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-xl p-4 text-center">
+                                        <div className="text-[10px] uppercase font-black text-slate-500 mb-1">S⁻ (Jarak ke A⁻)</div>
+                                        <div className="text-2xl font-black text-emerald-500">{fmt6(act.s_neg)}</div>
+                                        <div className="text-[10px] text-slate-400 mt-1">= √Σ(v – A⁻)²</div>
+                                    </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200 rounded-xl p-5 text-center">
+                                    <div className="text-[10px] uppercase font-black text-cyan-600 mb-2">Skor TOPSIS Akhir</div>
+                                    <div className="text-4xl font-black text-cyan-600 mb-1">{parseFloat(act.topsis_score).toFixed(6)}</div>
+                                    <div className="text-xs text-slate-500">C = {fmt6(act.s_neg)} / ({fmt6(act.s_pos)} + {fmt6(act.s_neg)})</div>
+                                    <div className="mt-3">
+                                        <span className={`inline-block text-xs font-extrabold px-4 py-1.5 rounded-full border ${
+                                            act.kategori === 'Sangat Baik' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
+                                            act.kategori === 'Baik' ? 'bg-cyan-100 text-cyan-700 border-cyan-200' :
+                                            act.kategori === 'Cukup' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                                            'bg-red-100 text-red-700 border-red-200'
+                                        }`}>{act.kategori}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <AuthenticatedLayout
             header={
@@ -196,6 +709,14 @@ export default function Dashboard({ dashboardData }) {
                 </h2>
             }
         >
+            {/* TOPSIS Step-by-Step Audit Modal */}
+            {topsisDetailModal && (
+                <TopsisDetailModal
+                    act={topsisDetailModal}
+                    onClose={() => setTopsisDetailModal(null)}
+                />
+            )}
+
             <Head title="Dashboard Direktur" />
 
             <div className="py-8" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -232,41 +753,54 @@ export default function Dashboard({ dashboardData }) {
                     </div>
 
                     {/* AI Executive Summary */}
-                    <div className="animate-[fadeInUp_0.5s_ease-out]">
-                        {isGood ? (
-                            <div className="bg-gradient-to-br from-cyan-50 to-white border-l-4 border-cyan-500 p-6 rounded-xl shadow-sm flex gap-4 items-start">
-                                <div className="bg-cyan-500 text-white p-2 rounded-full mt-1">
-                                    <Sparkles size={20} />
+                    <div className="dashboard-section bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
+                        <div className="flex items-center gap-2 mb-2 pb-3 border-b border-slate-50">
+                            <Sparkles className="text-cyan-500" size={20} />
+                            <h3 className="text-lg font-black text-slate-800 m-0">AI Executive Summary</h3>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Financial Summary */}
+                            <div className={`p-5 rounded-xl border flex gap-4 items-start ${isGood ? 'bg-cyan-50/30 border-cyan-100' : 'bg-amber-50/30 border-amber-100'}`}>
+                                <div className={`p-2 rounded-full ${isGood ? 'bg-cyan-500 text-white' : 'bg-amber-500 text-white'}`}>
+                                    {isGood ? <Sparkles size={18} /> : <AlertCircle size={18} />}
                                 </div>
                                 <div>
-                                    <h4 className="m-0 mb-2 text-cyan-900 text-base font-bold">Executive Summary: Kinerja Positif</h4>
-                                    <p className="m-0 text-slate-600 text-sm leading-relaxed">
-                                        Realisasi anggaran berjalan <strong>sangat baik</strong> ({overview.persentase_serapan}%).
-                                        Apresiasi untuk <strong>{bestUnit?.nama_jurusan}</strong> yang memimpin efisiensi.
+                                    <h4 className={`m-0 mb-1.5 text-base font-bold ${isGood ? 'text-cyan-900' : 'text-amber-900'}`}>
+                                        Keuangan & Penyerapan
+                                    </h4>
+                                    <p className="m-0 text-slate-600 text-xs leading-relaxed">
+                                        Realisasi anggaran berjalan <strong>{isGood ? 'sangat baik' : 'perlu perhatian'}</strong> ({overview.persentase_serapan}%).
+                                        {isGood ? (
+                                            <span> Apresiasi untuk <strong>{bestUnit?.nama_jurusan}</strong> yang memimpin efisiensi.</span>
+                                        ) : (
+                                            <span> Mohon tinjau <strong>{worstUnit?.nama_jurusan}</strong> untuk akselerasi kegiatan.</span>
+                                        )}
                                         Tren kegiatan {isGrowing ? 'sedang meningkat' : 'stabil'}, pertahankan momentum ini.
                                     </p>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="bg-white border-l-4 border-amber-500 p-6 rounded-xl shadow-sm flex gap-4 items-start">
-                                <div className="bg-amber-100 text-amber-600 p-2 rounded-full mt-1">
-                                    <AlertCircle size={20} />
+
+                            {/* TOPSIS Summary */}
+                            <div className="p-5 rounded-xl border border-cyan-100 bg-cyan-50/30 flex gap-4 items-start">
+                                <div className="p-2 rounded-full bg-cyan-500 text-white">
+                                    <Award size={18} />
                                 </div>
                                 <div>
-                                    <h4 className="m-0 mb-2 text-amber-900 text-base font-bold">Executive Summary: Perlu Perhatian</h4>
-                                    <p className="m-0 text-slate-600 text-sm leading-relaxed">
-                                        Serapan anggaran masih di angka <strong>{overview.persentase_serapan}%</strong>.
-                                        Mohon tinjau <strong>{worstUnit?.nama_jurusan}</strong> untuk akselerasi kegiatan.
-                                        Pastikan tidak ada bottleneck administrasi pada kegiatan yang sedang berlangsung.
+                                    <h4 className="m-0 mb-1.5 text-cyan-900 text-base font-bold">
+                                        Evaluasi Kinerja Unit (TOPSIS)
+                                    </h4>
+                                    <p className="m-0 text-slate-600 text-xs leading-relaxed">
+                                        {getAiSummary()}
                                     </p>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* Hero Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/30 text-white flex justify-between items-start">
+                        <div className="kpi-card rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/30 text-white flex justify-between items-start">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-white/90 mb-1">Total Pengajuan</div>
                                 <div className="text-3xl font-bold leading-tight drop-shadow-sm">{overview.total_kak}</div>
@@ -277,7 +811,7 @@ export default function Dashboard({ dashboardData }) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-white/95 backdrop-blur-md border border-white/80 shadow-lg shadow-cyan-500/10 flex justify-between items-start group hover:border-cyan-200">
+                        <div className="kpi-card rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-white/95 backdrop-blur-md border border-white/80 shadow-lg shadow-cyan-500/10 flex justify-between items-start group hover:border-cyan-200">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-cyan-700 mb-1">Kegiatan Selesai</div>
                                 <div className="text-3xl font-bold leading-tight text-cyan-500">{overview.kegiatan_selesai}</div>
@@ -288,7 +822,7 @@ export default function Dashboard({ dashboardData }) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/30 text-white flex justify-between items-start">
+                        <div className="kpi-card rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg shadow-cyan-500/30 text-white flex justify-between items-start">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-white/90 mb-1">Total Anggaran</div>
                                 <div className="text-2xl font-bold leading-tight drop-shadow-sm">{formatMoney(overview.dana_diminta)}</div>
@@ -299,7 +833,7 @@ export default function Dashboard({ dashboardData }) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-white/95 backdrop-blur-md border border-white/80 shadow-lg shadow-cyan-500/10 flex justify-between items-start group hover:border-cyan-200">
+                        <div className="kpi-card rounded-2xl p-6 relative overflow-hidden transition-transform duration-300 hover:-translate-y-1 bg-white/95 backdrop-blur-md border border-white/80 shadow-lg shadow-cyan-500/10 flex justify-between items-start group hover:border-cyan-200">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-cyan-700 mb-1">Realisasi Dana</div>
                                 <div className="text-2xl font-bold leading-tight text-cyan-500">{formatMoney(overview.dana_terserap)}</div>
@@ -313,7 +847,7 @@ export default function Dashboard({ dashboardData }) {
 
                     {/* Insights Box */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="rounded-2xl p-6 bg-white border border-slate-100 shadow-sm flex justify-between items-start">
+                        <div className="kpi-card rounded-2xl p-6 bg-white border border-slate-100 shadow-sm flex justify-between items-start">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-cyan-700 mb-1">Serapan Terbaik</div>
                                 <div className="text-2xl font-bold text-cyan-500">{bestUnit.nama_jurusan}</div>
@@ -324,7 +858,7 @@ export default function Dashboard({ dashboardData }) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl p-6 bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg text-white flex justify-between items-start">
+                        <div className="kpi-card rounded-2xl p-6 bg-gradient-to-br from-cyan-500 to-cyan-600 shadow-lg text-white flex justify-between items-start">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-white/90 mb-1">Sisa Anggaran Terbesar</div>
                                 <div className="text-2xl font-bold">{worstUnit.nama_jurusan}</div>
@@ -335,7 +869,7 @@ export default function Dashboard({ dashboardData }) {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl p-6 bg-white border border-slate-100 shadow-sm flex justify-between items-start">
+                        <div className="kpi-card rounded-2xl p-6 bg-white border border-slate-100 shadow-sm flex justify-between items-start">
                             <div>
                                 <div className="text-xs font-bold uppercase tracking-wide text-cyan-700 mb-1">Tren Anggaran</div>
                                 <div className="text-3xl font-bold text-cyan-500">{growth > 0 ? '+' : ''}{growth}%</div>
@@ -347,24 +881,452 @@ export default function Dashboard({ dashboardData }) {
                         </div>
                     </div>
 
+                    {/* SPK TOPSIS Section */}
+                    <div className="flex items-center gap-4 mt-10 mb-6 animate-[fadeInUp_0.5s_ease-out]">
+                        <div className="text-lg font-bold text-cyan-700 flex items-center gap-2.5 bg-white px-5 py-2 rounded-full shadow-sm">
+                            <span className="text-cyan-500"><Sparkles size={20} /></span> Analisis Kinerja Unit & Kegiatan (SPK)
+                        </div>
+                        <div className="h-0.5 flex-1 bg-gradient-to-r from-cyan-500 to-transparent opacity-30"></div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-[fadeInUp_0.5s_ease-out]">
+                        {/* Peringkat Jurusan / Unit Kerja (Senate Rankings) */}
+                        <div className="lg:col-span-2">
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 h-full">
+                                <div className="mb-6">
+                                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 m-0">
+                                        <Award size={20} className="text-cyan-500" />
+                                        Peringkat Kinerja Administrasi Unit Kerja
+                                    </h3>
+                                    <p className="text-slate-500 text-xs mt-1">
+                                        Evaluasi komprehensif berdasarkan ketepatan waktu, efisiensi anggaran, pencapaian target, dan disiplin LPJ. Klik baris untuk detail audit.
+                                    </p>
+                                </div>
+                                
+                                {activeTopsis.jurusans.length === 0 ? (
+                                    <div className="text-center py-12 text-slate-400">
+                                        <AlertTriangle size={36} className="mx-auto mb-2 text-slate-300" />
+                                        <div className="font-semibold text-sm">Tidak ada data SPK</div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {activeTopsis.jurusans.map((jur, idx) => {
+                                            const isExpanded = expandedJurusan === jur.nama_jurusan;
+                                            
+                                            // Determine performance status
+                                            let performanceBadge = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                                            let performanceText = "Kinerja Unggul";
+                                            
+                                            if (jur.avg_score < 0.5) {
+                                                performanceBadge = "bg-rose-50 text-rose-700 border-rose-100";
+                                                performanceText = "Butuh Akselerasi";
+                                            } else if (jur.avg_score < 0.7) {
+                                                performanceBadge = "bg-amber-50 text-amber-700 border-amber-100";
+                                                performanceText = "Kinerja Stabil";
+                                            }
+
+                                            return (
+                                                <div 
+                                                    key={idx} 
+                                                    className={`rounded-xl border transition-all duration-300 overflow-hidden ${
+                                                        isExpanded 
+                                                            ? 'border-cyan-300 bg-cyan-50/10 shadow-sm' 
+                                                            : 'border-slate-100 hover:border-cyan-200 hover:bg-slate-50/30'
+                                                    }`}
+                                                >
+                                                    <div 
+                                                        onClick={() => setExpandedJurusan(isExpanded ? null : jur.nama_jurusan)}
+                                                        className="flex flex-row justify-between items-center gap-2 p-4 cursor-pointer select-none"
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                            <span className="shrink-0 text-slate-700 text-xs font-bold w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 leading-none">
+                                                                #{idx + 1}
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <div className="font-extrabold text-sm text-slate-800 truncate">{jur.nama_jurusan}</div>
+                                                                <div className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
+                                                                    Selesai: {jur.kegiatan_selesai} Keg | Serapan: {jur.persentase_serapan}%
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="shrink-0 flex items-center gap-2">
+                                                            <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border whitespace-nowrap ${performanceBadge}`}>
+                                                                {performanceText}
+                                                            </span>
+                                                            {isExpanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Expanded Audit Details */}
+                                                    {isExpanded && (
+                                                        <div className="px-4 pb-4 pt-2 border-t border-dashed border-slate-100 bg-slate-50/30">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                                                {/* Left: Audit Scores */}
+                                                                <div className="bg-white p-3 rounded-lg border border-slate-100 space-y-2">
+                                                                    <div className="text-xs font-bold text-slate-700 pb-1.5 border-b border-slate-100">
+                                                                        Metrik Audit Kinerja (Evaluasi SPK)
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
+                                                                        <div>Ketepatan Waktu:</div>
+                                                                        <div className="font-bold text-right">{jur.avg_c1.toFixed(1)}%</div>
+                                                                        <div>Efisiensi Anggaran:</div>
+                                                                        <div className="font-bold text-right">{jur.avg_c2.toFixed(1)}%</div>
+                                                                        <div>Kesesuaian Output:</div>
+                                                                        <div className="font-bold text-right">{jur.avg_c3.toFixed(1)}%</div>
+                                                                        <div>Kedisiplinan LPJ:</div>
+                                                                        <div className="font-bold text-right">{jur.avg_c4.toFixed(1)}%</div>
+                                                                        <div className="text-cyan-600 font-bold border-t border-slate-100 pt-1">Skor Indeks Akhir:</div>
+                                                                        <div className="text-cyan-600 font-extrabold text-right border-t border-slate-100 pt-1">{jur.avg_score.toFixed(4)}</div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Right: Explanations & Recommendations */}
+                                                                <div className="space-y-2.5">
+                                                                    <div>
+                                                                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Analisis Kualitatif</span>
+                                                                        <p className="m-0 text-slate-600 text-xs leading-relaxed mt-0.5">
+                                                                            {getRankExplanation(jur)}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Rekomendasi Internal</span>
+                                                                        <p className="m-0 text-slate-600 text-xs leading-relaxed mt-0.5 font-medium">
+                                                                            {jur.avg_c4 < 70 ? (
+                                                                                "Prioritas: Lakukan pengawasan administratif ketat terhadap pelaporan LPJ jurusan ini yang sering terlambat."
+                                                                            ) : jur.avg_c2 < 70 ? (
+                                                                                "Prioritas: Evaluasi perencanaan RAB proyek di jurusan ini agar realisasi dana lebih mendekati estimasi."
+                                                                            ) : (
+                                                                                "Apresiasi: Pertahankan kinerja administratif luar biasa ini dan jadikan percontohan bagi unit kerja lain."
+                                                                            )}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Detail Pembobotan Kriteria Aktif (Audit Criteria Information) */}
+                        <div className="lg:col-span-1">
+                            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 h-full flex flex-col justify-between">
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2 m-0">
+                                        <Sliders size={20} className="text-cyan-500" />
+                                        Parameter Bobot Kriteria
+                                    </h3>
+                                    <p className="text-slate-500 text-xs mt-1 mb-6">
+                                        Bobot penilaian aktif yang dikonfigurasi oleh Administrator dalam perhitungan peringkat TOPSIS.
+                                    </p>
+
+                                    <div className="space-y-4">
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                            <div>
+                                                <div className="text-xs font-bold text-slate-700">C1: Ketepatan Waktu</div>
+                                                <div className="text-[10px] text-slate-400">Realisasi pelaksanaan vs jadwal KAK</div>
+                                            </div>
+                                            <span className="text-sm font-black text-cyan-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                                {spk_config?.weight_waktu || 25}%
+                                            </span>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                            <div>
+                                                <div className="text-xs font-bold text-slate-700">C2: Ketepatan Anggaran</div>
+                                                <div className="text-[10px] text-slate-400">Persentase deviasi realisasi dana</div>
+                                            </div>
+                                            <span className="text-sm font-black text-cyan-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                                {spk_config?.weight_anggaran || 25}%
+                                            </span>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                            <div>
+                                                <div className="text-xs font-bold text-slate-700">C3: Kesesuaian Output</div>
+                                                <div className="text-[10px] text-slate-400">Pencapaian target output fisik</div>
+                                            </div>
+                                            <span className="text-sm font-black text-cyan-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                                {spk_config?.weight_output || 25}%
+                                            </span>
+                                        </div>
+
+                                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                            <div>
+                                                <div className="text-xs font-bold text-slate-700">C4: Kepatuhan LPJ</div>
+                                                <div className="text-[10px] text-slate-400">Kecepatan penyerahan berkas LPJ</div>
+                                            </div>
+                                            <span className="text-sm font-black text-cyan-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                                                {spk_config?.weight_lpj || 25}%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 pt-4 border-t border-slate-100 text-[10px] text-slate-400 leading-relaxed">
+                                    Pembaruan parameter ini dilakukan secara terpusat melalui Super Administrator untuk menjamin standarisasi evaluasi kinerja di seluruh fakultas/jurusan.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Executive Action Center: Top Performers vs Bottlenecks */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6 animate-[fadeInUp_0.5s_ease-out]">
+                        {/* Kegiatan Bintang (Top Performers) */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                            <h3 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
+                                <CheckCircle className="text-emerald-500" size={18} />
+                                Kegiatan Teladan (Administrasi Terbaik)
+                            </h3>
+                            {activeTopsis.activities.filter(a => a.topsis_score >= 0.6).length === 0 ? (
+                                <div className="text-center py-8 text-slate-400 text-xs">
+                                    Belum ada kegiatan dengan performa administrasi unggul di periode ini.
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {activeTopsis.activities.filter(a => a.topsis_score >= 0.6).slice(0, 3).map((act, idx) => (
+                                        <div key={idx} className="p-3 bg-slate-50/50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                            <div className="max-w-[70%]">
+                                                <div className="font-extrabold text-xs text-slate-800 truncate" title={act.nama_kegiatan}>
+                                                    {act.nama_kegiatan}
+                                                </div>
+                                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                                    Unit: {act.jurusan}
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                {act.c4 >= 90 ? "LPJ Sangat Tepat Waktu" : "Administrasi Tertib"}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Area Perlu Intervensi (Bottlenecks) */}
+                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                            <h3 className="text-base font-bold text-slate-800 mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
+                                <AlertTriangle className="text-amber-500" size={18} />
+                                Hambatan Administrasi & Penyelesaian LPJ
+                            </h3>
+                            {activeTopsis.activities.filter(a => a.c4 < 70 || a.c1 < 70).length === 0 ? (
+                                <div className="text-center py-8 text-slate-400 text-xs">
+                                    Seluruh kegiatan berjalan tertib tanpa kendala administrasi berarti.
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {activeTopsis.activities.filter(a => a.c4 < 70 || a.c1 < 70).slice(0, 3).map((act, idx) => (
+                                        <div key={idx} className="p-3 bg-slate-50/50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                            <div className="max-w-[70%]">
+                                                <div className="font-extrabold text-xs text-slate-800 truncate" title={act.nama_kegiatan}>
+                                                    {act.nama_kegiatan}
+                                                </div>
+                                                <div className="text-[10px] text-slate-400 font-medium mt-0.5">
+                                                    Unit: {act.jurusan}
+                                                </div>
+                                            </div>
+                                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100">
+                                                {act.c4 < 70 ? "Keterlambatan LPJ" : "Deviasi Anggaran"}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Toggleable Technical Audit Table (TOPSIS Raw Data) */}
+                    <div className="mt-6 animate-[fadeInUp_0.5s_ease-out]">
+                        <button
+                            onClick={() => setShowTechnicalAudit(!showTechnicalAudit)}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-all duration-200 shadow-sm border border-slate-200 mx-auto"
+                        >
+                            {showTechnicalAudit ? "Sembunyikan Rincian Teknis Audit" : "Tampilkan Rincian Teknis Audit (Metrik SPK)"}
+                            {showTechnicalAudit ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        </button>
+
+                        {showTechnicalAudit && (
+                            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 w-full mt-4 overflow-hidden">
+                                {/* Header */}
+                                <div className="px-6 pt-5 pb-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
+                                    <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2 m-0">
+                                        <Layers size={16} className="text-cyan-500" />
+                                        Datasheet Teknis Perhitungan TOPSIS (Audit Internal)
+                                    </h3>
+                                    <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                        Geser ke kanan untuk melihat semua kolom
+                                    </span>
+                                </div>
+
+                                {activeTopsis.activities.length === 0 ? (
+                                    <div className="text-center py-8 text-slate-400 text-xs px-6">
+                                        Tidak ada data kegiatan terdaftar.
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="text-left border-collapse" style={{ minWidth: '900px' }}>
+                                            <thead>
+                                                <tr className="border-b-2 border-slate-100 bg-slate-50">
+                                                    {/* Sticky: Rank */}
+                                                    <th className="sticky left-0 z-10 bg-slate-50 px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center w-14 border-r border-slate-100">
+                                                        Rank
+                                                    </th>
+                                                    {/* Sticky: Nama Kegiatan */}
+                                                    <th className="sticky left-14 z-10 bg-slate-50 px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider min-w-[220px] border-r-2 border-slate-200 shadow-[2px_0_8px_-2px_rgba(0,0,0,0.08)]">
+                                                        Nama Kegiatan
+                                                    </th>
+                                                    {/* Scrollable columns */}
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider whitespace-nowrap min-w-[140px]">Unit / Jurusan</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center whitespace-nowrap w-24">C1 (Waktu)</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center whitespace-nowrap w-28">C2 (Anggaran)</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center whitespace-nowrap w-24">C3 (Output)</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center whitespace-nowrap w-20">C4 (LPJ)</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center whitespace-nowrap w-28">TOPSIS Score</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center whitespace-nowrap w-28">Kategori</th>
+                                                    <th className="px-4 py-3 text-xs font-black uppercase text-slate-500 tracking-wider text-center w-16">Audit</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {activeTopsis.activities.map((act, idx) => {
+                                                    let katBadge = '';
+                                                    if (act.kategori === 'Sangat Baik') {
+                                                        katBadge = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                                                    } else if (act.kategori === 'Baik') {
+                                                        katBadge = 'bg-cyan-100 text-cyan-700 border-cyan-200';
+                                                    } else if (act.kategori === 'Cukup') {
+                                                        katBadge = 'bg-amber-100 text-amber-700 border-amber-200';
+                                                    } else {
+                                                        katBadge = 'bg-red-100 text-red-700 border-red-200';
+                                                    }
+
+                                                    const rowBg = idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
+
+                                                    return (
+                                                        <tr key={idx} className={`hover:bg-cyan-50/30 transition-colors duration-150 ${rowBg}`}>
+                                                            {/* Sticky: Rank */}
+                                                            <td className={`sticky left-0 z-10 ${rowBg} px-4 py-3 text-center font-bold text-xs text-slate-500 border-r border-slate-100`}>
+                                                                {idx + 1}
+                                                            </td>
+                                                            {/* Sticky: Nama Kegiatan — NO truncate, full text */}
+                                                            <td className={`sticky left-14 z-10 ${rowBg} px-4 py-3 text-xs font-bold text-slate-800 border-r-2 border-slate-200 shadow-[2px_0_8px_-2px_rgba(0,0,0,0.06)] min-w-[220px]`}>
+                                                                {act.nama_kegiatan}
+                                                            </td>
+                                                            {/* Scrollable data */}
+                                                            <td className="px-4 py-3 text-xs font-medium text-slate-500 whitespace-nowrap">
+                                                                {act.jurusan}
+                                                            </td>
+                                                            <td className="px-4 py-3 text-center text-xs font-semibold text-slate-700">{act.c1}</td>
+                                                            <td className="px-4 py-3 text-center text-xs font-semibold text-slate-700">{act.c2}</td>
+                                                            <td className="px-4 py-3 text-center text-xs font-semibold text-slate-700">{act.c3}</td>
+                                                            <td className="px-4 py-3 text-center text-xs font-semibold text-slate-700">{act.c4}</td>
+                                                            <td className="px-4 py-3 text-center text-xs font-black text-cyan-600">{act.topsis_score.toFixed(4)}</td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                <span className={`inline-block text-[9px] font-extrabold px-2.5 py-1 rounded-full border whitespace-nowrap ${katBadge}`}>
+                                                                    {act.kategori}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                <button
+                                                                    onClick={() => { setTopsisDetailModal(act); setTopsisModalTab(0); }}
+                                                                    className="inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-cyan-50 text-cyan-600 border border-cyan-100 hover:bg-cyan-100 hover:border-cyan-300 transition-colors duration-150 whitespace-nowrap"
+                                                                    title="Lihat detail perhitungan TOPSIS"
+                                                                >
+                                                                    <Eye size={11} /> Detail
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
                     {/* Layout Grids */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 flex flex-col gap-6">
                             {/* Trend Realisasi & Kegiatan */}
-                            <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80">
-                                <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                            <div className="dashboard-section bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80">
+                                <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 flex-wrap gap-2">
                                     <div className="text-lg font-bold text-slate-800 flex items-center gap-3">
                                         <div className="p-1.5 bg-cyan-50 rounded-lg text-cyan-500"><TrendingUp size={20} /></div>
                                         Trend Realisasi & Kegiatan
                                     </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setFocusYAxis(!focusYAxis)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${
+                                                focusYAxis
+                                                    ? 'bg-cyan-500 text-white border-cyan-500 shadow-sm'
+                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <Maximize2 size={12} />
+                                            {focusYAxis ? 'Skala Default (0)' : 'Fokus Skala (Zoom)'}
+                                        </button>
+                                        <button
+                                            onClick={() => setShowTrendsTable(!showTrendsTable)}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${
+                                                showTrendsTable
+                                                    ? 'bg-cyan-500 text-white border-cyan-500 shadow-sm'
+                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            <List size={12} />
+                                            {showTrendsTable ? 'Tampilkan Grafik' : 'Lihat Detail Angka'}
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="h-[350px] w-full">
-                                    <Bar data={trendsChartData} options={trendsChartOptions} />
+                                <div className="h-[400px] w-full relative">
+                                    {trends.length === 0 || trends.every(t => t.dana_diminta === 0 && t.dana_terserap === 0) ? (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/50 backdrop-blur-sm rounded-xl border border-dashed border-slate-200 p-8 text-center animate-[fadeIn_0.3s_ease-out]">
+                                            <AlertCircle size={40} className="text-cyan-500 mb-3" />
+                                            <h4 className="text-sm font-bold text-slate-700 m-0">Tidak Ada Transaksi Keuangan</h4>
+                                            <p className="text-xs text-slate-500 max-w-xs mt-1 leading-relaxed">
+                                                Belum ada pengajuan kegiatan atau realisasi anggaran yang tercatat untuk periode ini.
+                                            </p>
+                                        </div>
+                                    ) : showTrendsTable ? (
+                                        <div className="overflow-y-auto h-full border border-slate-100 rounded-xl bg-white shadow-inner p-4 animate-[fadeIn_0.3s_ease-out]">
+                                            <table className="w-full text-left border-collapse text-xs">
+                                                <thead>
+                                                    <tr className="border-b border-slate-100 bg-slate-50 font-black text-slate-600">
+                                                        <th className="px-4 py-3">Periode</th>
+                                                        <th className="px-4 py-3 text-right">Rencana Anggaran</th>
+                                                        <th className="px-4 py-3 text-right">Realisasi Serapan</th>
+                                                        <th className="px-4 py-3 text-center">Jumlah Kegiatan</th>
+                                                        <th className="px-4 py-3 text-center text-red-500">Perlu Perhatian</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50 font-medium text-slate-700">
+                                                    {activeTrends.map((t, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                                            <td className="px-4 py-3 font-bold text-slate-800">{t.periode}</td>
+                                                            <td className="px-4 py-3 text-right">Rp {(t.dana_diminta / 1000000).toFixed(1)} Jt</td>
+                                                            <td className="px-4 py-3 text-right text-cyan-600 font-bold">Rp {(t.dana_terserap / 1000000).toFixed(1)} Jt</td>
+                                                            <td className="px-4 py-3 text-center text-amber-600 font-bold">{t.total_kegiatan} Keg</td>
+                                                            <td className="px-4 py-3 text-center text-red-600 font-bold">{t.perlu_perhatian || 0} Keg</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    ) : (
+                                        <Bar data={trendsChartData} options={trendsChartOptions} />
+                                    )}
                                 </div>
                             </div>
 
                             {/* Komparasi Unit */}
-                            <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80">
+                            <div className="dashboard-section bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80">
                                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                                     <div className="text-lg font-bold text-slate-800 flex items-center gap-3">
                                         <div className="p-1.5 bg-cyan-50 rounded-lg text-cyan-500"><Layers size={20} /></div>
@@ -379,7 +1341,7 @@ export default function Dashboard({ dashboardData }) {
 
                         <div className="flex flex-col gap-6">
                             {/* Komposisi Dana */}
-                            <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80">
+                            <div className="dashboard-section bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80">
                                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                                     <div className="text-lg font-bold text-slate-800 flex items-center gap-3">
                                         <div className="p-1.5 bg-cyan-50 rounded-lg text-cyan-500"><PieChart size={20} /></div>
@@ -389,8 +1351,8 @@ export default function Dashboard({ dashboardData }) {
                                 <div className="h-[250px] flex items-center justify-center relative">
                                     {danaTotal === 0 && (
                                         <div className="absolute text-center text-slate-400">
-                                            <div className="text-4xl opacity-50 mb-2">🍩</div>
-                                            <div className="font-semibold text-sm">Data Kosong</div>
+                                            <PieChart size={32} className="mx-auto text-slate-300 mb-1.5" />
+                                            <div className="font-bold text-xs text-slate-500">Data Kosong</div>
                                         </div>
                                     )}
                                     <Doughnut data={danaChartData} options={{ cutout: '75%', plugins: { legend: { display: false } } }} />
@@ -398,7 +1360,7 @@ export default function Dashboard({ dashboardData }) {
                             </div>
 
                             {/* Priority Feed */}
-                            <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80 flex-1 flex flex-col">
+                            <div className="dashboard-section bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/80 flex-1 flex flex-col">
                                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                                     <div className="text-lg font-bold text-slate-800 flex items-center gap-3">
                                         <div className="p-1.5 bg-red-50 rounded-lg text-red-500"><AlertCircle size={20} /></div>
@@ -408,21 +1370,21 @@ export default function Dashboard({ dashboardData }) {
                                 <div className="overflow-y-auto pr-2 max-h-[400px]">
                                     {sortedActs.length === 0 ? (
                                         <div className="text-center py-12 text-slate-400">
-                                            <div className="text-4xl mb-2">👍</div>
-                                            <div className="font-semibold">Lancar Jaya</div>
-                                            <div className="text-sm">Tidak ada antrian yang macet.</div>
+                                            <CheckCircle size={32} className="mx-auto text-emerald-500 mb-2" />
+                                            <div className="font-bold text-slate-700 text-xs">Seluruh Proses Lancar</div>
+                                            <div className="text-[10px] text-slate-500 mt-0.5">Tidak ada antrean kegiatan yang tertunda.</div>
                                         </div>
                                     ) : (
                                         sortedActs.map((act, i) => {
                                             const days = getDaysStuck(act.created_at);
-                                            let style = { color: '#3b82f6', bg: 'bg-blue-50', icon: '⏳', label: 'BARU' };
+                                            let style = { color: '#3b82f6', bg: 'bg-blue-50', label: 'BARU' };
                                             let warningBadge = '';
 
                                             if (days > 7) {
-                                                style = { color: '#ef4444', bg: 'bg-red-50', icon: '🔥', label: 'KRITIS' };
-                                                warningBadge = <span className="bg-red-100 text-red-500 text-[0.65rem] px-1.5 py-0.5 rounded font-extrabold border border-red-200">STUCK {days} HARI</span>;
+                                                style = { color: '#ef4444', bg: 'bg-red-50', label: 'KRITIS' };
+                                                warningBadge = <span className="bg-red-100 text-red-500 text-[0.65rem] px-1.5 py-0.5 rounded font-extrabold border border-red-200">TERTAHAN {days} HARI</span>;
                                             } else if (days > 3) {
-                                                style = { color: '#f97316', bg: 'bg-orange-50', icon: '⚠️', label: 'LAMBAT' };
+                                                style = { color: '#f97316', bg: 'bg-orange-50', label: 'LAMBAT' };
                                                 warningBadge = <span className="bg-orange-100 text-orange-700 text-[0.65rem] px-1.5 py-0.5 rounded font-extrabold border border-orange-200">{days} HARI</span>;
                                             } else {
                                                 warningBadge = <span className="bg-blue-100 text-blue-800 text-[0.65rem] px-1.5 py-0.5 rounded font-extrabold">{days} HARI</span>;
@@ -439,7 +1401,7 @@ export default function Dashboard({ dashboardData }) {
                                                             {warningBadge}
                                                             <span className="text-[0.7rem] text-slate-500">di {act.approval_level}</span>
                                                         </div>
-                                                        <span className="text-base">{style.icon}</span>
+                                                        <span className={`w-2 h-2 rounded-full ${days > 7 ? 'bg-red-500 animate-pulse' : days > 3 ? 'bg-orange-500' : 'bg-blue-500'}`}></span>
                                                     </div>
                                                     <div className="font-bold text-sm text-slate-800 leading-tight mb-1">
                                                         {act.nama_kegiatan}
@@ -502,7 +1464,7 @@ export default function Dashboard({ dashboardData }) {
                         <>
                             <div className="flex items-center gap-4 mt-10 mb-6">
                                 <div className="text-lg font-bold text-cyan-700 flex items-center gap-2.5 bg-white px-5 py-2 rounded-full shadow-sm">
-                                    <span className="text-cyan-500">🎥</span> Video Panduan
+                                    <span className="text-cyan-500"><Layers size={20} /></span> Video Panduan
                                 </div>
                                 <div className="h-0.5 flex-1 bg-gradient-to-r from-cyan-500 to-transparent opacity-30"></div>
                             </div>

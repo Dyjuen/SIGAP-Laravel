@@ -26,6 +26,7 @@
         "chart.js": "^4.5.1",
         "clsx": "^2.1.1",
         "framer-motion": "^12.34.2",
+        "gsap": "^3.15.0",
         "lucide-react": "^0.574.0",
         "react-chartjs-2": "^5.3.1",
         "react-tailwindcss-datepicker": "^1.7.2",
