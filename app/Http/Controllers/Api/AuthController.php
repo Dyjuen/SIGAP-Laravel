@@ -5,8 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -20,9 +18,9 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (!Auth::attempt($request->only('username', 'password'))) {
+        if (! Auth::attempt($request->only('username', 'password'))) {
             return response()->json([
-                'message' => 'Kredensial tidak valid.'
+                'message' => 'Kredensial tidak valid.',
             ], 422);
         }
 
@@ -38,7 +36,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'role_id' => $user->role_id,
                 'role_name' => $user->getRoleName(),
-            ]
+            ],
         ]);
     }
 
@@ -50,7 +48,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ]);
     }
 }
