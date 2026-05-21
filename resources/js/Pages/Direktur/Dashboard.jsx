@@ -525,13 +525,22 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-xs font-extrabold text-cyan-700">C1 – Kesesuaian Waktu</span>
                                         <span className="text-lg font-black text-cyan-500">{act.c1}</span>
                                     </div>
-                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                    <div className="text-[11px] text-slate-500 space-y-2">
                                         <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c1d.source)}</span></div>
                                         {c1d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Rencana ({c1d.tgl_mulai_rencana} → {c1d.tgl_selesai_rencana})</span><span className="font-bold">{c1d.durasi_rencana} hari</span></div>
                                             <div className="flex justify-between"><span>Aktual ({c1d.tgl_mulai_aktual} → {c1d.tgl_selesai_aktual})</span><span className="font-bold">{c1d.durasi_aktual} hari</span></div>
                                             <div className="flex justify-between"><span>Deviasi</span><span className="font-bold text-amber-600">{c1d.deviasi_persen}%</span></div>
-                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C1 = max(50, 100 – {c1d.deviasi_persen}%)</span><span>= {act.c1}</span></div>
+                                            <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-2">
+                                                <span className="text-slate-400">Rumus Kriteria</span>
+                                                <div className="flex items-center gap-1 font-serif text-xs text-cyan-800 bg-cyan-50/40 px-2.5 py-1.5 rounded-lg border border-cyan-100/50">
+                                                    <span className="italic font-bold">C</span>
+                                                    <sub className="text-[9px] font-bold">1</sub>
+                                                    <span className="mx-1">=</span>
+                                                    <span className="font-sans font-bold text-[9px] uppercase tracking-wide bg-white px-1.5 py-0.5 rounded border border-slate-200">max</span>
+                                                    <span>(50, 100 &minus; {c1d.deviasi_persen}%) = {act.c1}</span>
+                                                </div>
+                                            </div>
                                         </>)}
                                     </div>
                                 </div>
@@ -542,13 +551,22 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-xs font-extrabold text-cyan-700">C2 – Ketepatan Anggaran</span>
                                         <span className="text-lg font-black text-cyan-500">{act.c2}</span>
                                     </div>
-                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                    <div className="text-[11px] text-slate-500 space-y-2">
                                         <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c2d.source)}</span></div>
                                         {c2d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Rencana (KAK)</span><span className="font-bold">{fmtRp(c2d.anggaran_rencana)}</span></div>
                                             <div className="flex justify-between"><span>Realisasi</span><span className="font-bold">{fmtRp(c2d.anggaran_aktual)}</span></div>
                                             <div className="flex justify-between"><span>Deviasi</span><span className="font-bold text-amber-600">{c2d.deviasi_persen}%</span></div>
-                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C2 = max(50, 100 – {c2d.deviasi_persen}%)</span><span>= {act.c2}</span></div>
+                                            <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-2">
+                                                <span className="text-slate-400">Rumus Kriteria</span>
+                                                <div className="flex items-center gap-1 font-serif text-xs text-cyan-800 bg-cyan-50/40 px-2.5 py-1.5 rounded-lg border border-cyan-100/50">
+                                                    <span className="italic font-bold">C</span>
+                                                    <sub className="text-[9px] font-bold">2</sub>
+                                                    <span className="mx-1">=</span>
+                                                    <span className="font-sans font-bold text-[9px] uppercase tracking-wide bg-white px-1.5 py-0.5 rounded border border-slate-200">max</span>
+                                                    <span>(50, 100 &minus; {c2d.deviasi_persen}%) = {act.c2}</span>
+                                                </div>
+                                            </div>
                                         </>)}
                                     </div>
                                 </div>
@@ -559,13 +577,30 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-xs font-extrabold text-cyan-700">C3 – Kesesuaian Output (IKU)</span>
                                         <span className="text-lg font-black text-cyan-500">{act.c3}</span>
                                     </div>
-                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                    <div className="text-[11px] text-slate-500 space-y-2">
                                         <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c3d.source)}</span></div>
                                         {c3d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Total IKU</span><span className="font-bold">{c3d.total_iku}</span></div>
                                             <div className="flex justify-between"><span>IKU Terpenuhi</span><span className="font-bold text-emerald-600">{c3d.terpenuhi}</span></div>
                                             <div className="flex justify-between"><span>Persentase</span><span className="font-bold">{c3d.persentase}%</span></div>
-                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C3 = ⌊{c3d.terpenuhi}/{c3d.total_iku} × 100⌋</span><span>= {act.c3}</span></div>
+                                            <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-2">
+                                                <span className="text-slate-400">Rumus Kriteria</span>
+                                                <div className="flex items-center gap-1 font-serif text-xs text-cyan-800 bg-cyan-50/40 px-2.5 py-1.5 rounded-lg border border-cyan-100/50">
+                                                    <span className="italic font-bold">C</span>
+                                                    <sub className="text-[9px] font-bold">3</sub>
+                                                    <span className="mx-1">=</span>
+                                                    <span className="text-sm font-sans leading-none">&lfloor;</span>
+                                                    <div className="inline-flex flex-col items-center mx-1">
+                                                        <span className="border-b border-cyan-200 pb-0.5 px-1 font-semibold leading-none text-[10px]">{c3d.terpenuhi}</span>
+                                                        <span className="pt-0.5 px-1 font-semibold leading-none text-[10px]">{c3d.total_iku}</span>
+                                                    </div>
+                                                    <span className="mx-1 font-sans">&times;</span>
+                                                    <span>100</span>
+                                                    <span className="text-sm font-sans leading-none">&rfloor;</span>
+                                                    <span className="mx-1.5 font-sans text-cyan-600/70">=</span>
+                                                    <span>{act.c3}</span>
+                                                </div>
+                                            </div>
                                         </>)}
                                     </div>
                                 </div>
@@ -576,12 +611,21 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-xs font-extrabold text-cyan-700">C4 – Ketepatan LPJ</span>
                                         <span className="text-lg font-black text-cyan-500">{act.c4}</span>
                                     </div>
-                                    <div className="text-[11px] text-slate-500 space-y-1">
+                                    <div className="text-[11px] text-slate-500 space-y-2">
                                         <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c4d.source)}</span></div>
                                         {c4d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Hari di Bendahara-LPJ</span><span className="font-bold">{c4d.hari_di_lpj ?? '—'} hari</span></div>
                                             <div className="flex justify-between"><span>Hari Terlambat (maks 14)</span><span className={`font-bold ${c4d.hari_terlambat > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{c4d.hari_terlambat ?? 0} hari</span></div>
-                                            <div className="flex justify-between text-cyan-700 font-bold border-t border-slate-100 pt-1 mt-1"><span>C4 = max(50, 100 – {c4d.hari_terlambat ?? 0})</span><span>= {act.c4}</span></div>
+                                            <div className="flex justify-between items-center border-t border-slate-100 pt-2 mt-2">
+                                                <span className="text-slate-400">Rumus Kriteria</span>
+                                                <div className="flex items-center gap-1 font-serif text-xs text-cyan-800 bg-cyan-50/40 px-2.5 py-1.5 rounded-lg border border-cyan-100/50">
+                                                    <span className="italic font-bold">C</span>
+                                                    <sub className="text-[9px] font-bold">4</sub>
+                                                    <span className="mx-1">=</span>
+                                                    <span className="font-sans font-bold text-[9px] uppercase tracking-wide bg-white px-1.5 py-0.5 rounded border border-slate-200">max</span>
+                                                    <span>(50, 100 &minus; {c4d.hari_terlambat ?? 0}) = {act.c4}</span>
+                                                </div>
+                                            </div>
                                         </>)}
                                     </div>
                                 </div>
@@ -591,17 +635,51 @@ export default function Dashboard({ dashboardData }) {
                         {/* Tab 1: Normalisasi & Pembobotan */}
                         {topsisModalTab === 1 && (
                             <div className="space-y-4">
-                                <p className="text-xs text-slate-500">Normalisasi menggunakan akar Euclidean seluruh dataset: <code className="bg-slate-100 px-1 rounded">r_ij = c_ij / √(Σc_ij²)</code>. Nilai berbobot: <code className="bg-slate-100 px-1 rounded">v_ij = r_ij × w_j</code>.</p>
+                                <p className="text-xs text-slate-500 mb-2">Normalisasi matriks keputusan & pembobotan kriteria menggunakan rumus berikut:</p>
+                                
+                                <div className="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4">
+                                    <div className="flex items-center font-serif text-[13px] text-slate-700">
+                                        <span className="font-bold italic">r</span>
+                                        <sub className="text-[9px]">ij</sub>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <div className="inline-flex flex-col items-center">
+                                            <span className="border-b border-slate-300 pb-0.5 px-2 italic text-[11px] leading-none">
+                                                c<sub className="text-[8px]">ij</sub>
+                                            </span>
+                                            <span className="text-[11px] leading-none pt-1 inline-flex items-center">
+                                                <span className="font-sans text-sm mr-[1px] leading-none">&radic;</span>
+                                                <span className="border-t border-slate-300 pt-0.5 px-1 inline-flex items-center">
+                                                    <span className="font-sans text-[10px] font-bold mr-0.5">&Sigma;</span>
+                                                    <span className="italic">c</span>
+                                                    <sub className="text-[8px]">kj</sub>
+                                                    <sup className="text-[8px] -translate-y-0.5 inline-block">2</sup>
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="w-px h-8 bg-slate-200 hidden sm:block"></div>
+                                    <div className="flex items-center font-serif text-[13px] text-slate-700">
+                                        <span className="font-bold italic">v</span>
+                                        <sub className="text-[9px]">ij</sub>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <span className="italic">r</span>
+                                        <sub className="text-[9px]">ij</sub>
+                                        <span className="mx-1.5 font-sans text-xs text-slate-400">&times;</span>
+                                        <span className="italic">w</span>
+                                        <sub className="text-[9px]">j</sub>
+                                    </div>
+                                </div>
+
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-[11px] border-collapse">
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-200">
-                                                <th className="px-3 py-2 text-left font-black text-slate-600">Kriteria</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">Nilai (c)</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">Norm (√Σc²)</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">r = c/norm</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">Bobot (w)</th>
-                                                <th className="px-3 py-2 text-center font-black text-cyan-600">v = r × w</th>
+                                                <th className="px-3 py-2.5 text-left font-black text-slate-600">Kriteria</th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">c<sub>ij</sub></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">&radic;&Sigma;c<sub>kj</sub><sup>2</sup></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">r<sub>ij</sub> = c<sub>ij</sub> / Pembagi</th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">w<sub>j</sub></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-cyan-600 font-serif italic">v<sub>ij</sub> = r<sub>ij</sub> &times; w<sub>j</sub></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
@@ -627,17 +705,56 @@ export default function Dashboard({ dashboardData }) {
                         {/* Tab 2: Solusi Ideal */}
                         {topsisModalTab === 2 && (
                             <div className="space-y-4">
-                                <p className="text-xs text-slate-500">Solusi ideal positif (A⁺) adalah nilai berbobot maksimum per kriteria di seluruh dataset. Solusi ideal negatif (A⁻) adalah nilai minimum.</p>
+                                <p className="text-xs text-slate-500 mb-2">Penentuan solusi ideal positif (A⁺) dan solusi ideal negatif (A⁻) per kriteria:</p>
+                                
+                                <div className="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4">
+                                    <div className="flex items-center font-serif text-[12px] text-slate-700">
+                                        <span className="font-bold italic">A</span>
+                                        <sup className="text-[10px] font-bold">+</sup>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <span className="font-sans text-xs">{'{'}</span>
+                                        <span className="italic mx-0.5">v</span><sub className="text-[8px]">1</sub><sup>+</sup>
+                                        <span className="mx-0.5">,</span>
+                                        <span className="italic mx-0.5">v</span><sub className="text-[8px]">2</sub><sup>+</sup>
+                                        <span className="mx-0.5">,</span>
+                                        <span className="font-sans text-xs mr-1">&hellip;</span>
+                                        <span className="font-sans text-xs">{'}'}</span>
+                                        <span className="mx-2 text-slate-300">|</span>
+                                        <span className="italic mr-0.5">v</span><sub className="text-[8px]">j</sub><sup>+</sup>
+                                        <span className="mx-1.5 font-sans text-xs text-slate-400">=</span>
+                                        <span className="font-sans font-bold text-[8px] uppercase tracking-wide bg-white px-1 py-0.5 rounded border border-slate-200 mr-1.5">max</span>
+                                        <span className="italic">v</span><sub className="text-[8px]">ij</sub>
+                                    </div>
+                                    <div className="w-px h-8 bg-slate-200 hidden md:block"></div>
+                                    <div className="flex items-center font-serif text-[12px] text-slate-700">
+                                        <span className="font-bold italic">A</span>
+                                        <sup className="text-[10px] font-bold">&minus;</sup>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <span className="font-sans text-xs">{'{'}</span>
+                                        <span className="italic mx-0.5">v</span><sub className="text-[8px]">1</sub><sup>&minus;</sup>
+                                        <span className="mx-0.5">,</span>
+                                        <span className="italic mx-0.5">v</span><sub className="text-[8px]">2</sub><sup>&minus;</sup>
+                                        <span className="mx-0.5">,</span>
+                                        <span className="font-sans text-xs mr-1">&hellip;</span>
+                                        <span className="font-sans text-xs">{'}'}</span>
+                                        <span className="mx-2 text-slate-300">|</span>
+                                        <span className="italic mr-0.5">v</span><sub className="text-[8px]">j</sub><sup>&minus;</sup>
+                                        <span className="mx-1.5 font-sans text-xs text-slate-400">=</span>
+                                        <span className="font-sans font-bold text-[8px] uppercase tracking-wide bg-white px-1 py-0.5 rounded border border-slate-200 mr-1.5">min</span>
+                                        <span className="italic">v</span><sub className="text-[8px]">ij</sub>
+                                    </div>
+                                </div>
+
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-[11px] border-collapse">
                                         <thead>
                                             <tr className="bg-slate-50 border-b border-slate-200">
-                                                <th className="px-3 py-2 text-left font-black text-slate-600">Kriteria</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">v (Kegiatan ini)</th>
-                                                <th className="px-3 py-2 text-center font-black text-emerald-600">A⁺ (Ideal Positif)</th>
-                                                <th className="px-3 py-2 text-center font-black text-rose-500">A⁻ (Ideal Negatif)</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">(v – A⁺)²</th>
-                                                <th className="px-3 py-2 text-center font-black text-slate-600">(v – A⁻)²</th>
+                                                <th className="px-3 py-2.5 text-left font-black text-slate-600">Kriteria</th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">v<sub>ij</sub></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-emerald-600 font-serif italic">A<sub>j</sub><sup>+</sup></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-rose-500 font-serif italic">A<sub>j</sub><sup>&minus;</sup></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">(v<sub>ij</sub> &minus; A<sub>j</sub><sup>+</sup>)<sup>2</sup></th>
+                                                <th className="px-3 py-2.5 text-center font-black text-slate-600 font-serif italic">(v<sub>ij</sub> &minus; A<sub>j</sub><sup>&minus;</sup>)<sup>2</sup></th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
@@ -667,29 +784,102 @@ export default function Dashboard({ dashboardData }) {
                         {/* Tab 3: Skor Akhir */}
                         {topsisModalTab === 3 && (
                             <div className="space-y-4">
-                                <p className="text-xs text-slate-500">Jarak ke ideal dihitung menggunakan akar jumlah kuadrat deviasi. Skor TOPSIS adalah: <code className="bg-slate-100 px-1 rounded">C = S⁻ / (S⁺ + S⁻)</code></p>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                        <div className="text-[10px] uppercase font-black text-slate-500 mb-1">S⁺ (Jarak ke A⁺)</div>
-                                        <div className="text-2xl font-black text-rose-500">{fmt6(act.s_pos)}</div>
-                                        <div className="text-[10px] text-slate-400 mt-1">= √Σ(v – A⁺)²</div>
+                                <p className="text-xs text-slate-500 mb-2">Jarak Euclidean ke solusi ideal dan skor akhir preferensi TOPSIS:</p>
+                                
+                                <div className="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4 justify-between">
+                                    <div className="flex items-center font-serif text-[12.5px] text-slate-700">
+                                        <span className="font-bold italic">S</span>
+                                        <sub className="text-[9px]">i</sub>
+                                        <sup className="text-[10px] font-bold">+</sup>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <span className="text-sm font-sans mr-[1px] leading-none">&radic;</span>
+                                        <span className="border-t border-slate-300 pt-0.5 px-1.5 inline-flex items-center">
+                                            <span className="font-sans text-[10px] font-bold mr-0.5">&Sigma;</span>
+                                            <span>(</span>
+                                            <span className="italic">v</span><sub className="text-[8px]">ij</sub>
+                                            <span className="mx-1">&minus;</span>
+                                            <span className="italic">A</span><sub className="text-[8px]">j</sub><sup>+</sup>
+                                            <span>)</span><sup className="text-[8px] -translate-y-0.5 inline-block">2</sup>
+                                        </span>
                                     </div>
-                                    <div className="bg-slate-50 rounded-xl p-4 text-center">
-                                        <div className="text-[10px] uppercase font-black text-slate-500 mb-1">S⁻ (Jarak ke A⁻)</div>
-                                        <div className="text-2xl font-black text-emerald-500">{fmt6(act.s_neg)}</div>
-                                        <div className="text-[10px] text-slate-400 mt-1">= √Σ(v – A⁻)²</div>
+                                    <div className="w-px h-8 bg-slate-200 hidden md:block"></div>
+                                    <div className="flex items-center font-serif text-[12.5px] text-slate-700">
+                                        <span className="font-bold italic">S</span>
+                                        <sub className="text-[9px]">i</sub>
+                                        <sup className="text-[10px] font-bold">&minus;</sup>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <span className="text-sm font-sans mr-[1px] leading-none">&radic;</span>
+                                        <span className="border-t border-slate-300 pt-0.5 px-1.5 inline-flex items-center">
+                                            <span className="font-sans text-[10px] font-bold mr-0.5">&Sigma;</span>
+                                            <span>(</span>
+                                            <span className="italic">v</span><sub className="text-[8px]">ij</sub>
+                                            <span className="mx-1">&minus;</span>
+                                            <span className="italic">A</span><sub className="text-[8px]">j</sub><sup>&minus;</sup>
+                                            <span>)</span><sup className="text-[8px] -translate-y-0.5 inline-block">2</sup>
+                                        </span>
+                                    </div>
+                                    <div className="w-px h-8 bg-slate-200 hidden lg:block"></div>
+                                    <div className="flex items-center font-serif text-[12.5px] text-slate-700">
+                                        <span className="font-bold italic">C</span>
+                                        <sub className="text-[9px]">i</sub>
+                                        <span className="mx-2 text-slate-400">=</span>
+                                        <div className="inline-flex flex-col items-center">
+                                            <span className="border-b border-slate-300 pb-0.5 px-2">
+                                                <span className="italic">S</span><sub className="text-[8px]">i</sub><sup>&minus;</sup>
+                                            </span>
+                                            <span className="text-[10px] leading-none pt-1">
+                                                <span className="italic">S</span><sub className="text-[8px]">i</sub><sup>+</sup>
+                                                <span className="mx-1 font-sans">+</span>
+                                                <span className="italic">S</span><sub className="text-[8px]">i</sub><sup>&minus;</sup>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200 rounded-xl p-5 text-center">
-                                    <div className="text-[10px] uppercase font-black text-cyan-600 mb-2">Skor TOPSIS Akhir</div>
-                                    <div className="text-4xl font-black text-cyan-600 mb-1">{parseFloat(act.topsis_score).toFixed(6)}</div>
-                                    <div className="text-xs text-slate-500">C = {fmt6(act.s_neg)} / ({fmt6(act.s_pos)} + {fmt6(act.s_neg)})</div>
-                                    <div className="mt-3">
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-slate-50/70 border border-slate-100 rounded-xl p-4 text-center shadow-sm">
+                                        <div className="text-[10px] uppercase font-black text-slate-500 mb-1">S⁺ (Jarak ke Ideal Positif)</div>
+                                        <div className="text-2xl font-black text-rose-500 tracking-tight">{fmt6(act.s_pos)}</div>
+                                        <div className="font-serif text-[11px] text-slate-400 mt-1 flex items-center justify-center">
+                                            <span className="italic font-semibold">S</span><sup className="text-[8px] font-semibold">+</sup>
+                                            <span className="mx-1 font-sans">=</span>
+                                            <span className="font-sans text-[10px]">&radic;&Sigma;(v &minus; A<sup>+</sup>)<sup>2</sup></span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-slate-50/70 border border-slate-100 rounded-xl p-4 text-center shadow-sm">
+                                        <div className="text-[10px] uppercase font-black text-slate-500 mb-1">S⁻ (Jarak ke Ideal Negatif)</div>
+                                        <div className="text-2xl font-black text-emerald-500 tracking-tight">{fmt6(act.s_neg)}</div>
+                                        <div className="font-serif text-[11px] text-slate-400 mt-1 flex items-center justify-center">
+                                            <span className="italic font-semibold">S</span><sup className="text-[8px] font-semibold">&minus;</sup>
+                                            <span className="mx-1 font-sans">=</span>
+                                            <span className="font-sans text-[10px]">&radic;&Sigma;(v &minus; A<sup>&minus;</sup>)<sup>2</sup></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200 rounded-xl p-5 text-center shadow-sm">
+                                    <div className="text-[10px] uppercase font-black text-cyan-600 mb-2">Hasil Akhir Preferensi TOPSIS</div>
+                                    
+                                    <div className="mt-3 flex items-center justify-center font-serif text-sm text-cyan-800 bg-white py-3 px-5 rounded-xl border border-cyan-200/60 max-w-sm mx-auto shadow-sm">
+                                        <span className="font-bold italic">C</span><sub className="text-[9px]">i</sub>
+                                        <span className="mx-2.5 font-sans text-slate-400">=</span>
+                                        <div className="inline-flex flex-col items-center">
+                                            <span className="border-b border-cyan-200 pb-0.5 px-2 font-semibold">
+                                                {fmt6(act.s_neg)}
+                                            </span>
+                                            <span className="text-[10px] leading-none pt-1 font-semibold">
+                                                {fmt6(act.s_pos)} <span className="font-sans mx-0.5 text-slate-400">+</span> {fmt6(act.s_neg)}
+                                            </span>
+                                        </div>
+                                        <span className="mx-2.5 font-sans text-cyan-600/70">=</span>
+                                        <span className="font-black text-cyan-700 text-base">{parseFloat(act.topsis_score).toFixed(6)}</span>
+                                    </div>
+
+                                    <div className="mt-4">
                                         <span className={`inline-block text-xs font-extrabold px-4 py-1.5 rounded-full border ${
-                                            act.kategori === 'Sangat Baik' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' :
-                                            act.kategori === 'Baik' ? 'bg-cyan-100 text-cyan-700 border-cyan-200' :
-                                            act.kategori === 'Cukup' ? 'bg-amber-100 text-amber-700 border-amber-200' :
-                                            'bg-red-100 text-red-700 border-red-200'
+                                            act.kategori === 'Sangat Baik' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm' :
+                                            act.kategori === 'Baik' ? 'bg-cyan-100 text-cyan-700 border-cyan-200 shadow-sm' :
+                                            act.kategori === 'Cukup' ? 'bg-amber-100 text-amber-700 border-amber-200 shadow-sm' :
+                                            'bg-red-100 text-red-700 border-red-200 shadow-sm'
                                         }`}>{act.kategori}</span>
                                     </div>
                                 </div>
