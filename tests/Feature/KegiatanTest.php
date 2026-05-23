@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\KAK;
 use App\Models\Kegiatan;
+use App\Models\KegiatanApproval;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -437,5 +438,81 @@ class KegiatanTest extends TestCase
     {
         $response = $this->actingAs($this->pengusul)->get('/kegiatan/99999');
         $response->assertStatus(404);
+    }
+
+    public function test_ppk_can_view_pending_kegiatan_in_index(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->ppk)->get('/kegiatan');
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Index')
+                ->has('pendingKegiatan', 1)
+            );
+    }
+
+    public function test_wadir_can_view_pending_kegiatan_in_index(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->wadir)->get('/kegiatan');
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Index')
+                ->has('pendingKegiatan', 1)
+            );
+    }
+
+    public function test_ppk_cannot_approve_wadir_step(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'X']);
+        $response->assertStatus(403);
+    }
+
+    public function test_approve_fails_if_no_active_step(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        // No approval record with status 'Aktif'
+
+        $response = $this->actingAs($this->ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'X']);
+        $response->assertSessionHas('error', 'Tidak ada langkah persetujuan yang aktif.');
+    }
+
+    public function test_can_view_kegiatan_details(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $response = $this->actingAs($this->pengusul)->get("/kegiatan/{$kegiatan->kegiatan_id}");
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Show')
+                ->has('kegiatan')
+            );
+    }
+
+    public function test_wadir_approve_triggers_email(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
+
+        $this->actingAs($this->wadir)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'ACC']);
+
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\KAKWorkflowMail::class);
     }
 }
