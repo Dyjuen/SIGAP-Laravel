@@ -20,9 +20,22 @@ class AccountController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $search = $request->input('search');
+
         $users = User::with('role')
+            ->when($search, function ($query, $search) {
+                $operator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+                $query->where(function ($q) use ($search, $operator) {
+                    $q->where('nama_lengkap', $operator, "%{$search}%")
+                        ->orWhere('username', $operator, "%{$search}%")
+                        ->orWhere('email', $operator, "%{$search}%")
+                        ->orWhereHas('role', function ($qr) use ($search, $operator) {
+                            $qr->where('nama_role', $operator, "%{$search}%");
+                        });
+                });
+            })
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn ($user) => [

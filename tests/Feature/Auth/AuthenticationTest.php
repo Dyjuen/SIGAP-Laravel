@@ -171,4 +171,21 @@ class AuthenticationTest extends TestCase
 
         $this->assertNotEquals($sessionBefore, $sessionAfter);
     }
+
+    public function test_users_can_authenticate_with_remember_me(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'testuser',
+            'password_hash' => bcrypt($password = 'password'),
+        ]);
+
+        $response = $this->post('/login', [
+            'username' => 'testuser',
+            'password' => $password,
+            'remember' => 'on',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertCookie(Auth::guard()->getRecallerName());
+    }
 }
