@@ -453,6 +453,14 @@ class KegiatanController extends Controller
             ];
 
             Mail::to($pengusul->email)->send(new KAKWorkflowMail($data));
+
+            // Create notification for Pengusul
+            \App\Models\Notifikasi::create([
+                'penerima_user_id' => $pengusul->user_id,
+                'pesan' => "Kegiatan '{$kak->nama_kegiatan}' Anda telah disetujui oleh {$role}.",
+                'link_tujuan' => "/kegiatan/{$kegiatan->kegiatan_id}",
+                'is_read' => 0
+            ]);
         }
     }
 }

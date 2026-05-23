@@ -348,7 +348,7 @@ class KakWorkflowController extends Controller
                 'recipient_name' => $verifikator->nama_lengkap,
                 'body' => $isResubmit
                     ? 'Halo <strong>Verifikator</strong>,<br><br>KAK yang sebelumnya diminta revisi telah diajukan kembali.'
-                    : 'Halo <strong>Verifikator</strong>,<br><br>Ada KAK baru yang telah disubmit dan membutuhkan verifikasi.',
+                    : 'Halo <strong>Verifikator</strong>,<br><br>Ada KAK baru yang telah disubmit and membutuhkan verifikasi.',
                 'details' => [
                     'Nama Kegiatan' => $kak->nama_kegiatan,
                     'Diajukan oleh' => $kak->pengusul->nama_lengkap,
@@ -359,6 +359,14 @@ class KakWorkflowController extends Controller
             ];
 
             Mail::to($verifikator->email)->send(new KAKWorkflowMail($data));
+
+            // Create notification for Verifikator
+            \App\Models\Notifikasi::create([
+                'penerima_user_id' => $verifikator->user_id,
+                'pesan' => "KAK '{$kak->nama_kegiatan}' oleh {$kak->pengusul->nama_lengkap} " . ($isResubmit ? 'telah direvisi.' : 'menunggu verifikasi.'),
+                'link_tujuan' => "/kak/{$kak->kak_id}",
+                'is_read' => 0
+            ]);
         }
     }
 
@@ -374,18 +382,21 @@ class KakWorkflowController extends Controller
                     'title' => 'KAK Disetujui',
                     'body' => 'Selamat! KAK Anda telah disetujui oleh Verifikator. Silakan melanjutkan ke tahap pengajuan kegiatan.',
                     'color' => '#28a745',
+                    'notif_verb' => 'disetujui',
                 ],
                 'rejected' => [
                     'subject' => '❌ KAK Ditolak - SIGAP PNJ',
                     'title' => 'KAK Ditolak',
                     'body' => 'Mohon maaf, KAK Anda telah ditolak oleh Verifikator.<br><br><strong>Catatan:</strong> '.($catatan ?? '-'),
                     'color' => '#dc3545',
+                    'notif_verb' => 'ditolak',
                 ],
                 'revised' => [
                     'subject' => '⚠️ KAK Perlu Revisi - SIGAP PNJ',
                     'title' => 'Permintaan Revisi KAK',
                     'body' => 'Verifikator telah mereview KAK Anda dan meminta beberapa perbaikan.<br><br><strong>Catatan:</strong> '.($catatan ?? '-'),
                     'color' => '#ffc107',
+                    'notif_verb' => 'perlu direvisi',
                 ],
             ];
 
@@ -405,6 +416,14 @@ class KakWorkflowController extends Controller
                 ];
 
                 Mail::to($pengusul->email)->send(new KAKWorkflowMail($data));
+
+                // Create notification for Pengusul
+                \App\Models\Notifikasi::create([
+                    'penerima_user_id' => $pengusul->user_id,
+                    'pesan' => "KAK '{$kak->nama_kegiatan}' Anda telah {$c['notif_verb']}.",
+                    'link_tujuan' => "/kak/{$kak->kak_id}",
+                    'is_read' => 0
+                ]);
             }
         }
     }
