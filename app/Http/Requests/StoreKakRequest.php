@@ -28,7 +28,7 @@ class StoreKakRequest extends FormRequest
             'kak.nama_kegiatan' => 'required|string|min:5|max:255',
             'kak.deskripsi_kegiatan' => 'required|string|min:5',
             'kak.metode_pelaksanaan' => 'required|string|min:5',
-            'kak.kurun_waktu_pelaksanaan' => 'required|string',
+            'kak.kurun_waktu_pelaksanaan' => 'nullable|string',
             'kak.tanggal_mulai' => 'required|date',
             'kak.tanggal_selesai' => 'required|date|after_or_equal:kak.tanggal_mulai',
             'kak.lokasi' => 'required|string|max:255',
@@ -44,7 +44,7 @@ class StoreKakRequest extends FormRequest
             'kak.tahapan_pelaksanaan' => 'required|array|min:1',
             'kak.tahapan_pelaksanaan.*.tahapan_id' => 'nullable|integer',
             'kak.tahapan_pelaksanaan.*.nama_tahapan' => 'required|string|max:255',
-            'kak.tahapan_pelaksanaan.*.urutan' => 'required|integer',
+            'kak.tahapan_pelaksanaan.*.urutan' => 'nullable|integer',
 
             // Child: Indikator Kinerja
             'kak.indikator_kinerja' => 'present|array',

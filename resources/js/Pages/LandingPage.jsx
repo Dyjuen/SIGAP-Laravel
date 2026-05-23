@@ -375,10 +375,9 @@ export default function LandingPage({ auth }) {
                     {/* Left Side: Contact Image */}
                     <div className="relative" data-aos="fade-right" data-aos-duration="1000" data-aos-delay="300">
                         <div className="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-2xl p-8 border-2 border-[#33C8DA]/20 hover:shadow-lg transition-shadow duration-300">
-                        <img src="/images/landing/contact-customer-service.png" alt="Customer Service" className="w-full rounded-xl mb-6" />
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
+                            <img src="/images/landing/faq-boy-with-logos.png" alt="Customer Service" className="w-full rounded-xl mb-6" />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                            <div className="flex items-center gap-3 bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-300">
                             <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center flex-shrink-0">
                                 <svg className="w-6 h-6 text-[#33C8DA]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <rect x="2" y="4" width="20" height="16" rx="2" />
