@@ -47,6 +47,15 @@ class KakWorkflowTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_pengusul_cannot_submit_rejected_kak(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 4]); // Ditolak
+
+        $response = $this->actingAs($user)->post(route('kak.submit', $kak->kak_id));
+        $response->assertStatus(403);
+    }
+
     public function test_verifikator_can_approve_kak(): void
     {
         $tipeId = 1;

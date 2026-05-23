@@ -39,8 +39,8 @@ class KakController extends Controller
 
         // Apply filters from request
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('nama_kegiatan', 'ilike', "%{$search}%");
+            $search = strtolower($request->search);
+            $query->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%{$search}%"]);
         }
 
         if ($request->filled('status_id')) {
@@ -269,7 +269,9 @@ class KakController extends Controller
         }
 
         // 2. Tahapan (Frontend sends array of {nama_tahapan})
-        $tahapanData = collect($request->input('kak.tahapan_pelaksanaan', []))->filter(fn ($t) => ! empty($t['nama_tahapan']));
+        $tahapanData = collect($request->input('kak.tahapan_pelaksanaan', []))
+            ->filter(fn ($t) => ! empty($t['nama_tahapan']))
+            ->values();
         $incomingTahapanIds = $tahapanData->pluck('tahapan_id')->filter()->all();
         if ($isUpdate) {
             $kak->tahapan()->whereNotIn('tahapan_id', $incomingTahapanIds)->delete();

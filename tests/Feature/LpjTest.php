@@ -573,6 +573,46 @@ class LpjTest extends TestCase
             'kegiatan_id' => $kegiatan->kegiatan_id,
             'status_id_baru' => 13,
         ]);
+
+        // Verify approver_user_id (LPJ-I-011)
+        $this->assertDatabaseHas('t_kegiatan_approval', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'Bendahara-LPJ',
+            'status' => 'Disetujui',
+            'approver_user_id' => $this->bendahara->user_id,
+        ]);
+    }
+
+    public function test_revise_lpj_clears_old_notes(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
+        $this->submitLpj($kegiatan);
+
+        $anggaran = $kegiatan->kak->anggaran->first();
+        $anggaran->update(['catatan_verifikator' => 'Old comment']);
+
+        $lampiran = KegiatanLampiran::create([
+            'anggaran_id' => $anggaran->anggaran_id,
+            'nama_file_asli' => 'bukti.pdf',
+            'path_file_disimpan' => '/storage/uploads/documents/bukti.pdf',
+            'uploader_user_id' => $this->pengusul->user_id,
+            'status_lampiran' => 'pending',
+            'catatan_reviewer' => 'Old lampiran comment',
+        ]);
+
+        $this->actingAs($this->bendahara)
+            ->post(route('lpj.revise', $kegiatan), [
+                'anggaran_comments' => [
+                    ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => 'New comment'],
+                ],
+            ]);
+
+        // Verify old notes were replaced/cleared (LPJ-I-009)
+        $anggaran->refresh();
+        $this->assertEquals('New comment', $anggaran->catatan_verifikator);
+
+        $lampiran->refresh();
+        $this->assertNull($lampiran->catatan_reviewer);
     }
 
     public function test_non_bendahara_cannot_approve_lpj(): void

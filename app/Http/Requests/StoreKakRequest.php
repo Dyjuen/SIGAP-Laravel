@@ -37,27 +37,31 @@ class StoreKakRequest extends FormRequest
 
             // Child: Manfaat
             'kak.manfaat' => 'required|array|min:1',
+            'kak.manfaat.*.manfaat_id' => 'nullable|integer',
             'kak.manfaat.*.value' => 'required|string|max:255',
 
             // Child: Tahapan Pelaksanaan
             'kak.tahapan_pelaksanaan' => 'required|array|min:1',
+            'kak.tahapan_pelaksanaan.*.tahapan_id' => 'nullable|integer',
             'kak.tahapan_pelaksanaan.*.nama_tahapan' => 'required|string|max:255',
             'kak.tahapan_pelaksanaan.*.urutan' => 'required|integer',
 
             // Child: Indikator Kinerja
-            'kak.indikator_kinerja' => 'required|array',
+            'kak.indikator_kinerja' => 'present|array',
+            'kak.indikator_kinerja.*.target_id' => 'nullable|integer',
             'kak.indikator_kinerja.*.bulan_indikator' => 'required|string',
             'kak.indikator_kinerja.*.deskripsi_target' => 'required|string|max:255',
             'kak.indikator_kinerja.*.persentase_target' => 'required|numeric|min:0|max:100',
 
             // Child: Target IKU
-            'target_iku' => 'required|array',
+            'target_iku' => 'present|array',
             'target_iku.*.iku_id' => 'required|exists:m_iku,iku_id',
             'target_iku.*.target' => 'required|max:255',
             'target_iku.*.satuan_id' => 'required|exists:m_satuan,satuan_id',
 
             // Child: RAB
-            'rab' => 'required|array',
+            'rab' => 'present|array',
+            'rab.*.anggaran_id' => 'nullable|integer',
             'rab.*.uraian' => 'required|string|max:255',
             'rab.*.volume1' => 'required|numeric|min:0',
             'rab.*.satuan1_id' => 'required|exists:m_satuan,satuan_id',
