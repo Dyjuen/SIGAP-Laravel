@@ -123,15 +123,27 @@ class PencairanController extends Controller
             ]);
         }
 
-        $pencairan = PencairanDana::create([
-            'kegiatan_id' => $kegiatan->kegiatan_id,
-            'jumlah_dicairkan' => $nominalPencairan,
-            'keterangan' => $request->keterangan,
-            'created_by' => $request->user()->user_id,
-            'tanggal_pencairan' => now()->toDateString(),
-        ]);
+        DB::beginTransaction();
 
-        return redirect()->back()->with('success', 'Pencairan dana berhasil dicatat.');
+        try {
+            $pencairan = PencairanDana::create([
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'jumlah_dicairkan' => $nominalPencairan,
+                'keterangan' => $request->keterangan,
+                'created_by' => $request->user()->user_id,
+                'tanggal_pencairan' => now()->toDateString(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Pencairan dana berhasil dicatat.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->withErrors([
+                'message' => 'Terjadi kesalahan saat menyimpan data: '.$e->getMessage(),
+            ]);
+        }
     }
 
     /**
