@@ -1,0 +1,19 @@
+{
+  "name": "sigap-automation-testing",
+  "version": "1.0.0",
+  "description": "Automation testing suite for SIGAP-Laravel - Ajukan Kegiatan feature",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:ui": "npx playwright test --ui",
+    "test:report": "npx playwright show-report ../reports/playwright",
+    "test:validasi": "npx playwright test kegiatan-validasi",
+    "test:otorisasi": "npx playwright test kegiatan-otorisasi",
+    "test:crud": "npx playwright test kegiatan-crud",
+    "test:ui-tests": "npx playwright test kegiatan-ui",
+    "test:xss": "npx playwright test kegiatan-xss"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}

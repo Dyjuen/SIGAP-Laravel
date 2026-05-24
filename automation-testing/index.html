@@ -1,0 +1,2567 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIGAP — Automation Testing Dashboard</title>
+  <meta name="description" content="Dashboard pengujian otomatis untuk fitur Ajukan Kegiatan SIGAP-Laravel">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.6);
+      --bg-card-hover: rgba(17, 24, 39, 0.85);
+      --bg-input: rgba(30, 41, 59, 0.5);
+      --border: rgba(71, 85, 105, 0.3);
+      --border-focus: rgba(34, 211, 238, 0.5);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #22d3ee;
+      --accent-dim: rgba(34, 211, 238, 0.08);
+      --accent-glow: rgba(34, 211, 238, 0.25);
+      --pass: #34d399;
+      --pass-bg: rgba(52, 211, 153, 0.1);
+      --pass-border: rgba(52, 211, 153, 0.3);
+      --fail: #f87171;
+      --fail-bg: rgba(248, 113, 113, 0.1);
+      --fail-border: rgba(248, 113, 113, 0.3);
+      --skip: #fbbf24;
+      --skip-bg: rgba(251, 191, 36, 0.1);
+      --skip-border: rgba(251, 191, 36, 0.3);
+      --pending-bg: rgba(100, 116, 139, 0.1);
+      --pending-border: rgba(100, 116, 139, 0.3);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.3);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Background Effects ──────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(34, 211, 238, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 85% 70%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
+        radial-gradient(ellipse 50% 40% at 50% 0%, rgba(34, 211, 238, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Layout ──────────────────────────────────────────────────── */
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    @media (min-width: 768px) { .app { padding: 48px 40px 80px; } }
+
+    /* ─── Header ──────────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .header__badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(34, 211, 238, 0.2);
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 20px;
+    }
+
+    .header__badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .header h1 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #f1f5f9 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .header p {
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 8px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ─── Stats Bar ───────────────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+      animation: fadeInUp 0.8s ease-out 0.1s both;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-focus);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(34, 211, 238, 0.1);
+    }
+
+    .stat-card__value {
+      font-size: 32px;
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-card__label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .stat-card--total .stat-card__value { color: var(--accent); }
+    .stat-card--pass .stat-card__value { color: var(--pass); }
+    .stat-card--fail .stat-card__value { color: var(--fail); }
+    .stat-card--skip .stat-card__value { color: var(--skip); }
+    .stat-card--pending .stat-card__value { color: var(--text-muted); }
+
+    /* ─── Progress Bar ────────────────────────────────────────────── */
+    .progress-container {
+      margin-bottom: 32px;
+      animation: fadeInUp 0.8s ease-out 0.15s both;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 100px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .progress-bar__segment {
+      height: 100%;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-bar__segment--pass { background: var(--pass); }
+    .progress-bar__segment--fail { background: var(--fail); }
+    .progress-bar__segment--skip { background: var(--skip); }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* ─── Toolbar ─────────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .toolbar__search {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+    }
+
+    .toolbar__search svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+    }
+
+    .toolbar__search input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .toolbar__search input::placeholder { color: var(--text-muted); }
+
+    .toolbar__search input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .toolbar__filter select {
+      padding: 12px 36px 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      transition: var(--transition);
+    }
+
+    .toolbar__filter select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    /* ─── Buttons ─────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn svg { width: 16px; height: 16px; }
+
+    .btn--primary {
+      background: linear-gradient(135deg, var(--accent), #06b6d4);
+      border-color: transparent;
+      color: #0a0e1a;
+    }
+
+    .btn--primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    
+    .btn--primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn--secondary {
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+
+    .btn--secondary:hover {
+      border-color: var(--border-focus);
+      background: rgba(30, 41, 59, 0.8);
+    }
+
+    .btn--danger {
+      background: var(--fail-bg);
+      border-color: var(--fail-border);
+      color: var(--fail);
+    }
+
+    .btn--danger:hover {
+      background: rgba(248, 113, 113, 0.2);
+    }
+
+    .btn--success {
+      background: var(--pass-bg);
+      border-color: var(--pass-border);
+      color: var(--pass);
+    }
+
+    .btn--success:hover {
+      background: rgba(52, 211, 153, 0.2);
+    }
+
+    .btn--sm {
+      padding: 6px 12px;
+      font-size: 11px;
+      border-radius: var(--radius-xs);
+    }
+
+    /* ─── Import Area ─────────────────────────────────────────────── */
+    .import-area {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 32px;
+      transition: var(--transition);
+      animation: fadeInUp 0.8s ease-out 0.15s both;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .import-area:hover, .import-area.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .import-area.drag-over::after {
+      content: 'Lepaskan file di sini';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(34, 211, 238, 0.1);
+      backdrop-filter: blur(4px);
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .import-area__icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      background: var(--accent-dim);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .import-area h3 {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .import-area p {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .import-area__actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .import-area input[type="file"] { display: none; }
+
+    /* ─── Paste / Modals ──────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 800px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal__header h3 {
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .modal__close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .modal__close:hover { color: var(--fail); background: var(--fail-bg); }
+
+    .modal__body {
+      padding: 24px;
+      flex: 1;
+      overflow: auto;
+    }
+
+    .modal__body textarea {
+      width: 100%;
+      min-height: 280px;
+      padding: 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .modal__body textarea::placeholder { color: var(--text-muted); }
+    .modal__body textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-dim); }
+
+    .modal__body .hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .modal__footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── Table ───────────────────────────────────────────────────── */
+    .table-wrapper {
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      animation: fadeInUp 0.8s ease-out 0.25s both;
+      margin-bottom: 24px;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      padding: 14px 16px;
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      user-select: none;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(51, 65, 85, 0.2);
+      transition: var(--transition);
+    }
+
+    tbody tr:hover {
+      background: rgba(34, 211, 238, 0.02);
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 12px 16px;
+      vertical-align: top;
+      color: var(--text-secondary);
+    }
+
+    /* Checkbox Styles */
+    th.chk-cell, td.chk-cell {
+      width: 44px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    
+    .chk-cell-input {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    td.id-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--accent);
+      white-space: nowrap;
+      min-width: 100px;
+    }
+
+    td.feature-cell {
+      font-weight: 600;
+      color: var(--text-primary);
+      min-width: 120px;
+    }
+
+    td.scenario-cell {
+      font-weight: 700;
+      color: var(--text-primary);
+      min-width: 160px;
+    }
+
+    td.input-cell, td.expected-cell {
+      min-width: 200px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    td.input-cell code, td.expected-cell code {
+      background: rgba(34, 211, 238, 0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* ─── Editable Cells ──────────────────────────────────────────── */
+    [contenteditable="true"] {
+      outline: none;
+      padding: 4px 6px;
+      border: 1px dashed transparent;
+      border-radius: var(--radius-xs);
+      transition: var(--transition);
+      cursor: text;
+    }
+    [contenteditable="true"]:hover {
+      border-color: var(--border);
+      background: rgba(30, 41, 59, 0.2);
+    }
+    [contenteditable="true"]:focus {
+      border-color: var(--border-focus);
+      background: var(--bg-input);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+
+    td.actual-cell {
+      min-width: 200px;
+    }
+
+    td.actual-cell textarea {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      background: var(--bg-input);
+      border: 1px solid transparent;
+      border-radius: var(--radius-xs);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 12px;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    td.actual-cell textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+
+    /* ─── Status Badge ────────────────────────────────────────────── */
+    td.status-cell { white-space: nowrap; }
+
+    td.status-cell select {
+      padding: 6px 28px 6px 10px;
+      border-radius: 100px;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      transition: var(--transition);
+    }
+
+    select.status--pass {
+      background-color: var(--pass-bg);
+      border: 1px solid var(--pass-border);
+      color: var(--pass);
+    }
+
+    select.status--fail {
+      background-color: var(--fail-bg);
+      border: 1px solid var(--fail-border);
+      color: var(--fail);
+    }
+
+    select.status--skip {
+      background-color: var(--skip-bg);
+      border: 1px solid var(--skip-border);
+      color: var(--skip);
+    }
+
+    select.status--pending {
+      background-color: var(--pending-bg);
+      border: 1px solid var(--pending-border);
+      color: var(--text-muted);
+    }
+
+    /* ─── Row Actions ─────────────────────────────────────────────── */
+    td.actions-cell {
+      white-space: nowrap;
+    }
+
+    .row-action {
+      background: none;
+      border: none;
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .row-action:hover { color: var(--accent); background: var(--accent-dim); }
+    .row-action--delete:hover { color: var(--fail); background: var(--fail-bg); }
+    .row-action svg { width: 16px; height: 16px; }
+
+    /* ─── Proof Media Buttons ───────────────────────────────────────── */
+    td.proof-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .proof-buttons {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .proof-btn {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .proof-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .proof-btn--img {
+      background: rgba(34, 211, 238, 0.04);
+      border-color: rgba(34, 211, 238, 0.15);
+      color: var(--accent);
+    }
+    
+    .proof-btn--img:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .proof-btn--video {
+      background: rgba(139, 92, 246, 0.04);
+      border-color: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+    }
+
+    .proof-btn--video:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: #a78bfa;
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .proof-empty {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .row-action--ai {
+      color: var(--accent);
+      background: rgba(34, 211, 238, 0.03);
+      border: 1px solid rgba(34, 211, 238, 0.1);
+      margin-right: 4px;
+    }
+
+    .row-action--ai:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 8px rgba(34, 211, 238, 0.25);
+    }
+
+    /* ─── Lightbox / Video Custom Modal Layouts ────────────────────── */
+    .media-modal-body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #060913;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .media-modal-body img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      display: block;
+      border-radius: var(--radius-xs);
+    }
+
+    .media-modal-body video {
+      width: 100%;
+      max-height: 70vh;
+      display: block;
+      outline: none;
+      background: #000;
+    }
+
+    /* ─── Empty State ─────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 32px;
+    }
+
+    .empty-state__icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 24px;
+      background: var(--accent-dim);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .empty-state h3 {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .empty-state p {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* ─── Toast ───────────────────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      padding: 14px 20px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      max-width: 380px;
+    }
+
+    .toast--success { border-left: 3px solid var(--pass); color: var(--pass); }
+    .toast--error { border-left: 3px solid var(--fail); color: var(--fail); }
+    .toast--info { border-left: 3px solid var(--accent); color: var(--accent); }
+
+    /* ─── Floating Bulk Actions Bar ───────────────────────────────── */
+    .bulk-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(150px);
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--accent-glow);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(34, 211, 238, 0.15);
+      border-radius: 100px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 1500;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .bulk-bar.active {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .bulk-bar__count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      padding-right: 12px;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .bulk-bar__actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* ─── Newly Added Row Glow Effect ─────────────────────────────── */
+    @keyframes rowGlow {
+      0% { background: rgba(34, 211, 238, 0.15); }
+      100% { background: transparent; }
+    }
+    
+    .row-newly-added {
+      animation: rowGlow 2.5s ease-out forwards;
+    }
+
+    /* ─── Footer ──────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 24px 0 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ─── Animations ──────────────────────────────────────────────── */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    /* ─── Scrollbar ───────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ─── Responsive ──────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .toolbar { flex-direction: column; }
+      .toolbar__search { min-width: 100%; }
+    }
+
+    @media (max-width: 1024px) {
+      .stats-grid { grid-template-columns: 1fr !important; }
+    }
+
+    /* ─── Row Number ──────────────────────────────────────────────── */
+    td.row-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+      width: 40px;
+    }
+
+    /* ─── Tipe Uji Badge Styles ────────────────────────────────────── */
+    .badge--automated {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.05);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .badge--ai-ready {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.05);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+  </style>
+  <!-- Modern CDN libraries -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app" id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header__badge">Automation Testing Dashboard</div>
+      <h1>SIGAP Test Runner</h1>
+      <p>Import spreadsheet test case, kelola hasil, dan ekspor laporan.</p>
+    </header>
+
+    <!-- Stats & Analytics Grid -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out 0.1s both;">
+      <!-- Stats -->
+      <div class="stats" id="stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 0;">
+        <div class="stat-card stat-card--total">
+          <div class="stat-card__value" id="stat-total">0</div>
+          <div class="stat-card__label">Total Skenario</div>
+        </div>
+        <div class="stat-card stat-card--pass">
+          <div class="stat-card__value" id="stat-pass">0</div>
+          <div class="stat-card__label">Lulus (Pass)</div>
+        </div>
+        <div class="stat-card stat-card--fail">
+          <div class="stat-card__value" id="stat-fail">0</div>
+          <div class="stat-card__label">Gagal (Fail)</div>
+        </div>
+        <div class="stat-card stat-card--skip">
+          <div class="stat-card__value" id="stat-skip">0</div>
+          <div class="stat-card__label">Dilewati (Skip)</div>
+        </div>
+        <div class="stat-card stat-card--pending">
+          <div class="stat-card__value" id="stat-pending">0</div>
+          <div class="stat-card__label">Belum Diuji</div>
+        </div>
+      </div>
+
+      <!-- Premium Analytics Chart Card -->
+      <div class="chart-card" style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow); transition: var(--transition);">
+        <div style="width: 100px; height: 100px; position: relative; flex-shrink: 0;">
+          <canvas id="statusChart"></canvas>
+        </div>
+        <div style="flex: 1;">
+          <h4 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-primary); margin-bottom: 4px;">Status Eksekusi</h4>
+          <p id="chart-summary" style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-top: 4px;">Belum ada data pengujian yang dijalankan.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container" id="progress-container" style="display:none;">
+      <div class="progress-bar">
+        <div class="progress-bar__segment progress-bar__segment--pass" id="progress-pass" style="width:0%"></div>
+        <div class="progress-bar__segment progress-bar__segment--fail" id="progress-fail" style="width:0%"></div>
+        <div class="progress-bar__segment progress-bar__segment--skip" id="progress-skip" style="width:0%"></div>
+      </div>
+      <div class="progress-label">
+        <span id="progress-text">0% complete</span>
+        <span id="progress-ratio">0/0 tested</span>
+      </div>
+    </div>
+
+    <!-- Import Area -->
+    <div class="import-area" id="import-area">
+      <input type="file" id="file-input" accept=".csv,.tsv,.txt,.xlsx" multiple>
+      <div class="import-area__icon">
+        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <h3>Import Test Cases</h3>
+      <p>Drag & drop file CSV/TSV, atau klik untuk upload. Bisa juga paste dari spreadsheet.</p>
+      <div class="import-area__actions">
+        <button class="btn btn--primary" onclick="document.getElementById('file-input').click()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Upload File
+        </button>
+        <button class="btn btn--secondary" onclick="openPasteModal()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+          Paste dari Clipboard
+        </button>
+        <button class="btn btn--secondary" onclick="loadSampleData()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          Load Sample Data
+        </button>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar" id="toolbar" style="display:none;">
+      <div class="toolbar__search">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Cari test case (ID, skenario, input...)">
+      </div>
+      <div class="toolbar__filter">
+        <select id="status-filter">
+          <option value="all">Semua Status</option>
+          <option value="Pass">✅ Pass</option>
+          <option value="Fail">❌ Fail</option>
+          <option value="Skip">⏭️ Skip</option>
+          <option value="">⏳ Pending</option>
+        </select>
+      </div>
+      
+      <!-- Core Action Buttons -->
+      <button class="btn btn--primary btn--sm" id="btn-auto-test" onclick="runAutomatedTests()" title="Jalankan seluruh test suite otomatis via Playwright">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        ⚡ Jalankan Auto Test
+      </button>
+      
+      <button class="btn btn--secondary btn--sm" onclick="openAISettingsModal()" title="Pengaturan AI Test Generator (Kunci API Gemini)" style="padding-left: 10px; padding-right: 10px;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      
+      <button class="btn btn--secondary btn--sm" onclick="addNewRow()" title="Tambahkan baris test case baru secara manual">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        + Tambah Baris
+      </button>
+
+      <button class="btn btn--secondary btn--sm" onclick="resetAllStatus()" title="Reset semua status">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Reset
+      </button>
+      <button class="btn btn--secondary btn--sm" onclick="exportCSV()" title="Ekspor ke CSV">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ekspor CSV
+      </button>
+      <button class="btn btn--secondary btn--sm" onclick="copyToClipboard()" title="Copy ke clipboard">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+      <button class="btn btn--danger btn--sm" onclick="clearAll()" title="Hapus semua data">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Clear
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrapper" id="table-wrapper" style="display:none;">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="chk-cell"><input type="checkbox" id="select-all" class="chk-cell-input" onchange="toggleSelectAll(this.checked)"></th>
+              <th style="width:40px">#</th>
+              <th>ID</th>
+              <th>Nama Fitur</th>
+              <th>Skenario</th>
+              <th>Test Input</th>
+              <th>Expected Result</th>
+              <th style="min-width:200px">Actual Result</th>
+              <th style="text-align:center; min-width:110px;">Tipe Uji</th>
+              <th style="min-width:110px">Status</th>
+              <th style="min-width:90px">Bukti</th>
+              <th style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>SIGAP Automation Testing Dashboard &bull; Powered by <a href="https://playwright.dev/" target="_blank">Playwright</a>, <a href="https://www.postman.com/newman/" target="_blank">Newman</a> & <a href="https://k6.io/" target="_blank">k6</a></p>
+    </div>
+  </div>
+
+  <!-- Paste Modal -->
+  <div class="modal-overlay" id="paste-modal">
+    <div class="modal">
+      <div class="modal__header">
+        <h3>📋 Paste Test Case dari Spreadsheet</h3>
+        <button class="modal__close" onclick="closePasteModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <textarea id="paste-textarea" placeholder="Paste data tab-separated dari spreadsheet di sini...
+
+Format kolom (dipisahkan TAB):
+ID    Nama Fitur    Skenario    Test Input    Expected Result    Actual Result    Status
+
+Contoh:
+AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;&quot;    Muncul pesan: &quot;Penanggung Jawab wajib diisi&quot;."></textarea>
+        <div class="hint">
+          💡 <strong>Tips:</strong> Copy langsung dari Excel/Google Sheets, lalu paste di sini. Format otomatis terdeteksi (tab-separated). Kolom minimal: <code>ID, Nama Fitur, Skenario, Test Input, Expected Result</code>. Kolom <code>Actual Result</code> dan <code>Status</code> opsional.
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closePasteModal()">Batal</button>
+        <button class="btn btn--primary" onclick="importPastedData()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Import Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Options Modal -->
+  <div class="modal-overlay" id="import-options-modal">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal__header">
+        <h3>📥 Opsi Import Data</h3>
+        <button class="modal__close" onclick="closeImportOptionsModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary);">
+          Bagaimana Anda ingin memasukkan <strong id="import-count-text">0</strong> test case baru ke dalam dashboard?
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Option 1: Replace -->
+          <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(248, 113, 113, 0.05); border: 1px solid rgba(248, 113, 113, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--fail)">
+            <input type="radio" name="import-mode" value="replace" checked style="margin-top: 4px; accent-color: var(--fail);">
+            <div>
+              <strong style="color: var(--fail); font-size: 14px; display: block;">Timpa Semua Data (Replace)</strong>
+              <span style="font-size: 12px; color: var(--text-secondary);">Hapus semua data yang ada di tabel saat ini dan ganti dengan data baru.</span>
+            </div>
+          </label>
+          
+          <!-- Option 2: Append -->
+          <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--pass)">
+            <input type="radio" name="import-mode" value="append" style="margin-top: 4px; accent-color: var(--pass);">
+            <div>
+              <strong style="color: var(--pass); font-size: 14px; display: block;">Tambahkan Data (Append)</strong>
+              <span style="font-size: 12px; color: var(--text-secondary);">Gabungkan data baru di baris terbawah tanpa menghapus data yang sudah ada.</span>
+            </div>
+          </label>
+
+          <!-- Option 3: Merge/Update -->
+          <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--accent)">
+            <input type="radio" name="import-mode" value="merge" style="margin-top: 4px; accent-color: var(--accent);">
+            <div>
+              <strong style="color: var(--accent); font-size: 14px; display: block;">Gabungkan & Update ID (Merge)</strong>
+              <span style="font-size: 12px; color: var(--text-secondary);">Update kolom jika ID sudah ada di tabel saat ini, jika ID baru akan ditambahkan ke bawah.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeImportOptionsModal()">Batal</button>
+        <button class="btn btn--primary" onclick="confirmImportData()">
+          Proses Import
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Companion Server Connection Modal -->
+  <div class="modal-overlay" id="companion-modal">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal__header">
+        <h3>⚡ Server Pendamping Belum Aktif</h3>
+        <button class="modal__close" onclick="closeCompanionModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+          Untuk menjalankan automated testing (Playwright) langsung dari tombol dashboard, Anda perlu menyalakan **server pendamping lokal** terlebih dahulu.
+        </p>
+        <div style="background: var(--bg-input); border: 1px solid var(--border); padding: 12px 16px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <span id="cmd-text">node server.js</span>
+          <button class="btn btn--secondary btn--sm" onclick="copyCompanionCmd()" style="padding: 4px 8px; font-size: 11px;">
+            Salin
+          </button>
+        </div>
+        <div class="hint" style="margin-top: 0; line-height: 1.5;">
+          💡 <strong>Cara menjalankan:</strong> Buka terminal baru di folder <code>automation-testing/</code>, lalu jalankan perintah di atas. Setelah itu, silakan klik ulang tombol "Jalankan Auto Test".
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeCompanionModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Bulk Actions Bar -->
+  <div class="bulk-bar" id="bulk-actions-bar">
+    <div class="bulk-bar__count" id="bulk-count">0 terpilih</div>
+    <div class="bulk-bar__actions">
+      <button class="btn btn--success btn--sm" onclick="bulkMarkStatus('Pass')">✅ Set Pass</button>
+      <button class="btn btn--danger btn--sm" onclick="bulkMarkStatus('Fail')">❌ Set Fail</button>
+      <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('Skip')">⏭️ Set Skip</button>
+      <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('')">⏳ Set Pending</button>
+      <button class="btn btn--danger btn--sm" onclick="bulkDelete()" style="background: rgba(248, 113, 113, 0.15); border-color: rgba(248, 113, 113, 0.25);">🗑️ Hapus</button>
+      <button class="row-action" onclick="clearSelection()" title="Batalkan Pilihan" style="margin-left: 8px;">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal (Tampilan Screenshot Bukti) -->
+  <div class="modal-overlay" id="lightbox-modal">
+    <div class="modal" style="max-width: 900px;">
+      <div class="modal__header">
+        <h3 id="lightbox-title">📷 Bukti Screenshot</h3>
+        <button class="modal__close" onclick="closeLightbox()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="media-modal-body">
+          <img id="lightbox-img" src="" alt="Bukti Pengujian">
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeLightbox()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Player Modal (Tampilan Video Rekaman) -->
+  <div class="modal-overlay" id="video-modal">
+    <div class="modal" style="max-width: 900px;">
+      <div class="modal__header">
+        <h3 id="video-title">🎥 Rekaman Eksekusi</h3>
+        <button class="modal__close" onclick="closeVideoPlayer()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <div class="media-modal-body">
+          <video id="video-player" controls autoplay></video>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeVideoPlayer()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Settings Modal (Pengaturan API Key Gemini) -->
+  <div class="modal-overlay" id="ai-settings-modal">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal__header">
+        <h3>⚙️ Pengaturan AI Test Generator</h3>
+        <button class="modal__close" onclick="closeAISettingsModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+          Kunci API Gemini diperlukan untuk mengaktifkan modul pembuatan pengujian otomatis cerdas secara lokal. Kunci disimpan dengan aman di penyimpanan lokal peramban Anda.
+        </p>
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Gemini API Key</label>
+          <input type="password" id="gemini-api-key-input" placeholder="Masukkan AIzaSy..." style="width: 100%; padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; transition: var(--transition);">
+        </div>
+        <div class="hint" style="margin-top: 0; line-height: 1.5; font-size: 12px; color: var(--text-muted);">
+          💡 Kunci API Anda disimpan secara lokal di <code>localStorage</code> peramban di bawah kunci <code>sigap-gemini-api-key</code>. Kunci ini hanya dikirimkan ke server pendamping lokal Anda saat eksekusi.
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeAISettingsModal()">Batal</button>
+        <button class="btn btn--primary" onclick="saveAISettings()">
+          Simpan Konfigurasi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════════
+    // State
+    // ═══════════════════════════════════════════════════════════════════
+    let testCases = [];
+    let filteredCases = [];
+    let pendingImportCases = []; // Temporary storage for import options modal
+    let selectedCases = new Set(); // Stores index of selected test cases
+    let implementedIds = new Set();
+    let statusChart = null;
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DOM Refs
+    // ═══════════════════════════════════════════════════════════════════
+    const tableBody = document.getElementById('table-body');
+    const importArea = document.getElementById('import-area');
+    const toolbar = document.getElementById('toolbar');
+    const tableWrapper = document.getElementById('table-wrapper');
+    const searchInput = document.getElementById('search-input');
+    const statusFilter = document.getElementById('status-filter');
+    const fileInput = document.getElementById('file-input');
+    const progressContainer = document.getElementById('progress-container');
+    const bulkActionsBar = document.getElementById('bulk-actions-bar');
+    const bulkCount = document.getElementById('bulk-count');
+    const selectAllCheckbox = document.getElementById('select-all');
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Auto-save / Restore from localStorage
+    // ═══════════════════════════════════════════════════════════════════
+    function saveState() {
+      try {
+        localStorage.setItem('sigap-test-cases', JSON.stringify(testCases));
+      } catch(e) {}
+    }
+
+    function restoreState() {
+      try {
+        const saved = localStorage.getItem('sigap-test-cases');
+        if (saved) {
+          testCases = JSON.parse(saved);
+          if (testCases.length > 0) {
+            showTable();
+            renderTable();
+            updateStats();
+            showToast('Data dipulihkan dari sesi sebelumnya', 'info');
+          }
+        }
+      } catch(e) {}
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Parsing (RFC 4180 character-by-character parser)
+    // ═══════════════════════════════════════════════════════════════════
+    function parseSpreadsheetData(raw) {
+      if (!raw || !raw.trim()) return [];
+
+      const firstLine = raw.split(/\r?\n/)[0] || '';
+      let delimiter = '\t'; // Default tab
+      const tabCount = (firstLine.match(/\t/g) || []).length;
+      const semiCount = (firstLine.match(/;/g) || []).length;
+      const commaCount = (firstLine.match(/,/g) || []).length;
+
+      if (semiCount > tabCount && semiCount > commaCount) {
+        delimiter = ';';
+      } else if (commaCount > tabCount && commaCount > semiCount) {
+        delimiter = ',';
+      }
+
+      const rows = [];
+      let currentRow = [];
+      let currentCell = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < raw.length; i++) {
+        const char = raw[i];
+        const nextChar = raw[i + 1];
+
+        if (inQuotes) {
+          if (char === '"') {
+            if (nextChar === '"') {
+              currentCell += '"';
+              i++; // Skip
+            } else {
+              inQuotes = false;
+            }
+          } else {
+            currentCell += char;
+          }
+        } else {
+          if (char === '"') {
+            inQuotes = true;
+          } else if (char === delimiter) {
+            currentRow.push(currentCell.trim());
+            currentCell = '';
+          } else if (char === '\r') {
+            // Skip
+          } else if (char === '\n') {
+            currentRow.push(currentCell.trim());
+            currentCell = '';
+            
+            if (currentRow.some(cell => cell.length > 0)) {
+              rows.push(currentRow);
+            }
+            currentRow = [];
+          } else {
+            currentCell += char;
+          }
+        }
+      }
+
+      if (currentCell || currentRow.length > 0) {
+        currentRow.push(currentCell.trim());
+        if (currentRow.some(cell => cell.length > 0)) {
+          rows.push(currentRow);
+        }
+      }
+
+      const results = [];
+
+      for (const cols of rows) {
+        if (!cols[0]) continue;
+        if (/^(id|no|#)$/i.test(cols[0].trim())) continue;
+        if (cols.length < 3) continue;
+        if (!/^[A-Z]{1,5}-?[A-Z]?-?\d{1,4}/i.test(cols[0].trim())) continue;
+
+        results.push({
+          id: cols[0] || '',
+          feature: cols[1] || '',
+          scenario: cols[2] || '',
+          input: cols[3] || '',
+          expected: cols[4] || '',
+          actual: cols[5] || '',
+          status: normalizeStatus(cols[6] || ''),
+        });
+      }
+
+      return results;
+    }
+
+    function normalizeStatus(s) {
+      const lower = s.toLowerCase().trim();
+      if (lower === 'pass' || lower === 'passed' || lower === 'lulus' || lower === '✅') return 'Pass';
+      if (lower === 'fail' || lower === 'failed' || lower === 'gagal' || lower === '❌') return 'Fail';
+      if (lower === 'skip' || lower === 'skipped' || lower === 'lewati' || lower === '⏭️') return 'Skip';
+      return '';
+    }
+
+    async function fetchImplementedIds() {
+      try {
+        const response = await fetch('http://localhost:3001/implemented-tests');
+        const data = await response.json();
+        if (data.success && data.implemented) {
+          implementedIds = new Set(data.implemented.map(id => id.toUpperCase().trim()));
+        }
+      } catch (err) {
+        console.warn('[SIGAP] Gagal fetch implemented IDs:', err);
+      }
+    }
+
+    function renderTypeBadge(id) {
+      const normalized = String(id || '').toUpperCase().trim();
+      if (implementedIds.has(normalized)) {
+        return `<span class="badge--automated" title="Uji otomatis terimplementasi">🤖 Terotomasi</span>`;
+      }
+      return `<span class="badge--ai-ready" title="Uji otomatis siap dibuat oleh Gemini AI">⚡ Siap AI</span>`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Import Handlers
+    // ═══════════════════════════════════════════════════════════════════
+    function readFileAsText(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve(ev.target.result);
+        reader.readAsText(file);
+      });
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      let combinedParsed = [];
+      for (const file of files) {
+        try {
+          const fileContent = await readFileAsText(file);
+          const parsed = parseSpreadsheetData(fileContent);
+          combinedParsed = [...combinedParsed, ...parsed];
+        } catch (err) {
+          showToast(`Gagal membaca file: ${file.name}`, 'error');
+        }
+      }
+
+      if (combinedParsed.length > 0) {
+        openImportOptionsModal(combinedParsed);
+      } else {
+        showToast('Gagal parsing file. Pastikan format valid.', 'error');
+      }
+      fileInput.value = '';
+    });
+
+    // Drag & Drop
+    importArea.addEventListener('dragover', (e) => { e.preventDefault(); importArea.classList.add('drag-over'); });
+    importArea.addEventListener('dragleave', () => { importArea.classList.remove('drag-over'); });
+    importArea.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      importArea.classList.remove('drag-over');
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length === 0) return;
+
+      let combinedParsed = [];
+      for (const file of files) {
+        try {
+          const fileContent = await readFileAsText(file);
+          const parsed = parseSpreadsheetData(fileContent);
+          combinedParsed = [...combinedParsed, ...parsed];
+        } catch (err) {
+          showToast(`Gagal membaca file: ${file.name}`, 'error');
+        }
+      }
+
+      if (combinedParsed.length > 0) {
+        openImportOptionsModal(combinedParsed);
+      } else {
+        showToast('Gagal parsing file.', 'error');
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Paste Modal
+    // ═══════════════════════════════════════════════════════════════════
+    function openPasteModal() {
+      document.getElementById('paste-modal').classList.add('active');
+      document.getElementById('paste-textarea').focus();
+    }
+
+    function closePasteModal() {
+      document.getElementById('paste-modal').classList.remove('active');
+      document.getElementById('paste-textarea').value = '';
+    }
+
+    function importPastedData() {
+      const raw = document.getElementById('paste-textarea').value;
+      if (!raw.trim()) {
+        showToast('Textarea kosong. Paste data terlebih dahulu.', 'error');
+        return;
+      }
+
+      const parsed = parseSpreadsheetData(raw);
+      if (parsed.length > 0) {
+        closePasteModal();
+        openImportOptionsModal(parsed);
+      } else {
+        showToast('Gagal parsing data. Pastikan format tab-separated dan ID valid (contoh: AK-F-001).', 'error');
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Import Options Modal
+    // ═══════════════════════════════════════════════════════════════════
+    function openImportOptionsModal(parsedCases) {
+      pendingImportCases = parsedCases;
+      document.getElementById('import-count-text').textContent = parsedCases.length;
+      document.getElementById('import-options-modal').classList.add('active');
+    }
+
+    function closeImportOptionsModal() {
+      document.getElementById('import-options-modal').classList.remove('active');
+      pendingImportCases = [];
+    }
+
+    function confirmImportData() {
+      if (pendingImportCases.length === 0) return;
+
+      const mode = document.querySelector('input[name="import-mode"]:checked').value;
+
+      if (mode === 'replace') {
+        testCases = pendingImportCases;
+        selectedCases.clear();
+      } else if (mode === 'append') {
+        testCases = [...testCases, ...pendingImportCases];
+      } else if (mode === 'merge') {
+        const existingMap = new Map(testCases.map(tc => [tc.id.toUpperCase(), tc]));
+        pendingImportCases.forEach(tc => {
+          existingMap.set(tc.id.toUpperCase(), tc);
+        });
+        testCases = Array.from(existingMap.values());
+      }
+
+      showTable();
+      renderTable();
+      updateStats();
+      saveState();
+      closeImportOptionsModal();
+      showToast(`${pendingImportCases.length} test case berhasil diproses (${mode})`, 'success');
+      pendingImportCases = [];
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Sample Data
+    // ═══════════════════════════════════════════════════════════════════
+    function loadSampleData() {
+      // Use hex escapes for the script tag to fully avoid HTML parsing crash
+      const sample = `AK-F-001\tAjukan Kegiatan\tValidasi Field Wajib\tpenanggung_jawab = ""\tMuncul pesan: "Penanggung Jawab wajib diisi".\t\t
+AK-F-002\tAjukan Kegiatan\tValidasi Tipe File\tUpload file gambar_kegiatan.jpg\tMuncul pesan: "Surat Pengantar harus berupa: pdf, doc, docx".\t\t
+AK-F-003\tAjukan Kegiatan\tValidasi Ukuran File\tUpload file dokumen_besar.pdf (ukuran 6MB)\tMuncul pesan: "Surat tidak boleh lebih dari 5120 KB".\t\t
+AK-F-004\tAjukan Kegiatan\tOtorisasi Role\tLogin sebagai Verifikator, akses /kegiatan/create\tHalaman menampilkan 403 Forbidden atau tombol 'Tambah' tidak ada.\t\t
+AK-F-005\tAjukan Kegiatan\tPencarian Nama\tKetik "Workshop" di kolom search index kegiatan\tTabel hanya menampilkan baris yang mengandung kata "Workshop".\t\t
+AK-F-006\tAjukan Kegiatan\tEdit Draft\tUbah penanggung_jawab dari "Sutedjo" ke "Budi"\tNama penanggung jawab pada detail kegiatan berubah menjadi "Budi".\t\t
+AK-F-007\tAjukan Kegiatan\tHapus Draft\tKlik 'Hapus' pada baris kegiatan status Draft\tBaris kegiatan hilang dan muncul toast "Kegiatan berhasil dihapus".\t\t
+AK-F-008\tAjukan Kegiatan\tValidasi Karakter Max\tInput keterangan sebanyak 1001 karakter\tMuncul pesan error: "Keterangan maksimal 1000 karakter".\t\t
+AK-F-009\tAjukan Kegiatan\tNavigasi Halaman\tKlik nomor halaman "2" pada pagination\tTabel me-refresh dan menampilkan urutan data ke-11 sampai ke-20.\t\t
+AK-F-010\tAjukan Kegiatan\tLoading State\tKlik tombol 'Simpan'\tTombol 'Simpan' menjadi disabled dan muncul icon loading/spinner.\t\t
+AK-F-011\tAjukan Kegiatan\tValidasi Tanggal\tend_date < start_date\tMuncul pesan: "Tanggal selesai tidak boleh lebih awal".\t\t
+AK-F-012\tAjukan Kegiatan\tXSS Prevention\tInput \x3cscript\x3ealert(1)\x3c/script\x3e\tTeks dirender string biasa, script ditolak/dibersihkan.\t\t
+AK-F-013\tAjukan Kegiatan\tFilter Status\tPilih dropdown filter "Draft"\tTabel hanya menampilkan pengajuan Draft.\t\t
+AK-F-014\tAjukan Kegiatan\tReset Form\tKlik 'Batal' saat isi form\tForm bersih, kembali ke halaman index.\t\t
+AK-F-015\tAjukan Kegiatan\tPreview Dokumen\tKlik icon 'Mata' pada file\tMuncul modal pop-up menampilkan preview PDF.\t\t
+AK-F-016\tAjukan Kegiatan\tCek Duplikasi Nama\tInput nama kegiatan yang sama\tMuncul peringatan: "Nama kegiatan sudah digunakan".\t\t
+AK-F-017\tAjukan Kegiatan\tUnduh Template\tKlik 'Unduh Template Surat'\tFile template_pengajuan.docx terunduh.\t\t
+AK-F-018\tAjukan Kegiatan\tSortir Tabel\tKlik header kolom Tanggal\tBaris terurut Ascending / Descending.\t\t
+AK-F-019\tAjukan Kegiatan\tMax Length Input\tInput Nama > 255 karakter\tInput terpotong otomatis atau muncul error.\t\t
+AK-F-020\tAjukan Kegiatan\tMultiple Click Prevent\tDouble-click tombol 'Ajukan'\tForm ter-submit 1 kali, tidak ada duplikat.\t\t
+AK-F-021\tAjukan Kegiatan\tValidasi File Spesifik\tUpload script file.sh di lampiran\tFile ditolak secara mutlak oleh validasi mime.\t\t
+AK-F-022\tAjukan Kegiatan\tFormat Email (Jika Ada)\tInput format email tanpa '@'\tMuncul pesan: "Format email tidak valid".\t\t
+AK-F-023\tAjukan Kegiatan\tRefresh Page\tTekan F5 saat isi form\tInput hilang dan tidak ada data yang bocor/tersimpan.\t\t
+AK-F-024\tAjukan Kegiatan\tSubmit via Enter\tTekan enter pada input terakhir\tForm mencoba melakukan submit layaknya klik tombol.\t\t
+AK-F-025\tAjukan Kegiatan\tError Handle Network\tMatikan koneksi, klik 'Simpan'\tMuncul pesan: "Koneksi terputus, periksa jaringan Anda".\t\t
+AK-F-026\tAjukan Kegiatan\tHapus File Uploaded\tKlik 'x' pada file yang baru dipilih\tFile batal ter-attach di input DOM.\t\t
+AK-F-027\tAjukan Kegiatan\tKarakter Khusus\tInput Emoji di keterangan\tTeks dan emoji tersimpan dan tampil tanpa error Unicode.\t\t
+AK-F-028\tAjukan Kegiatan\tRedirect Login\tBuka /kegiatan/create incognito\tRedirect ke /login, pasca login langsung ke create.\t\t
+AK-F-029\tAjukan Kegiatan\tBreadcrumb Navigasi\tKlik 'Home' di breadcrumb atas\tURL mengarah kembali ke Dashboard dengan benar.\t\t
+AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKursor otomatis berkedip di field pertama (Nama Kegiatan).\t\t`;
+
+      const parsed = parseSpreadsheetData(sample);
+      testCases = parsed;
+      selectedCases.clear();
+      showTable();
+      renderTable();
+      updateStats();
+      saveState();
+      showToast(`${parsed.length} sample test case berhasil dimuat`, 'success');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Render & Grid Layout
+    // ═══════════════════════════════════════════════════════════════════
+    function showTable() {
+      importArea.style.display = 'none';
+      toolbar.style.display = 'flex';
+      tableWrapper.style.display = 'block';
+      progressContainer.style.display = 'block';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function highlightCode(text) {
+      if (!text) return '';
+      return escapeHtml(text)
+        .replace(/&quot;([^&]*)&quot;/g, '<code>"$1"</code>')
+        .replace(/"([^"]*)"/g, '<code>"$1"</code>')
+        .replace(/&#x27;([^&]*)&#x27;/g, '<code>\'$1\'</code>')
+        .replace(/'([^']*)'/g, '<code>\'$1\'</code>')
+        .replace(/\/([a-z][a-z0-9\/\-_\.]*)/gi, '<code>/$1</code>')
+        .replace(/(\w+\.\w{2,4})/g, '<code>$1</code>');
+    }
+
+    function getStatusClass(status) {
+      switch(status) {
+        case 'Pass': return 'status--pass';
+        case 'Fail': return 'status--fail';
+        case 'Skip': return 'status--skip';
+        default: return 'status--pending';
+      }
+    }
+
+    function renderTable() {
+      const query = searchInput.value.toLowerCase();
+      const statusVal = statusFilter.value;
+
+      filteredCases = testCases.filter(tc => {
+        const matchSearch = !query ||
+          tc.id.toLowerCase().includes(query) ||
+          tc.feature.toLowerCase().includes(query) ||
+          tc.scenario.toLowerCase().includes(query) ||
+          tc.input.toLowerCase().includes(query) ||
+          tc.expected.toLowerCase().includes(query) ||
+          tc.actual.toLowerCase().includes(query);
+
+        const matchStatus = statusVal === 'all' || tc.status === statusVal;
+
+        return matchSearch && matchStatus;
+      });
+
+      if (filteredCases.length === 0 && testCases.length > 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="12">
+              <div class="empty-state" style="padding:40px">
+                <p style="color:var(--text-muted)">Tidak ada test case yang cocok dengan filter.</p>
+              </div>
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = filteredCases.map((tc, i) => {
+        const globalIdx = testCases.indexOf(tc);
+        const isChecked = selectedCases.has(globalIdx);
+        return `
+          <tr data-index="${globalIdx}" class="${tc.isNew ? 'row-newly-added' : ''}">
+            <td class="chk-cell">
+              <input type="checkbox" class="chk-cell-input row-checkbox" data-index="${globalIdx}" ${isChecked ? 'checked' : ''} onchange="toggleRowSelect(${globalIdx}, this.checked)">
+            </td>
+            <td class="row-num">${i + 1}</td>
+            <td class="id-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'id', this)">${escapeHtml(tc.id)}</td>
+            <td class="feature-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'feature', this)">${escapeHtml(tc.feature)}</td>
+            <td class="scenario-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'scenario', this)">${escapeHtml(tc.scenario)}</td>
+            <td class="input-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'input', this)">${escapeHtml(tc.input)}</td>
+            <td class="expected-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'expected', this)">${escapeHtml(tc.expected)}</td>
+            <td class="actual-cell">
+              <textarea
+                data-index="${globalIdx}"
+                data-field="actual"
+                placeholder="Tulis actual result..."
+                oninput="updateField(${globalIdx}, 'actual', this.value)"
+              >${escapeHtml(tc.actual)}</textarea>
+            </td>
+            <td class="type-cell" style="vertical-align:middle; text-align:center;">
+              ${renderTypeBadge(tc.id)}
+            </td>
+            <td class="status-cell">
+              <select
+                class="${getStatusClass(tc.status)}"
+                data-index="${globalIdx}"
+                data-field="status"
+                onchange="updateStatus(${globalIdx}, this.value, this)"
+              >
+                <option value="" ${tc.status === '' ? 'selected' : ''}>⏳ Pending</option>
+                <option value="Pass" ${tc.status === 'Pass' ? 'selected' : ''}>✅ Pass</option>
+                <option value="Fail" ${tc.status === 'Fail' ? 'selected' : ''}>❌ Fail</option>
+                <option value="Skip" ${tc.status === 'Skip' ? 'selected' : ''}>⏭️ Skip</option>
+              </select>
+            </td>
+            <td class="proof-cell">
+              <div class="proof-buttons">
+                ${tc.screenshot ? `
+                  <button class="proof-btn proof-btn--img" onclick="openLightbox('${tc.screenshot}', 'Screenshot ${escapeHtml(tc.id)}')" title="Buka Screenshot (Bukti Gambar)">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                  </button>
+                ` : ''}
+                ${tc.video ? `
+                  <button class="proof-btn proof-btn--video" onclick="openVideoPlayer('${tc.video}', 'Video ${escapeHtml(tc.id)}')" title="Buka Video (Bukti Rekaman)">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <polygon points="23 7 16 12 23 17 23 7"/>
+                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                    </svg>
+                  </button>
+                ` : ''}
+                ${(!tc.screenshot && !tc.video) ? '<span class="proof-empty">—</span>' : ''}
+              </div>
+            </td>
+            <td class="actions-cell">
+              <button class="row-action row-action--ai" onclick="openAIModal('${globalIdx}')" title="Buat Auto Test via AI">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </button>
+              <button class="row-action row-action--delete" onclick="deleteRow(${globalIdx})" title="Hapus baris">
+                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </td>
+          </tr>`;
+      }).join('');
+      
+      // Remove temporary isNew flags after rendering
+      testCases.forEach(tc => { delete tc.isNew; });
+      
+      updateBulkBar();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Field Updates & Editable Sync
+    // ═══════════════════════════════════════════════════════════════════
+    function updateField(index, field, value) {
+      if (testCases[index]) {
+        testCases[index][field] = value;
+        saveState();
+      }
+    }
+
+    function updateEditableField(index, field, element) {
+      if (testCases[index]) {
+        testCases[index][field] = element.textContent.trim();
+        updateStats();
+        saveState();
+      }
+    }
+
+    function updateStatus(index, value, selectEl) {
+      if (testCases[index]) {
+        testCases[index].status = value;
+        selectEl.className = getStatusClass(value);
+        updateStats();
+        saveState();
+      }
+    }
+
+    function deleteRow(index) {
+      testCases.splice(index, 1);
+      selectedCases.delete(index);
+      
+      // Recalculate selected cases set based on shifted indices
+      const newSelected = new Set();
+      selectedCases.forEach(idx => {
+        if (idx < index) newSelected.add(idx);
+        else if (idx > index) newSelected.add(idx - 1);
+      });
+      selectedCases = newSelected;
+
+      renderTable();
+      updateStats();
+      saveState();
+
+      if (testCases.length === 0) {
+        toolbar.style.display = 'none';
+        tableWrapper.style.display = 'none';
+        progressContainer.style.display = 'none';
+        importArea.style.display = 'block';
+        clearSelection();
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Manual Row Addition
+    // ═══════════════════════════════════════════════════════════════════
+    function calculateNextId() {
+      if (testCases.length === 0) return 'AK-F-001';
+      
+      // Sort to find the last item's numeric ID safely
+      const lastId = testCases[testCases.length - 1].id;
+      const match = lastId.match(/(.*?)-?(\d+)$/);
+      if (match) {
+        const prefix = match[1] || 'AK-F';
+        const num = parseInt(match[2], 10) + 1;
+        const paddedNum = String(num).padStart(match[2].length, '0');
+        return `${prefix}-${paddedNum}`;
+      }
+      return 'AK-F-001';
+    }
+
+    function addNewRow() {
+      const newId = calculateNextId();
+      const newRow = {
+        id: newId,
+        feature: testCases.length > 0 ? testCases[testCases.length - 1].feature : 'Ajukan Kegiatan',
+        scenario: 'Skenario Baru',
+        input: '',
+        expected: '',
+        actual: '',
+        status: '',
+        isNew: true
+      };
+
+      testCases.push(newRow);
+      
+      showTable();
+      renderTable();
+      updateStats();
+      saveState();
+
+      // Focus the newly added row
+      setTimeout(() => {
+        const rowEl = document.querySelector(`tr[data-index="${testCases.length - 1}"]`);
+        if (rowEl) {
+          rowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          const cell = rowEl.querySelector('.scenario-cell');
+          if (cell) {
+            cell.focus();
+            // Select text in the cell
+            const range = document.createRange();
+            range.selectNodeContents(cell);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      }, 200);
+
+      showToast(`Baris baru ${newId} berhasil ditambahkan!`, 'success');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Bulk Selection & Floating Actions Bar
+    // ═══════════════════════════════════════════════════════════════════
+    function toggleRowSelect(index, checked) {
+      if (checked) {
+        selectedCases.add(index);
+      } else {
+        selectedCases.delete(index);
+      }
+      updateBulkBar();
+    }
+
+    function toggleSelectAll(checked) {
+      filteredCases.forEach(tc => {
+        const globalIdx = testCases.indexOf(tc);
+        if (checked) {
+          selectedCases.add(globalIdx);
+        } else {
+          selectedCases.delete(globalIdx);
+        }
+      });
+      
+      // Update checkbox elements visually
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      checkboxes.forEach(chk => {
+        const idx = parseInt(chk.getAttribute('data-index'), 10);
+        chk.checked = selectedCases.has(idx);
+      });
+
+      updateBulkBar();
+    }
+
+    function updateBulkBar() {
+      const count = selectedCases.size;
+      bulkCount.textContent = `${count} terpilih`;
+      
+      if (count > 0) {
+        bulkActionsBar.classList.add('active');
+      } else {
+        bulkActionsBar.classList.remove('active');
+      }
+
+      // Sync the header select-all checkbox state
+      if (filteredCases.length > 0 && filteredCases.every(tc => selectedCases.has(testCases.indexOf(tc)))) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+      } else if (count > 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+      } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+      }
+    }
+
+    function clearSelection() {
+      selectedCases.clear();
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      checkboxes.forEach(chk => chk.checked = false);
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.indeterminate = false;
+      updateBulkBar();
+    }
+
+    function bulkMarkStatus(status) {
+      if (selectedCases.size === 0) return;
+
+      selectedCases.forEach(idx => {
+        if (testCases[idx]) {
+          testCases[idx].status = status;
+        }
+      });
+
+      renderTable();
+      updateStats();
+      saveState();
+      showToast(`Status ${selectedCases.size} test case berhasil diperbarui!`, 'success');
+      clearSelection();
+    }
+
+    function bulkDelete() {
+      if (selectedCases.size === 0) return;
+      if (!confirm(`Hapus ${selectedCases.size} test case terpilih secara permanen?`)) return;
+
+      // Delete from back to front to avoid index shifting errors
+      const sortedIndices = Array.from(selectedCases).sort((a, b) => b - a);
+      sortedIndices.forEach(idx => {
+        testCases.splice(idx, 1);
+      });
+
+      selectedCases.clear();
+      renderTable();
+      updateStats();
+      saveState();
+      
+      showToast('Test case terpilih berhasil dihapus.', 'info');
+      clearSelection();
+
+      if (testCases.length === 0) {
+        toolbar.style.display = 'none';
+        tableWrapper.style.display = 'none';
+        progressContainer.style.display = 'none';
+        importArea.style.display = 'block';
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Automated Testing Integration (Playwright Bridge)
+    // ═══════════════════════════════════════════════════════════════════
+    function openCompanionModal() {
+      document.getElementById('companion-modal').classList.add('active');
+    }
+
+    function closeCompanionModal() {
+      document.getElementById('companion-modal').classList.remove('active');
+    }
+
+    function copyCompanionCmd() {
+      const text = document.getElementById('cmd-text').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Perintah server pendamping disalin ke clipboard!', 'success');
+      }).catch(() => {
+        showToast('Gagal menyalin perintah', 'error');
+      });
+    }
+
+    async function checkServerConnection() {
+      try {
+        const response = await fetch('http://localhost:3001/ping', { method: 'GET' });
+        const data = await response.json();
+        return data.success === true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    async function runAutomatedTests() {
+      const btn = document.getElementById('btn-auto-test');
+      const originalHtml = btn.innerHTML;
+      
+      showToast('Memeriksa koneksi server pendamping lokal...', 'info');
+
+      const isConnected = await checkServerConnection();
+      if (!isConnected) {
+        openCompanionModal();
+        return;
+      }
+
+      // Enter running state
+      btn.disabled = true;
+      btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ⏳ Menjalankan Test...`;
+      showToast('⚡ Menjalankan Playwright test suite di background. Harap tunggu...', 'info');
+
+      // Add spin animation CSS style dynamically if not present
+      if (!document.getElementById('spin-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'spin-keyframes';
+        style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+      }
+
+      try {
+        const response = await fetch('http://localhost:3001/run-tests', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.results) {
+          let updatedCount = 0;
+          
+          testCases.forEach(tc => {
+            const key = tc.id.toUpperCase().trim();
+            if (data.results[key]) {
+              tc.status = data.results[key].status;
+              tc.actual = data.results[key].actual;
+              updatedCount++;
+            }
+          });
+
+          await fetchImplementedIds();
+
+          renderTable();
+          updateStats();
+          saveState();
+          showToast(`✅ Sukses! ${updatedCount} test case diperbarui otomatis oleh Playwright.`, 'success');
+        } else {
+          showToast(`Gagal: ${data.error || 'Server error'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Koneksi terputus saat menjalankan automated testing.', 'error');
+      } finally {
+        // Restore state
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Bulk Actions
+    // ═══════════════════════════════════════════════════════════════════
+    function markAllAs(status) {
+      testCases.forEach(tc => { tc.status = status; });
+      renderTable();
+      updateStats();
+      saveState();
+      showToast(`Semua ${testCases.length} test case diset ke ${status}`, 'success');
+    }
+
+    function resetAllStatus() {
+      testCases.forEach(tc => { tc.status = ''; tc.actual = ''; });
+      renderTable();
+      updateStats();
+      saveState();
+      showToast('Semua status dan actual result direset', 'info');
+    }
+
+    function clearAll() {
+      if (!confirm('Hapus semua test case? Aksi ini tidak dapat di-undo.')) return;
+      testCases = [];
+      filteredCases = [];
+      selectedCases.clear();
+      tableBody.innerHTML = '';
+      toolbar.style.display = 'none';
+      tableWrapper.style.display = 'none';
+      progressContainer.style.display = 'none';
+      importArea.style.display = 'block';
+      updateStats();
+      saveState();
+      clearSelection();
+      showToast('Semua data dihapus', 'info');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Stats
+    // ═══════════════════════════════════════════════════════════════════
+    function updateStats() {
+      const total = testCases.length;
+      const pass = testCases.filter(t => t.status === 'Pass').length;
+      const fail = testCases.filter(t => t.status === 'Fail').length;
+      const skip = testCases.filter(t => t.status === 'Skip').length;
+      const pending = total - pass - fail - skip;
+      const tested = pass + fail + skip;
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-pass').textContent = pass;
+      document.getElementById('stat-fail').textContent = fail;
+      document.getElementById('stat-skip').textContent = skip;
+      document.getElementById('stat-pending').textContent = pending;
+
+      // Progress bar
+      if (total > 0) {
+        const passP = (pass / total * 100).toFixed(1);
+        const failP = (fail / total * 100).toFixed(1);
+        const skipP = (skip / total * 100).toFixed(1);
+        const completeP = (tested / total * 100).toFixed(0);
+
+        document.getElementById('progress-pass').style.width = passP + '%';
+        document.getElementById('progress-fail').style.width = failP + '%';
+        document.getElementById('progress-skip').style.width = skipP + '%';
+        document.getElementById('progress-text').textContent = completeP + '% complete';
+        document.getElementById('progress-ratio').textContent = tested + '/' + total + ' tested';
+      }
+
+      updateChart(pass, fail, skip, pending);
+    }
+
+    function updateChart(pass, fail, skip, pending) {
+      const ctx = document.getElementById('statusChart').getContext('2d');
+      const summaryEl = document.getElementById('chart-summary');
+      const total = pass + fail + skip + pending;
+      
+      if (total === 0) {
+        summaryEl.innerHTML = 'Belum ada data pengujian yang di-import.';
+      } else {
+        const pct = total > 0 ? Math.round(((pass + fail + skip) / total) * 100) : 0;
+        summaryEl.innerHTML = `<strong>${pct}% selesai</strong>. ${pass} Lulus, ${fail} Gagal, ${skip} Dilewati, dan ${pending} Belum diuji dari total ${total} skenario.`;
+      }
+
+      if (statusChart) {
+        statusChart.data.datasets[0].data = [pass, fail, skip, pending];
+        statusChart.update();
+        return;
+      }
+
+      statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Lulus', 'Gagal', 'Dilewati', 'Belum Diuji'],
+          datasets: [{
+            data: [pass, fail, skip, pending],
+            backgroundColor: [
+              'rgba(52, 211, 153, 0.8)',
+              'rgba(248, 113, 113, 0.8)',
+              'rgba(251, 191, 36, 0.8)',
+              'rgba(100, 116, 139, 0.5)'
+            ],
+            borderColor: [
+              '#34d399',
+              '#f87171',
+              '#fbbf24',
+              'rgba(100, 116, 139, 0.8)'
+            ],
+            borderWidth: 1.5,
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#111827',
+              titleColor: '#f1f5f9',
+              bodyColor: '#94a3b8',
+              borderColor: 'rgba(71, 85, 105, 0.5)',
+              borderWidth: 1,
+              padding: 8,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(context) {
+                  const value = context.raw || 0;
+                  const totalVal = pass + fail + skip + pending;
+                  const pctVal = totalVal > 0 ? ((value / totalVal) * 100).toFixed(1) : 0;
+                  return ` ${context.label}: ${value} (${pctVal}%)`;
+                }
+              }
+            }
+          },
+          cutout: '75%'
+        }
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Export
+    // ═══════════════════════════════════════════════════════════════════
+    function exportCSV() {
+      if (testCases.length === 0) { showToast('Tidak ada data untuk diekspor', 'error'); return; }
+
+      const header = 'ID\tNama Fitur\tSkenario\tTest Input\tExpected Result\tActual Result\tStatus';
+      const rows = testCases.map(tc =>
+        [tc.id, tc.feature, tc.scenario, tc.input, tc.expected, tc.actual, tc.status].join('\t')
+      );
+
+      const csv = [header, ...rows].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SIGAP_TestResults_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File CSV berhasil diunduh', 'success');
+    }
+
+    function copyToClipboard() {
+      if (testCases.length === 0) { showToast('Tidak ada data untuk dicopy', 'error'); return; }
+
+      const header = 'ID\tNama Fitur\tSkenario\tTest Input\tExpected Result\tActual Result\tStatus';
+      const rows = testCases.map(tc =>
+        [tc.id, tc.feature, tc.scenario, tc.input, tc.expected, tc.actual, tc.status].join('\t')
+      );
+
+      const text = [header, ...rows].join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Data berhasil dicopy ke clipboard! Paste ke Excel/Sheets.', 'success');
+      }).catch(() => {
+        showToast('Gagal copy ke clipboard', 'error');
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Toast
+    // ═══════════════════════════════════════════════════════════════════
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const icons = {
+        success: '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>',
+        error: '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        info: '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+      };
+
+      const toast = document.createElement('div');
+      toast.className = `toast toast--${type}`;
+      toast.innerHTML = `${icons[type] || icons.info} <span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => { toast.remove(); }, 3200);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Media & Proof Lightbox Functions
+    // ═══════════════════════════════════════════════════════════════════
+    function openLightbox(src, title) {
+      if (!src) {
+        showToast('Bukti screenshot tidak tersedia.', 'error');
+        return;
+      }
+      document.getElementById('lightbox-img').src = src;
+      document.getElementById('lightbox-title').innerHTML = `📷 Bukti Screenshot — ${title || ''}`;
+      document.getElementById('lightbox-modal').classList.add('active');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox-modal').classList.remove('active');
+      document.getElementById('lightbox-img').src = '';
+    }
+
+    function openVideoPlayer(src, title) {
+      if (!src) {
+        showToast('Bukti rekaman video tidak tersedia.', 'error');
+        return;
+      }
+      const player = document.getElementById('video-player');
+      player.src = src;
+      document.getElementById('video-title').innerHTML = `🎥 Rekaman Eksekusi — ${title || ''}`;
+      document.getElementById('video-modal').classList.add('active');
+      player.load();
+      player.play().catch(e => console.log('Auto-play blocked or failed:', e));
+    }
+
+    function closeVideoPlayer() {
+      const player = document.getElementById('video-player');
+      player.pause();
+      player.src = '';
+      document.getElementById('video-modal').classList.remove('active');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // AI Test Generator & Settings Key Functions
+    // ═══════════════════════════════════════════════════════════════════
+    function openAISettingsModal() {
+      const savedKey = localStorage.getItem('sigap-gemini-api-key') || '';
+      document.getElementById('gemini-api-key-input').value = savedKey;
+      document.getElementById('ai-settings-modal').classList.add('active');
+    }
+
+    function closeAISettingsModal() {
+      document.getElementById('ai-settings-modal').classList.remove('active');
+    }
+
+    function saveAISettings() {
+      const keyInput = document.getElementById('gemini-api-key-input').value.trim();
+      if (!keyInput) {
+        localStorage.removeItem('sigap-gemini-api-key');
+        showToast('Kunci API dikosongkan. Fitur AI dinonaktifkan.', 'info');
+      } else {
+        localStorage.setItem('sigap-gemini-api-key', keyInput);
+        showToast('Kunci API Gemini berhasil disimpan secara lokal!', 'success');
+      }
+      closeAISettingsModal();
+    }
+
+    function openAIModal(globalIdx) {
+      const tc = testCases[globalIdx];
+      if (!tc) return;
+
+      const apiKey = localStorage.getItem('sigap-gemini-api-key');
+      if (!apiKey) {
+        showToast('💡 Hubungkan API Key Gemini Anda di Pengaturan (ikon gear) terlebih dahulu!', 'info');
+        openAISettingsModal();
+        return;
+      }
+
+      if (confirm(`Apakah Anda ingin meminta AI membuatkan automated test script untuk [${tc.id}] ${tc.scenario}?`)) {
+        generateTestViaAI(globalIdx);
+      }
+    }
+
+    async function generateTestViaAI(globalIdx) {
+      const tc = testCases[globalIdx];
+      if (!tc) return;
+
+      const apiKey = localStorage.getItem('sigap-gemini-api-key');
+      if (!apiKey) return;
+
+      showToast(`⚡ Menghubungi server pendamping untuk membuat script test ${tc.id}...`, 'info');
+
+      try {
+        const isConnected = await checkServerConnection();
+        if (!isConnected) {
+          openCompanionModal();
+          return;
+        }
+
+        // Cari baris tombol aksi untuk memberikan visual loading
+        const rowEl = document.querySelector(`tr[data-index="${globalIdx}"]`);
+        const aiBtn = rowEl ? rowEl.querySelector('.row-action--ai') : null;
+        const originalBtnHtml = aiBtn ? aiBtn.innerHTML : '';
+        
+        if (aiBtn) {
+          aiBtn.disabled = true;
+          aiBtn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+        }
+
+        const response = await fetch('http://localhost:3001/generate-test', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            index: globalIdx,
+            apiKey: apiKey,
+            testCase: tc
+          })
+        });
+
+        const data = await response.json();
+
+        if (aiBtn) {
+          aiBtn.disabled = false;
+          aiBtn.innerHTML = originalBtnHtml;
+        }
+
+        if (data.success && data.result) {
+          tc.status = data.result.status;
+          tc.actual = data.result.actual;
+          tc.screenshot = data.result.screenshot || '';
+          tc.video = data.result.video || '';
+
+          await fetchImplementedIds();
+
+          renderTable();
+          updateStats();
+          saveState();
+          showToast(`✅ Sukses! Test case ${tc.id} berhasil dibuatkan script & dieksekusi otomatis.`, 'success');
+        } else {
+          showToast(`Gagal membuat test case: ${data.error || 'Server error'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Terjadi kesalahan koneksi saat memproses AI Test Generator.', 'error');
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Event Listeners
+    // ═══════════════════════════════════════════════════════════════════
+    searchInput.addEventListener('input', renderTable);
+    statusFilter.addEventListener('change', renderTable);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+V anywhere opens paste modal if no data
+      if (e.ctrlKey && e.key === 'v' && testCases.length === 0 && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
+        openPasteModal();
+      }
+      // Escape closes modal
+      if (e.key === 'Escape') {
+        closePasteModal();
+        closeImportOptionsModal();
+        closeCompanionModal();
+        closeLightbox();
+        closeVideoPlayer();
+        closeAISettingsModal();
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Init
+    // ═══════════════════════════════════════════════════════════════════
+    (async () => {
+      await fetchImplementedIds();
+      restoreState();
+    })();
+  </script>
+</body>
+</html>

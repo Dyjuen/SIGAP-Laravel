@@ -1,3 +1,4 @@
+.worktrees/
 *.log
 .DS_Store
 .env
@@ -25,3 +26,16 @@ Thumbs.db
 /public-legacy
 public/images/
 /legacy
+/automation-testing/playwright/test-results
+/automation-testing/reports
+/automation-testing/playwright/node_modules
+
+# Automated Testing Generated Specs
+/automation-testing/playwright/tests/*-generated.spec.js
+
+# Playwright reports, cache, and temp directories
+/automation-testing/playwright/playwright-report
+/automation-testing/playwright/.cache
+
+# Newman (Postman) CLI default export folders
+/automation-testing/postman/newman

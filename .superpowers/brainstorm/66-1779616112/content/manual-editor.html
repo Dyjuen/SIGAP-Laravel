@@ -1,0 +1,73 @@
+<h2>Manual Code-Injection Editor</h2>
+<p class="subtitle">Input Playwright code directly for each test case without Gemini API.</p>
+
+<div class="split">
+  <div class="mockup" style="flex: 1;">
+    <div class="mockup-header">Test Case List</div>
+    <div class="mockup-body">
+      <div class="options" data-choice="list">
+        <div class="option selected" data-choice="ak-f-001">
+          <div class="letter">1</div>
+          <div class="content">
+            <h3>AK-F-001</h3>
+            <p>Validasi Field Wajib</p>
+          </div>
+        </div>
+        <div class="option" data-choice="ak-f-002">
+          <div class="letter">2</div>
+          <div class="content">
+            <h3>AK-F-002</h3>
+            <p>Validasi Tipe File</p>
+          </div>
+        </div>
+        <div class="option" data-choice="ak-f-003">
+          <div class="letter">3</div>
+          <div class="content">
+            <h3>AK-F-003</h3>
+            <p>Validasi Ukuran File</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup" style="flex: 2;">
+    <div class="mockup-header">Playwright Code Editor (AK-F-001)</div>
+    <div class="mockup-body">
+      <div style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px; line-height: 1.5;">
+        <span style="color: #569cd6;">test</span>(<span style="color: #ce9178;">'AK-F-001: Validasi Field Wajib'</span>, <span style="color: #569cd6;">async</span> ({ page }) => {<br>
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> loginAs(page, <span style="color: #ce9178;">'admin'</span>);<br>
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> page.goto(<span style="color: #ce9178;">'/kegiatan/create'</span>);<br>
+        &nbsp;&nbsp;<span style="color: #6a9955;">// Masukkan code Anda di sini...</span><br>
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> page.click(<span style="color: #ce9178;">'#submit'</span>);<br>
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> expect(page.locator(<span style="color: #ce9178;">'.error'</span>)).toBeVisible();<br>
+        });
+      </div>
+      <div style="margin-top: 16px; display: flex; gap: 12px;">
+        <button class="mock-button" style="background: #22d3ee; color: #0a0e1a; font-weight: 700;">💾 Simpan & Sinkron</button>
+        <button class="mock-button" style="border: 1px solid #22d3ee; color: #22d3ee;">⚡ Jalankan Test</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 32px;">
+  <h3>Bagaimana ini bekerja?</h3>
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>Keuntungan</h4>
+      <ul>
+        <li>**Hemat Biaya**: Tidak perlu Gemini API Key untuk teman-temanmu.</li>
+        <li>**Kontrol Penuh**: Temanmu belajar & sadar apa yang mereka test.</li>
+        <li>**Fleksibel**: Bisa copas dari contoh atau ChatGPT gratis.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>Konsekuensi</h4>
+      <ul>
+        <li>**Manual**: Harus menulis/input kodenya sendiri.</li>
+        <li>**Kurva Belajar**: Butuh paham dasar Playwright.</li>
+      </ul>
+    </div>
+  </div>
+</div>

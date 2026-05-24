@@ -1,0 +1,53 @@
+<h2>Generalized Input & Boilerplate System</h2>
+<p class="subtitle">Import test cases from Sheets/CSV and use standardized templates for manual coding.</p>
+
+<div class="section">
+  <h3>Step 1: Bulk Import (Clipboard / CSV)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Import from Google Sheets (Paste Clipboard)</div>
+    <div class="mockup-body">
+      <textarea class="mock-input" style="width: 100%; height: 120px; font-family: monospace; font-size: 11px;" placeholder="Paste columns from Sheets here (ID, Feature, Scenario, Input, Expected)..."></textarea>
+      <div style="margin-top: 12px; display: flex; gap: 8px;">
+        <button class="mock-button" style="background: #34d399; color: #0a0e1a;">📥 Import & Sync Grid</button>
+        <span class="text-muted" style="font-size: 12px; align-self: center;">Sistem akan otomatis mendeteksi kolom Tab-Separated (TSV).</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Step 2: Manual Coding with Template</h3>
+  <div class="mockup">
+    <div class="mockup-header">Standardized Template Editor (AK-F-001)</div>
+    <div class="mockup-body">
+      <div class="pros-cons" style="margin-bottom: 12px;">
+        <div style="background: rgba(34, 211, 238, 0.05); padding: 12px; border-radius: 8px; border-left: 4px solid #22d3ee;">
+          <p style="font-size: 12px; font-weight: 600;">💡 Petunjuk Template:</p>
+          <ul style="font-size: 11px; margin-left: 16px; margin-top: 4px;">
+            <li>Gunakan <code>loginAs(page, 'role')</code> untuk auth cepat.</li>
+            <li>Gunakan <code>page.goto('/')</code> untuk navigasi.</li>
+            <li>Akhiri dengan asersi <code>expect(...)</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px;">
+        <div style="color: #6a9955; margin-bottom: 8px;">// === KODE BOILERPLATE (Otomatis) ===</div>
+        <span style="color: #569cd6;">test</span>(<span style="color: #ce9178;">'AK-F-001: Validasi Field Wajib'</span>, <span style="color: #569cd6;">async</span> ({ page }) => {<br>
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> loginAs(page, <span style="color: #ce9178;">'admin'</span>);<br>
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> page.goto(<span style="color: #ce9178;">'/kegiatan/create'</span>);<br><br>
+        
+        <div style="background: rgba(255,255,255,0.05); border: 1px dashed #444; padding: 12px; border-radius: 4px;">
+          <textarea style="background: transparent; border: none; color: #d4d4d4; width: 100%; height: 80px; font-family: inherit; outline: none; resize: none;" placeholder="// ISI LOGIKA PENGUJIAN DISINI..."></textarea>
+        </div><br>
+        
+        &nbsp;&nbsp;<span style="color: #569cd6;">await</span> expect(page.locator(<span style="color: #ce9178;">'text=Penanggung Jawab wajib diisi'</span>)).toBeVisible();<br>
+        });
+      </div>
+      
+      <div style="margin-top: 16px;">
+        <button class="mock-button" style="background: #22d3ee; color: #0a0e1a; font-weight: 700;">✅ Save Logic to Spec</button>
+      </div>
+    </div>
+  </div>
+</div>
