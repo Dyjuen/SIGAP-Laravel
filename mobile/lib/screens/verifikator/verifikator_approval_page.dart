@@ -331,7 +331,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
             if (kakDetail != null)
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: KakDetailPage(kakId: widget.kakId),
+                child: KakDetailPage(kakId: widget.kakId.toString()),
               ),
 
             const SizedBox(height: 24),

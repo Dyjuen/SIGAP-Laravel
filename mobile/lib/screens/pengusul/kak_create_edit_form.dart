@@ -113,7 +113,6 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
   List<ManfaatItem> manfaatList = [];
   List<TahapanItem> tahapanList = [];
   List<IndikatorKinerjaItem> indikatorKinerjaList = [];
-  List<TargetIkuItem> targetIkuList = [];
   List<RabItem> rabList = [];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -139,8 +138,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     lokasiController.text = data.lokasi ?? '';
     sasaranController.text = data.sasaranUtama ?? '';
 
-    tanggalMulai = data.tanggalMulai;
-    tanggalSelesai = data.tanggalSelesai;
+    tanggalMulai = data.tanggalMulai != null ? DateTime.tryParse(data.tanggalMulai!) : null;
+    tanggalSelesai = data.tanggalSelesai != null ? DateTime.tryParse(data.tanggalSelesai!) : null;
     selectedTipeKegiatan = data.tipeKegiatanId;
 
     manfaatList = (data.manfaat ?? [])
@@ -185,17 +184,6 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
         )
         .toList();
 
-    targetIkuList = (data.targetIku ?? [])
-        .map(
-          (ti) => TargetIkuItem(
-            id: ti.ikuId.toString(),
-            ikuId: int.tryParse(ti.ikuId) ?? 0,
-            ikuNama: ti.ikuNama ?? '',
-            target: ti.target ?? '',
-            satuanId: int.tryParse(ti.satuanId ?? ''),
-          ),
-        )
-        .toList();
   }
 
   Map<String, dynamic> getFormData() {
@@ -218,15 +206,6 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               'bulan_indikator': i.bulanIndikator,
               'deskripsi_target': i.deskripsiTarget,
               'persentase_target': i.persentaseTarget,
-            },
-          )
-          .toList(),
-      'target_iku': targetIkuList
-          .map(
-            (ti) => {
-              'iku_id': ti.ikuId,
-              'target': ti.target,
-              'satuan_id': ti.satuanId,
             },
           )
           .toList(),
@@ -300,26 +279,6 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
   void _removeIndikatorKinerja(int index) {
     setState(() {
       indikatorKinerjaList.removeAt(index);
-    });
-  }
-
-  void _addTargetIku() {
-    setState(() {
-      targetIkuList.add(
-        TargetIkuItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          ikuId: 0,
-          ikuNama: '',
-          target: '',
-          satuanId: null,
-        ),
-      );
-    });
-  }
-
-  void _removeTargetIku(int index) {
-    setState(() {
-      targetIkuList.removeAt(index);
     });
   }
 
@@ -406,94 +365,6 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           ),
           const SizedBox(height: 16),
 
-          // Deskripsi
-          TextFormField(
-            controller: deskripsiController,
-            decoration: InputDecoration(
-              labelText: 'Deskripsi Kegiatan',
-              hintText: 'Jelaskan kegiatan ini...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            maxLines: 4,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Deskripsi harus diisi';
-              }
-              if (value.length < 5) {
-                return 'Minimal 5 karakter';
-              }
-              return null;
-            },
-            onChanged: (_) => widget.onFormChange(getFormData()),
-          ),
-          const SizedBox(height: 16),
-
-          // Metode Pelaksanaan
-          TextFormField(
-            controller: metodeController,
-            decoration: InputDecoration(
-              labelText: 'Metode Pelaksanaan',
-              hintText: 'Jelaskan cara pelaksanaannya...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            maxLines: 3,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Metode harus diisi';
-              }
-              if (value.length < 5) {
-                return 'Minimal 5 karakter';
-              }
-              return null;
-            },
-            onChanged: (_) => widget.onFormChange(getFormData()),
-          ),
-          const SizedBox(height: 16),
-
-          // Lokasi
-          TextFormField(
-            controller: lokasiController,
-            decoration: InputDecoration(
-              labelText: 'Lokasi',
-              hintText: 'Contoh: Aula Utama Gedung A',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Lokasi harus diisi';
-              }
-              return null;
-            },
-            onChanged: (_) => widget.onFormChange(getFormData()),
-          ),
-          const SizedBox(height: 16),
-
-          // Sasaran Utama
-          TextFormField(
-            controller: sasaranController,
-            decoration: InputDecoration(
-              labelText: 'Sasaran Utama',
-              hintText: 'Siapa target peserta?',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Sasaran utama harus diisi';
-              }
-              return null;
-            },
-            onChanged: (_) => widget.onFormChange(getFormData()),
-          ),
-          const SizedBox(height: 16),
-
           // Tipe Kegiatan
           DropdownButtonFormField<int>(
             value: selectedTipeKegiatan,
@@ -526,98 +397,56 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           ),
           const SizedBox(height: 24),
 
-          // Tanggal
-          Text(
-            'Periode Pelaksanaan',
-            style: GoogleFonts.figtree(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
+          // Deskripsi
+          TextFormField(
+            controller: deskripsiController,
+            decoration: InputDecoration(
+              labelText: 'Gambaran Umum Kegiatan',
+              hintText: 'Jelaskan kegiatan ini...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
+            maxLines: 4,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Deskripsi harus diisi';
+              }
+              if (value.length < 5) {
+                return 'Minimal 5 karakter';
+              }
+              return null;
+            },
+            onChanged: (_) => widget.onFormChange(getFormData()),
           ),
           const SizedBox(height: 16),
 
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => _selectDate(context, true),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tanggal Mulai',
-                          style: GoogleFonts.figtree(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tanggalMulai != null
-                              ? DateFormat(
-                                  'dd MMM yyyy',
-                                  'id_ID',
-                                ).format(tanggalMulai!)
-                              : 'Pilih tanggal',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+          // Sasaran Utama
+          TextFormField(
+            controller: sasaranController,
+            decoration: InputDecoration(
+              labelText: 'Sasaran Utama',
+              hintText: 'Siapa target peserta?',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: InkWell(
-                  onTap: () => _selectDate(context, false),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tanggal Selesai',
-                          style: GoogleFonts.figtree(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tanggalSelesai != null
-                              ? DateFormat(
-                                  'dd MMM yyyy',
-                                  'id_ID',
-                                ).format(tanggalSelesai!)
-                              : 'Pilih tanggal',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Sasaran utama harus diisi';
+              }
+              return null;
+            },
+            onChanged: (_) => widget.onFormChange(getFormData()),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Manfaat
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Manfaat',
+                'Output/Manfaat Kegiatan',
                 style: GoogleFonts.figtree(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -681,6 +510,30 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               ),
             ),
           const SizedBox(height: 24),
+
+          // Metode Pelaksanaan
+          TextFormField(
+            controller: metodeController,
+            decoration: InputDecoration(
+              labelText: 'Metode Pelaksanaan',
+              hintText: 'Jelaskan cara pelaksanaannya...',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            maxLines: 3,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Metode harus diisi';
+              }
+              if (value.length < 5) {
+                return 'Minimal 5 karakter';
+              }
+              return null;
+            },
+            onChanged: (_) => widget.onFormChange(getFormData()),
+          ),
+          const SizedBox(height: 16),
 
           // Tahapan
           Row(
@@ -892,157 +745,111 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             ),
           const SizedBox(height: 24),
 
-          // Target IKU
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Target IKU (Key Performance Indicators)',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              IconButton(
-                onPressed: _addTargetIku,
-                icon: const Icon(Icons.add_circle),
-              ),
-            ],
+          // Tanggal
+          Text(
+            'Periode Pelaksanaan',
+            style: GoogleFonts.figtree(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
-          const SizedBox(height: 8),
-          ...targetIkuList.asMap().entries.map((entry) {
-            int index = entry.key;
-            TargetIkuItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: colorScheme.outline),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () => _selectDate(context, true),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.outline),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Target IKU ${index + 1}',
+                          'Tanggal Mulai',
+                          style: GoogleFonts.figtree(fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          tanggalMulai != null
+                              ? DateFormat(
+                                  'dd MMM yyyy',
+                                  'id_ID',
+                                ).format(tanggalMulai!)
+                              : 'Pilih tanggal',
                           style: GoogleFonts.figtree(
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () => _removeTargetIku(index),
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          iconSize: 20,
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: InkWell(
+                  onTap: () => _selectDate(context, false),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: colorScheme.outline),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tanggal Selesai',
+                          style: GoogleFonts.figtree(fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          tanggalSelesai != null
+                              ? DateFormat(
+                                  'dd MMM yyyy',
+                                  'id_ID',
+                                ).format(tanggalSelesai!)
+                              : 'Pilih tanggal',
+                          style: GoogleFonts.figtree(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<int>(
-                      value: item.ikuId > 0 ? item.ikuId : null,
-                      decoration: InputDecoration(
-                        labelText: 'Pilih IKU',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      items: widget.ikuOptions.map<DropdownMenuItem<int>>((
-                        iku,
-                      ) {
-                        return DropdownMenuItem<int>(
-                          value: iku['iku_id'] ?? 0,
-                          child: Text(
-                            '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      }).toList(),
-                      validator: (value) {
-                        if (value == null || value == 0) {
-                          return 'Pilih IKU';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            item.ikuId = value;
-                            // Find IKU name from options
-                            var selected = widget.ikuOptions.firstWhere(
-                              (iku) => iku['iku_id'] == value,
-                              orElse: () => {},
-                            );
-                            item.ikuNama = selected['nama_iku'] ?? '';
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.target,
-                      decoration: InputDecoration(
-                        labelText: 'Target Value',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Target value tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          item.target = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<int>(
-                      value: item.satuanId,
-                      decoration: InputDecoration(
-                        labelText: 'Satuan (Opsional)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      items: widget.satuanOptions.map<DropdownMenuItem<int>>((
-                        satuan,
-                      ) {
-                        return DropdownMenuItem<int>(
-                          value: satuan['satuan_id'] ?? 0,
-                          child: Text(satuan['nama_satuan'] ?? ''),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          item.satuanId = value;
-                        });
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            );
-          }).toList(),
-          if (targetIkuList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah target IKU',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Lokasi
+          TextFormField(
+            controller: lokasiController,
+            decoration: InputDecoration(
+              labelText: 'Lokasi',
+              hintText: 'Contoh: Aula Utama Gedung A',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
-          const SizedBox(height: 24),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Lokasi harus diisi';
+              }
+              return null;
+            },
+            onChanged: (_) => widget.onFormChange(getFormData()),
+          ),
+          const SizedBox(height: 16),
 
           // RAB
           Row(

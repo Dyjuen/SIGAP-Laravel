@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
-import 'kak_detail_page.dart';
+import 'kak_edit_page.dart';
 import 'kegiatan_form_page.dart';
 
 class KakListPage extends StatefulWidget {
@@ -373,13 +373,13 @@ class _KakListPageState extends State<KakListPage> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => KakDetailPage(kakId: kakId)),
+                          builder: (_) => KakEditPage(kakId: kakId)),
                     ).then((_) => _loadKaks()),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Detail',
+                    child: const Text('Detail / Edit',
                         style: TextStyle(
                             color: Color(0xFF475569), fontWeight: FontWeight.bold, fontSize: 13)),
                   ),

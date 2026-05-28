@@ -7,6 +7,8 @@ import '../../providers/dashboard_provider.dart';
 import '../../widgets/blue_stat_card.dart';
 import '../../widgets/activity_item.dart';
 import '../pengusul/kak_create_page.dart';
+import '../pengusul/kak_list_page.dart';
+import '../help_guide_page.dart';
 
 class PengusulDashboardScreen extends StatefulWidget {
   const PengusulDashboardScreen({super.key});
@@ -279,14 +281,26 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                   height: 1.35,
                                 ),
                               ),
-                              Text(
-                                'Lihat Semua',
-                                style: GoogleFonts.figtree(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: const Color(0xFF00BCD4),
-                                  letterSpacing: 0,
-                                  height: 1.3,
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const KakListPage(),
+                                    ),
+                                  ).then((_) {
+                                    dashboardProvider.loadDashboard();
+                                  });
+                                },
+                                child: Text(
+                                  'Lihat Semua',
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF00BCD4),
+                                    letterSpacing: 0,
+                                    height: 1.3,
+                                  ),
                                 ),
                               ),
                             ],
@@ -349,76 +363,98 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: const Color(0xFFE2E8F0),
-                                      width: 1,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const KakListPage(),
+                                      ),
+                                    ).then((_) {
+                                      dashboardProvider.loadDashboard();
+                                    });
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                        width: 1,
+                                      ),
                                     ),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.assignment_rounded,
-                                          color: const Color(0xFF0F172A),
-                                          size: 32,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Daftar LPJ',
-                                          style: GoogleFonts.figtree(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.assignment_rounded,
                                             color: const Color(0xFF0F172A),
-                                            letterSpacing: 0,
-                                            height: 1.3,
+                                            size: 32,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Daftar KAK',
+                                            style: GoogleFonts.figtree(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: const Color(0xFF0F172A),
+                                              letterSpacing: 0,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: const Color(0xFFE2E8F0),
-                                      width: 1,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const HelpGuidePage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                        width: 1,
+                                      ),
                                     ),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.insights_rounded,
-                                          color: const Color(0xFF0F172A),
-                                          size: 32,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Monitoring',
-                                          style: GoogleFonts.figtree(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.help_outline_rounded,
                                             color: const Color(0xFF0F172A),
-                                            letterSpacing: 0,
-                                            height: 1.3,
+                                            size: 32,
                                           ),
-                                        ),
-                                      ],
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Panduan',
+                                            style: GoogleFonts.figtree(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: const Color(0xFF0F172A),
+                                              letterSpacing: 0,
+                                              height: 1.3,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),

@@ -63,7 +63,7 @@ class KakIndikatorKinerja {
       targetId: json['target_id']?.toString() ?? '',
       bulanIndikator: json['bulan_indikator'] ?? '',
       deskripsiTarget: json['deskripsi_target'] ?? '',
-      persentaseTarget: (json['persentase_target'] as num?)?.toDouble() ?? 0.0,
+      persentaseTarget: _parseDouble(json['persentase_target']),
     );
   }
 
@@ -136,11 +136,11 @@ class KakRab {
     return KakRab(
       anggaranId: json['anggaran_id']?.toString() ?? '',
       uraian: json['uraian'] ?? '',
-      volume1: (json['volume1'] as num?)?.toDouble(),
-      volume2: (json['volume2'] as num?)?.toDouble(),
-      volume3: (json['volume3'] as num?)?.toDouble(),
-      hargaSatuan: (json['harga_satuan'] as num?)?.toDouble(),
-      jumlahDiusulkan: (json['jumlah_diusulkan'] as num?)?.toDouble(),
+      volume1: _parseDoubleOrNull(json['volume1']),
+      volume2: _parseDoubleOrNull(json['volume2']),
+      volume3: _parseDoubleOrNull(json['volume3']),
+      hargaSatuan: _parseDoubleOrNull(json['harga_satuan']),
+      jumlahDiusulkan: _parseDoubleOrNull(json['jumlah_diusulkan']),
     );
   }
 
@@ -328,4 +328,16 @@ class KakDetail {
   bool isEditable() {
     return statusId == 1; // Only draft KAKs can be edited
   }
+}
+
+// Helpers for safe parsing of numbers which might come as Strings from JSON
+double? _parseDoubleOrNull(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+double _parseDouble(dynamic value) {
+  return _parseDoubleOrNull(value) ?? 0.0;
 }

@@ -133,7 +133,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
 
     final rab = kak['rab'] as List? ?? [];
     final totalRab = rab.fold<double>(
-        0, (sum, r) => sum + ((r['jumlah_diusulkan'] as num?)?.toDouble() ?? 0));
+        0, (sum, r) => sum + _parseDouble(r['jumlah_diusulkan']));
 
     final manfaat = kak['manfaat'] as List? ?? [];
     final tahapan = kak['tahapan'] as List? ?? [];
@@ -243,7 +243,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
                                   style: const TextStyle(color: Color(0xFF334155), fontSize: 13)),
                             ),
                             Text(
-                              _formatRupiah((r['jumlah_diusulkan'] as num?)?.toDouble() ?? 0),
+                              _formatRupiah(_parseDouble(r['jumlah_diusulkan'])),
                               style: const TextStyle(
                                   color: Color(0xFF00BCD4), fontWeight: FontWeight.bold, fontSize: 13),
                             ),
@@ -449,5 +449,12 @@ class _KakDetailPageState extends State<KakDetailPage> {
       count++;
     }
     return 'Rp ${result.toString().split('').reversed.join()}';
+  }
+
+  double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }

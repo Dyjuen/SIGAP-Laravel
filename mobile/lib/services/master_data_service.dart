@@ -14,7 +14,11 @@ class MasterDataService {
       );
 
       if (response.statusCode == 200) {
-        return response.data ?? [];
+        final data = response.data;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return data['data'] as List<dynamic>;
+        }
+        return data as List<dynamic>;
       }
       throw Exception('Failed to load tipe kegiatan');
     } on DioException catch (e) {
@@ -31,7 +35,11 @@ class MasterDataService {
       );
 
       if (response.statusCode == 200) {
-        return response.data ?? [];
+        final data = response.data;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return data['data'] as List<dynamic>;
+        }
+        return data as List<dynamic>;
       }
       throw Exception('Failed to load mata anggaran');
     } on DioException catch (e) {
@@ -48,7 +56,11 @@ class MasterDataService {
       );
 
       if (response.statusCode == 200) {
-        return response.data ?? [];
+        final data = response.data;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return data['data'] as List<dynamic>;
+        }
+        return data as List<dynamic>;
       }
       throw Exception('Failed to load kategori belanja');
     } on DioException catch (e) {
@@ -65,7 +77,11 @@ class MasterDataService {
       );
 
       if (response.statusCode == 200) {
-        return response.data ?? [];
+        final data = response.data;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return data['data'] as List<dynamic>;
+        }
+        return data as List<dynamic>;
       }
       throw Exception('Failed to load satuan');
     } on DioException catch (e) {
@@ -82,7 +98,11 @@ class MasterDataService {
       );
 
       if (response.statusCode == 200) {
-        return response.data ?? [];
+        final data = response.data;
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return data['data'] as List<dynamic>;
+        }
+        return data as List<dynamic>;
       }
       throw Exception('Failed to load IKU');
     } on DioException catch (e) {

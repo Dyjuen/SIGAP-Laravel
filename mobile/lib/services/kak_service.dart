@@ -162,7 +162,7 @@ class KakService {
     Map<String, String>? catatanFields,
   ) async {
     try {
-      final data = {'catatan': catatan};
+      final data = <String, dynamic>{'catatan': catatan};
       if (catatanFields != null) {
         data['catatan_kak'] = catatanFields;
       }
