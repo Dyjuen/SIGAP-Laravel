@@ -1,4 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../widgets/feature_card.dart';
+import '../widgets/faq_item.dart';
 import 'login_page.dart';
 
 class LandingPage extends StatefulWidget {
@@ -8,477 +12,394 @@ class LandingPage extends StatefulWidget {
   State<LandingPage> createState() => _LandingPageState();
 }
 
-class _LandingPageState extends State<LandingPage> with TickerProviderStateMixin {
+class _LandingPageState extends State<LandingPage> {
   final List<bool> _faqExpanded = [false, false, false, false];
-  late final AnimationController _heroAnim;
-  late final Animation<double> _heroFade;
-  late final Animation<Offset> _heroSlide;
 
-  @override
-  void initState() {
-    super.initState();
-    _heroAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..forward();
-    _heroFade = CurvedAnimation(parent: _heroAnim, curve: Curves.easeOut);
-    _heroSlide = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _heroAnim, curve: Curves.easeOutCubic));
-  }
+  final List<Map<String, dynamic>> _features = [
+    {
+      'title': 'Pengajuan Cepat',
+      'desc': 'Proses KAK dan RAB kini hanya dalam hitungan menit secara digital.',
+      'icon': Icons.speed_rounded,
+    },
+    {
+      'title': 'Pelacakan Real-time',
+      'desc': 'Pantau status usulan Anda mulai dari draf hingga pencairan dana.',
+      'icon': Icons.track_changes_rounded,
+    },
+    {
+      'title': 'Arsip Terpusat',
+      'desc': 'Semua dokumen LPJ tersimpan aman dan mudah diakses kapan saja.',
+      'icon': Icons.security_rounded,
+    },
+  ];
 
-  @override
-  void dispose() {
-    _heroAnim.dispose();
-    super.dispose();
-  }
+  final List<Map<String, String>> _faqs = [
+    {'q': 'Bagaimana cara membuat akun?', 'a': 'Akun dibuat secara otomatis melalui integrasi SSO. Hubungi admin jika Anda mengalami kendala login.'},
+    {'q': 'Apakah bisa merevisi KAK yang sudah dikirim?', 'a': 'Bisa, KAK yang dikirim dapat direvisi apabila Verifikator atau PPK mengembalikan dokumen tersebut dengan catatan revisi.'},
+    {'q': 'Berapa lama proses pencairan dana?', 'a': 'Pencairan dana bergantung pada kelengkapan LPJ dan proses verifikasi akhir oleh Bendahara, biasanya 3-5 hari kerja.'},
+  ];
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final primaryColor = colorScheme.primary;
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.white.withOpacity(0.92),
-        elevation: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: const Color(0xFF00BCD4),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.bolt, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const LoginPage()),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00BCD4),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              ),
-              child: const Text('Masuk', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: const Color(0xFF00BCD4),
-        foregroundColor: Colors.white,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.chat_bubble_outline),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildHero(),
-            _buildFeatures(),
-            _buildRoles(),
-            _buildFaq(),
-            _buildContact(),
-            _buildFooter(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─── HERO ───────────────────────────────────────────────────────────────────
-  Widget _buildHero() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 110, 24, 56),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFFFFFF), Color(0xFFE0F7FA)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: FadeTransition(
-        opacity: _heroFade,
-        child: SlideTransition(
-          position: _heroSlide,
-          child: Column(
-            children: [
-
-              const Text(
-                'Sistem Informasi Gerbang Administrasi Pengajuan KAK & LPJ',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  height: 1.25,
-                  color: Color(0xFF0F172A),
-                  fontFamily: 'Figtree',
-                ),
-              ),
-              const SizedBox(height: 14),
-              const Text(
-                'SIGAP PNJ memudahkan seluruh proses administrasi kegiatan di kampus secara cepat, transparan, dan efisien.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF475569),
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                  ),
-                  icon: const Icon(Icons.arrow_forward_rounded),
-                  label: const Text(
-                    'Mulai Sekarang',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00BCD4),
-                    foregroundColor: Colors.white,
-                    elevation: 8,
-                    shadowColor: const Color(0xFF00BCD4).withOpacity(0.35),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                ),
-              ),
-
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── FEATURES ───────────────────────────────────────────────────────────────
-  Widget _buildFeatures() {
-    final features = [
-      {'icon': Icons.description_outlined, 'title': 'Pengajuan Digital', 'desc': 'Buat dan kirim usulan KAK & LPJ tanpa dokumen fisik.', 'color': const Color(0xFF00BCD4), 'bg': const Color(0xFFE0F7FA)},
-      {'icon': Icons.edit_note_outlined, 'title': 'Revisi Terstruktur', 'desc': 'Setiap revisi tercatat dengan komentar jelas dari verifikator.', 'color': const Color(0xFF8B5CF6), 'bg': const Color(0xFFF5F3FF)},
-      {'icon': Icons.track_changes_outlined, 'title': 'Pelacakan Langsung', 'desc': 'Lihat status usulan kapan saja dari validasi hingga persetujuan.', 'color': const Color(0xFFF59E0B), 'bg': const Color(0xFFFFFBEB)},
-      {'icon': Icons.picture_as_pdf_outlined, 'title': 'Dokumen Otomatis', 'desc': 'SIGAP menghasilkan KAK dan surat resmi dalam format PDF.', 'color': const Color(0xFFEF4444), 'bg': const Color(0xFFFEF2F2)},
-      {'icon': Icons.notifications_outlined, 'title': 'Notifikasi Instan', 'desc': 'Pemberitahuan otomatis setiap ada pembaruan atau revisi.', 'color': const Color(0xFF10B981), 'bg': const Color(0xFFECFDF5)},
-    ];
-
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      backgroundColor: colorScheme.background,
+      body: Stack(
         children: [
-          _sectionBadge('Fitur Utama'),
-          const SizedBox(height: 10),
-          const Text(
-            'Semua Proses, Satu Sistem.',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontFamily: 'Figtree'),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'SIGAP membantu setiap peran dari pengusul hingga pimpinan.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 24),
-          ...features.map((f) => _buildFeatureRow(f)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureRow(Map<String, dynamic> f) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
+          // Background Gradient (Replacement for RadialTurbulenceGradientShaderFill)
           Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: f['bg'] as Color, borderRadius: BorderRadius.circular(12)),
-            child: Icon(f['icon'] as IconData, color: f['color'] as Color, size: 22),
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  primaryColor.withOpacity(0.15),
+                  colorScheme.background,
+                  colorScheme.background,
+                ],
+                center: const Alignment(0, -0.6),
+                radius: 1.5,
+                stops: const [0.0, 0.5, 1.0],
+              ),
+            ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
+          // Content
+          SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(f['title'] as String,
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A), fontSize: 14, fontFamily: 'Figtree')),
-                const SizedBox(height: 2),
-                Text(f['desc'] as String,
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 12, height: 1.4)),
+                // Top Nav / Header
+                ClipRRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface.withOpacity(0.6),
+                      ),
+                      child: SafeArea(
+                        bottom: false,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'SIGAP',
+                                  style: GoogleFonts.figtree(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 22,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'PNJ',
+                                  style: GoogleFonts.figtree(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 22,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: primaryColor,
+                                foregroundColor: colorScheme.onPrimary,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Masuk',
+                                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Hero Section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(9999),
+                          border: Border.all(color: primaryColor.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          'v2.0 Is Now Live',
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: primaryColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Administrasi Kampus Jadi Lebih Cepat',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 32,
+                          color: colorScheme.onBackground,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Sistem Informasi Gerbang Administrasi Pengajuan untuk civitas akademika Politeknik Negeri Jakarta.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.figtree(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const LoginPage()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Mulai Sekarang',
+                              style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          OutlinedButton(
+                            onPressed: () {}, // Optional action
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: colorScheme.onBackground,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                              side: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Pelajari',
+                              style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Dashboard Preview Image
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    height: 240,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      image: const DecorationImage(
+                        image: NetworkImage('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'), // Placeholder for dashboard
+                        fit: BoxFit.cover,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            colorScheme.background,
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Fitur Unggulan
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                  child: Column(
+                    children: [
+                      Text(
+                        'FITUR UNGGULAN',
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                          color: colorScheme.onBackground,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Solusi Digital Terintegrasi',
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 24,
+                          color: colorScheme.onBackground,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      ..._features.map((f) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: FeatureCardWidget(
+                          title: f['title'] as String,
+                          desc: f['desc'] as String,
+                          icon: Icon(
+                            f['icon'] as IconData,
+                            color: primaryColor,
+                            size: 24,
+                          ),
+                        ),
+                      )),
+                    ],
+                  ),
+                ),
+                // FAQ Section
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Pertanyaan Sering Diajukan',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 24,
+                          color: colorScheme.onBackground,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      ..._faqs.asMap().entries.map((e) {
+                        final idx = e.key;
+                        final q = e.value['q']!;
+                        final a = e.value['a']!;
+                        return FaqItemWidget(
+                          question: q,
+                          answer: a,
+                          isExpanded: _faqExpanded[idx],
+                          onTap: () {
+                            setState(() {
+                              _faqExpanded[idx] = !_faqExpanded[idx];
+                            });
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Footer
+                Container(
+                  color: colorScheme.surface,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Divider(color: Colors.grey.withOpacity(0.2), height: 1),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'SIGAP',
+                                  style: GoogleFonts.figtree(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 18,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'PNJ',
+                                  style: GoogleFonts.figtree(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 18,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              '© 2024 Politeknik Negeri Jakarta\nSistem Informasi Gerbang Administrasi Pengajuan',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.figtree(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.facebook_rounded, color: Colors.grey[600], size: 20),
+                                const SizedBox(width: 16),
+                                Icon(Icons.language_rounded, color: Colors.grey[600], size: 20),
+                                const SizedBox(width: 16),
+                                Icon(Icons.email_rounded, color: Colors.grey[600], size: 20),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  // ─── ROLES ───────────────────────────────────────────────────────────────────
-  Widget _buildRoles() {
-    final roles = [
-      {'icon': Icons.laptop_mac_outlined, 'title': 'Pengusul', 'desc': 'Mengusulkan KAK & LPJ langsung melalui sistem digital.'},
-      {'icon': Icons.verified_outlined, 'title': 'Verifikator', 'desc': 'Verifikasi dokumen usulan dari persyaratan hingga data.'},
-      {'icon': Icons.star_outline, 'title': 'WD2 & PPK', 'desc': 'Memberikan persetujuan akhir sebelum usulan dieksekusi.'},
-      {'icon': Icons.account_balance_wallet_outlined, 'title': 'Bendahara', 'desc': 'Pencairan dana dan validasi transaksi keuangan LPJ.'},
-      {'icon': Icons.visibility_outlined, 'title': 'Rektorat', 'desc': 'Memantau seluruh aktivitas untuk transparansi dan akuntabilitas.'},
-    ];
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        border: Border(top: BorderSide(color: const Color(0xFFE2E8F0))),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _sectionBadge('Peran'),
-          const SizedBox(height: 10),
-          const Text(
-            'Siapa yang Menggunakan SIGAP?',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontFamily: 'Figtree'),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Siap digunakan dengan peran berbeda sesuai alur kerja kampus.',
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 24),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            childAspectRatio: 1.3,
-            children: roles.map((r) => Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(r['icon'] as IconData, color: const Color(0xFF00BCD4), size: 26),
-                  const SizedBox(height: 8),
-                  Text(r['title'] as String,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A), fontFamily: 'Figtree')),
-                  const SizedBox(height: 4),
-                  Text(r['desc'] as String,
-                      style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), height: 1.4)),
-                ],
-              ),
-            )).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── FAQ ────────────────────────────────────────────────────────────────────
-  Widget _buildFaq() {
-    final faqs = [
-      {'q': 'Siapa yang bisa menggunakan SIGAP?', 'a': 'SIGAP digunakan oleh civitas akademika PNJ: Pengusul (Dosen/Tendik), Verifikator, PPK, WD2, Bendahara, dan Rektorat.'},
-      {'q': 'Bagaimana cara mengajukan KAK?', 'a': 'Login sebagai Pengusul, buka menu KAK, isi formulir digital, dan kirim untuk verifikasi.'},
-      {'q': 'Apakah saya bisa memantau status usulan?', 'a': 'Tentu! Fitur Pelacakan Langsung memungkinkan Anda melihat status terkini — diverifikasi, disetujui, atau perlu revisi.'},
-      {'q': 'Format dokumen apa yang dihasilkan?', 'a': 'Sistem menghasilkan dokumen formal KAK dan LPJ dalam format PDF yang siap cetak.'},
-    ];
-
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _sectionBadge('FAQ'),
-          const SizedBox(height: 10),
-          const Text(
-            'Frequently Asked Questions',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontFamily: 'Figtree'),
-          ),
-          const SizedBox(height: 6),
-          const Text('Punya pertanyaan? Kami siap bantu.',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-          const SizedBox(height: 24),
-          ...faqs.asMap().entries.map((e) => _buildFaqItem(e.key, e.value['q']!, e.value['a']!)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFaqItem(int idx, String q, String a) {
-    final isOpen = _faqExpanded[idx];
-    return GestureDetector(
-      onTap: () => setState(() => _faqExpanded[idx] = !isOpen),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isOpen ? const Color(0xFF00BCD4) : const Color(0xFFE2E8F0)),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(q,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A), fontFamily: 'Figtree')),
-                  ),
-                  Icon(isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                      color: const Color(0xFF00BCD4)),
-                ],
+          // Floating Action Button (from original landing page)
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: FloatingActionButton(
+                onPressed: () {},
+                backgroundColor: primaryColor,
+                foregroundColor: colorScheme.onPrimary,
+                shape: const CircleBorder(),
+                elevation: 4,
+                child: const Icon(Icons.chat_bubble_rounded),
               ),
             ),
-            if (isOpen)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                child: Text(a,
-                    style: const TextStyle(color: Color(0xFF475569), fontSize: 12, height: 1.6)),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ─── CONTACT ────────────────────────────────────────────────────────────────
-  Widget _buildContact() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
-      color: const Color(0xFFF8FAFC),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _sectionBadge('Kontak'),
-          const SizedBox(height: 10),
-          const Text('Hubungi Tim SIGAP',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontFamily: 'Figtree')),
-          const SizedBox(height: 6),
-          const Text('Ada pertanyaan atau butuh bantuan? Tim kami siap membantu Anda.',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13, height: 1.5)),
-          const SizedBox(height: 24),
-          _buildContactRow(Icons.email_outlined, 'Alamat Email', 'Sigap@pnj.ac.id'),
-          const SizedBox(height: 12),
-          _buildContactRow(Icons.phone_outlined, 'Nomor Telepon', '+6234 088 963'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContactRow(IconData icon, String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0F7FA),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: const Color(0xFF00BCD4), size: 20),
-          ),
-          const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-              const SizedBox(height: 2),
-              Text(value,
-                  style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 14)),
-            ],
           ),
         ],
-      ),
-    );
-  }
-
-  // ─── FOOTER ─────────────────────────────────────────────────────────────────
-  Widget _buildFooter() {
-    return Container(
-      color: const Color(0xFF0F172A),
-      padding: const EdgeInsets.all(28),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 32, height: 32,
-                decoration: BoxDecoration(color: const Color(0xFF00BCD4), borderRadius: BorderRadius.circular(8)),
-                child: const Icon(Icons.bolt, color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 10),
-              const Text('SIGAP PNJ',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, fontFamily: 'Figtree')),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Sistem Informasi Gerbang Administrasi Pengajuan\nPoliteknik Negeri Jakarta',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF64748B), fontSize: 12, height: 1.6),
-          ),
-          const SizedBox(height: 20),
-          const Divider(color: Color(0xFF1E293B)),
-          const SizedBox(height: 12),
-          const Text('© 2025 SIGAP PNJ. All rights reserved.',
-              style: TextStyle(color: Color(0xFF475569), fontSize: 11)),
-        ],
-      ),
-    );
-  }
-
-  Widget _sectionBadge(String label) {
-    return Container(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE0F7FA),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(label,
-            style: const TextStyle(color: Color(0xFF0097A7), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
       ),
     );
   }
 }
-
-

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdminApiController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\KakApiController;
 use App\Http\Controllers\MasterDataController;
 use Illuminate\Http\Request;
@@ -30,12 +31,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/kak', [KakApiController::class, 'index']);
     Route::post('/kak', [KakApiController::class, 'store']);
     Route::get('/kak/{id}', [KakApiController::class, 'show']);
+    Route::put('/kak/{id}', [KakApiController::class, 'update']);
     Route::post('/kak/{id}/submit', [KakApiController::class, 'submit']);
+    Route::post('/kak/{id}/approve', [KakApiController::class, 'approve']);
+    Route::post('/kak/{id}/reject', [KakApiController::class, 'reject']);
+    Route::post('/kak/{id}/request-revision', [KakApiController::class, 'requestRevision']);
     Route::delete('/kak/{id}', [KakApiController::class, 'destroy']);
 
     // Pengusul dashboard stats & recent activity
     Route::get('/pengusul/stats', [KakApiController::class, 'dashboardStats']);
     Route::get('/pengusul/recent-kaks', [KakApiController::class, 'recentKaks']);
+
+    // Dashboard API Routes (Role-specific dashboards)
+    Route::get('/verifikator/dashboard', [DashboardApiController::class, 'verifikator']);
+    Route::get('/ppk/dashboard', [DashboardApiController::class, 'ppk']);
+    Route::get('/wadir/dashboard', [DashboardApiController::class, 'wadir']);
+    Route::get('/bendahara/dashboard', [DashboardApiController::class, 'bendahara']);
+    Route::get('/direktur/dashboard', [DashboardApiController::class, 'direktur']);
 });
 
 // Master Data Routes (public, used for KAK form dropdowns)
