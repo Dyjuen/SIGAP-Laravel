@@ -46,6 +46,13 @@ class KakApiController extends Controller
         if ($user->role_id === 3) {
             // Pengusul: only own KAKs
             $query->where('pengusul_user_id', $user->user_id);
+        } elseif ($user->role_id === 2) {
+            // Verifikator: only pending KAKs of their matching tipe_kegiatan_id
+            $query->where('status_id', 2);
+            $tipeKegiatanId = $user->getVerifikatorTipeId();
+            if ($tipeKegiatanId !== null) {
+                $query->where('tipe_kegiatan_id', $tipeKegiatanId);
+            }
         } elseif ($user->role_id === 1) {
             // Admin: sees all
         } else {
@@ -60,7 +67,7 @@ class KakApiController extends Controller
             $query->where('status_id', $request->status_id);
         }
 
-        $kaks = $query->orderBy('updated_at', 'desc')->get()->map(fn ($kak) => [
+        $kaks = $query->orderBy('updated_at', 'desc')->paginate(20)->through(fn ($kak) => [
             'kak_id' => $kak->kak_id,
             'nama_kegiatan' => $kak->nama_kegiatan,
             'status_id' => $kak->status_id,
@@ -205,7 +212,7 @@ class KakApiController extends Controller
      */
     public function store(StoreKakRequest $request)
     {
-        $kak = $this->kakService->create($request->all(), $request->user());
+        $kak = $this->kakService->create($request->validated(), $request->user());
 
         return response()->json([
             'message' => 'KAK berhasil dibuat.',
@@ -327,7 +334,11 @@ class KakApiController extends Controller
         $user = $request->user();
         $kak = KAK::findOrFail($id);
 
-        if ($user->role_id === 3 && $kak->pengusul_user_id !== $user->user_id) {
+        if ($user->role_id !== 3) {
+            return response()->json(['message' => 'Akses ditolak.'], 403);
+        }
+
+        if ($kak->pengusul_user_id !== $user->user_id) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
@@ -352,8 +363,8 @@ class KakApiController extends Controller
             abort(403, 'Hanya Verifikator yang dapat memverifikasi KAK.');
         }
 
-        if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
-            $allowedTipeId = (int) $matches[1];
+        $allowedTipeId = $user->getVerifikatorTipeId();
+        if ($allowedTipeId !== null) {
             if ($kak->tipe_kegiatan_id !== $allowedTipeId) {
                 abort(403, 'Anda hanya dapat memverifikasi KAK dengan Tipe Kegiatan ' . $allowedTipeId);
             }

@@ -78,4 +78,15 @@ class User extends Authenticatable
     {
         return $this->role->nama_role ?? null;
     }
+
+    /**
+     * Get verifikator type ID based on username format (verifikator{ID}).
+     */
+    public function getVerifikatorTipeId(): ?int
+    {
+        if (preg_match('/verifikator(\d+)/i', $this->username, $matches)) {
+            return (int) $matches[1];
+        }
+        return null;
+    }
 }

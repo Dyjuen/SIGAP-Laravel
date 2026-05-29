@@ -15,24 +15,14 @@ class MasterDataApiController extends Controller
         $this->masterDataService = $masterDataService;
     }
 
-    private function isAdmin(Request $request): bool
-    {
-        return $request->user()?->role_id === 1;
-    }
 
-    private function forbiddenResponse()
-    {
-        return response()->json(['message' => 'Akses ditolak. Hanya Admin yang dapat mengakses fitur ini.'], 403);
-    }
 
     /**
      * Get all master data types.
      */
     public function index(Request $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $types = collect($this->masterDataService->getAllTypes())->map(fn ($item, $key) => [
             'key' => $key,
@@ -48,9 +38,7 @@ class MasterDataApiController extends Controller
      */
     public function indexResource(Request $request, string $type)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);
@@ -74,9 +62,7 @@ class MasterDataApiController extends Controller
      */
     public function store(Request $request, string $type)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);
@@ -110,9 +96,7 @@ class MasterDataApiController extends Controller
      */
     public function update(Request $request, string $type, string $id)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);
@@ -146,9 +130,7 @@ class MasterDataApiController extends Controller
      */
     public function destroy(Request $request, string $type, string $id)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);

@@ -21,7 +21,7 @@ class AuthController extends Controller
         if (! Auth::attempt($request->only('username', 'password'))) {
             return response()->json([
                 'message' => 'Kredensial tidak valid.',
-            ], 422);
+            ], 401);
         }
 
         $user = Auth::user();
@@ -49,6 +49,20 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Logged out successfully',
+        ]);
+    }
+
+    /**
+     * Handle a token refresh request via API (rolling token refresh).
+     */
+    public function refresh(Request $request)
+    {
+        $user = $request->user();
+        $user->currentAccessToken()->delete();
+        $newToken = $user->createToken('mobile-app')->plainTextToken;
+
+        return response()->json([
+            'token' => $newToken,
         ]);
     }
 }

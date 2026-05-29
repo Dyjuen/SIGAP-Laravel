@@ -15,7 +15,7 @@ class NotificationApiController extends Controller
     {
         $notifications = Notifikasi::where('penerima_user_id', $request->user()->user_id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(30);
 
         return response()->json($notifications);
     }

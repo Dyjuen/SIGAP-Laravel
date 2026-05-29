@@ -32,15 +32,7 @@ class AdminApiController extends Controller
         $this->panduanService = $panduanService;
         $this->dashboardService = $dashboardService;
     }
-    private function isAdmin(Request $request): bool
-    {
-        return $request->user()?->role_id === 1;
-    }
 
-    private function forbiddenResponse()
-    {
-        return response()->json(['message' => 'Akses ditolak. Hanya Admin yang dapat mengakses fitur ini.'], 403);
-    }
 
     /**
      * Get real stats for the admin dashboard.
@@ -59,9 +51,7 @@ class AdminApiController extends Controller
      */
     public function getUsers(Request $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $search = $request->input('search');
 
@@ -94,9 +84,7 @@ class AdminApiController extends Controller
 
     public function createUser(\App\Http\Requests\Admin\StoreUserRequest $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $user = $this->userService->create($request->validated());
 
@@ -118,9 +106,7 @@ class AdminApiController extends Controller
      */
     public function deleteUser(Request $request, $id)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $user = User::findOrFail($id);
 
@@ -142,9 +128,7 @@ class AdminApiController extends Controller
      */
     public function getLogs(Request $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $logs = LogAktivitas::with(['user.role'])
             ->orderBy('created_at', 'desc')
@@ -184,9 +168,7 @@ class AdminApiController extends Controller
 
     public function createPanduan(\App\Http\Requests\Admin\StorePanduanRequest $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $p = $this->panduanService->store($request->validated(), $request->file('file'));
 
@@ -206,9 +188,7 @@ class AdminApiController extends Controller
      */
     public function deletePanduan(Request $request, $id)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $p = Panduan::findOrFail($id);
         $this->panduanService->delete($p);
@@ -221,11 +201,7 @@ class AdminApiController extends Controller
      */
     public function updateUser(UpdateUserRequest $request, User $user)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
-
-        $this->userService->update($user, $request->all());
+        $this->userService->update($user, $request->validated());
 
         return response()->json([
             'message' => 'Profil user berhasil diupdate.',
@@ -244,9 +220,7 @@ class AdminApiController extends Controller
      */
     public function changePasswordUser(ChangePasswordRequest $request, User $user)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $this->userService->changePassword($user, $request->new_password);
 
@@ -260,9 +234,7 @@ class AdminApiController extends Controller
      */
     public function updatePanduan(UpdatePanduanRequest $request, Panduan $panduan)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $this->panduanService->update($panduan, $request->validated(), $request->file('file'));
 
@@ -282,9 +254,7 @@ class AdminApiController extends Controller
      */
     public function getSpk(Request $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
+
 
         $config = SpkConfig::getActive();
 
@@ -399,11 +369,7 @@ class AdminApiController extends Controller
      */
     public function updateSpkConfig(Request $request)
     {
-        if (! $this->isAdmin($request)) {
-            return $this->forbiddenResponse();
-        }
-
-        $request->validate([
+        $validatedData = $request->validate([
             'weight_waktu' => ['required', 'numeric', 'min:0', 'max:100'],
             'weight_anggaran' => ['required', 'numeric', 'min:0', 'max:100'],
             'weight_output' => ['required', 'numeric', 'min:0', 'max:100'],
@@ -441,7 +407,7 @@ class AdminApiController extends Controller
         }
 
         $config = SpkConfig::getActive();
-        $config->update($request->all());
+        $config->update($validatedData);
 
         return response()->json([
             'message' => 'Konfigurasi parameter SPK berhasil diperbarui.',

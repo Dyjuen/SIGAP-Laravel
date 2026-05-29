@@ -69,7 +69,7 @@ class KakApiTest extends TestCase
             ->getJson('/api/kak');
 
         $response->assertStatus(200);
-        $response->assertJsonCount(1);
+        $response->assertJsonCount(1, 'data');
         $response->assertJsonFragment([
             'nama_kegiatan' => 'Kegiatan Mandiri Pengusul',
         ]);

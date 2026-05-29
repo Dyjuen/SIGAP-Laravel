@@ -41,7 +41,7 @@ class AuthTest extends TestCase
             'password' => 'wrongpassword',
         ]);
 
-        $response->assertStatus(422);
+        $response->assertStatus(401);
     }
 
     public function test_user_can_logout_via_api()
@@ -57,5 +57,22 @@ class AuthTest extends TestCase
         $response->assertJson(['message' => 'Logged out successfully']);
 
         $this->assertCount(0, $user->tokens);
+    }
+
+    public function test_user_can_refresh_token_via_api()
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+        ])->postJson('/api/refresh');
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['token']);
+
+        // Check old token is deleted
+        $this->assertCount(1, $user->tokens); // The new one
+        $this->assertNotEquals($token, $response->json('token'));
     }
 }

@@ -605,5 +605,51 @@ class KegiatanApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonPath('data.data.0.status', 2); // Step 2 (Wadir2) is active
     }
+
+    public function test_api_pengusul_cannot_show_others_kegiatan()
+    {
+        $otherPengusul = User::factory()->create(['role_id' => 3]);
+        $kak = $this->createApprovedKak($otherPengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $token = $this->pengusul->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+            'Accept' => 'application/json',
+        ])->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_api_pengusul_cannot_update_others_kegiatan()
+    {
+        $otherPengusul = User::factory()->create(['role_id' => 3]);
+        $kak = $this->createApprovedKak($otherPengusul);
+        $kegiatan = Kegiatan::create([
+            'kak_id' => $kak->kak_id,
+            'penanggung_jawab_manual' => 'Old PJ',
+            'pelaksana_manual' => 'Old PL',
+        ]);
+
+        $token = $this->pengusul->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+            'Accept' => 'application/json',
+        ])->putJson('/api/kegiatan/'.$kegiatan->kegiatan_id, [
+            'kak_id' => $kak->kak_id,
+            'nama_kegiatan' => 'Hacked KAK Name',
+            'deskripsi_kegiatan' => 'Updated Desc that must have at least fifty characters in total to satisfy the Laravel validation rules.',
+            'tanggal_mulai' => now()->addDays(2)->format('Y-m-d'),
+            'tanggal_selesai' => now()->addDays(6)->format('Y-m-d'),
+            'lokasi' => 'Updated Location',
+            'mata_anggaran_id' => 1,
+            'penanggung_jawab_manual' => 'Hack PJ',
+            'pelaksana_manual' => 'Hack PL',
+        ]);
+
+        $response->assertStatus(403);
+    }
 }
 

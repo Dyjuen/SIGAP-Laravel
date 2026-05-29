@@ -33,7 +33,7 @@ class NotificationApiTest extends TestCase
         ])->getJson('/api/notifications');
 
         $response->assertStatus(200);
-        $response->assertJsonCount(2);
+        $response->assertJsonCount(2, 'data');
         $response->assertJsonFragment(['pesan' => 'Test Notification 1']);
     }
 
@@ -102,7 +102,7 @@ class NotificationApiTest extends TestCase
         ])->getJson('/api/notifications');
 
         $response->assertStatus(200);
-        $response->assertJsonCount(0);
+        $response->assertJsonCount(0, 'data');
     }
 
     public function test_api_user_cannot_mark_other_users_notification_as_read()

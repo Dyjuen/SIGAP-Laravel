@@ -24,9 +24,7 @@ class PencairanApiController extends Controller
     {
         $user = $request->user();
 
-        if (! in_array($user->getRoleName(), ['Bendahara', 'Admin'])) {
-            return response()->json(['message' => 'Hanya Bendahara yang dapat mengakses halaman pencairan.'], 403);
-        }
+
 
         $kegiatans = Kegiatan::with([
             'kak.pengusul',
@@ -90,9 +88,6 @@ class PencairanApiController extends Controller
     public function store(StorePencairanRequest $request, Kegiatan $kegiatan)
     {
         $user = $request->user();
-        if (! in_array($user->getRoleName(), ['Bendahara', 'Admin'])) {
-            return response()->json(['message' => 'Akses ditolak.'], 403);
-        }
 
         try {
             $nominalPencairan = (float) $request->nominal_pencairan;
@@ -128,9 +123,7 @@ class PencairanApiController extends Controller
     {
         $user = $request->user();
 
-        if (! in_array($user->getRoleName(), ['Bendahara', 'Admin'])) {
-            return response()->json(['message' => 'Hanya Bendahara yang dapat menyelesaikan proses pencairan.'], 403);
-        }
+
 
         try {
             $this->pencairanService->selesai($kegiatan, $user);
