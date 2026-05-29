@@ -58,10 +58,9 @@ class KakController extends Controller
         }
         // Others (Admin/PPK): Currently see all? Restrict if needed. For now allow all for visualization.
 
-        // Apply filters
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('nama_kegiatan', 'ilike', "%{$search}%");
+            $search = strtolower($request->search);
+            $query->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%{$search}%"]);
         }
 
         if ($request->filled('status_id')) {
@@ -99,10 +98,6 @@ class KakController extends Controller
      */
     public function store(StoreKakRequest $request)
     {
-        if (Auth::user()->role_id !== 3) {
-            abort(403, 'Hanya Pengusul yang dapat membuat KAK.');
-        }
-
         $this->kakService->create($request->all(), Auth::user());
 
         return redirect()->route('kak.index')->with('success', 'KAK berhasil dibuat.');
