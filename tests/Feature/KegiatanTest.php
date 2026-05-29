@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\KAK;
 use App\Models\Kegiatan;
+use App\Models\KegiatanApproval;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -330,9 +331,188 @@ class KegiatanTest extends TestCase
         ]);
     }
 
+    public function test_store_kegiatan_is_atomic()
+    {
+        Storage::fake('supabase');
+        $kak = $this->createApprovedKak($this->pengusul);
+        $file = UploadedFile::fake()->create('surat.pdf', 100);
+
+        // Mock KegiatanApproval to throw exception during create
+        // This is a bit tricky with Eloquent models, but we can use an observer or event listener
+        // Or we can just simulate a database error by passing invalid data if there was no validation
+        // But here we use a try-catch in controller. 
+        // Let's use a partial mock or just simulate a failure by mocking Mail or something that happens after DB insert
+        
+        // Actually, let's mock the DB transaction or use an event
+        \App\Models\KegiatanApproval::creating(function() {
+            throw new \Exception('Simulated DB Failure');
+        });
+
+        $response = $this->actingAs($this->pengusul)->post('/kegiatan', [
+            'kak_id' => $kak->kak_id,
+            'penanggung_jawab_manual' => 'John Doe',
+            'pelaksana_manual' => 'Jane Doe',
+            'surat_pengantar' => $file,
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseCount('t_kegiatan', 0);
+        $this->assertDatabaseHas('t_kak', [
+            'kak_id' => $kak->kak_id,
+            'status_id' => 3, // Still approved, not moved to review
+        ]);
+        
+        // Clean up the event listener for other tests
+        \App\Models\KegiatanApproval::flushEventListeners();
+    }
+
+    public function test_cascade_delete_kak_deletes_kegiatan()
+    {
+        Storage::fake('supabase');
+        $kak = $this->createApprovedKak($this->pengusul);
+        
+        $this->actingAs($this->pengusul)->post('/kegiatan', [
+            'kak_id' => $kak->kak_id,
+            'penanggung_jawab_manual' => 'John Doe',
+            'pelaksana_manual' => 'Jane Doe',
+            'surat_pengantar' => UploadedFile::fake()->create('surat.pdf', 100),
+        ]);
+
+        $this->assertDatabaseCount('t_kegiatan', 1);
+
+        $kak->delete();
+
+        $this->assertDatabaseCount('t_kegiatan', 0);
+    }
+
+    public function test_kegiatan_life_cycle()
+    {
+        Storage::fake('supabase');
+        $kak = $this->createApprovedKak($this->pengusul);
+        $bendahara = User::factory()->create(['role_id' => 6]);
+
+        // 1. Submit
+        $this->actingAs($this->pengusul)->post('/kegiatan', [
+            'kak_id' => $kak->kak_id,
+            'penanggung_jawab_manual' => 'PJ',
+            'pelaksana_manual' => 'PL',
+            'surat_pengantar' => UploadedFile::fake()->create('surat.pdf', 100),
+        ]);
+
+        $kegiatan = Kegiatan::first();
+        $this->assertEquals(6, $kegiatan->kak->status_id); // Review PPK
+
+        // 2. PPK Approve
+        $this->actingAs($this->ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'PPK OK']);
+        $this->assertEquals(7, $kegiatan->fresh()->kak->status_id); // Review Wadir 2
+
+        // 3. Wadir Approve
+        $this->actingAs($this->wadir)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'Wadir OK']);
+        $this->assertEquals(8, $kegiatan->fresh()->kak->status_id); // Proses Pencairan
+
+        // 4. Bendahara Cairkan (Termin 1)
+        // Setup budget sum for sisa dana computation
+        \App\Models\KAKAnggaran::create([
+            'kak_id' => $kak->kak_id,
+            'kategori_belanja_id' => 1,
+            'uraian' => 'Test',
+            'volume1' => 1,
+            'satuan1_id' => 1,
+            'harga_satuan' => 1000000,
+            'jumlah_diusulkan' => 1000000,
+        ]);
+
+        $this->actingAs($bendahara)->post("/kegiatan/{$kegiatan->kegiatan_id}/pencairan", [
+            'nominal_pencairan' => 500000,
+            'keterangan' => 'Termin 1',
+        ]);
+
+        $this->assertDatabaseCount('t_pencairan_dana', 1);
+
+        // 5. Bendahara Selesai Pencairan
+        $this->actingAs($bendahara)->post("/kegiatan/{$kegiatan->kegiatan_id}/pencairan/selesai");
+        $this->assertEquals(10, $kegiatan->fresh()->kak->status_id); // Menunggu LPJ
+    }
+
     public function test_show_nonexistent_kegiatan_returns_404()
     {
         $response = $this->actingAs($this->pengusul)->get('/kegiatan/99999');
         $response->assertStatus(404);
+    }
+
+    public function test_ppk_can_view_pending_kegiatan_in_index(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->ppk)->get('/kegiatan');
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Index')
+                ->has('pendingKegiatan', 1)
+            );
+    }
+
+    public function test_wadir_can_view_pending_kegiatan_in_index(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->wadir)->get('/kegiatan');
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Index')
+                ->has('pendingKegiatan', 1)
+            );
+    }
+
+    public function test_ppk_cannot_approve_wadir_step(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'X']);
+        $response->assertStatus(403);
+    }
+
+    public function test_approve_fails_if_no_active_step(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        // No approval record with status 'Aktif'
+
+        $response = $this->actingAs($this->ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'X']);
+        $response->assertSessionHas('error', 'Tidak ada langkah persetujuan yang aktif.');
+    }
+
+    public function test_can_view_kegiatan_details(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $response = $this->actingAs($this->pengusul)->get("/kegiatan/{$kegiatan->kegiatan_id}");
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Show')
+                ->has('kegiatan')
+            );
+    }
+
+    public function test_wadir_approve_triggers_email(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
+
+        $this->actingAs($this->wadir)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'ACC']);
+
+        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\KAKWorkflowMail::class);
     }
 }

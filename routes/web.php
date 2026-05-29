@@ -85,6 +85,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/approve', [LpjController::class, 'approve'])->name('lpj.approve');
         Route::post('/complete', [LpjController::class, 'complete'])->name('lpj.complete');
     });
+
+    // Notifications
+    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 require __DIR__.'/auth.php';

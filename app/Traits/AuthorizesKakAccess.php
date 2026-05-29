@@ -10,9 +10,9 @@ trait AuthorizesKakAccess
     /**
      * Authorize access to a KAK resource.
      *
-     * @param KAK|null $kak The KAK instance (null for global/create checks)
-     * @param bool $requireEdit Whether the action requires edit/write permissions (Pengusul only)
-     * @param bool $isWorkflowAction Whether the action is a workflow step (additional checks)
+     * @param  KAK|null  $kak  The KAK instance (null for global/create checks)
+     * @param  bool  $requireEdit  Whether the action requires edit/write permissions (Pengusul only)
+     * @param  bool  $isWorkflowAction  Whether the action is a workflow step (additional checks)
      */
     protected function authorizeAccess(?KAK $kak = null, bool $requireEdit = false, bool $isWorkflowAction = false)
     {
@@ -37,12 +37,12 @@ trait AuthorizesKakAccess
                 // In our current routes: submit and resubmit are for Pengusul.
                 // approve, reject, revise are for Verifikator.
                 // We can't easily know which one it is just from $isWorkflowAction.
-                
-                // Let's use request name or a new parameter? 
+
+                // Let's use request name or a new parameter?
                 // Better: If they are Role 3, they are only allowed if the KAK is in Draft (1) or Revisi (5) status.
                 // But Verifikator actions happen in Review (2) status.
                 if ($kak->status_id === 2) {
-                     abort(403, 'Pengusul tidak dapat menyetujui, menolak, atau meminta revisi KAK.');
+                    abort(403, 'Pengusul tidak dapat menyetujui, menolak, atau meminta revisi KAK.');
                 }
             }
 
@@ -56,7 +56,7 @@ trait AuthorizesKakAccess
                 if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
                     $allowedTipeId = (int) $matches[1];
                     if ($kak->tipe_kegiatan_id !== $allowedTipeId) {
-                        abort(403, 'Anda hanya dapat mengakses KAK dengan Tipe Kegiatan ' . $allowedTipeId);
+                        abort(403, 'Anda hanya dapat mengakses KAK dengan Tipe Kegiatan '.$allowedTipeId);
                     }
                 } else {
                     abort(403, 'Username verifikator tidak valid untuk pemetaan tipe kegiatan.');
@@ -86,7 +86,7 @@ trait AuthorizesKakAccess
 
         // Others (PPK, Bendahara, etc) - Read only access allowed by default unless workflow/edit
         if ($isWorkflowAction) {
-             abort(403, 'Anda tidak memiliki wewenang untuk melakukan aksi workflow ini.');
+            abort(403, 'Anda tidak memiliki wewenang untuk melakukan aksi workflow ini.');
         }
     }
 
@@ -113,6 +113,7 @@ trait AuthorizesKakAccess
 
             if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
                 $allowedTipeId = (int) $matches[1];
+
                 return $query->where('tipe_kegiatan_id', $allowedTipeId);
             }
 

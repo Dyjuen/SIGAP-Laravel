@@ -229,9 +229,131 @@ class PanduanTest extends TestCase
                 // 'file' is missing
             ]);
 
-        // It should redirect back with validation errors or handle it in the controller
-        // Based on current implementation, it doesn't error out but remains in corrupted state.
-        // We want it to fail validation or at least not be in corrupted state.
         $response->assertSessionHasErrors('file');
+    }
+
+    public function test_admin_switches_from_video_to_document_deletes_no_file(): void
+    {
+        Storage::fake('supabase');
+        $admin = User::factory()->create(['role_id' => 1]);
+        $panduan = Panduan::create([
+            'judul_panduan' => 'Video Guide',
+            'tipe_media' => 'video',
+            'path_media' => 'https://youtube.com/watch?v=123',
+        ]);
+
+        $file = UploadedFile::fake()->create('new.pdf', 100);
+
+        $response = $this->actingAs($admin)
+            ->put(route('admin.panduan.update', $panduan->panduan_id), [
+                'judul_panduan' => 'Now Document',
+                'tipe_media' => 'document',
+                'file' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('m_panduan', [
+            'panduan_id' => $panduan->panduan_id,
+            'tipe_media' => 'document',
+        ]);
+        $files = Storage::disk('supabase')->files('panduan');
+        $this->assertNotEmpty($files);
+    }
+
+    public function test_admin_switches_from_document_to_video_deletes_old_file(): void
+    {
+        Storage::fake('supabase');
+        $admin = User::factory()->create(['role_id' => 1]);
+        $oldFile = UploadedFile::fake()->create('old.pdf', 100);
+        $oldPath = $oldFile->store('panduan', 'supabase');
+
+        $panduan = Panduan::create([
+            'judul_panduan' => 'Doc Guide',
+            'tipe_media' => 'document',
+            'path_media' => $oldPath,
+        ]);
+
+        $videoUrl = 'https://youtube.com/watch?v=new';
+
+        $response = $this->actingAs($admin)
+            ->put(route('admin.panduan.update', $panduan->panduan_id), [
+                'judul_panduan' => 'Now Video',
+                'tipe_media' => 'video',
+                'path_media' => $videoUrl,
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('m_panduan', [
+            'panduan_id' => $panduan->panduan_id,
+            'tipe_media' => 'video',
+            'path_media' => $videoUrl,
+        ]);
+        $this->assertFalse(Storage::disk('supabase')->exists($oldPath));
+    }
+
+    public function test_admin_can_preview_document_inline(): void
+    {
+        Storage::fake('supabase');
+        $admin = User::factory()->create(['role_id' => 1]);
+        $file = UploadedFile::fake()->create('test.pdf', 100);
+        $path = $file->store('panduan', 'supabase');
+
+        $panduan = Panduan::create([
+            'judul_panduan' => 'Previewable',
+            'tipe_media' => 'document',
+            'path_media' => $path,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.panduan.download', ['panduan' => $panduan->panduan_id, 'stream' => 1]));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Disposition', 'inline; filename="Previewable.pdf"');
+    }
+
+    public function test_download_video_redirects_to_youtube(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]);
+        $videoUrl = 'https://youtube.com/watch?v=abc';
+        $panduan = Panduan::create([
+            'judul_panduan' => 'Video',
+            'tipe_media' => 'video',
+            'path_media' => $videoUrl,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.panduan.download', $panduan->panduan_id));
+
+        $response->assertRedirect($videoUrl);
+    }
+
+    public function test_download_missing_file_returns_404(): void
+    {
+        Storage::fake('supabase');
+        $admin = User::factory()->create(['role_id' => 1]);
+        
+        $panduan = Panduan::create([
+            'judul_panduan' => 'Missing',
+            'tipe_media' => 'document',
+            'path_media' => 'panduan/nonexistent.pdf',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.panduan.download', $panduan->panduan_id));
+
+        $response->assertStatus(404);
+    }
+
+    public function test_guest_cannot_download_panduan(): void
+    {
+        $panduan = Panduan::create([
+            'judul_panduan' => 'Secret',
+            'tipe_media' => 'video',
+            'path_media' => 'https://youtube.com/watch?v=x',
+        ]);
+
+        $response = $this->get(route('admin.panduan.download', $panduan->panduan_id));
+
+        $response->assertRedirect(route('login'));
     }
 }

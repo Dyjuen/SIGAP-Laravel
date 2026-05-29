@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Kegiatan extends Model
 {
+    use HasFactory;
+
     protected $table = 't_kegiatan';
 
     protected $primaryKey = 'kegiatan_id';
@@ -14,6 +17,7 @@ class Kegiatan extends Model
 
     protected $casts = [
         'tanggal_mulai_final' => 'date',
+        'tanggal_selesai_final' => 'date',
         'tgl_batas_lpj' => 'datetime',
         'lpj_submitted_at' => 'datetime',
         'spk_kesesuaian_waktu' => 'integer',

@@ -408,7 +408,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         kak: {
             ...data.kak,
             manfaat: data.kak.manfaat.map(({ value, manfaat_id }) => ({
-                manfaat: value,
+                value,
                 ...(manfaat_id ? { manfaat_id } : {})
             })),
             tahapan_pelaksanaan: data.kak.tahapan_pelaksanaan.map(({ _id, ...rest }) => rest), // Remove _id

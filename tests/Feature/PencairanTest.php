@@ -365,6 +365,41 @@ class PencairanTest extends TestCase
             ->assertStatus(403);
     }
 
+    public function test_store_pencairan_is_atomic(): void
+    {
+        $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
+
+        // Force exception during creation by mocking model
+        \App\Models\PencairanDana::creating(function() {
+            throw new \Exception('Simulated DB Failure');
+        });
+
+        $response = $this->actingAs($this->bendahara)
+            ->post(route('pencairan.store', $kegiatan), [
+                'nominal_pencairan' => 1000000,
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['message']);
+        $this->assertDatabaseCount('t_pencairan_dana', 0);
+        
+        \App\Models\PencairanDana::flushEventListeners();
+    }
+
+    public function test_store_pencairan_at_max_limit(): void
+    {
+        $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 2000000);
+
+        $response = $this->actingAs($this->bendahara)
+            ->post(route('pencairan.store', $kegiatan), [
+                'nominal_pencairan' => 2000000, // Exact match
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHas('success');
+        $this->assertDatabaseCount('t_pencairan_dana', 1);
+    }
+
     public function test_selesai_fails_when_bendahara_cair_not_active(): void
     {
         // Create a kegiatan where Bendahara-Cair is already Disetujui (already completed)
