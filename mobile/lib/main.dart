@@ -16,6 +16,9 @@ import 'services/lampiran_service.dart';
 import 'services/lpj_service.dart';
 import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
+import 'screens/pengusul/lpj_list_page.dart';
+import 'screens/pengusul/lpj_form_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -121,6 +124,9 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF33C8DA)),
         useMaterial3: true,
       ),
+      routes: {
+        '/lpj': (context) => const LpjListPage(),
+      },
       home: _isCheckingAuth
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : Consumer<AuthProvider>(
