@@ -35,6 +35,8 @@ class DashboardDirekturTest extends TestCase
             ->has('dashboardData.overview')
             ->has('dashboardData.by_jurusan')
             ->has('dashboardData.trends')
+            ->has('dashboardData.topsis_activities')
+            ->has('dashboardData.spk_config')
         );
     }
 

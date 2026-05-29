@@ -106,6 +106,140 @@ class MonitoringKegiatanTest extends TestCase
         );
     }
 
+    public function test_monitoring_search_by_kak_name(): void
+    {
+        $admin = $this->createAdmin();
+        $kak1 = KAK::factory()->create(['nama_kegiatan' => 'Workshop IT']);
+        $kak2 = KAK::factory()->create(['nama_kegiatan' => 'Seminar Bisnis']);
+
+        Kegiatan::create(['kak_id' => $kak1->kak_id]);
+        Kegiatan::create(['kak_id' => $kak2->kak_id]);
+
+        $response = $this->actingAs($admin)->get(route('kegiatan.monitoring', ['search' => 'Workshop']));
+
+        $response->assertInertia(
+            fn (AssertableInertia $page) => $page
+                ->component('Kegiatan/Monitoring')
+                ->has('kegiatans.data', 1)
+                ->where('kegiatans.data.0.nama_kegiatan', 'Workshop IT')
+        );
+    }
+
+    public function test_sequential_workflow_tracking(): void
+    {
+        $pengusul = $this->createPengusul();
+        $ppk = User::factory()->create(['role_id' => 4]);
+        $wadir = User::factory()->create(['role_id' => 5]);
+
+        $kak = KAK::factory()->create(['pengusul_user_id' => $pengusul->user_id, 'status_id' => 6]);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $steps = ['PPK', 'Wadir2', 'Bendahara-Cair'];
+        foreach ($steps as $step) {
+            KegiatanApproval::create([
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'approval_level' => $step,
+                'status' => $step === 'PPK' ? 'Aktif' : 'Menunggu',
+            ]);
+        }
+
+        // PPK Approves
+        $this->actingAs($ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'PPK OK']);
+
+        $this->assertDatabaseHas('t_kegiatan_approval', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'PPK',
+            'status' => 'Disetujui',
+        ]);
+        $this->assertDatabaseHas('t_kegiatan_approval', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'Wadir2',
+            'status' => 'Aktif',
+        ]);
+
+        // Wadir Approves
+        $this->actingAs($wadir)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'Wadir OK']);
+
+        $this->assertDatabaseHas('t_kegiatan_approval', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'Wadir2',
+            'status' => 'Disetujui',
+        ]);
+        $this->assertDatabaseHas('t_kegiatan_approval', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'Bendahara-Cair',
+            'status' => 'Aktif',
+        ]);
+    }
+
+    public function test_audit_log_creation_on_approval(): void
+    {
+        $ppk = User::factory()->create(['role_id' => 4]);
+        $kak = KAK::factory()->create(['status_id' => 6]);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        KegiatanApproval::create([
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'PPK',
+            'status' => 'Aktif',
+        ]);
+
+        $this->actingAs($ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'Audit Test']);
+
+        $this->assertDatabaseHas('t_kegiatan_log_status', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'status_id_baru' => 7,
+            'actor_user_id' => $ppk->user_id,
+            'catatan' => 'Audit Test',
+        ]);
+    }
+
+    public function test_approval_with_empty_notes(): void
+    {
+        $ppk = User::factory()->create(['role_id' => 4]);
+        $kak = KAK::factory()->create(['status_id' => 6]);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        KegiatanApproval::create([
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'PPK',
+            'status' => 'Aktif',
+        ]);
+
+        $response = $this->actingAs($ppk)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => '']);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('t_kegiatan_approval', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'PPK',
+            'status' => 'Disetujui',
+            'catatan' => null,
+        ]);
+    }
+
+    public function test_bypass_approval_stage_fails(): void
+    {
+        $wadir = User::factory()->create(['role_id' => 5]);
+        $kak = KAK::factory()->create(['status_id' => 6]); // Still at PPK
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        KegiatanApproval::create([
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'PPK',
+            'status' => 'Aktif',
+        ]);
+        KegiatanApproval::create([
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'approval_level' => 'Wadir2',
+            'status' => 'Menunggu',
+        ]);
+
+        // Wadir tries to approve while PPK is active
+        $response = $this->actingAs($wadir)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'Illegal']);
+
+        $response->assertStatus(403);
+    }
+
     public function test_stepper_status_computation(): void
     {
         $pengusul = $this->createPengusul();

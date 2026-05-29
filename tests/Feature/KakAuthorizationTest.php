@@ -142,4 +142,32 @@ class KakAuthorizationTest extends TestCase
             ->post(route('kak.revise', $kak->kak_id))
             ->assertStatus(403);
     }
+
+    public function test_admin_can_access_any_kak(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]); // Admin
+        $otherUser = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->create(['pengusul_user_id' => $otherUser->user_id, 'tipe_kegiatan_id' => 2]);
+
+        // Admin can see it in index
+        $this->actingAs($admin)
+            ->get(route('kak.index'))
+            ->assertStatus(200)
+            ->assertInertia(fn ($page) => $page->has('kaks.data', 1));
+
+        // Admin can see detail
+        $this->actingAs($admin)
+            ->get(route('kak.show', $kak->kak_id))
+            ->assertStatus(200);
+
+        // Admin can edit
+        $this->actingAs($admin)
+            ->get(route('kak.edit', $kak->kak_id))
+            ->assertStatus(200);
+
+        // Admin can delete
+        $this->actingAs($admin)
+            ->delete(route('kak.destroy', $kak->kak_id))
+            ->assertStatus(302); // Redirect to index after delete
+    }
 }

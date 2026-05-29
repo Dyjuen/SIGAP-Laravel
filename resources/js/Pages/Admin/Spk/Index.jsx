@@ -524,10 +524,54 @@ export default function Index({ auth, spk_config, kegiatans, statistics }) {
                             </div>
 
                             {/* TARGET AND LEGACY NOTE */}
-                            <div className="mt-8 p-4 rounded-2xl bg-cyan-50/50 border border-cyan-100/50 text-[11px] text-cyan-800 space-y-1.5">
-                                <p className="font-black">Cara Kerja Perhitungan SPK:</p>
+                            <div className="mt-8 p-5 rounded-2xl bg-cyan-50/50 border border-cyan-100/50 text-[11px] text-cyan-800 space-y-3 shadow-sm">
+                                <p className="font-black text-xs text-cyan-900 border-b border-cyan-100 pb-1.5">Cara Kerja Perhitungan SPK</p>
                                 <p className="leading-relaxed font-semibold opacity-90">
-                                    Skor Akhir dihitung otomatis dengan menjumlahkan perkalian nilai riil kriteria dengan masing-masing bobotnya kemudian dibagi 100. Kategori kinerja yang tertera langsung disinkronkan ke seluruh data LPJ secara dinamis.
+                                    Evaluasi kinerja kegiatan menggunakan metode Simple Additive Weighting (SAW) untuk menentukan nilai akhir berdasarkan kriteria terbobot:
+                                </p>
+                                
+                                <div className="my-3 flex items-center justify-center font-serif text-[13px] text-cyan-800 bg-white py-3 px-4 rounded-xl border border-cyan-200/60 shadow-sm max-w-xs mx-auto">
+                                    <span className="font-bold italic">Skor Akhir</span>
+                                    <span className="mx-2 font-sans text-slate-400">=</span>
+                                    <div className="inline-flex flex-col items-center">
+                                        <span className="border-b border-slate-300 pb-0.5 px-2 font-semibold flex items-center">
+                                            <span className="font-sans text-[11px] font-bold mr-0.5">&Sigma;</span>
+                                            <span>(</span>
+                                            <span className="italic">C</span><sub className="text-[9px]">j</sub>
+                                            <span className="mx-0.5 font-sans">&times;</span>
+                                            <span className="italic">w</span><sub className="text-[9px]">j</sub>
+                                            <span>)</span>
+                                        </span>
+                                        <span className="text-[11px] leading-none pt-1 font-semibold font-serif">
+                                            100
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1 text-[11px] font-semibold opacity-90 border-t border-cyan-100 pt-2">
+                                    <div className="flex gap-1.5 items-center">
+                                        <span className="font-serif italic font-bold w-5 text-right">C<sub>1</sub></span>
+                                        <span>: Kesesuaian Waktu (Waktu)</span>
+                                    </div>
+                                    <div className="flex gap-1.5 items-center">
+                                        <span className="font-serif italic font-bold w-5 text-right">C<sub>2</sub></span>
+                                        <span>: Ketepatan Anggaran (Anggaran)</span>
+                                    </div>
+                                    <div className="flex gap-1.5 items-center">
+                                        <span className="font-serif italic font-bold w-5 text-right">C<sub>3</sub></span>
+                                        <span>: Kesesuaian Output (IKU)</span>
+                                    </div>
+                                    <div className="flex gap-1.5 items-center">
+                                        <span className="font-serif italic font-bold w-5 text-right">C<sub>4</sub></span>
+                                        <span>: Ketepatan LPJ (LPJ)</span>
+                                    </div>
+                                    <div className="flex gap-1.5 items-center">
+                                        <span className="font-serif italic font-bold w-5 text-right">w<sub>j</sub></span>
+                                        <span>: Bobot kriteria ke-j (%)</span>
+                                    </div>
+                                </div>
+                                <p className="leading-relaxed font-semibold opacity-80 pt-1 text-[10px]">
+                                    Kategori kinerja (Sangat Baik, Baik, Cukup, Kurang) langsung disinkronkan secara dinamis ke seluruh data LPJ.
                                 </p>
                             </div>
                         </div>

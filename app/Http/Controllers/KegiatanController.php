@@ -184,7 +184,28 @@ class KegiatanController extends Controller
      */
     public function update(StoreKegiatanRequest $request, Kegiatan $kegiatan)
     {
-        // Validation handled by StoreKegiatanRequest
+        // 1. Sanitize input for XSS prevention (AK-F-012)
+        $namaKegiatan = strip_tags($request->nama_kegiatan);
+        $deskripsiKegiatan = strip_tags($request->deskripsi_kegiatan);
+
+        // 2. Update associated KAK
+        $kegiatan->kak->update([
+            'nama_kegiatan' => $namaKegiatan,
+            'deskripsi_kegiatan' => $deskripsiKegiatan,
+            'tanggal_mulai' => $request->tanggal_mulai,
+            'tanggal_selesai' => $request->tanggal_selesai,
+            'lokasi' => $request->lokasi,
+            'mata_anggaran_id' => $request->mata_anggaran_id,
+        ]);
+
+        // 3. Update Kegiatan specific fields if any (currently just manual fields)
+        if ($request->has('penanggung_jawab_manual')) {
+            $kegiatan->update(['penanggung_jawab_manual' => $request->penanggung_jawab_manual]);
+        }
+        if ($request->has('pelaksana_manual')) {
+            $kegiatan->update(['pelaksana_manual' => $request->pelaksana_manual]);
+        }
+
         return redirect()->back()->with('success', 'Kegiatan berhasil diperbarui.');
     }
 
@@ -432,6 +453,14 @@ class KegiatanController extends Controller
             ];
 
             Mail::to($pengusul->email)->send(new KAKWorkflowMail($data));
+
+            // Create notification for Pengusul
+            \App\Models\Notifikasi::create([
+                'penerima_user_id' => $pengusul->user_id,
+                'pesan' => "Kegiatan '{$kak->nama_kegiatan}' Anda telah disetujui oleh {$role}.",
+                'link_tujuan' => "/kegiatan/{$kegiatan->kegiatan_id}",
+                'is_read' => 0
+            ]);
         }
     }
 }

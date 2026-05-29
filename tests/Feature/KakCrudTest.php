@@ -485,4 +485,224 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseCount('t_kak_iku', 1);
         $this->assertDatabaseHas('t_kak_iku', ['kak_id' => $kak->kak_id, 'iku_id' => $iku->iku_id]);
     }
+
+    public function test_kak_index_filtering_by_status(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1, 'nama_kegiatan' => 'Draft KAK']);
+        KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 2, 'nama_kegiatan' => 'Review KAK']);
+
+        $response = $this->actingAs($user)->get(route('kak.index', ['status_id' => 2]));
+
+        $response->assertStatus(200)
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->has('kaks.data', 1)
+                    ->where('kaks.data.0.nama_kegiatan', 'Review KAK')
+            );
+    }
+
+    public function test_kak_index_searching_by_name(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'nama_kegiatan' => 'Workshop React']);
+        KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'nama_kegiatan' => 'Seminar Laravel']);
+
+        $response = $this->actingAs($user)->get(route('kak.index', ['search' => 'Workshop']));
+
+        $response->assertStatus(200)
+            ->assertInertia(
+                fn (Assert $page) => $page
+                    ->has('kaks.data', 1)
+                    ->where('kaks.data.0.nama_kegiatan', 'Workshop React')
+            );
+    }
+
+    public function test_kak_auto_computes_kurun_waktu(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
+
+        // 15 days case (inclusive = 15)
+        $data15 = [
+            'kak' => [
+                'nama_kegiatan' => '15 Days Activity',
+                'deskripsi_kegiatan' => 'Desc desc desc desc desc',
+                'metode_pelaksanaan' => 'Metode',
+                'kurun_waktu_pelaksanaan' => 'ignored',
+                'tanggal_mulai' => '2026-05-01',
+                'tanggal_selesai' => '2026-05-15',
+                'lokasi' => 'Campus',
+                'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'M']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'T', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Jan', 'deskripsi_target' => 'T', 'persentase_target' => 50]],
+            ],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => '10', 'satuan_id' => $satuan->satuan_id]],
+            'rab' => [['kategori_belanja_id' => $kategori->kategori_belanja_id, 'uraian' => 'U', 'volume1' => 1, 'satuan1_id' => $satuan->satuan_id, 'harga_satuan' => 1000]],
+        ];
+
+        $this->actingAs($user)->post(route('kak.store'), $data15);
+        $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => '15 Days Activity', 'kurun_waktu_pelaksanaan' => '15 Hari']);
+
+        // 1 Month 6 Days case (inclusive 31 + 6 = 37 days total)
+        // 01/05 to 05/06 -> 36 days diff + 1 = 37 days. 37 / 30 = 1 month 7 days? 
+        // Logic in KakController: 37 % 30 = 7. So "1 Bulan 7 Hari".
+        $dataMonth = $data15;
+        $dataMonth['kak']['nama_kegiatan'] = 'Month Activity';
+        $dataMonth['kak']['tanggal_mulai'] = '2026-05-01';
+        $dataMonth['kak']['tanggal_selesai'] = '2026-06-05';
+
+        $this->actingAs($user)->post(route('kak.store'), $dataMonth);
+        $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => 'Month Activity', 'kurun_waktu_pelaksanaan' => '1 Bulan 6 Hari']);
+        // Wait, 01/05 to 05/06 is 31 days in May + 5 days in June = 36 days total.
+        // Controller logic: Carbon diffInDays + 1. 
+        // May 1 to June 5: diffInDays is 35. + 1 = 36. 36 / 30 = 1. 36 % 30 = 6. -> "1 Bulan 6 Hari". Correct.
+    }
+
+    public function test_kak_rab_calculation_with_multiple_volumes(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
+
+        $data = [
+            'kak' => [
+                'nama_kegiatan' => 'Multi Volume Test',
+                'deskripsi_kegiatan' => 'Desc desc desc desc desc',
+                'metode_pelaksanaan' => 'Metode',
+                'kurun_waktu_pelaksanaan' => '1 Day',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(2)->toDateString(),
+                'lokasi' => 'Loc',
+                'tipe_kegiatan_id' => $tipe->tipe_kegiatan_id,
+                'sasaran_utama' => 'Sasaran',
+                'manfaat' => [['value' => 'M']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'T', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Jan', 'deskripsi_target' => 'T', 'persentase_target' => 50]],
+            ],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => '10', 'satuan_id' => $satuan->satuan_id]],
+            'rab' => [
+                [
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'Complex Item',
+                    'volume1' => 10,
+                    'volume2' => 2,
+                    'volume3' => 5,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 1000,
+                ],
+            ],
+        ];
+
+        $this->actingAs($user)->post(route('kak.store'), $data);
+
+        // 10 * 2 * 5 * 1000 = 100,000
+        $this->assertDatabaseHas('t_kak_anggaran', [
+            'uraian' => 'Complex Item',
+            'jumlah_diusulkan' => 100000,
+        ]);
+    }
+
+    public function test_kak_tahapan_urutan_reindexed_on_update(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]);
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
+
+        // Initial steps
+        $s1 = \App\Models\KAKTahapan::create(['kak_id' => $kak->kak_id, 'nama_tahapan' => 'Step A', 'urutan' => 1]);
+        $s2 = \App\Models\KAKTahapan::create(['kak_id' => $kak->kak_id, 'nama_tahapan' => 'Step B', 'urutan' => 2]);
+
+        $updatedData = [
+            'kak' => [
+                'nama_kegiatan' => $kak->nama_kegiatan,
+                'deskripsi_kegiatan' => $kak->deskripsi_kegiatan,
+                'metode_pelaksanaan' => $kak->metode_pelaksanaan,
+                'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
+                'tanggal_mulai' => $kak->tanggal_mulai->toDateString(),
+                'tanggal_selesai' => $kak->tanggal_selesai->toDateString(),
+                'lokasi' => $kak->lokasi,
+                'tipe_kegiatan_id' => $kak->tipe_kegiatan_id,
+                'sasaran_utama' => $kak->sasaran_utama,
+                'manfaat' => [['value' => 'M']],
+                'tahapan_pelaksanaan' => [
+                    ['tahapan_id' => $s2->tahapan_id, 'nama_tahapan' => 'Step B Updated', 'urutan' => 1], // Swapped to first
+                    ['tahapan_id' => $s1->tahapan_id, 'nama_tahapan' => 'Step A Updated', 'urutan' => 2], // Swapped to second
+                ],
+                'indikator_kinerja' => [['bulan_indikator' => 'Jan', 'deskripsi_target' => 'T', 'persentase_target' => 50]],
+            ],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => '10', 'satuan_id' => $satuan->satuan_id]],
+            'rab' => [['kategori_belanja_id' => $kategori->kategori_belanja_id, 'uraian' => 'U', 'volume1' => 1, 'satuan1_id' => $satuan->satuan_id, 'harga_satuan' => 1000]],
+        ];
+
+        $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
+
+        $this->assertDatabaseHas('t_kak_tahapan', ['tahapan_id' => $s2->tahapan_id, 'urutan' => 1]);
+        $this->assertDatabaseHas('t_kak_tahapan', ['tahapan_id' => $s1->tahapan_id, 'urutan' => 2]);
+    }
+
+    public function test_kak_update_preserves_rab_catatan_verifikator(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 5]); // Revision
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
+
+        $rab = \App\Models\KAKAnggaran::create([
+            'kak_id' => $kak->kak_id,
+            'kategori_belanja_id' => $kategori->kategori_belanja_id,
+            'uraian' => 'Item X',
+            'volume1' => 1,
+            'satuan1_id' => $satuan->satuan_id,
+            'harga_satuan' => 1000,
+            'catatan_verifikator' => 'Please fix price',
+        ]);
+
+        $updatedData = [
+            'kak' => [
+                'nama_kegiatan' => $kak->nama_kegiatan,
+                'deskripsi_kegiatan' => $kak->deskripsi_kegiatan,
+                'metode_pelaksanaan' => $kak->metode_pelaksanaan,
+                'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
+                'tanggal_mulai' => $kak->tanggal_mulai->toDateString(),
+                'tanggal_selesai' => $kak->tanggal_selesai->toDateString(),
+                'lokasi' => $kak->lokasi,
+                'tipe_kegiatan_id' => $kak->tipe_kegiatan_id,
+                'sasaran_utama' => $kak->sasaran_utama,
+                'manfaat' => [['value' => 'M']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'T', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Jan', 'deskripsi_target' => 'T', 'persentase_target' => 50]],
+            ],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => '10', 'satuan_id' => $satuan->satuan_id]],
+            'rab' => [
+                [
+                    'anggaran_id' => $rab->anggaran_id,
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'Item X Updated',
+                    'volume1' => 1,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 900,
+                ],
+            ],
+        ];
+
+        $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
+
+        $this->assertDatabaseHas('t_kak_anggaran', [
+            'anggaran_id' => $rab->anggaran_id,
+            'catatan_verifikator' => 'Please fix price',
+        ]);
+    }
 }

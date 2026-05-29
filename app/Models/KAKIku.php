@@ -15,6 +15,10 @@ class KAKIku extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'terpenuhi' => 'boolean',
+    ];
+
     public $timestamps = false;
 
     public function kak()

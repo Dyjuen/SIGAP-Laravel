@@ -22,4 +22,8 @@ class KategoriBelanja extends Model
         'urutan',
         'is_active',
     ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 }

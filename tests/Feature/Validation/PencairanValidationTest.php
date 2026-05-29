@@ -69,7 +69,7 @@ class PencairanValidationTest extends TestCase
                 'nominal_pencairan' => 'Nominal Pencairan harus diisi.',
             ]);
 
-        // 2. Minimum 1
+        // 2. Minimum 1 (PD-F-001, PD-F-002)
         $response = $this->actingAs($this->user)
             ->postJson('/kegiatan/1/pencairan', [
                 'nominal_pencairan' => 0,
@@ -78,6 +78,17 @@ class PencairanValidationTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'nominal_pencairan' => 'Nominal Pencairan minimal 1.',
+            ]);
+
+        // 3. Must be numeric (PD-F-003)
+        $response = $this->actingAs($this->user)
+            ->postJson('/kegiatan/1/pencairan', [
+                'nominal_pencairan' => 'sepuluh ribu',
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'nominal_pencairan' => 'Nominal Pencairan harus berupa angka.',
             ]);
     }
 

@@ -39,12 +39,20 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'role_id' => $request->user()->role_id, // Expose role_id for frontend logic
                     'role' => $request->user()->getRoleName(),
+                    'unread_notifications' => \App\Models\Notifikasi::where('penerima_user_id', $request->user()->user_id)
+                        ->where('is_read', 0)
+                        ->latest('notifikasi_id')
+                        ->limit(10)
+                        ->get(),
                 ] : null,
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
                 'message' => $request->session()->get('message'),
+            ],
+            'app' => [
+                'notification_polling_interval' => (int) env('NOTIFICATION_POLLING_INTERVAL', 300000), // Default 5 mins
             ],
         ];
     }
