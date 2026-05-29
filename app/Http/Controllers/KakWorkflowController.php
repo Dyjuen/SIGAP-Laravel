@@ -7,11 +7,19 @@ use App\Http\Requests\KakWorkflow\ApproveKakRequest;
 use App\Http\Requests\KakWorkflow\RejectKakRequest;
 use App\Http\Requests\KakWorkflow\ReviseKakRequest;
 use App\Models\KAK;
+use App\Models\KAKApproval;
+use App\Models\KAKLogStatus;
+use App\Traits\AuthorizesKakAccess;
 use App\Services\KakWorkflowService;
+use App\Models\MataAnggaran;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class KakWorkflowController extends Controller
 {
+    use AuthorizesKakAccess;
+    
     protected KakWorkflowService $kakWorkflowService;
 
     public function __construct(KakWorkflowService $kakWorkflowService)
@@ -19,12 +27,13 @@ class KakWorkflowController extends Controller
         $this->kakWorkflowService = $kakWorkflowService;
     }
 
+
     /**
      * Submit KAK for verification (Draft -> Review)
      */
     public function submit(KAK $kak)
     {
-        $this->authorizeOwner($kak);
+        $this->authorizeAccess($kak, false, true); // workflow action
 
         if (! in_array($kak->status_id, [1, 5])) {
             abort(403, 'Anda hanya dapat mengajukan KAK dengan status Draft atau Revisi.');
@@ -43,7 +52,7 @@ class KakWorkflowController extends Controller
      */
     public function approve(ApproveKakRequest $request, KAK $kak)
     {
-        $this->authorizeVerifikator($kak);
+        $this->authorizeAccess($kak, false, true);
 
         if ($kak->status_id !== 2) {
             abort(403, 'Hanya KAK dalam status Review yang dapat disetujui.');
