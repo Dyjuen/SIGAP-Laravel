@@ -263,7 +263,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
         }
       });
 
-      await kakService.requestRevisionKak(
+      await kakService.reviseKak(
         widget.kakId.toString(),
         catatanController.text.isNotEmpty ? catatanController.text : null,
         catatanFields.isNotEmpty ? catatanFields : null,

@@ -156,7 +156,7 @@ class KakService {
   }
 
   /// Request Revision (Verifikator only)
-  Future<void> requestRevisionKak(
+  Future<void> reviseKak(
     String kakId,
     String? catatan,
     Map<String, String>? catatanFields,
@@ -168,13 +168,29 @@ class KakService {
       }
 
       final response = await dio.post(
-        '/kak/$kakId/request-revision',
+        '/kak/$kakId/revise',
         data: data,
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
       if (response.statusCode != 200) {
         throw Exception('Failed to request revision');
+      }
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  /// Resubmit Revised KAK (Pengusul only)
+  Future<void> resubmitKak(String kakId) async {
+    try {
+      final response = await dio.post(
+        '/kak/$kakId/resubmit',
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to resubmit KAK');
       }
     } on DioException catch (e) {
       throw _handleDioException(e);

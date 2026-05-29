@@ -304,7 +304,7 @@ class KakApiController extends Controller
     /**
      * Request Revision (Verifikator only, Review → Revision).
      */
-    public function requestRevision(ReviseKakRequest $request, $id)
+    public function revise(ReviseKakRequest $request, $id)
     {
         $user = $request->user();
         $kak = KAK::findOrFail($id);
@@ -314,6 +314,30 @@ class KakApiController extends Controller
         try {
             $this->kakWorkflowService->revise($kak, $request->validated(), $user);
             return response()->json(['message' => 'Pengusul diminta untuk merevisi KAK.']);
+        } catch (KakWorkflowException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Resubmit Revised KAK (Revisi -> Review).
+     */
+    public function resubmit(Request $request, $id)
+    {
+        $user = $request->user();
+        $kak = KAK::findOrFail($id);
+
+        if ($user->role_id === 3 && $kak->pengusul_user_id !== $user->user_id) {
+            return response()->json(['message' => 'Akses ditolak.'], 403);
+        }
+
+        if ($kak->status_id !== 5) {
+            return response()->json(['message' => 'Hanya KAK dalam status Revisi yang dapat diajukan kembali.'], 403);
+        }
+
+        try {
+            $this->kakWorkflowService->submit($kak, $user);
+            return response()->json(['message' => 'KAK berhasil diajukan kembali.']);
         } catch (KakWorkflowException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

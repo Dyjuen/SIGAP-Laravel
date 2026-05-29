@@ -4,6 +4,11 @@ use App\Http\Controllers\Api\AdminApiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardApiController;
 use App\Http\Controllers\Api\KakApiController;
+use App\Http\Controllers\Api\ProfileApiController;
+use App\Http\Controllers\Api\KegiatanApiController;
+use App\Http\Controllers\Api\PencairanApiController;
+use App\Http\Controllers\Api\NotificationApiController;
+use App\Http\Controllers\Api\MasterDataApiController;
 use App\Http\Controllers\MasterDataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,11 +26,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/stats', [AdminApiController::class, 'getStats']);
     Route::get('/admin/users', [AdminApiController::class, 'getUsers']);
     Route::post('/admin/users', [AdminApiController::class, 'createUser']);
+    Route::put('/admin/users/{user}', [AdminApiController::class, 'updateUser']);
+    Route::put('/admin/users/{user}/change-password', [AdminApiController::class, 'changePasswordUser']);
     Route::delete('/admin/users/{id}', [AdminApiController::class, 'deleteUser']);
     Route::get('/admin/logs', [AdminApiController::class, 'getLogs']);
     Route::get('/admin/panduan', [AdminApiController::class, 'getPanduan']);
     Route::post('/admin/panduan', [AdminApiController::class, 'createPanduan']);
+    Route::put('/admin/panduan/{panduan}', [AdminApiController::class, 'updatePanduan']);
     Route::delete('/admin/panduan/{id}', [AdminApiController::class, 'deletePanduan']);
+    Route::get('/admin/spk', [AdminApiController::class, 'getSpk']);
+    Route::post('/admin/spk/config', [AdminApiController::class, 'updateSpkConfig']);
 
     // KAK API Routes (Pengusul & Admin, role-gated inside controller)
     Route::get('/kak', [KakApiController::class, 'index']);
@@ -35,7 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/kak/{id}/submit', [KakApiController::class, 'submit']);
     Route::post('/kak/{id}/approve', [KakApiController::class, 'approve']);
     Route::post('/kak/{id}/reject', [KakApiController::class, 'reject']);
-    Route::post('/kak/{id}/request-revision', [KakApiController::class, 'requestRevision']);
+    Route::post('/kak/{id}/revise', [KakApiController::class, 'revise']);
+    Route::post('/kak/{id}/resubmit', [KakApiController::class, 'resubmit']);
     Route::delete('/kak/{id}', [KakApiController::class, 'destroy']);
 
     // Pengusul dashboard stats & recent activity
@@ -48,6 +59,37 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/wadir/dashboard', [DashboardApiController::class, 'wadir']);
     Route::get('/bendahara/dashboard', [DashboardApiController::class, 'bendahara']);
     Route::get('/direktur/dashboard', [DashboardApiController::class, 'direktur']);
+
+    // Kegiatan API Routes
+    Route::get('/kegiatan/monitoring', [KegiatanApiController::class, 'monitoring']);
+    Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
+    Route::post('/kegiatan', [KegiatanApiController::class, 'store']);
+    Route::get('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'show']);
+    Route::put('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'update']);
+    Route::post('/kegiatan/{kegiatan}/approve', [KegiatanApiController::class, 'approve']);
+
+    // Pencairan API Routes
+    Route::get('/pencairan', [PencairanApiController::class, 'index']);
+    Route::get('/kegiatan/{kegiatan}/pencairan/sisa-dana', [PencairanApiController::class, 'sisaDana']);
+    Route::post('/kegiatan/{kegiatan}/pencairan', [PencairanApiController::class, 'store']);
+    Route::post('/kegiatan/{kegiatan}/pencairan/selesai', [PencairanApiController::class, 'selesai']);
+
+    // Notification API Routes
+    Route::get('/notifications', [NotificationApiController::class, 'index']);
+    Route::post('/notifications/{notification}/read', [NotificationApiController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationApiController::class, 'markAllAsRead']);
+
+    // Admin Master Data CRUD API Routes
+    Route::get('/admin/master', [MasterDataApiController::class, 'index']);
+    Route::get('/admin/master/{type}', [MasterDataApiController::class, 'indexResource']);
+    Route::post('/admin/master/{type}', [MasterDataApiController::class, 'store']);
+    Route::put('/admin/master/{type}/{id}', [MasterDataApiController::class, 'update']);
+    Route::delete('/admin/master/{type}/{id}', [MasterDataApiController::class, 'destroy']);
+
+    // Profile API Routes
+    Route::get('/profile', [ProfileApiController::class, 'show']);
+    Route::patch('/profile', [ProfileApiController::class, 'update']);
+    Route::delete('/profile', [ProfileApiController::class, 'destroy']);
 });
 
 // Master Data Routes (public, used for KAK form dropdowns)
