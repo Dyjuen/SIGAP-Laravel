@@ -6,17 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ChangePasswordRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
-use App\Mail\PasswordResetMail;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use App\Services\UserService;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AccountController extends Controller
 {
+    protected UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -48,13 +53,7 @@ class AccountController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
-        User::create([
-            'username' => $request->username,
-            'password_hash' => Hash::make($request->password),
-            'nama_lengkap' => $request->nama_lengkap,
-            'email' => $request->email,
-            'role_id' => $request->role_ids[0] ?? null,
-        ]);
+        $this->userService->create($request->all());
 
         return redirect()->back()->with('success', 'User berhasil ditambahkan.');
     }
@@ -64,11 +63,7 @@ class AccountController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
-        $user->update([
-            'nama_lengkap' => $request->nama_lengkap,
-            'email' => $request->email,
-            'role_id' => $request->role_ids[0] ?? null,
-        ]);
+        $this->userService->update($user, $request->all());
 
         return redirect()->back()->with('success', 'Profil user berhasil diupdate.');
     }
@@ -78,18 +73,7 @@ class AccountController extends Controller
      */
     public function changePassword(ChangePasswordRequest $request, User $user)
     {
-        $user->update([
-            'password_hash' => Hash::make($request->new_password),
-        ]);
-
-        // Notify user via email
-        if ($user->email) {
-            Mail::to($user->email)->send(new PasswordResetMail([
-                'recipient_name' => $user->nama_lengkap,
-                'new_password' => $request->new_password,
-                'action_link' => config('app.url').'/login',
-            ]));
-        }
+        $this->userService->changePassword($user, $request->new_password);
 
         return redirect()->back()->with('success', 'Password user berhasil diubah.');
     }
@@ -103,7 +87,7 @@ class AccountController extends Controller
             abort(403, 'Anda tidak dapat menghapus akun sendiri.');
         }
 
-        $user->delete();
+        $this->userService->delete($user);
 
         return redirect()->back()->with('success', 'User berhasil dihapus.');
     }

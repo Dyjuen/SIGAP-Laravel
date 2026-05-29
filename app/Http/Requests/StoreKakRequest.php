@@ -23,8 +23,53 @@ class StoreKakRequest extends FormRequest
      */
     public function rules(): array
     {
+        if ($this->is('api/*')) {
+            return [
+                // Main KAK Data (Flat for API)
+                'nama_kegiatan' => 'required|string|min:5|max:255',
+                'deskripsi_kegiatan' => 'required|string|min:5',
+                'metode_pelaksanaan' => 'required|string|min:5',
+                'tanggal_mulai' => 'required|date',
+                'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
+                'lokasi' => 'required|string|max:255',
+                'tipe_kegiatan_id' => 'required|exists:m_tipe_kegiatan,tipe_kegiatan_id',
+                'sasaran_utama' => 'required|string|max:255',
+
+                // Child: Manfaat
+                'manfaat' => 'required|array|min:1',
+                'manfaat.*.value' => 'required|string|max:255',
+
+                // Child: Tahapan Pelaksanaan
+                'tahapan' => 'required_without:tahapan_pelaksanaan|array|min:1',
+                'tahapan.*.nama_tahapan' => 'required_with:tahapan|string|max:255',
+                'tahapan_pelaksanaan' => 'required_without:tahapan|array|min:1',
+                'tahapan_pelaksanaan.*.nama_tahapan' => 'required_with:tahapan_pelaksanaan|string|max:255',
+                'tahapan_pelaksanaan.*.urutan' => 'nullable|integer',
+
+                // Child: Indikator Kinerja
+                'indikator_kinerja' => 'nullable|array',
+                'indikator_kinerja.*.bulan_indikator' => 'nullable|string',
+                'indikator_kinerja.*.deskripsi_target' => 'required_with:indikator_kinerja|string|max:255',
+                'indikator_kinerja.*.persentase_target' => 'nullable|numeric|min:0|max:100',
+
+                // Child: Target IKU
+                'target_iku' => 'nullable|array',
+                'target_iku.*.iku_id' => 'required_with:target_iku|integer|exists:m_iku,iku_id',
+                'target_iku.*.target' => 'required_with:target_iku|max:255',
+                'target_iku.*.satuan_id' => 'nullable|integer|exists:m_satuan,satuan_id',
+
+                // Child: RAB
+                'rab' => 'required|array|min:1',
+                'rab.*.uraian' => 'required|string|max:255',
+                'rab.*.volume1' => 'required|numeric|min:0',
+                'rab.*.satuan1_id' => 'nullable|integer|exists:m_satuan,satuan_id',
+                'rab.*.harga_satuan' => 'required|numeric|min:0',
+                'rab.*.kategori_belanja_id' => 'required|integer|exists:m_kategori_belanja,kategori_belanja_id',
+            ];
+        }
+
         return [
-            // Main KAK Data
+            // Main KAK Data (Nested for Web)
             'kak.nama_kegiatan' => 'required|string|min:5|max:255',
             'kak.deskripsi_kegiatan' => 'required|string|min:5',
             'kak.metode_pelaksanaan' => 'required|string|min:5',

@@ -3,17 +3,29 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\KAK;
-use App\Models\Kegiatan;
-use App\Models\KegiatanApproval;
 use App\Models\LogAktivitas;
 use App\Models\Panduan;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use App\Services\UserService;
+use App\Services\PanduanService;
+use App\Services\DashboardService;
 
 class AdminApiController extends Controller
 {
+    protected UserService $userService;
+    protected PanduanService $panduanService;
+    protected DashboardService $dashboardService;
+
+    public function __construct(
+        UserService $userService,
+        PanduanService $panduanService,
+        DashboardService $dashboardService
+    ) {
+        $this->userService = $userService;
+        $this->panduanService = $panduanService;
+        $this->dashboardService = $dashboardService;
+    }
     private function isAdmin(Request $request): bool
     {
         return $request->user()?->role_id === 1;
@@ -29,21 +41,11 @@ class AdminApiController extends Controller
      */
     public function getStats(Request $request)
     {
-        $totalKak = KAK::count();
-        $totalKegiatan = Kegiatan::count();
-        $pendingApprovals = KegiatanApproval::where('status', 'Aktif')->count();
-        $totalUsers = User::count();
+        $stats = $this->dashboardService->getDirekturStats();
+        $stats['total_users'] = User::count();
+        $stats['active_users'] = User::whereNull('deleted_at')->count();
 
-        // Active users (users who are not soft deleted)
-        $activeUsers = User::whereNull('deleted_at')->count();
-
-        return response()->json([
-            'total_kak' => $totalKak,
-            'total_kegiatan' => $totalKegiatan,
-            'pending_approvals' => $pendingApprovals,
-            'total_users' => $totalUsers,
-            'active_users' => $activeUsers,
-        ]);
+        return response()->json($stats);
     }
 
     /**
@@ -88,13 +90,7 @@ class AdminApiController extends Controller
             'role_id' => 'required|integer',
         ]);
 
-        $user = User::create([
-            'username' => $request->username,
-            'password_hash' => Hash::make($request->password),
-            'nama_lengkap' => $request->nama_lengkap,
-            'email' => $request->email,
-            'role_id' => $request->role_id,
-        ]);
+        $user = $this->userService->create($request->all());
 
         return response()->json([
             'message' => 'User berhasil ditambahkan.',
@@ -126,7 +122,7 @@ class AdminApiController extends Controller
             ], 403);
         }
 
-        $user->delete();
+        $this->userService->delete($user);
 
         return response()->json([
             'message' => 'User berhasil dihapus.',
@@ -193,12 +189,14 @@ class AdminApiController extends Controller
             'path' => 'required|string',
         ]);
 
-        $p = Panduan::create([
+        $data = [
             'judul_panduan' => $request->title,
             'tipe_media' => $request->type,
             'path_media' => $request->path,
             'target_role_id' => null,
-        ]);
+        ];
+
+        $p = $this->panduanService->store($data);
 
         return response()->json([
             'message' => 'Panduan berhasil ditambahkan.',
@@ -221,7 +219,7 @@ class AdminApiController extends Controller
         }
 
         $p = Panduan::findOrFail($id);
-        $p->delete();
+        $this->panduanService->delete($p);
 
         return response()->json(['message' => 'Panduan berhasil dihapus.']);
     }

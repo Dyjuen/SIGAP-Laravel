@@ -9,6 +9,7 @@ use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLogStatus;
 use App\Models\PencairanDana;
+use App\Services\PencairanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,8 +18,16 @@ use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
 
+
 class PencairanController extends Controller
 {
+    protected PencairanService $pencairanService;
+
+    public function __construct(PencairanService $pencairanService)
+    {
+        $this->pencairanService = $pencairanService;
+    }
+
     /**
      * Display the Bendahara's pencairan list page.
      * Only shows kegiatan where Bendahara-Cair approval is Aktif.
@@ -33,8 +42,6 @@ class PencairanController extends Controller
         }
 
         // Build query with aggregate sums to avoid N+1.
-        // withSum('pencairanDana', ...) adds a disbursement total per kegiatan in 1 extra query.
-        // loadSum on kak.anggaran adds a budget total per KAK in 1 extra query.
         $kegiatans = Kegiatan::with([
             'kak.pengusul',
             'kak.mataAnggaran',
@@ -91,7 +98,7 @@ class PencairanController extends Controller
             abort(403, 'Anda tidak memiliki akses ke kegiatan ini.');
         }
 
-        $summary = $this->computeSisaDana($kegiatan);
+        $summary = $this->pencairanService->computeSisaDana($kegiatan);
 
         return response()->json($summary);
     }
@@ -101,37 +108,32 @@ class PencairanController extends Controller
      */
     public function store(StorePencairanRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
-        // Check Bendahara-Cair approval is Aktif
-        $bendaharaCairApproval = $kegiatan->approvals()
-            ->where('approval_level', 'Bendahara-Cair')
-            ->where('status', 'Aktif')
-            ->first();
+        try {
+            $nominalPencairan = (float) $request->nominal_pencairan;
 
-        if (! $bendaharaCairApproval) {
+            $this->pencairanService->store(
+                $kegiatan,
+                $nominalPencairan,
+                $request->keterangan,
+                $request->user()
+            );
+
+            return redirect()->back()->with('success', 'Pencairan dana berhasil dicatat.');
+        } catch (\App\Exceptions\PencairanException $e) {
+            // Handle error response specifically for nominal validation
+            if ($e->getMessage() === 'Nominal pencairan melebihi sisa dana yang tersedia.') {
+                return redirect()->back()->withErrors([
+                    'nominal_pencairan' => $e->getMessage(),
+                ]);
+            }
             return redirect()->back()->withErrors([
-                'message' => 'Pencairan belum dapat dilakukan. Status persetujuan Bendahara-Cair belum Aktif.',
+                'message' => $e->getMessage(),
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors([
+                'message' => 'Gagal mencatat pencairan: '.$e->getMessage(),
             ]);
         }
-
-        $nominalPencairan = (float) $request->nominal_pencairan;
-
-        // Validate nominal does not exceed sisa dana
-        $summary = $this->computeSisaDana($kegiatan);
-        if ($nominalPencairan > $summary['sisa_dana']) {
-            return redirect()->back()->withErrors([
-                'nominal_pencairan' => 'Nominal pencairan melebihi sisa dana yang tersedia.',
-            ]);
-        }
-
-        $pencairan = PencairanDana::create([
-            'kegiatan_id' => $kegiatan->kegiatan_id,
-            'jumlah_dicairkan' => $nominalPencairan,
-            'keterangan' => $request->keterangan,
-            'created_by' => $request->user()->user_id,
-            'tanggal_pencairan' => now()->toDateString(),
-        ]);
-
-        return redirect()->back()->with('success', 'Pencairan dana berhasil dicatat.');
     }
 
     /**
@@ -147,66 +149,11 @@ class PencairanController extends Controller
             abort(403, 'Hanya Bendahara yang dapat menyelesaikan proses pencairan.');
         }
 
-        // Find the Bendahara-Cair step — must be Aktif
-        $bendaharaCairApproval = $kegiatan->approvals()
-            ->where('approval_level', 'Bendahara-Cair')
-            ->where('status', 'Aktif')
-            ->first();
-
-        if (! $bendaharaCairApproval) {
-            return redirect()->back()->withErrors([
-                'message' => 'Proses pencairan belum aktif atau sudah diselesaikan.',
-            ]);
-        }
-
-        DB::beginTransaction();
-
         try {
-            $kak = $kegiatan->kak;
-            $oldStatus = $kak->status_id;
-
-            // 1. Mark Bendahara-Cair as Disetujui
-            $bendaharaCairApproval->update([
-                'status' => 'Disetujui',
-                'approver_user_id' => $user->user_id,
-                'catatan' => 'Proses pencairan dana telah selesai.',
-            ]);
-
-            // 2. Activate Bendahara-LPJ
-            $bendaharaLpjApproval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-LPJ')
-                ->first();
-
-            if ($bendaharaLpjApproval) {
-                $bendaharaLpjApproval->update(['status' => 'Aktif']);
-            }
-
-            // 3. Update KAK status to 10 (Menunggu LPJ)
-            $newStatus = 10;
-            $kak->update(['status_id' => $newStatus]);
-
-            // 4. Log the status change
-            KegiatanLogStatus::create([
-                'kegiatan_id' => $kegiatan->kegiatan_id,
-                'status_id_lama' => $oldStatus,
-                'status_id_baru' => $newStatus,
-                'actor_user_id' => $user->user_id,
-                'catatan' => 'Proses pencairan selesai, tahap LPJ dimulai.',
-            ]);
-
-            // Calculate total funds released
-            $totalCair = $kegiatan->pencairanDana()->sum('jumlah_dicairkan');
-
-            // Send Email to Pengusul
-            $this->sendFundsReleasedMail($kegiatan, $totalCair);
-
-            DB::commit();
+            $this->pencairanService->selesai($kegiatan, $user);
 
             return redirect()->back()->with('success', 'Proses pencairan berhasil diselesaikan dan tahap LPJ telah dimulai.');
-
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return redirect()->back()->withErrors([
                 'message' => 'Gagal menyelesaikan proses pencairan: '.$e->getMessage(),
             ]);
@@ -237,40 +184,5 @@ class PencairanController extends Controller
         }
 
         return false;
-    }
-
-    /**
-     * Compute the financial summary for a kegiatan.
-     */
-    private function computeSisaDana(Kegiatan $kegiatan): array
-    {
-        $totalAnggaran = KAKAnggaran::where('kak_id', $kegiatan->kak_id)
-            ->sum('jumlah_diusulkan');
-
-        $totalDicairkan = PencairanDana::where('kegiatan_id', $kegiatan->kegiatan_id)
-            ->sum('jumlah_dicairkan');
-
-        return [
-            'total_anggaran_disetujui' => (float) $totalAnggaran,
-            'total_dicairkan' => (float) $totalDicairkan,
-            'sisa_dana' => (float) ($totalAnggaran - $totalDicairkan),
-        ];
-    }
-
-    private function sendFundsReleasedMail(Kegiatan $kegiatan, float $jumlah)
-    {
-        $kak = $kegiatan->kak;
-        $pengusul = $kak->pengusul;
-
-        if ($pengusul && $pengusul->email) {
-            $data = [
-                'recipient_name' => $pengusul->nama_lengkap,
-                'nama_kegiatan' => $kak->nama_kegiatan,
-                'jumlah' => $jumlah,
-                'action_link' => config('app.url')."/kegiatan/{$kegiatan->kegiatan_id}",
-            ];
-
-            Mail::to($pengusul->email)->send(new FundsReleasedMail($data));
-        }
     }
 }

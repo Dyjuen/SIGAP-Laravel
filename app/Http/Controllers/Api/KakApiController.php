@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\KAKApproval;
@@ -11,12 +12,29 @@ use App\Models\KAKManfaat;
 use App\Models\KAKTahapan;
 use App\Models\KAKTarget;
 use App\Models\KAKIku;
+use App\Services\KakService;
+use App\Services\KakWorkflowService;
+use App\Exceptions\KakWorkflowException;
+use App\Http\Requests\StoreKakRequest;
+use App\Http\Requests\UpdateKakRequest;
+use App\Http\Requests\KakWorkflow\ApproveKakRequest;
+use App\Http\Requests\KakWorkflow\RejectKakRequest;
+use App\Http\Requests\KakWorkflow\ReviseKakRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class KakApiController extends Controller
 {
+    protected KakWorkflowService $kakWorkflowService;
+    protected KakService $kakService;
+
+    public function __construct(KakWorkflowService $kakWorkflowService, KakService $kakService)
+    {
+        $this->kakWorkflowService = $kakWorkflowService;
+        $this->kakService = $kakService;
+    }
+
     /**
      * List KAKs for the current user (role-aware).
      */
@@ -185,133 +203,9 @@ class KakApiController extends Controller
     /**
      * Create a new KAK (Pengusul only).
      */
-    public function store(Request $request)
+    public function store(StoreKakRequest $request)
     {
-        $user = $request->user();
-
-        if ($user->role_id !== 3) {
-            return response()->json(['message' => 'Hanya Pengusul yang dapat membuat KAK.'], 403);
-        }
-
-        $request->validate([
-            'nama_kegiatan' => 'required|string|min:5|max:255',
-            'deskripsi_kegiatan' => 'required|string|min:5',
-            'metode_pelaksanaan' => 'required|string|min:5',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'lokasi' => 'required|string|max:255',
-            'tipe_kegiatan_id' => 'required|exists:m_tipe_kegiatan,tipe_kegiatan_id',
-            'sasaran_utama' => 'required|string|max:255',
-            'manfaat' => 'required|array|min:1',
-            'manfaat.*.value' => 'required|string',
-            'tahapan_pelaksanaan' => 'required|array|min:1',
-            'tahapan_pelaksanaan.*.nama_tahapan' => 'required|string',
-            'indikator_kinerja' => 'nullable|array',
-            'indikator_kinerja.*.deskripsi_target' => 'required_with:indikator_kinerja|string',
-            'indikator_kinerja.*.bulan_indikator' => 'nullable|string',
-            'indikator_kinerja.*.persentase_target' => 'nullable|numeric',
-            'target_iku' => 'nullable|array',
-            'target_iku.*.iku_id' => 'required_with:target_iku|integer|exists:m_iku,iku_id',
-            'target_iku.*.target' => 'required_with:target_iku|string',
-            'target_iku.*.satuan_id' => 'nullable|integer|exists:m_satuan,satuan_id',
-            'rab' => 'required|array|min:1',
-            'rab.*.uraian' => 'required|string',
-            'rab.*.volume1' => 'required|numeric|min:0',
-            'rab.*.harga_satuan' => 'required|numeric|min:0',
-            'rab.*.kategori_belanja_id' => 'required|integer',
-        ]);
-
-        $kak = DB::transaction(function () use ($request, $user) {
-            $start = Carbon::parse($request->tanggal_mulai);
-            $end = Carbon::parse($request->tanggal_selesai);
-            $diffDays = $start->diffInDays($end) + 1;
-            if ($diffDays < 30) {
-                $kurunWaktu = "{$diffDays} Hari";
-            } else {
-                $months = (int) floor($diffDays / 30);
-                $days = $diffDays % 30;
-                $kurunWaktu = $days > 0 ? "{$months} Bulan {$days} Hari" : "{$months} Bulan";
-            }
-
-            $kak = KAK::create([
-                'nama_kegiatan' => $request->nama_kegiatan,
-                'deskripsi_kegiatan' => $request->deskripsi_kegiatan,
-                'metode_pelaksanaan' => $request->metode_pelaksanaan,
-                'tanggal_mulai' => $request->tanggal_mulai,
-                'tanggal_selesai' => $request->tanggal_selesai,
-                'kurun_waktu_pelaksanaan' => $kurunWaktu,
-                'lokasi' => $request->lokasi,
-                'tipe_kegiatan_id' => $request->tipe_kegiatan_id,
-                'sasaran_utama' => $request->sasaran_utama,
-                'pengusul_user_id' => $user->user_id,
-                'status_id' => 1, // Draft
-            ]);
-
-            // Manfaat
-            foreach ($request->manfaat as $m) {
-                if (! empty($m['value'])) {
-                    KAKManfaat::create(['kak_id' => $kak->kak_id, 'manfaat' => $m['value']]);
-                }
-            }
-
-            // Tahapan
-            foreach ($request->tahapan_pelaksanaan as $i => $t) {
-                KAKTahapan::create([
-                    'kak_id' => $kak->kak_id,
-                    'nama_tahapan' => $t['nama_tahapan'],
-                    'urutan' => $i + 1,
-                ]);
-            }
-
-            // Indikator Kinerja
-            if ($request->has('indikator_kinerja') && is_array($request->indikator_kinerja)) {
-                foreach ($request->indikator_kinerja as $i) {
-                    if (!empty($i['deskripsi_target'])) {
-                        KAKTarget::create([
-                            'kak_id' => $kak->kak_id,
-                            'bulan_indikator' => $i['bulan_indikator'] ?? null,
-                            'deskripsi_target' => $i['deskripsi_target'],
-                            'persentase_target' => $i['persentase_target'] ?? null,
-                        ]);
-                    }
-                }
-            }
-
-            // Target IKU
-            if ($request->has('target_iku') && is_array($request->target_iku)) {
-                foreach ($request->target_iku as $ti) {
-                    if (!empty($ti['iku_id']) && !empty($ti['target'])) {
-                        KAKIku::create([
-                            'kak_id' => $kak->kak_id,
-                            'iku_id' => $ti['iku_id'],
-                            'target' => $ti['target'],
-                            'satuan_id' => $ti['satuan_id'] ?? null,
-                        ]);
-                    }
-                }
-            }
-
-            // RAB
-            foreach ($request->rab as $r) {
-                $vol1 = $r['volume1'];
-                $vol2 = $r['volume2'] ?? 1;
-                $vol3 = $r['volume3'] ?? 1;
-                $harga = $r['harga_satuan'];
-                KAKAnggaran::create([
-                    'kak_id' => $kak->kak_id,
-                    'uraian' => $r['uraian'],
-                    'volume1' => $vol1,
-                    'volume2' => $r['volume2'] ?? null,
-                    'volume3' => $r['volume3'] ?? null,
-                    'harga_satuan' => $harga,
-                    'jumlah_diusulkan' => $vol1 * $vol2 * $vol3 * $harga,
-                    'kategori_belanja_id' => $r['kategori_belanja_id'],
-                    'satuan1_id' => $r['satuan1_id'] ?? null,
-                ]);
-            }
-
-            return $kak;
-        });
+        $kak = $this->kakService->create($request->all(), $request->user());
 
         return response()->json([
             'message' => 'KAK berhasil dibuat.',
@@ -322,139 +216,10 @@ class KakApiController extends Controller
     /**
      * Update an existing KAK (Draft or Revisi only, Pengusul owner only).
      */
-    public function update(Request $request, $id)
+    public function update(UpdateKakRequest $request, $id)
     {
-        $user = $request->user();
         $kak = KAK::findOrFail($id);
-
-        if ($user->role_id !== 3 || $kak->pengusul_user_id !== $user->user_id) {
-            return response()->json(['message' => 'Akses ditolak.'], 403);
-        }
-
-        if (! in_array($kak->status_id, [1, 5])) {
-            return response()->json(['message' => 'KAK hanya dapat diubah jika berstatus Draft atau Revisi.'], 422);
-        }
-
-        $request->validate([
-            'nama_kegiatan' => 'required|string|min:5|max:255',
-            'deskripsi_kegiatan' => 'required|string|min:5',
-            'metode_pelaksanaan' => 'required|string|min:5',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'lokasi' => 'required|string|max:255',
-            'tipe_kegiatan_id' => 'required|exists:m_tipe_kegiatan,tipe_kegiatan_id',
-            'sasaran_utama' => 'required|string|max:255',
-            'manfaat' => 'required|array|min:1',
-            'manfaat.*.value' => 'required|string',
-            'tahapan_pelaksanaan' => 'required|array|min:1',
-            'tahapan_pelaksanaan.*.nama_tahapan' => 'required|string',
-            'indikator_kinerja' => 'nullable|array',
-            'indikator_kinerja.*.deskripsi_target' => 'required_with:indikator_kinerja|string',
-            'indikator_kinerja.*.bulan_indikator' => 'nullable|string',
-            'indikator_kinerja.*.persentase_target' => 'nullable|numeric',
-            'target_iku' => 'nullable|array',
-            'target_iku.*.iku_id' => 'required_with:target_iku|integer|exists:m_iku,iku_id',
-            'target_iku.*.target' => 'required_with:target_iku|string',
-            'target_iku.*.satuan_id' => 'nullable|integer|exists:m_satuan,satuan_id',
-            'rab' => 'required|array|min:1',
-            'rab.*.uraian' => 'required|string',
-            'rab.*.volume1' => 'required|numeric|min:0',
-            'rab.*.harga_satuan' => 'required|numeric|min:0',
-            'rab.*.kategori_belanja_id' => 'required|integer',
-        ]);
-
-        DB::transaction(function () use ($request, $kak) {
-            $start = Carbon::parse($request->tanggal_mulai);
-            $end = Carbon::parse($request->tanggal_selesai);
-            $diffDays = $start->diffInDays($end) + 1;
-            if ($diffDays < 30) {
-                $kurunWaktu = "{$diffDays} Hari";
-            } else {
-                $months = (int) floor($diffDays / 30);
-                $days = $diffDays % 30;
-                $kurunWaktu = $days > 0 ? "{$months} Bulan {$days} Hari" : "{$months} Bulan";
-            }
-
-            $kak->update([
-                'nama_kegiatan' => $request->nama_kegiatan,
-                'deskripsi_kegiatan' => $request->deskripsi_kegiatan,
-                'metode_pelaksanaan' => $request->metode_pelaksanaan,
-                'tanggal_mulai' => $request->tanggal_mulai,
-                'tanggal_selesai' => $request->tanggal_selesai,
-                'kurun_waktu_pelaksanaan' => $kurunWaktu,
-                'lokasi' => $request->lokasi,
-                'tipe_kegiatan_id' => $request->tipe_kegiatan_id,
-                'sasaran_utama' => $request->sasaran_utama,
-            ]);
-
-            // Delete and recreate Manfaat
-            $kak->manfaat()->delete();
-            foreach ($request->manfaat as $m) {
-                if (! empty($m['value'])) {
-                    KAKManfaat::create(['kak_id' => $kak->kak_id, 'manfaat' => $m['value']]);
-                }
-            }
-
-            // Delete and recreate Tahapan
-            $kak->tahapan()->delete();
-            foreach ($request->tahapan_pelaksanaan as $i => $t) {
-                KAKTahapan::create([
-                    'kak_id' => $kak->kak_id,
-                    'nama_tahapan' => $t['nama_tahapan'],
-                    'urutan' => $i + 1,
-                ]);
-            }
-
-            // Delete and recreate Indikator Kinerja
-            $kak->targets()->delete();
-            if ($request->has('indikator_kinerja') && is_array($request->indikator_kinerja)) {
-                foreach ($request->indikator_kinerja as $i) {
-                    if (!empty($i['deskripsi_target'])) {
-                        KAKTarget::create([
-                            'kak_id' => $kak->kak_id,
-                            'bulan_indikator' => $i['bulan_indikator'] ?? null,
-                            'deskripsi_target' => $i['deskripsi_target'],
-                            'persentase_target' => $i['persentase_target'] ?? null,
-                        ]);
-                    }
-                }
-            }
-
-            // Delete and recreate Target IKU
-            $kak->ikus()->delete();
-            if ($request->has('target_iku') && is_array($request->target_iku)) {
-                foreach ($request->target_iku as $ti) {
-                    if (!empty($ti['iku_id']) && !empty($ti['target'])) {
-                        KAKIku::create([
-                            'kak_id' => $kak->kak_id,
-                            'iku_id' => $ti['iku_id'],
-                            'target' => $ti['target'],
-                            'satuan_id' => $ti['satuan_id'] ?? null,
-                        ]);
-                    }
-                }
-            }
-
-            // Delete and recreate RAB
-            $kak->anggaran()->delete();
-            foreach ($request->rab as $r) {
-                $vol1 = $r['volume1'];
-                $vol2 = $r['volume2'] ?? 1;
-                $vol3 = $r['volume3'] ?? 1;
-                $harga = $r['harga_satuan'];
-                KAKAnggaran::create([
-                    'kak_id' => $kak->kak_id,
-                    'uraian' => $r['uraian'],
-                    'volume1' => $vol1,
-                    'volume2' => $r['volume2'] ?? null,
-                    'volume3' => $r['volume3'] ?? null,
-                    'harga_satuan' => $harga,
-                    'jumlah_diusulkan' => $vol1 * $vol2 * $vol3 * $harga,
-                    'kategori_belanja_id' => $r['kategori_belanja_id'],
-                    'satuan1_id' => $r['satuan1_id'] ?? null,
-                ]);
-            }
-        });
+        $this->kakService->update($kak, $request->all());
 
         return response()->json(['message' => 'KAK berhasil diperbarui.']);
     }
@@ -471,25 +236,12 @@ class KakApiController extends Controller
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
-        if (! in_array($kak->status_id, [1, 5])) {
-            return response()->json(['message' => 'KAK hanya dapat diajukan jika berstatus Draft atau Revisi.'], 422);
+        try {
+            $this->kakWorkflowService->submit($kak, $user);
+            return response()->json(['message' => 'KAK berhasil diajukan untuk verifikasi.']);
+        } catch (KakWorkflowException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        DB::transaction(function () use ($kak, $user) {
-            $old = $kak->status_id;
-            $kak->status_id = 2;
-            $kak->save();
-
-            KAKLogStatus::create([
-                'kak_id' => $kak->kak_id,
-                'status_id_lama' => $old,
-                'status_id_baru' => 2,
-                'actor_user_id' => $user->user_id,
-                'created_at' => now(),
-            ]);
-        });
-
-        return response()->json(['message' => 'KAK berhasil diajukan untuk verifikasi.']);
     }
 
     /**
@@ -508,7 +260,7 @@ class KakApiController extends Controller
             return response()->json(['message' => 'KAK hanya dapat dihapus jika berstatus Draft atau Ditolak.'], 422);
         }
 
-        $kak->delete();
+        $this->kakService->delete($kak);
 
         return response()->json(['message' => 'KAK berhasil dihapus.']);
     }
@@ -516,160 +268,77 @@ class KakApiController extends Controller
     /**
      * Approve KAK (Verifikator only, Review → Approved).
      */
-    public function approve(Request $request, $id)
+    public function approve(ApproveKakRequest $request, $id)
     {
         $user = $request->user();
         $kak = KAK::findOrFail($id);
 
-        // Check if user is Verifikator (role_id 2)
-        if ($user->role_id !== 2) {
-            return response()->json(['message' => 'Hanya Verifikator yang dapat menyetujui KAK.'], 403);
+        $this->authorizeVerifikator($kak, $user);
+
+        try {
+            $this->kakWorkflowService->approve($kak, $request->validated(), $user);
+            return response()->json(['message' => 'KAK berhasil disetujui.']);
+        } catch (KakWorkflowException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        if ($kak->status_id !== 2) {
-            return response()->json(['message' => 'Hanya KAK dalam status Review yang dapat disetujui.'], 422);
-        }
-
-        DB::transaction(function () use ($kak, $user) {
-            $kak->status_id = 3; // Approved
-            $kak->save();
-
-            KAKLogStatus::create([
-                'kak_id' => $kak->kak_id,
-                'status_id_lama' => 2,
-                'status_id_baru' => 3,
-                'actor_user_id' => $user->user_id,
-                'created_at' => now(),
-            ]);
-
-            KAKApproval::create([
-                'kak_id' => $kak->kak_id,
-                'approver_user_id' => $user->user_id,
-                'status' => 'Disetujui',
-                'tanggal_telaah' => now(),
-                'catatan' => null,
-            ]);
-        });
-
-        return response()->json(['message' => 'KAK berhasil disetujui.']);
     }
 
     /**
      * Reject KAK (Verifikator only, Review → Rejected).
      */
-    public function reject(Request $request, $id)
+    public function reject(RejectKakRequest $request, $id)
     {
         $user = $request->user();
         $kak = KAK::findOrFail($id);
 
-        // Check if user is Verifikator (role_id 2)
-        if ($user->role_id !== 2) {
-            return response()->json(['message' => 'Hanya Verifikator yang dapat menolak KAK.'], 403);
+        $this->authorizeVerifikator($kak, $user);
+
+        try {
+            $this->kakWorkflowService->reject($kak, $request->validated('catatan'), $user);
+            return response()->json(['message' => 'KAK telah ditolak.']);
+        } catch (KakWorkflowException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
-
-        if ($kak->status_id !== 2) {
-            return response()->json(['message' => 'Hanya KAK dalam status Review yang dapat ditolak.'], 422);
-        }
-
-        $request->validate([
-            'catatan' => 'required|string|min:5',
-        ]);
-
-        DB::transaction(function () use ($request, $kak, $user) {
-            $kak->status_id = 4; // Rejected
-            $kak->save();
-
-            KAKLogStatus::create([
-                'kak_id' => $kak->kak_id,
-                'status_id_lama' => 2,
-                'status_id_baru' => 4,
-                'actor_user_id' => $user->user_id,
-                'created_at' => now(),
-            ]);
-
-            KAKApproval::create([
-                'kak_id' => $kak->kak_id,
-                'approver_user_id' => $user->user_id,
-                'status' => 'Ditolak',
-                'tanggal_telaah' => now(),
-                'catatan' => $request->catatan,
-            ]);
-        });
-
-        return response()->json(['message' => 'KAK telah ditolak.']);
     }
 
     /**
      * Request Revision (Verifikator only, Review → Revision).
      */
-    public function requestRevision(Request $request, $id)
+    public function requestRevision(ReviseKakRequest $request, $id)
     {
         $user = $request->user();
         $kak = KAK::findOrFail($id);
 
-        // Check if user is Verifikator (role_id 2)
+        $this->authorizeVerifikator($kak, $user);
+
+        try {
+            $this->kakWorkflowService->revise($kak, $request->validated(), $user);
+            return response()->json(['message' => 'Pengusul diminta untuk merevisi KAK.']);
+        } catch (KakWorkflowException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Authorize Verifikator check for API.
+     */
+    private function authorizeVerifikator(KAK $kak, User $user)
+    {
         if ($user->role_id !== 2) {
-            return response()->json(['message' => 'Hanya Verifikator yang dapat meminta revisi.'], 403);
+            abort(403, 'Hanya Verifikator yang dapat memverifikasi KAK.');
         }
 
-        if ($kak->status_id !== 2) {
-            return response()->json(['message' => 'Hanya KAK dalam status Review yang dapat diminta revisi.'], 422);
-        }
-
-        $request->validate([
-            'catatan' => 'nullable|string',
-            'catatan_kak' => 'nullable|array',
-        ]);
-
-        DB::transaction(function () use ($request, $kak, $user) {
-            $kak->status_id = 5; // Revision
-            
-            // Clear previous revision notes first
-            $kak->catatan_nama_kegiatan = null;
-            $kak->catatan_deskripsi_kegiatan = null;
-            $kak->catatan_tipe_kegiatan = null;
-            $kak->catatan_sasaran_utama = null;
-            $kak->catatan_metode_pelaksanaan = null;
-            $kak->catatan_lokasi = null;
-            $kak->catatan_tanggal = null;
-
-            // Apply new revision notes
-            $catatanKak = $request->input('catatan_kak', []);
-            $kakFieldsMap = [
-                'nama_kegiatan' => 'catatan_nama_kegiatan',
-                'deskripsi_kegiatan' => 'catatan_deskripsi_kegiatan',
-                'tipe_kegiatan_id' => 'catatan_tipe_kegiatan',
-                'sasaran_utama' => 'catatan_sasaran_utama',
-                'metode_pelaksanaan' => 'catatan_metode_pelaksanaan',
-                'lokasi' => 'catatan_lokasi',
-                'tanggal' => 'catatan_tanggal',
-            ];
-
-            foreach ($kakFieldsMap as $frontendKey => $dbCol) {
-                if (isset($catatanKak[$frontendKey]) && ! empty($catatanKak[$frontendKey])) {
-                    $kak->$dbCol = $catatanKak[$frontendKey];
-                }
+        if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
+            $allowedTipeId = (int) $matches[1];
+            if ($kak->tipe_kegiatan_id !== $allowedTipeId) {
+                abort(403, 'Anda hanya dapat memverifikasi KAK dengan Tipe Kegiatan ' . $allowedTipeId);
             }
+        } else {
+            abort(403, 'Username verifikator tidak valid untuk pemetaan tipe kegiatan.');
+        }
 
-            $kak->save();
-
-            KAKLogStatus::create([
-                'kak_id' => $kak->kak_id,
-                'status_id_lama' => 2,
-                'status_id_baru' => 5,
-                'actor_user_id' => $user->user_id,
-                'created_at' => now(),
-            ]);
-
-            KAKApproval::create([
-                'kak_id' => $kak->kak_id,
-                'approver_user_id' => $user->user_id,
-                'status' => 'Revisi Diminta',
-                'tanggal_telaah' => now(),
-                'catatan' => $request->catatan,
-            ]);
-        });
-
-        return response()->json(['message' => 'Pengusul diminta untuk merevisi KAK.']);
+        if ($kak->pengusul_user_id === $user->user_id) {
+            abort(403, 'Verifikator tidak dapat memverifikasi KAK sendiri.');
+        }
     }
 }
