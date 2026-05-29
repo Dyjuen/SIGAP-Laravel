@@ -7,8 +7,10 @@ use App\Events\KakSubmitted;
 use App\Events\KakApproved;
 use App\Events\KakRejected;
 use App\Events\KakRevised;
+use App\Events\KegiatanApproved;
 use App\Events\UserPasswordReset;
 use App\Listeners\SendKakWorkflowEmail;
+use App\Listeners\SendKegiatanEmail;
 use App\Listeners\SendPasswordResetEmail;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -40,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(\App\Events\LpjApproved::class, \App\Listeners\SendLpjEmail::class);
         Event::listen(\App\Events\LpjCompleted::class, \App\Listeners\SendLpjEmail::class);
         Event::listen(\App\Events\PencairanSelesai::class, \App\Listeners\SendPencairanEmail::class);
+        Event::listen(KegiatanApproved::class, SendKegiatanEmail::class);
     }
 }
 
