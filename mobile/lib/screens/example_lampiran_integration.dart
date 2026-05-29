@@ -34,8 +34,10 @@ class _ExampleKakDetailWithLampiranState
   }
 
   void _loadLampiran() {
-    final lampiranProvider =
-        Provider.of<LampiranProvider>(context, listen: false);
+    final lampiranProvider = Provider.of<LampiranProvider>(
+      context,
+      listen: false,
+    );
     lampiranProvider.fetchLampiran(widget.anggaranId);
   }
 
@@ -78,8 +80,7 @@ class _ExampleKakDetailWithLampiranState
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(provider.errorMessage ?? 'Gagal menghapus lampiran'),
+          content: Text(provider.errorMessage ?? 'Gagal menghapus lampiran'),
           backgroundColor: Colors.red,
         ),
       );
@@ -108,8 +109,8 @@ class _ExampleKakDetailWithLampiranState
                   Text(
                     'Lampiran Dokumen',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   ElevatedButton.icon(
                     onPressed: _openUploadPage,
@@ -145,7 +146,7 @@ class _ExampleKakDetailWithLampiranState
 }
 
 // ============ USAGE INSTRUCTIONS ============
-// 
+//
 // 1. ADD TO YOUR EXISTING KAK/KEGIATAN DETAIL PAGE:
 //    - Import the providers and widgets at the top
 //    - Add the Lampiran section in your detail page

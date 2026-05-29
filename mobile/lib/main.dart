@@ -7,11 +7,13 @@ import 'providers/auth_provider.dart';
 import 'providers/monitoring_provider.dart';
 import 'providers/kak_detail_provider.dart';
 import 'providers/lampiran_provider.dart';
+import 'providers/lpj_provider.dart';
 import 'services/dashboard_service.dart';
 import 'services/monitoring_service.dart';
 import 'services/kak_service.dart';
 import 'services/master_data_service.dart';
 import 'services/lampiran_service.dart';
+import 'services/lpj_service.dart';
 import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
 
@@ -64,6 +66,9 @@ void main() async {
         Provider<LampiranService>(
           create: (context) => LampiranService(context.read<Dio>()),
         ),
+        Provider<LpjService>(
+          create: (context) => LpjService(context.read<Dio>()),
+        ),
         ChangeNotifierProvider<MonitoringProvider>(
           create: (context) =>
               MonitoringProvider(context.read<MonitoringService>()),
@@ -74,6 +79,9 @@ void main() async {
         ChangeNotifierProvider<LampiranProvider>(
           create: (context) =>
               LampiranProvider(context.read<LampiranService>()),
+        ),
+        ChangeNotifierProvider<LpjProvider>(
+          create: (context) => LpjProvider(context.read<LpjService>()),
         ),
       ],
       child: const MyApp(),

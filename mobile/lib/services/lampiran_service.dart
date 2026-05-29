@@ -53,10 +53,7 @@ class LampiranService {
   }) async {
     try {
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: fileName,
-        ),
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
         if (catatan != null && catatan.isNotEmpty) 'catatan': catatan,
       });
 
@@ -87,10 +84,7 @@ class LampiranService {
   }) async {
     try {
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: fileName,
-        ),
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
         if (catatan != null && catatan.isNotEmpty) 'catatan': catatan,
       });
 
@@ -136,9 +130,7 @@ class LampiranService {
     try {
       final response = await dio.post(
         '/lampiran/$lampiranId/catatan',
-        data: {
-          'catatan_reviewer': catatanReviewer,
-        },
+        data: {'catatan_reviewer': catatanReviewer},
         options: Options(headers: {'Accept': 'application/json'}),
       );
 

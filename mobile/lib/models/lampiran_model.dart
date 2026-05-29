@@ -5,7 +5,8 @@ class LampiranModel {
   final String pathFileDisimpan;
   final String uploaderUserId;
   final String? uploaderNama;
-  final String statusLampiran; // pending, approved, revision_requested, archived
+  final String
+  statusLampiran; // pending, approved, revision_requested, archived
   final String statusApproval; // pending, approved, rejected
   final String? catatan;
   final String? catatanReviewer;

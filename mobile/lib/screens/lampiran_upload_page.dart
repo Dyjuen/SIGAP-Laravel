@@ -127,10 +127,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                 children: [
                   Text(
                     'Item Anggaran',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -147,9 +144,9 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
             // File picker section
             Text(
               'Pilih File',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             InkWell(
@@ -157,10 +154,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
               child: Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color(0xFF00BCD4),
-                    width: 2,
-                  ),
+                  border: Border.all(color: const Color(0xFF00BCD4), width: 2),
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.cyan[50],
                 ),
@@ -190,10 +184,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                       const SizedBox(height: 4),
                       Text(
                         'Tapped untuk mengubah file',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ] else ...[
                       Text(
@@ -209,10 +200,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                       Text(
                         'Format yang didukung: JPG, PNG, PDF\nUkuran maksimal: 10 MB',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ],
@@ -223,9 +211,9 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
             // Catatan section
             Text(
               'Catatan (Opsional)',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -238,15 +226,11 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(
-                    color: Colors.grey[300]!,
-                  ),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF00BCD4),
-                  ),
+                  borderSide: const BorderSide(color: Color(0xFF00BCD4)),
                 ),
               ),
             ),
@@ -255,8 +239,9 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed:
-                    _isUploading || _selectedFilePath == null ? null : _uploadFile,
+                onPressed: _isUploading || _selectedFilePath == null
+                    ? null
+                    : _uploadFile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00BCD4),
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -288,7 +273,9 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
             SizedBox(
               width: double.infinity,
               child: TextButton(
-                onPressed: _isUploading ? null : () => Navigator.of(context).pop(),
+                onPressed: _isUploading
+                    ? null
+                    : () => Navigator.of(context).pop(),
                 child: const Text('Batal'),
               ),
             ),
@@ -302,7 +289,8 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
     if (fileName.endsWith('.pdf')) return Icons.picture_as_pdf;
     if (fileName.endsWith('.png') ||
         fileName.endsWith('.jpg') ||
-        fileName.endsWith('.jpeg')) return Icons.image;
+        fileName.endsWith('.jpeg'))
+      return Icons.image;
     return Icons.file_present;
   }
 }

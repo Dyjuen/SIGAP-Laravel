@@ -46,8 +46,7 @@ class LampiranProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _selectedLampiran =
-          await _lampiranService.getLampiranDetail(lampiranId);
+      _selectedLampiran = await _lampiranService.getLampiranDetail(lampiranId);
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
@@ -119,8 +118,7 @@ class LampiranProvider with ChangeNotifier {
       );
 
       // Replace old lampiran with new one
-      final index =
-          _lampiran.indexWhere((l) => l.lampiranId == lampiranId);
+      final index = _lampiran.indexWhere((l) => l.lampiranId == lampiranId);
       if (index != -1) {
         _lampiran[index] = result;
       } else {
@@ -180,8 +178,7 @@ class LampiranProvider with ChangeNotifier {
       );
 
       // Update in list
-      final index =
-          _lampiran.indexWhere((l) => l.lampiranId == lampiranId);
+      final index = _lampiran.indexWhere((l) => l.lampiranId == lampiranId);
       if (index != -1) {
         _lampiran[index] = result;
       }
@@ -207,8 +204,7 @@ class LampiranProvider with ChangeNotifier {
       final result = await _lampiranService.approveLampiran(lampiranId);
 
       // Update in list
-      final index =
-          _lampiran.indexWhere((l) => l.lampiranId == lampiranId);
+      final index = _lampiran.indexWhere((l) => l.lampiranId == lampiranId);
       if (index != -1) {
         _lampiran[index] = result;
       }

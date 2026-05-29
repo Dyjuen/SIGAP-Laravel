@@ -82,8 +82,8 @@ class LampiranListWidget extends StatelessWidget {
                   lampiran.isPdf
                       ? Icons.picture_as_pdf
                       : lampiran.isImage
-                          ? Icons.image
-                          : Icons.file_present,
+                      ? Icons.image
+                      : Icons.file_present,
                   color: const Color(0xFF00BCD4),
                   size: 28,
                 ),
@@ -200,9 +200,7 @@ class LampiranListWidget extends StatelessWidget {
                     onPressed: () => _showDeleteConfirm(context, lampiran),
                     icon: const Icon(Icons.delete_outline, size: 18),
                     label: const Text('Hapus'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
                   ),
                   const SizedBox(width: 8),
                   // Download button
@@ -210,9 +208,7 @@ class LampiranListWidget extends StatelessWidget {
                     onPressed: () => _downloadFile(context, lampiran),
                     icon: const Icon(Icons.download, size: 18),
                     label: const Text('Download'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.blue,
-                    ),
+                    style: TextButton.styleFrom(foregroundColor: Colors.blue),
                   ),
                 ],
               ),
@@ -262,9 +258,7 @@ class LampiranListWidget extends StatelessWidget {
 
   void _downloadFile(BuildContext context, LampiranModel lampiran) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fitur download sedang dalam pengembangan'),
-      ),
+      const SnackBar(content: Text('Fitur download sedang dalam pengembangan')),
     );
   }
 }
