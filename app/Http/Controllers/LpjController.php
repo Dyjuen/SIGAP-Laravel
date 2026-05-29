@@ -16,6 +16,7 @@ use App\Models\KegiatanLogStatus;
 use App\Models\Satuan;
 use App\Models\SpkConfig;
 use App\Models\User;
+use App\Services\LpjService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,8 +27,16 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
+
 class LpjController extends Controller
 {
+    protected LpjService $lpjService;
+
+    public function __construct(LpjService $lpjService)
+    {
+        $this->lpjService = $lpjService;
+    }
+
     /**
      * Display the LPJ index page for Admin, Bendahara, and Pengusul.
      */
@@ -96,104 +105,31 @@ class LpjController extends Controller
             'has_bukti' => ! empty($request->file('bukti')),
         ]);
 
-        $uploadedFiles = [];
-
         try {
-            return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
-                // Pessimistic lock to prevent double submission
-                $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
+            // Check authorization before invoking service to respect feature tests
+            if ($kegiatan->kak->pengusul_user_id !== $request->user()->user_id) {
+                abort(403, 'Anda tidak memiliki akses ke kegiatan ini.');
+            }
 
-                if ($kegiatan->lpj_submitted_at !== null) {
-                    return redirect()->back()->withErrors(['message' => 'LPJ untuk kegiatan ini sudah pernah disubmit.']);
-                }
+            $spkInputs = [
+                'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
+            ];
 
-                // 1. Process realization updates
-                foreach ($request->realisasi as $anggaranId => $data) {
-                    $anggaran = KAKAnggaran::find($anggaranId);
-                    if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
-                        $anggaran->update([
-                            'realisasi_volume1' => $data['volume1'] === '' ? null : $data['volume1'],
-                            'realisasi_satuan1_id' => $data['satuan1_id'] === '' ? null : $data['satuan1_id'],
-                            'realisasi_volume2' => $data['volume2'] === '' ? null : $data['volume2'],
-                            'realisasi_satuan2_id' => $data['satuan2_id'] === '' ? null : $data['satuan2_id'],
-                            'realisasi_volume3' => $data['volume3'] === '' ? null : $data['volume3'],
-                            'realisasi_satuan3_id' => $data['satuan3_id'] === '' ? null : $data['satuan3_id'],
-                            'realisasi_harga_satuan' => ($data['harga_satuan'] ?? '') === '' ? null : preg_replace('/[^0-9]/', '', $data['harga_satuan']),
-                            'realisasi_jumlah' => $this->calculateTotal($data),
-                        ]);
-                    }
-                }
+            $this->lpjService->submit(
+                $kegiatan,
+                $request->realisasi ?? [],
+                $request->file('bukti'),
+                $spkInputs,
+                $request->user()
+            );
 
-                // 2. Process file uploads
-                if (is_array($request->file('bukti'))) {
-                    foreach ($request->file('bukti') as $anggaranId => $files) {
-                        foreach ($files as $file) {
-                            $filename = time().'_'.$file->getClientOriginalName();
-                            // Consistent with LampiranController: use 'public' disk and relative path
-                            $path = $file->storeAs('lampiran/'.$anggaranId, $filename, 'supabase');
-                            if (! $path) {
-                                throw new \Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
-                            }
-
-                            $uploadedFiles[] = $path;
-
-                            KegiatanLampiran::create([
-                                'anggaran_id' => $anggaranId,
-                                'nama_file_asli' => $file->getClientOriginalName(),
-                                'path_file_disimpan' => $path,
-                                'uploader_user_id' => $request->user()->user_id,
-                                'status_lampiran' => 'pending',
-                            ]);
-                        }
-                    }
-                }
-
-                // Calculate SPK Scores automatically
-                $spkScores = $this->calculateSpkScores($kegiatan);
-
-                // 3. Update status
-                $kak = $kegiatan->kak;
-                $oldStatus = $kak->status_id;
-                $newStatus = 11; // Review LPJ
-
-                $kegiatan->update([
-                    'lpj_submitted_at' => now(),
-                    'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
-                    'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
-                    'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
-                    'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
-                ]);
-                $kak->update(['status_id' => $newStatus]);
-
-                // 4. Activate Approval
-                $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                    ->where('approval_level', 'Bendahara-LPJ')
-                    ->first();
-
-                if ($approval) {
-                    $approval->update(['status' => 'Aktif']);
-                }
-
-                // 5. Log
-                KegiatanLogStatus::create([
-                    'kegiatan_id' => $kegiatan->kegiatan_id,
-                    'status_id_lama' => $oldStatus,
-                    'status_id_baru' => $newStatus,
-                    'actor_user_id' => $request->user()->user_id,
-                    'catatan' => 'LPJ disubmit untuk review.',
-                ]);
-
-                // Send Email to Bendahara
-                $this->sendLpjMailToBendahara($kegiatan, 'submitted');
-
-                return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit dan menunggu review dari Bendahara LPJ.');
-            });
+            return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit dan menunggu review dari Bendahara LPJ.');
         } catch (\Exception $e) {
             Log::error('LPJ Submit Failed', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            $this->cleanupFiles($uploadedFiles);
 
             return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit LPJ: '.$e->getMessage()]);
         }
@@ -238,84 +174,18 @@ class LpjController extends Controller
      */
     public function revise(ReviseLpjRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
-        return DB::transaction(function () use ($request, $kegiatan) {
-            $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
-
-            // 1. Clear old comments before applying new ones
-            // Clear lampiran comments for this kegiatan
-            KegiatanLampiran::whereHas('anggaran', function ($q) use ($kegiatan) {
-                $q->where('kak_id', $kegiatan->kak_id);
-            })->update([
-                'catatan_reviewer' => null,
-                'reviewer_user_id' => null,
-                'approval_tanggal' => null,
-            ]);
-
-            // Clear anggaran comments for this kegiatan
-            KAKAnggaran::where('kak_id', $kegiatan->kak_id)->update([
-                'catatan_verifikator' => null,
-            ]);
-
-            // 2. Process lampiran comments from request
-            if ($request->has('lampiran_comments')) {
-                foreach ($request->lampiran_comments as $comment) {
-                    $lampiran = KegiatanLampiran::find($comment['id']);
-                    if ($lampiran) {
-                        $lampiran->update([
-                            'catatan_reviewer' => $comment['catatan_reviewer'],
-                            'reviewer_user_id' => $request->user()->user_id,
-                            'approval_tanggal' => now(),
-                        ]);
-                    }
-                }
-            }
-
-            // Process anggaran comments from request
-            if ($request->has('anggaran_comments')) {
-                foreach ($request->anggaran_comments as $comment) {
-                    $anggaran = KAKAnggaran::find($comment['id']);
-                    if ($anggaran) {
-                        $anggaran->update([
-                            'catatan_verifikator' => $comment['catatan_reviewer'],
-                        ]);
-                    }
-                }
-            }
-
-            // 2. Update status to Revisi
-            $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-LPJ')
-                ->first();
-
-            if (! $approval) {
-                return redirect()->back()->withErrors(['message' => 'Alur persetujuan LPJ tidak ditemukan.']);
-            }
-
-            $approval->update([
-                'status' => 'Revisi',
-                'catatan' => 'LPJ dikembalikan untuk revisi.',
-                'approver_user_id' => $request->user()->user_id,
-            ]);
-
-            $kak = $kegiatan->kak;
-            $oldStatus = $kak->status_id;
-            $newStatus = 12; // LPJ Direvisi
-
-            $kak->update(['status_id' => $newStatus]);
-
-            KegiatanLogStatus::create([
-                'kegiatan_id' => $kegiatan->kegiatan_id,
-                'status_id_lama' => $oldStatus,
-                'status_id_baru' => $newStatus,
-                'actor_user_id' => $request->user()->user_id,
-                'catatan' => 'LPJ dikembalikan untuk revisi.',
-            ]);
-
-            // Send Email to Pengusul
-            $this->sendLpjMailToPengusul($kegiatan, 'revised', 'LPJ Anda memerlukan revisi. Silakan cek catatan di aplikasi.');
+        try {
+            $this->lpjService->revise(
+                $kegiatan,
+                $request->anggaran_comments ?? [],
+                $request->lampiran_comments ?? [],
+                $request->user()
+            );
 
             return redirect()->route('lpj.index')->with('success', 'LPJ telah dikembalikan untuk revisi.');
-        });
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['message' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -328,121 +198,32 @@ class LpjController extends Controller
             'kegiatan_id' => $kegiatan->kegiatan_id,
         ]);
 
-        $uploadedFiles = [];
-
         try {
-            return DB::transaction(function () use ($request, $kegiatan, &$uploadedFiles) {
-                $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
+            // Check authorization before invoking service to respect feature tests
+            if ($kegiatan->kak->pengusul_user_id !== $request->user()->user_id) {
+                abort(403, 'Anda tidak memiliki akses ke kegiatan ini.');
+            }
 
-                // 0. State Guard: Only allow resubmit if there is a 'Revisi' status for Bendahara-LPJ
-                $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                    ->where('approval_level', 'Bendahara-LPJ')
-                    ->first();
+            $spkInputs = [
+                'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
+            ];
 
-                if (! $approval || $approval->status !== 'Revisi') {
-                    return redirect()->back()->withErrors(['message' => 'LPJ tidak dalam status revisi.']);
-                }
+            $this->lpjService->resubmit(
+                $kegiatan,
+                $request->realisasi,
+                $request->file('bukti'),
+                $request->files_to_delete,
+                $spkInputs,
+                $request->user()
+            );
 
-                // 1. Handle file deletions (archiving)
-                $filesToDelete = $request->files_to_delete;
-
-                if (! empty($filesToDelete)) {
-                    KegiatanLampiran::whereIn('lampiran_id', $filesToDelete)
-                        ->update(['status_lampiran' => 'archived']);
-                }
-
-                // 2. Handle realization updates
-                $realisasi = $request->realisasi;
-
-                if (! empty($realisasi)) {
-                    foreach ($realisasi as $anggaranId => $data) {
-                        $anggaran = KAKAnggaran::find($anggaranId);
-                        if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
-                            $anggaran->update([
-                                'realisasi_volume1' => $data['volume1'] ?? $anggaran->realisasi_volume1,
-                                'realisasi_satuan1_id' => $data['satuan1_id'] ?? $anggaran->realisasi_satuan1_id,
-                                'realisasi_volume2' => $data['volume2'] ?? $anggaran->realisasi_volume2,
-                                'realisasi_satuan2_id' => $data['satuan2_id'] ?? $anggaran->realisasi_satuan2_id,
-                                'realisasi_volume3' => $data['volume3'] ?? $anggaran->realisasi_volume3,
-                                'realisasi_satuan3_id' => $data['satuan3_id'] ?? $anggaran->realisasi_satuan3_id,
-                                'realisasi_harga_satuan' => isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : $anggaran->realisasi_harga_satuan,
-                                'realisasi_jumlah' => $this->calculateTotal($data),
-                            ]);
-                        }
-                    }
-                }
-
-                // 3. Handle new uploads
-                if (is_array($request->file('bukti'))) {
-                    foreach ($request->file('bukti') as $anggaranId => $files) {
-                        foreach ($files as $file) {
-                            $filename = time().'_'.$file->getClientOriginalName();
-                            $path = $file->storeAs('lampiran/'.$anggaranId, $filename, 'supabase');
-                            if (! $path) {
-                                throw new \Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
-                            }
-
-                            $uploadedFiles[] = $path;
-
-                            KegiatanLampiran::create([
-                                'anggaran_id' => $anggaranId,
-                                'nama_file_asli' => $file->getClientOriginalName(),
-                                'path_file_disimpan' => $path,
-                                'uploader_user_id' => $request->user()->user_id,
-                                'status_lampiran' => 'pending',
-                            ]);
-                        }
-                    }
-                }
-
-                // Calculate SPK Scores automatically
-                $spkScores = $this->calculateSpkScores($kegiatan);
-
-                // 4. Update status back to Review
-                $kak = $kegiatan->kak;
-                $oldStatus = $kak->status_id;
-                $newStatus = 11;
-
-                $kegiatan->update([
-                    'lpj_submitted_at' => now(),
-                    'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
-                    'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
-                    'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
-                    'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
-                ]);
-                $kak->update(['status_id' => $newStatus]);
-
-                $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                    ->where('approval_level', 'Bendahara-LPJ')
-                    ->first();
-
-                if ($approval) {
-                    $approval->update([
-                        'status' => 'Aktif',
-                        'catatan' => null,
-                        'approver_user_id' => null,
-                    ]);
-                }
-
-                KegiatanLogStatus::create([
-                    'kegiatan_id' => $kegiatan->kegiatan_id,
-                    'status_id_lama' => $oldStatus,
-                    'status_id_baru' => $newStatus,
-                    'actor_user_id' => $request->user()->user_id,
-                    'catatan' => 'LPJ disubmit ulang setelah revisi.',
-                ]);
-
-                // Send Email to Bendahara
-                $this->sendLpjMailToBendahara($kegiatan, 'resubmitted');
-
-                return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
-            });
+            return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disubmit ulang dan menunggu review dari Bendahara.');
         } catch (\Exception $e) {
             Log::error('LPJ Resubmit Failed', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            $this->cleanupFiles($uploadedFiles);
 
             return redirect()->back()->withErrors(['message' => 'Terjadi kesalahan saat submit ulang LPJ: '.$e->getMessage()]);
         }
@@ -453,57 +234,13 @@ class LpjController extends Controller
      */
     public function approve(ApproveLpjRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
-        return DB::transaction(function () use ($request, $kegiatan) {
-            $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
-
-            $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-LPJ')
-                ->first();
-
-            if (! $approval || ! in_array($approval->status, ['Aktif', 'Revisi'])) {
-                return redirect()->back()->withErrors(['message' => 'LPJ tidak dalam status yang dapat disetujui.']);
-            }
-
-            $approval->update([
-                'status' => 'Disetujui',
-                'catatan' => 'LPJ disetujui secara digital.',
-                'approver_user_id' => $request->user()->user_id,
-            ]);
-
-            // Activate next step
-            $nextApproval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('approval_level', 'Bendahara-Setor')
-                ->first();
-            if ($nextApproval) {
-                $nextApproval->update(['status' => 'Aktif']);
-            }
-
-            // Recalculate final SPK scores on approval
-            $spkScores = $this->calculateSpkScores($kegiatan);
-            $kegiatan->update([
-                'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
-                'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
-            ]);
-
-            $kak = $kegiatan->kak;
-            $oldStatus = $kak->status_id;
-            $newStatus = 13; // Setor Fisik Dokumen
-
-            $kak->update(['status_id' => $newStatus]);
-
-            KegiatanLogStatus::create([
-                'kegiatan_id' => $kegiatan->kegiatan_id,
-                'status_id_lama' => $oldStatus,
-                'status_id_baru' => $newStatus,
-                'actor_user_id' => $request->user()->user_id,
-                'catatan' => 'LPJ digital disetujui. Menunggu setor fisik.',
-            ]);
-
-            // Send Email to Pengusul
-            $this->sendLpjMailToPengusul($kegiatan, 'approved', 'LPJ digital Anda telah disetujui. Silakan segera setor berkas fisik ke Bendahara.');
+        try {
+            $this->lpjService->approve($kegiatan, $request->user());
 
             return redirect()->route('lpj.index')->with('success', 'LPJ berhasil disetujui.');
-        });
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['message' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -511,42 +248,13 @@ class LpjController extends Controller
      */
     public function complete(CompleteLpjRequest $request, Kegiatan $kegiatan): RedirectResponse
     {
-        return DB::transaction(function () use ($request, $kegiatan) {
-            $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
-
-            $approval = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-                ->where('status', 'Aktif')
-                ->first();
-
-            if (! $approval || $approval->approval_level !== 'Bendahara-Setor') {
-                return redirect()->back()->withErrors(['message' => 'Hanya bisa diselesaikan jika alur persetujuan berada di level "Bendahara-Setor".']);
-            }
-
-            $approval->update([
-                'status' => 'Disetujui',
-                'catatan' => 'Bukti fisik telah diterima dan LPJ dinyatakan selesai.',
-                'approver_user_id' => $request->user()->user_id,
-            ]);
-
-            $kak = $kegiatan->kak;
-            $oldStatus = $kak->status_id;
-            $newStatus = 14; // Selesai
-
-            $kak->update(['status_id' => $newStatus]);
-
-            KegiatanLogStatus::create([
-                'kegiatan_id' => $kegiatan->kegiatan_id,
-                'status_id_lama' => $oldStatus,
-                'status_id_baru' => $newStatus,
-                'actor_user_id' => $request->user()->user_id,
-                'catatan' => 'LPJ fisik diterima. Kegiatan selesai.',
-            ]);
-
-            // Send Email to Pengusul
-            $this->sendLpjMailToPengusul($kegiatan, 'completed', 'Selamat! Seluruh tahapan LPJ telah selesai dan berkas fisik telah diterima.');
+        try {
+            $this->lpjService->complete($kegiatan, $request->user());
 
             return redirect()->route('lpj.index')->with('success', 'LPJ telah ditandai selesai.');
-        });
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['message' => $e->getMessage()]);
+        }
     }
 
     private function canAccessLpj($user, Kegiatan $kegiatan): bool
@@ -558,116 +266,5 @@ class LpjController extends Controller
 
         return $kegiatan->kak && $kegiatan->kak->pengusul_user_id === $user->user_id;
     }
-
-    public function calculateTotal(array $data): float
-    {
-        $v1 = (float) ($data['volume1'] ?? 0);
-        $v2 = (float) (isset($data['volume2']) && $data['volume2'] !== '' ? $data['volume2'] : 1);
-        $v3 = (float) (isset($data['volume3']) && $data['volume3'] !== '' ? $data['volume3'] : 1);
-        $price = (float) (isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : 0);
-
-        return $v1 * $v2 * $v3 * $price;
-    }
-
-    /**
-     * Calculate automatic SPK scores.
-     */
-    private function calculateSpkScores(Kegiatan $kegiatan): array
-    {
-        $config = SpkConfig::getActive();
-
-        // 1. Calculate Ketepatan Anggaran score (anggaran_min - anggaran_max)
-        $totalBudget = 0;
-        $totalRealization = 0;
-        $anggarans = KAKAnggaran::where('kak_id', $kegiatan->kak_id)->get();
-        foreach ($anggarans as $anggaran) {
-            $totalBudget += (float) $anggaran->jumlah_diusulkan;
-            $totalRealization += (float) ($anggaran->realisasi_jumlah ?? 0);
-        }
-
-        $ketepatanAnggaran = $config->anggaran_max;
-        if ($totalBudget > 0) {
-            $ratio = $totalRealization / $totalBudget;
-            if (abs($ratio - 1) >= 0.001) {
-                // Penalty: deduct based on deviation percentage, bounded by min/max
-                $differencePercentage = abs(1 - $ratio) * 100;
-                $ketepatanAnggaran = (int) max($config->anggaran_min, min($config->anggaran_max, round($config->anggaran_max - $differencePercentage)));
-            }
-        }
-
-        // 2. Calculate Ketepatan LPJ score (lpj_min - lpj_max)
-        $ketepatanLpj = $config->lpj_max;
-        $bendaharaLpj = KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
-            ->where('approval_level', 'Bendahara-LPJ')
-            ->first();
-        if ($bendaharaLpj && $bendaharaLpj->activated_at) {
-            $start = Carbon::parse($bendaharaLpj->activated_at);
-            $end = $bendaharaLpj->approved_at ? Carbon::parse($bendaharaLpj->approved_at) : now();
-            $daysTaken = $start->diffInDays($end);
-            if ($daysTaken > 14) {
-                $daysLate = $daysTaken - 14;
-                $ketepatanLpj = (int) max($config->lpj_min, min($config->lpj_max, $config->lpj_max - ($daysLate * $config->lpj_penalty_per_day)));
-            }
-        }
-
-        return [
-            'spk_ketepatan_anggaran' => $ketepatanAnggaran,
-            'spk_ketepatan_lpj' => $ketepatanLpj,
-        ];
-    }
-
-    private function cleanupFiles(array $paths): void
-    {
-        foreach ($paths as $path) {
-            Storage::disk('supabase')->delete($path);
-        }
-    }
-
-    private function sendLpjMailToBendahara(Kegiatan $kegiatan, string $type)
-    {
-        $bendahara = User::whereHas('role', function ($q) {
-            $q->where('nama_role', 'Bendahara');
-        })->first();
-
-        if ($bendahara && $bendahara->email) {
-            $isResubmit = ($type === 'resubmitted');
-            $data = [
-                'subject' => $isResubmit ? '🔄 LPJ Direvisi - Perlu Review Ulang' : '📋 LPJ Baru Perlu Review - SIGAP PNJ',
-                'title' => 'Review LPJ Baru',
-                'recipient_name' => $bendahara->nama_lengkap,
-                'body' => $isResubmit
-                    ? 'Halo <strong>Bendahara</strong>,<br><br>LPJ yang sebelumnya diminta revisi telah diajukan kembali oleh pengusul.'
-                    : 'Halo <strong>Bendahara</strong>,<br><br>Ada LPJ baru yang telah disubmit dan memerlukan review Anda.',
-                'details' => [
-                    'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
-                    'Pengusul' => $kegiatan->kak->pengusul->nama_lengkap,
-                ],
-                'action_link' => config('app.url')."/lpj/review/{$kegiatan->kegiatan_id}",
-                'status_color' => '#dc3545',
-            ];
-
-            Mail::to($bendahara->email)->send(new LPJWorkflowMail($data));
-        }
-    }
-
-    private function sendLpjMailToPengusul(Kegiatan $kegiatan, string $type, string $message)
-    {
-        $pengusul = $kegiatan->kak->pengusul;
-
-        if ($pengusul && $pengusul->email) {
-            $data = [
-                'subject' => 'Status LPJ: '.strtoupper($type).' - SIGAP PNJ',
-                'title' => 'Update Status LPJ',
-                'recipient_name' => $pengusul->nama_lengkap,
-                'body' => $message,
-                'details' => [
-                    'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
-                ],
-                'action_link' => config('app.url').'/lpj',
-                'status_color' => ($type === 'revised' ? '#ffc107' : '#28a745'),
-            ];
-
-            Mail::to($pengusul->email)->send(new LPJWorkflowMail($data));
-        }
-    }
 }
+

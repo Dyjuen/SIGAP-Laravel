@@ -10,8 +10,17 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
+use App\Services\PanduanService;
+
 class PanduanController extends Controller
 {
+    protected PanduanService $panduanService;
+
+    public function __construct(PanduanService $panduanService)
+    {
+        $this->panduanService = $panduanService;
+    }
+
     public function index()
     {
         $panduan = Panduan::with('role')
@@ -38,70 +47,21 @@ class PanduanController extends Controller
 
     public function store(StorePanduanRequest $request)
     {
-        $data = $request->validated();
-        $pathMedia = null;
-
-        if ($data['tipe_media'] === 'video') {
-            $pathMedia = $data['path_media'];
-        } elseif ($request->hasFile('file')) {
-            $pathMedia = $request->file('file')->store('panduan', 'supabase');
-        }
-
-        Panduan::create([
-            'judul_panduan' => $data['judul_panduan'],
-            'tipe_media' => $data['tipe_media'],
-            'path_media' => $pathMedia,
-            'target_role_id' => $data['target_role_id'] ?? null,
-        ]);
+        $this->panduanService->store($request->validated(), $request->file('file'));
 
         return redirect()->back()->with('success', 'Panduan berhasil ditambahkan.');
     }
 
     public function update(UpdatePanduanRequest $request, Panduan $panduan)
     {
-        $data = $request->validated();
-
-        $panduan->judul_panduan = $data['judul_panduan'];
-        $panduan->target_role_id = $data['target_role_id'] ?? null;
-
-        // Handle media type change or file update
-        if ($data['tipe_media'] === 'video') {
-            // If switching from document to video, delete old file
-            if ($panduan->tipe_media === 'document' && $panduan->path_media) {
-                Storage::disk('supabase')->delete($panduan->path_media);
-            }
-            $panduan->tipe_media = 'video';
-            $panduan->path_media = $data['path_media'];
-        } else {
-            // Document type
-            if ($request->hasFile('file')) {
-                // Delete old file if exists (and was document)
-                if ($panduan->tipe_media === 'document' && $panduan->path_media) {
-                    Storage::disk('supabase')->delete($panduan->path_media);
-                }
-                $path = $request->file('file')->store('panduan', 'supabase');
-                $panduan->tipe_media = 'document';
-                $panduan->path_media = $path;
-            } else {
-                // If we are already document, just keep it.
-                // If we are switching from video to document, validation requires 'file'.
-                // So this branch should ideally only be hit if we remain document without new file.
-                $panduan->tipe_media = 'document';
-            }
-        }
-
-        $panduan->save();
+        $this->panduanService->update($panduan, $request->validated(), $request->file('file'));
 
         return redirect()->back()->with('success', 'Panduan berhasil diperbarui.');
     }
 
     public function destroy(Panduan $panduan)
     {
-        if ($panduan->tipe_media === 'document' && $panduan->path_media) {
-            Storage::disk('supabase')->delete($panduan->path_media);
-        }
-
-        $panduan->delete();
+        $this->panduanService->delete($panduan);
 
         return redirect()->back()->with('success', 'Panduan berhasil dihapus.');
     }

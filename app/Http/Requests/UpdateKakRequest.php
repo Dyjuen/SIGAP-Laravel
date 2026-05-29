@@ -10,7 +10,11 @@ class UpdateKakRequest extends StoreKakRequest
     public function authorize(): bool
     {
         $user = $this->user();
-        $kak = $this->route('kak');
+        $kak = $this->route('kak') ?? $this->route('id');
+
+        if (is_scalar($kak)) {
+            $kak = \App\Models\KAK::find($kak);
+        }
 
         // 1. Must be Pengusul
         if ($user->role_id !== 3) {
@@ -18,9 +22,6 @@ class UpdateKakRequest extends StoreKakRequest
         }
 
         // 2. Must be Owner
-        // Note: Route model binding might not be fully resolved if testing with simpler bindings,
-        // but normally it is. If $kak is just ID, we fetch it.
-        // In standard Laravel route binding, $this->route('kak') is the model.
         if ($kak && $kak->pengusul_user_id !== $user->user_id) {
             return false;
         }
