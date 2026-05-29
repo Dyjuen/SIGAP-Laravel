@@ -15,7 +15,6 @@ use App\Models\KategoriBelanja;
 use App\Models\MataAnggaran;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
-use App\Traits\AuthorizesKakAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -27,19 +26,39 @@ use App\Services\KakService;
 
 class KakController extends Controller
 {
-    use AuthorizesKakAccess;
+    protected KakService $kakService;
+
+    public function __construct(KakService $kakService)
+    {
+        $this->kakService = $kakService;
+    }
 
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $query = KAK::with(['status', 'tipeKegiatan', 'mataAnggaran', 'pengusul']);
 
-        // Filter by role access
-        $this->applyAccessFilter($query);
+        // Filter by role
+        if ($user->role_id === 3) {
+            // Pengusul: Only own KAKs
+            $query->where('pengusul_user_id', $user->user_id);
+        } elseif ($user->role_id === 2) {
+            // Verifikator: Only KAKs in "Review Verifikator" status (status_id = 2)
+            // and matching their Tipe Kegiatan (derived from username 'verifikatorN')
+            $query->where('status_id', 2);
+            if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
+                $allowedTipeId = (int) $matches[1];
+                $query->where('tipe_kegiatan_id', $allowedTipeId);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+        // Others (Admin/PPK): Currently see all? Restrict if needed. For now allow all for visualization.
 
-        // Apply filters from request
+        // Apply filters
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where('nama_kegiatan', 'ilike', "%{$search}%");
@@ -182,6 +201,47 @@ class KakController extends Controller
 
 
 
+
+    private function authorizeAccess(KAK $kak, $requireEdit = false)
+    {
+        $user = Auth::user();
+
+        // 1. Admin (Role 1) - Bypass
+        if ($user->role_id === 1) {
+            return;
+        }
+
+        // 2. Pengusul (Role 3)
+        if ($user->role_id === 3) {
+            if ($kak->pengusul_user_id !== $user->user_id) {
+                abort(403, 'Anda tidak memiliki akses ke KAK ini.');
+            }
+
+            return;
+        }
+
+        // If requiring edit permission, only Pengusul (and Admin) can pass
+        if ($requireEdit) {
+            abort(403, 'Hanya Pengusul yang dapat mengubah data KAK.');
+        }
+
+        // 3. Verifikator (Role 2)
+        if ($user->role_id === 2) {
+            if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
+                $allowedTipeId = (int) $matches[1];
+                if ($kak->tipe_kegiatan_id !== $allowedTipeId) {
+                    abort(403, 'Anda hanya dapat mengakses KAK dengan Tipe Kegiatan '.$allowedTipeId);
+                }
+            } else {
+                abort(403, 'Username verifikator tidak valid untuk pemetaan tipe kegiatan.');
+            }
+
+            return;
+        }
+
+        // Others (PPK, etc) - Read only access allowed for now?
+        // If strict restriction is needed for others, add here.
+    }
 
     /**
      * Generate PDF for a specific KAK — inline preview (stream).
