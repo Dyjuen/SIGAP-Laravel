@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\KegiatanApiController;
 use App\Http\Controllers\Api\PencairanApiController;
 use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\MasterDataApiController;
+use App\Http\Controllers\Api\LampiranApiController;
 use App\Http\Controllers\MasterDataController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -105,6 +106,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileApiController::class, 'show']);
     Route::patch('/profile', [ProfileApiController::class, 'update']);
     Route::delete('/profile', [ProfileApiController::class, 'destroy']);
+
+    // Lampiran (Attachments) API Routes
+    Route::get('/lampiran/anggaran/{anggaran}', [LampiranApiController::class, 'index']);
+    Route::post('/lampiran/anggaran/{anggaran}', [LampiranApiController::class, 'store']);
+    Route::get('/lampiran/{lampiran}', [LampiranApiController::class, 'show']);
+    Route::get('/lampiran/{lampiran}/stream', [LampiranApiController::class, 'stream']);
+    Route::delete('/lampiran/{lampiran}', [LampiranApiController::class, 'destroy']);
+    Route::post('/lampiran/{lampiran}/catatan', [LampiranApiController::class, 'saveCatatan']);
+    Route::post('/lampiran/{lampiran}/approve', [LampiranApiController::class, 'approve']);
+    Route::post('/lampiran/{lampiran}/resubmit', [LampiranApiController::class, 'resubmit']);
+    Route::get('/lampiran/{lampiran}/history', [LampiranApiController::class, 'history']);
 });
 
 // Master Data Routes (public, used for KAK form dropdowns, with throttle)
