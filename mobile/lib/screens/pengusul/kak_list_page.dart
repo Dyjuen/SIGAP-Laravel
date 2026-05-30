@@ -5,7 +5,8 @@ import 'kak_edit_page.dart';
 import 'kegiatan_form_page.dart';
 
 class KakListPage extends StatefulWidget {
-  const KakListPage({super.key});
+  final int? initialStatusId;
+  const KakListPage({super.key, this.initialStatusId});
 
   @override
   State<KakListPage> createState() => _KakListPageState();
@@ -30,6 +31,7 @@ class _KakListPageState extends State<KakListPage> {
   @override
   void initState() {
     super.initState();
+    _activeStatusFilter = widget.initialStatusId;
     _loadKaks();
   }
 

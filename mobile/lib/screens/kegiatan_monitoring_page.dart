@@ -3,8 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 
 import '../providers/monitoring_provider.dart';
+import '../models/dashboard_model.dart';
 import '../widgets/monitoring_card.dart';
 import 'kak_detail_page.dart';
 
@@ -69,7 +72,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.fromLTRB(
-                                24,
+                                12,
                                 24,
                                 24,
                                 16,
@@ -79,42 +82,56 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                     MainAxisAlignment.spaceBetween,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Column(
+                                  Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
                                     children: [
-                                      Row(
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.arrow_back_rounded,
+                                          color: colorScheme.onSurface,
+                                          size: 24,
+                                        ),
+                                        onPressed: () => Navigator.of(context).pop(),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            'SIGAP',
-                                            style: GoogleFonts.figtree(
-                                              fontWeight: FontWeight.w900,
-                                              fontSize: 24,
-                                              color: colorScheme.onSurface,
-                                              height: 1.3,
-                                            ),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                'SIGAP',
+                                                style: GoogleFonts.figtree(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 24,
+                                                  color: colorScheme.onSurface,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                              Text(
+                                                'PNJ',
+                                                style: GoogleFonts.figtree(
+                                                  fontWeight: FontWeight.w900,
+                                                  fontSize: 24,
+                                                  color: colorScheme.primary,
+                                                  height: 1.3,
+                                                ),
+                                              ),
+                                            ],
                                           ),
+                                          const SizedBox(height: 4),
                                           Text(
-                                            'PNJ',
+                                            'Monitoring Kegiatan',
                                             style: GoogleFonts.figtree(
-                                              fontWeight: FontWeight.w900,
-                                              fontSize: 24,
-                                              color: colorScheme.primary,
-                                              height: 1.3,
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 13,
+                                              color: colorScheme.onSurfaceVariant,
+                                              height: 1.4,
                                             ),
                                           ),
                                         ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Monitoring Kegiatan',
-                                        style: GoogleFonts.figtree(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 13,
-                                          color: colorScheme.onSurfaceVariant,
-                                          height: 1.4,
-                                        ),
                                       ),
                                     ],
                                   ),
@@ -392,13 +409,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                 );
                               },
                               onTrackTap: () {
-                                // Navigate to tracking page
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('Tracking: ${item.nama}'),
-                                    duration: const Duration(seconds: 2),
-                                  ),
-                                );
+                                _showTrackingStepperBottomSheet(context, item);
                               },
                             );
                           }).toList(),
@@ -487,6 +498,368 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
         return const Color(0xFF666666);
     }
   }
+
+  void _showTrackingStepperBottomSheet(BuildContext context, DashboardItem item) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Define steps based on item.status
+    final status = item.status?.toLowerCase() ?? 'draft';
+    
+    // Determine state of each step: 'completed', 'active', 'pending', 'rejected', 'revise'
+    String step1Status = 'pending';
+    String step2Status = 'pending';
+    String step3Status = 'pending';
+    String step4Status = 'pending';
+    String step5Status = 'pending';
+
+    String? step1Date;
+    String? step2Date;
+    String? step3Date;
+    String? step4Date;
+    String? step5Date;
+
+    if (status == 'disetujui' || status == 'approved') {
+      step1Status = 'completed';
+      step2Status = 'completed';
+      step3Status = 'completed';
+      step4Status = 'completed';
+      step5Status = 'completed';
+      step1Date = item.createdAt;
+      step2Date = item.createdAt;
+      step3Date = item.createdAt;
+      step4Date = item.createdAt;
+      step5Date = item.createdAt;
+    } else if (status == 'processing' || status == 'proses' || status == 'review' || status == 'menunggu' || status == 'pending') {
+      step1Status = 'active';
+      step2Status = 'pending';
+      step3Status = 'pending';
+      step4Status = 'pending';
+      step5Status = 'pending';
+      step1Date = item.createdAt;
+    } else if (status == 'ditolak' || status == 'rejected') {
+      step1Status = 'rejected';
+      step2Status = 'pending';
+      step3Status = 'pending';
+      step4Status = 'pending';
+      step5Status = 'pending';
+      step1Date = item.createdAt;
+    } else if (status == 'revisi' || status == 'revise') {
+      step1Status = 'revise';
+      step2Status = 'pending';
+      step3Status = 'pending';
+      step4Status = 'pending';
+      step5Status = 'pending';
+      step1Date = item.createdAt;
+    } else {
+      // Draft
+      step1Status = 'pending';
+      step2Status = 'pending';
+      step3Status = 'pending';
+      step4Status = 'pending';
+      step5Status = 'pending';
+    }
+
+    final steps = [
+      _StepItem(
+        title: 'Verifikasi PPK',
+        description: 'Pemeriksaan kelengkapan dokumen dan keselarasan anggaran oleh Pejabat Pembuat Komitmen.',
+        status: step1Status,
+        date: step1Date,
+      ),
+      _StepItem(
+        title: 'Persetujuan Wadir II',
+        description: 'Validasi dan persetujuan akhir oleh Wakil Direktur II Bidang Administrasi Umum.',
+        status: step2Status,
+        date: step2Date,
+      ),
+      _StepItem(
+        title: 'Pencairan Dana',
+        description: 'Proses pencairan dana belanja oleh Bendahara Pengeluaran.',
+        status: step3Status,
+        date: step3Date,
+      ),
+      _StepItem(
+        title: 'Pelaporan LPJ',
+        description: 'Penyusunan dan penyerahan Laporan Pertanggungjawaban (LPJ) kegiatan.',
+        status: step4Status,
+        date: step4Date,
+      ),
+      _StepItem(
+        title: 'Selesai',
+        description: 'Seluruh tahapan kegiatan telah selesai dan berkas diarsipkan.',
+        status: step5Status,
+        date: step5Date,
+      ),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 20,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00BCD4).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.timeline_rounded,
+                        color: Color(0xFF00BCD4),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Lacak Alur Kerja',
+                            style: GoogleFonts.figtree(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            item.nama,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.figtree(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Divider(height: 1, thickness: 1),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(steps.length, (index) {
+                    final step = steps[index];
+                    final isLast = index == steps.length - 1;
+
+                    return _buildVerticalStepRow(
+                      context,
+                      step: step,
+                      isLast: isLast,
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildVerticalStepRow(
+    BuildContext context, {
+    required _StepItem step,
+    required bool isLast,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    // Get color & icon based on status
+    Color iconBg;
+    Color iconColor;
+    Widget iconWidget;
+
+    if (step.status == 'completed') {
+      iconBg = const Color(0xFFE8F5E9);
+      iconColor = const Color(0xFF2E7D32);
+      iconWidget = const Icon(Icons.check_rounded, size: 16, color: Color(0xFF2E7D32));
+    } else if (step.status == 'active') {
+      iconBg = const Color(0xFFE0F7FA);
+      iconColor = const Color(0xFF00BCD4);
+      iconWidget = const SizedBox(
+        width: 14,
+        height: 14,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+        ),
+      );
+    } else if (step.status == 'rejected') {
+      iconBg = const Color(0xFFFFEBEE);
+      iconColor = const Color(0xFFC62828);
+      iconWidget = const Icon(Icons.close_rounded, size: 16, color: Color(0xFFC62828));
+    } else if (step.status == 'revise') {
+      iconBg = const Color(0xFFFFF3E0);
+      iconColor = const Color(0xFFE65100);
+      iconWidget = const Icon(Icons.warning_rounded, size: 16, color: Color(0xFFE65100));
+    } else {
+      // Pending
+      iconBg = colorScheme.outline.withOpacity(0.08);
+      iconColor = colorScheme.outline;
+      iconWidget = Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: colorScheme.outline.withOpacity(0.4),
+          shape: BoxShape.circle,
+        ),
+      );
+    }
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Indicator column
+          Column(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  shape: BoxShape.circle,
+                  border: step.status == 'active'
+                      ? Border.all(color: const Color(0xFF00BCD4), width: 1.5)
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: iconWidget,
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    color: step.status == 'completed'
+                        ? const Color(0xFF2E7D32)
+                        : colorScheme.outline.withOpacity(0.2),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          // Content column
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        step.title,
+                        style: GoogleFonts.figtree(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: step.status == 'pending'
+                              ? colorScheme.onSurfaceVariant.withOpacity(0.6)
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      if (step.date != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF00BCD4).withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: const Color(0xFF00BCD4).withOpacity(0.2),
+                            ),
+                          ),
+                          child: Text(
+                            step.date!,
+                            style: GoogleFonts.figtree(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF00BCD4),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    step.description,
+                    style: GoogleFonts.figtree(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepItem {
+  final String title;
+  final String description;
+  final String status;
+  final String? date;
+
+  _StepItem({
+    required this.title,
+    required this.description,
+    required this.status,
+    this.date,
+  });
 }
 
 class _FilterChip extends StatelessWidget {

@@ -24,7 +24,15 @@ class MonitoringService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data ?? [];
+        final dynamic rawData = response.data;
+        final List<dynamic> data;
+        if (rawData is Map && rawData.containsKey('data')) {
+          data = rawData['data'] as List<dynamic>;
+        } else if (rawData is List) {
+          data = rawData;
+        } else {
+          data = [];
+        }
         return data.map((item) {
           return DashboardItem(
             id: item['kak_id']?.toString() ?? '',

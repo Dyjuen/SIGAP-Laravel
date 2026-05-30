@@ -46,8 +46,14 @@ class DashboardRouter extends StatelessWidget {
         );
       case 4:
         // PPK
-        return ChangeNotifierProvider(
+        return ChangeNotifierProvider<BaseDashboardProvider>(
           create: (_) => PpkDashboardProvider(DashboardService(context.read())),
+          child: const PpkDashboardScreen(),
+        );
+      case 5:
+        // Wadir
+        return ChangeNotifierProvider<BaseDashboardProvider>(
+          create: (_) => WadirDashboardProvider(DashboardService(context.read())),
           child: const PpkDashboardScreen(),
         );
       case 6:
@@ -57,9 +63,8 @@ class DashboardRouter extends StatelessWidget {
               BendaharaDashboardProvider(DashboardService(context.read())),
           child: const BendaharaDashboardScreen(),
         );
-      case 5:
       case 7:
-        // Wadir / Rektorat - Direktur Dashboard
+        // Rektorat - Direktur Dashboard
         return ChangeNotifierProvider(
           create: (_) =>
               DirektorDashboardProvider(DashboardService(context.read())),

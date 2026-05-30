@@ -218,22 +218,42 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Expanded(
-                                  child: BlueStatCard(
-                                    bg: const Color(0xFF00BCD4),
-                                    label: 'PENCAIRAN',
-                                    textColor: Colors.white,
-                                    value: dashboardProvider.stats!.totalKak
-                                        .toString(),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const KakListPage(initialStatusId: null),
+                                        ),
+                                      ).then((_) => dashboardProvider.loadDashboard());
+                                    },
+                                    child: BlueStatCard(
+                                      bg: const Color(0xFF00BCD4),
+                                      label: 'PENCAIRAN',
+                                      textColor: Colors.white,
+                                      value: dashboardProvider.stats!.totalKak
+                                          .toString(),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: BlueStatCard(
-                                    bg: Colors.white,
-                                    label: 'KEGIATAN',
-                                    textColor: const Color(0xFF00BCD4),
-                                    value: dashboardProvider.stats!.draftKak
-                                        .toString(),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const KakListPage(initialStatusId: 1),
+                                        ),
+                                      ).then((_) => dashboardProvider.loadDashboard());
+                                    },
+                                    child: BlueStatCard(
+                                      bg: Colors.white,
+                                      label: 'KEGIATAN',
+                                      textColor: const Color(0xFF00BCD4),
+                                      value: dashboardProvider.stats!.draftKak
+                                          .toString(),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -244,22 +264,42 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Expanded(
-                                  child: BlueStatCard(
-                                    bg: Colors.white,
-                                    label: 'LPJ',
-                                    textColor: const Color(0xFF00BCD4),
-                                    value: dashboardProvider.stats!.reviewKak
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const KakListPage(initialStatusId: 2),
+                                        ),
+                                      ).then((_) => dashboardProvider.loadDashboard());
+                                    },
+                                    child: BlueStatCard(
+                                      bg: Colors.white,
+                                      label: 'LPJ',
+                                      textColor: const Color(0xFF00BCD4),
+                                      value: dashboardProvider.stats!.reviewKak
                                         .toString(),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: BlueStatCard(
-                                    bg: const Color(0xFFE0F7FA),
-                                    label: 'REVISI',
-                                    textColor: const Color(0xFF00BCD4),
-                                    value: dashboardProvider.stats!.approvedKak
-                                        .toString(),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const KakListPage(initialStatusId: 5),
+                                        ),
+                                      ).then((_) => dashboardProvider.loadDashboard());
+                                    },
+                                    child: BlueStatCard(
+                                      bg: const Color(0xFFE0F7FA),
+                                      label: 'REVISI',
+                                      textColor: const Color(0xFF00BCD4),
+                                      value: dashboardProvider.stats!.approvedKak
+                                          .toString(),
+                                    ),
                                   ),
                                 ),
                               ],

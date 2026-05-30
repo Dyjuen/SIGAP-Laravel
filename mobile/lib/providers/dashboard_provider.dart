@@ -104,6 +104,16 @@ class PpkDashboardProvider extends BaseDashboardProvider {
   }
 }
 
+/// Wadir Dashboard Provider
+class WadirDashboardProvider extends BaseDashboardProvider {
+  WadirDashboardProvider(super.dashboardService);
+
+  @override
+  Future<void> loadDashboard() async {
+    await _loadFromService(() => dashboardService.getWadirDashboard());
+  }
+}
+
 /// Bendahara Dashboard Provider
 class BendaharaDashboardProvider extends BaseDashboardProvider {
   BendaharaDashboardProvider(super.dashboardService);

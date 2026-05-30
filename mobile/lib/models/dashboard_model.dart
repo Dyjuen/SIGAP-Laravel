@@ -145,7 +145,7 @@ class DashboardResponse {
     // Parsing berbagai tipe response sesuai role
     final recentKaks = json['recent_kaks'] as List?;
     final pendingKaks = json['pending_kaks'] as List?;
-    final pendingKegiatans = json['pending_kegiatans'] as List?;
+    final pendingKegiatans = (json['pending_kegiatans'] ?? json['pending_kegiatan']) as List?;
     final pendingLpjs = json['pending_lpjs'] as List?;
 
     if (recentKaks != null) {

@@ -18,7 +18,18 @@ import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
 import 'screens/pengusul/lpj_list_page.dart';
 import 'screens/pengusul/lpj_form_page.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
+String _getBaseUrl() {
+  if (kIsWeb) {
+    return 'http://127.0.0.1:8000/api';
+  }
+  if (Platform.isAndroid) {
+    return 'http://10.0.2.2:8000/api';
+  }
+  return 'http://127.0.0.1:8000/api';
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +38,7 @@ void main() async {
   // Initialize Dio with base options
   final dio = Dio(
     BaseOptions(
-      baseUrl: 'http://127.0.0.1:8000/api',
+      baseUrl: _getBaseUrl(),
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       contentType: 'application/json',
