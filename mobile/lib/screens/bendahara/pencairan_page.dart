@@ -703,7 +703,6 @@ class _CairkanFormBottomSheet extends StatefulWidget {
 
 class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
   final TextEditingController _nominalController = TextEditingController();
-  final TextEditingController _keteranganController = TextEditingController();
   
   double _nominalRaw = 0;
   String? _nominalError;
@@ -719,7 +718,6 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
   void dispose() {
     _nominalController.removeListener(_onNominalChanged);
     _nominalController.dispose();
-    _keteranganController.dispose();
     super.dispose();
   }
 
@@ -886,35 +884,6 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Keterangan input
-          Text(
-            'Keterangan (Opsional)',
-            style: GoogleFonts.figtree(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFF475569),
-            ),
-          ),
-          const SizedBox(height: 6),
-          TextField(
-            controller: _keteranganController,
-            maxLength: 1000,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Tulis keterangan pencairan...',
-              hintStyle: GoogleFonts.figtree(color: const Color(0xFF94A3B8), fontSize: 14),
-              contentPadding: const EdgeInsets.all(16),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
-              ),
-              counterStyle: GoogleFonts.figtree(color: const Color(0xFF94A3B8), fontSize: 10),
-            ),
-          ),
           const SizedBox(height: 24),
 
           // Save / Cancel Actions
@@ -944,7 +913,6 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
                           final success = await context.read<PencairanProvider>().storePencairan(
                             kegiatanId: widget.item.kegiatanId,
                             nominal: _nominalRaw,
-                            keterangan: _keteranganController.text,
                           );
                           if (success) {
                             widget.onSuccess('Berhasil mencatat pencairan dana.');

@@ -30,14 +30,12 @@ class PencairanService {
   Future<void> storePencairan({
     required String kegiatanId,
     required double nominal,
-    String? keterangan,
   }) async {
     try {
       final response = await dio.post(
         '/kegiatan/$kegiatanId/pencairan',
         data: {
           'nominal_pencairan': nominal,
-          if (keterangan != null && keterangan.isNotEmpty) 'keterangan': keterangan,
         },
         options: Options(headers: {'Accept': 'application/json'}),
       );

@@ -14,7 +14,6 @@ class FakePencairanService extends PencairanService {
 
   String? lastStoreKegiatanId;
   double? lastStoreNominal;
-  String? lastStoreKeterangan;
   String? lastSelesaiKegiatanId;
 
   @override
@@ -29,14 +28,12 @@ class FakePencairanService extends PencairanService {
   Future<void> storePencairan({
     required String kegiatanId,
     required double nominal,
-    String? keterangan,
   }) async {
     if (shouldFailStore) {
       throw Exception('Gagal mencatat pencairan');
     }
     lastStoreKegiatanId = kegiatanId;
     lastStoreNominal = nominal;
-    lastStoreKeterangan = keterangan;
     
     // Simulate updating list on success
     mockList = mockList.map((item) {
@@ -126,13 +123,11 @@ void main() {
       final success = await provider.storePencairan(
         kegiatanId: '1',
         nominal: 2000000.0,
-        keterangan: 'Cairkan 2 juta',
       );
 
       expect(success, isTrue);
       expect(fakeService.lastStoreKegiatanId, '1');
       expect(fakeService.lastStoreNominal, 2000000.0);
-      expect(fakeService.lastStoreKeterangan, 'Cairkan 2 juta');
       
       // Verification of refreshed items
       expect(provider.items.first.danaDicairkan, 6000000.0);

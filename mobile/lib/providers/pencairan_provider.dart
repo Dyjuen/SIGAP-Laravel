@@ -39,7 +39,6 @@ class PencairanProvider with ChangeNotifier {
   Future<bool> storePencairan({
     required String kegiatanId,
     required double nominal,
-    String? keterangan,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
@@ -49,7 +48,6 @@ class PencairanProvider with ChangeNotifier {
       await _pencairanService.storePencairan(
         kegiatanId: kegiatanId,
         nominal: nominal,
-        keterangan: keterangan,
       );
       _errorMessage = null;
       // Refresh list to show updated totals/sisa
