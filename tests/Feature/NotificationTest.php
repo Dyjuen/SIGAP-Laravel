@@ -14,6 +14,10 @@ class NotificationTest extends TestCase
     /**
      * Middleware Tests
      */
+    /**
+     * Test Case: NTF-F-001 - Badge: Muncul Notifikasi Baru
+     * Test Case: NTF-F-002 - Badge: Badge Bertambah Setiap Notif Baru
+     */
     public function test_inertia_shared_props_contains_unread_notifications_for_authenticated_user(): void
     {
         $user = User::factory()->create(['user_id' => 1]);
@@ -63,6 +67,9 @@ class NotificationTest extends TestCase
         );
     }
 
+    /**
+     * Test Case: NTF-I-005 - Notif ↔ Role: Notif Hanya Muncul Sesuai Role
+     */
     public function test_notifications_do_not_leak_to_other_users(): void
     {
         $userA = User::factory()->create(['user_id' => 1]);
@@ -83,6 +90,9 @@ class NotificationTest extends TestCase
 
     /**
      * API Endpoint Tests: POST /notifications/{id}/read
+     */
+    /**
+     * Test Case: NTF-F-005 - Read: Tandai Satu Notifikasi Dibaca
      */
     public function test_user_can_mark_own_notification_as_read(): void
     {
@@ -154,6 +164,9 @@ class NotificationTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: NTF-F-007 - Mark All: Tandai Semua Notifikasi Dibaca
+     */
     public function test_user_can_mark_all_notifications_as_read(): void
     {
         $user = User::factory()->create(['user_id' => 1]);

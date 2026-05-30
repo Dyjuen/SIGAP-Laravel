@@ -12,7 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 
-class SendLpjEmail implements ShouldQueue
+class SendLpjEmail
 {
     use InteractsWithQueue;
 

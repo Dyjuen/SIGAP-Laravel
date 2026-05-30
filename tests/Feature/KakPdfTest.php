@@ -18,6 +18,9 @@ class KakPdfTest extends TestCase
         $this->seed(MasterDataSeeder::class);
     }
 
+    /**
+     * Test Case: KAK-FT-020 - PDF: Export PDF KAK
+     */
     public function test_pengusul_can_export_kak_pdf(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -33,6 +36,9 @@ class KakPdfTest extends TestCase
         $this->assertStringStartsWith('%PDF', $response->getContent());
     }
 
+    /**
+     * Test Case: KAK-FT-036 - PDF: Preview PDF Blob
+     */
     public function test_pengusul_can_preview_kak_pdf_blob(): void
     {
         $user = User::factory()->create(['role_id' => 3]);

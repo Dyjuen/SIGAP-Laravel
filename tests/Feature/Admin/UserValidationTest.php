@@ -20,6 +20,9 @@ class UserValidationTest extends TestCase
         }
     }
 
+    /**
+     * Test Case: USR-F-010 - Validasi Tambah: Username Mengandung Spasi
+     */
     public function test_username_cannot_contain_spaces()
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -37,6 +40,9 @@ class UserValidationTest extends TestCase
         $response->assertSessionHasErrors('username');
     }
 
+    /**
+     * Test Case: USR-F-011 - Validasi Tambah: Format Email Tidak Valid
+     */
     public function test_email_format_must_be_valid()
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -54,6 +60,9 @@ class UserValidationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
+    /**
+     * Test Case: USR-F-012 - Validasi Tambah: Role Tidak Dipilih
+     */
     public function test_role_is_required()
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -71,6 +80,9 @@ class UserValidationTest extends TestCase
         $response->assertSessionHasErrors('role_ids');
     }
 
+    /**
+     * Test Case: USR-F-013 - Validasi Tambah: Password < 8 Karakter
+     */
     public function test_password_min_8_characters()
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -88,6 +100,9 @@ class UserValidationTest extends TestCase
         $response->assertSessionHasErrors('password');
     }
 
+    /**
+     * Test Case: USR-F-021 - Validasi Edit: Email Sudah Digunakan User Lain
+     */
     public function test_email_must_be_unique_on_edit()
     {
         $admin = User::factory()->create(['role_id' => 1]);

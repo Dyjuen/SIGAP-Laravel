@@ -25,6 +25,9 @@ class AccountTest extends TestCase
         }
     }
 
+    /**
+     * Test Case: USR-F-001 - List User: Tampil Daftar Semua User
+     */
     public function test_admin_can_view_user_management_page(): void
     {
         $admin = User::factory()->create([
@@ -44,6 +47,9 @@ class AccountTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: LGN-I-004 - Role Guard: Akses Paksa URL Beda Role
+     */
     public function test_non_admin_cannot_view_user_management_page(): void
     {
         $user = User::factory()->create([
@@ -57,6 +63,9 @@ class AccountTest extends TestCase
         $response->assertStatus(403);
     }
 
+    /**
+     * Test Case: USR-F-015 - Tambah User: Simpan Data Valid
+     */
     public function test_admin_can_create_user(): void
     {
         $admin = User::factory()->create([
@@ -82,6 +91,10 @@ class AccountTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: USR-F-017 - Edit User: Ubah Nama User
+     * Test Case: USR-F-018 - Edit User: Ubah Role User
+     */
     public function test_admin_can_update_user(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -105,6 +118,9 @@ class AccountTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: USR-F-019 - Edit User: Ubah Password
+     */
     public function test_admin_can_change_user_password(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -127,6 +143,9 @@ class AccountTest extends TestCase
         $this->assertTrue(Hash::check('newpassword', $user->password_hash));
     }
 
+    /**
+     * Test Case: USR-F-024 - Hapus User: Konfirmasi Hapus (Ya)
+     */
     public function test_admin_can_delete_user(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);

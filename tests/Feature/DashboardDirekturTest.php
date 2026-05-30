@@ -21,6 +21,9 @@ class DashboardDirekturTest extends TestCase
         Role::firstOrCreate(['nama_role' => 'Pengusul']);
     }
 
+    /**
+     * Test Case: TC-D-F09 - Dashboard direktur default periode 6 bulan
+     */
     public function test_rektorat_can_access_dashboard()
     {
         $rektoratRole = Role::where('nama_role', 'Rektorat')->first();
@@ -40,6 +43,9 @@ class DashboardDirekturTest extends TestCase
         );
     }
 
+    /**
+     * Test Case: TC-D-F14 - Dashboard: Non-Rektorat tidak bisa akses dashboard direktur
+     */
     public function test_pengusul_cannot_access_dashboard()
     {
         $pengusulRole = Role::where('nama_role', 'Pengusul')->first();
@@ -48,6 +54,22 @@ class DashboardDirekturTest extends TestCase
         $response = $this->actingAs($pengusul)->get(route('dashboard.direktur'));
 
         $response->assertStatus(403);
+    }
+
+    /**
+     * Test Case: TC-D-F10, F11, F12, F13 - Dashboard direktur filters
+     */
+    public function test_rektorat_can_filter_dashboard_by_period()
+    {
+        $rektoratRole = Role::where('nama_role', 'Rektorat')->first();
+        $rektorat = User::factory()->create(['role_id' => $rektoratRole->role_id]);
+
+        $periods = ['3months', '1year', 'year', 'all'];
+
+        foreach ($periods as $period) {
+            $response = $this->actingAs($rektorat)->get(route('dashboard.direktur', ['period' => $period]));
+            $response->assertStatus(200);
+        }
     }
 
     public function test_unauthenticated_user_cannot_access_dashboard()

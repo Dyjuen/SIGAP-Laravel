@@ -164,6 +164,10 @@ class LpjTest extends TestCase
             ->assertRedirect('/login');
     }
 
+    /**
+     * Test Case: LPJ-I-001 - Revisi LPJ: Update Status Database (Success path)
+     * Test Case: LPJ-I-004 - Approve LPJ: Pencatatan Log Status (Success path)
+     */
     public function test_pengusul_can_submit_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -239,6 +243,9 @@ class LpjTest extends TestCase
             ->assertSessionHasErrors(['realisasi']);
     }
 
+    /**
+     * Test Case: LPJ-I-005 - Approve LPJ: Atomic Transaction (Rollback)
+     */
     public function test_submit_rolls_back_on_file_upload_failure(): void
     {
         Storage::fake('supabase');
@@ -295,6 +302,9 @@ class LpjTest extends TestCase
     // REVIEW TESTS
     // ========================================
 
+    /**
+     * Test Case: LPJ-F-001 - Review LPJ: Otorisasi Akses Bendahara
+     */
     public function test_bendahara_can_review_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -317,6 +327,9 @@ class LpjTest extends TestCase
         $response->assertStatus(200);
     }
 
+    /**
+     * Test Case: LPJ-F-002 - Review LPJ: Otorisasi Role Lain (View Only)
+     */
     public function test_non_authorized_cannot_review_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -334,6 +347,9 @@ class LpjTest extends TestCase
     // REVISE TESTS
     // ========================================
 
+    /**
+     * Test Case: LPJ-I-002 - Revisi LPJ: Notifikasi Email Pengusul (Partial)
+     */
     public function test_bendahara_can_revise_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -387,6 +403,9 @@ class LpjTest extends TestCase
     // RESUBMIT TESTS
     // ========================================
 
+    /**
+     * Test Case: LPJ-I-001 - Revisi LPJ: Update Status Database (Back to Aktif)
+     */
     public function test_pengusul_can_resubmit_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -544,6 +563,10 @@ class LpjTest extends TestCase
     // APPROVE TESTS
     // ========================================
 
+    /**
+     * Test Case: LPJ-F-006 - Approve LPJ: Tombol Approve Muncul
+     * Test Case: LPJ-I-011 - Approve LPJ: Metadata Approver
+     */
     public function test_bendahara_can_approve_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -583,6 +606,9 @@ class LpjTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: LPJ-I-009 - Revisi LPJ: Pembersihan Catatan Lama
+     */
     public function test_revise_lpj_clears_old_notes(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -615,6 +641,9 @@ class LpjTest extends TestCase
         $this->assertNull($lampiran->catatan_reviewer);
     }
 
+    /**
+     * Test Case: LPJ-F-007 - Approve LPJ: Akses API Approve Invalid
+     */
     public function test_non_bendahara_cannot_approve_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -645,6 +674,9 @@ class LpjTest extends TestCase
         $response->assertSessionHasErrors(['message']);
     }
 
+    /**
+     * Test Case: LPJ-I-003 - Approve LPJ: Update Alur Approval
+     */
     public function test_approve_activates_setor_step(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -665,6 +697,10 @@ class LpjTest extends TestCase
     // COMPLETE TESTS
     // ========================================
 
+    /**
+     * Test Case: LPJ-F-008 - Complete LPJ: Kondisi Tombol Selesai
+     * Test Case: LPJ-I-006 - Complete LPJ: Finalisasi Status
+     */
     public function test_bendahara_can_complete_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -710,6 +746,9 @@ class LpjTest extends TestCase
             ->assertStatus(403);
     }
 
+    /**
+     * Test Case: LPJ-F-009 - Complete LPJ: Validasi State / Status Guard
+     */
     public function test_complete_fails_when_not_at_setor_level(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);

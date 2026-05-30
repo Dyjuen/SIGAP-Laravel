@@ -22,12 +22,18 @@ class DashboardTest extends TestCase
         $this->seed(MasterDataSeeder::class);
     }
 
+    /**
+     * Test Case: TC-D-F15 - Dashboard: Guest/unauthenticated redirect ke login
+     */
     public function test_guest_redirected_to_login(): void
     {
         $response = $this->get(route('dashboard'));
         $response->assertRedirect(route('login'));
     }
 
+    /**
+     * Test Case: TC-D-F01 - Dashboard: Rektorat di-redirect ke dashboard direktur setelah login
+     */
     public function test_rektorat_redirected_to_direktur_dashboard(): void
     {
         $user = User::factory()->create(['role_id' => 7]); // Rektorat
@@ -35,6 +41,9 @@ class DashboardTest extends TestCase
         $response->assertRedirect(route('dashboard.direktur'));
     }
 
+    /**
+     * Test Case: TC-D-F02 - Dashboard: Pengusul melihat statistik KAK miliknya
+     */
     public function test_pengusul_sees_own_stats(): void
     {
         $user = User::factory()->create(['role_id' => 3]); // Pengusul
@@ -53,6 +62,10 @@ class DashboardTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-D-F03 - Dashboard: PPK melihat antrian persetujuan level PPK
+     * Test Case: TC-K-I04 - Modul PPK-WD2 [Integrasi]: Dashboard PPK mencerminkan kegiatan pending
+     */
     public function test_ppk_sees_pending_queue(): void
     {
         $ppk = User::factory()->create(['role_id' => 4]); // PPK
@@ -74,6 +87,9 @@ class DashboardTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-D-F04 - Dashboard: Wadir melihat antrian persetujuan level Wadir2
+     */
     public function test_wadir_sees_pending_queue(): void
     {
         $wadir = User::factory()->create(['role_id' => 5]); // Wadir
@@ -95,6 +111,9 @@ class DashboardTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-D-F05 - Dashboard: Verifikator1 melihat KAK hanya tipe kegiatan 1
+     */
     public function test_verifikator_filters_by_tipe_kegiatan(): void
     {
         $verif1 = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
@@ -111,6 +130,9 @@ class DashboardTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-D-F06 - Dashboard: Verifikator tanpa angka melihat semua KAK
+     */
     public function test_verifikator_without_suffix_sees_all_kak(): void
     {
         $verif = User::factory()->create(['role_id' => 2, 'username' => 'verifikator']);
@@ -125,6 +147,10 @@ class DashboardTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-D-F07 - Dashboard: Bendahara melihat daftar kegiatan siap cair
+     * Test Case: TC-D-F18 - Dashboard: Bendahara melihat status waiting/disbursed/lpj
+     */
     public function test_bendahara_sees_ready_to_disburse(): void
     {
         $bendahara = User::factory()->create(['role_id' => 6]); // Bendahara
@@ -164,6 +190,10 @@ class DashboardTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-D-I02 - Dashboard [Integrasi]: Panduan terfilter by role tampil di dashboard
+     * Test Case: TC-P-I03 - Manajemen Panduan [Integrasi]: Panduan tampil di dashboard user sesuai role
+     */
     public function test_dashboard_filters_panduans_by_role(): void
     {
         $pengusul = User::factory()->create(['role_id' => 3]);

@@ -99,6 +99,9 @@ class PencairanTest extends TestCase
         $this->get(route('pencairan.index'))->assertRedirect('/login');
     }
 
+    /**
+     * Test Case: PD-F-004 - Pencairan Dana: Otorisasi Bendahara
+     */
     public function test_bendahara_can_view_pencairan_index(): void
     {
         $this->createKegiatanAtBendaharaCair($this->pengusul);
@@ -113,6 +116,9 @@ class PencairanTest extends TestCase
         );
     }
 
+    /**
+     * Test Case: PD-F-021 - Pencairan Dana: Filter Status Data (Partial)
+     */
     public function test_index_only_shows_kegiatan_at_bendahara_cair_aktif(): void
     {
         // Kegiatan at Bendahara-Cair Aktif — should appear
@@ -159,6 +165,10 @@ class PencairanTest extends TestCase
     // SISA DANA TESTS
     // ========================================
 
+    /**
+     * Test Case: PD-F-006 - Pencairan Dana: Detail Saldo UI
+     * Test Case: PD-I-004 - Pencairan Dana: Akurasi Agregasi API
+     */
     public function test_bendahara_can_view_sisa_dana(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
@@ -194,6 +204,9 @@ class PencairanTest extends TestCase
     // STORE TESTS
     // ========================================
 
+    /**
+     * Test Case: PD-F-009 - Pencairan Dana: Toast Sukses
+     */
     public function test_bendahara_can_store_pencairan(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
@@ -279,6 +292,10 @@ class PencairanTest extends TestCase
         $this->assertDatabaseCount('t_pencairan_dana', 0);
     }
 
+    /**
+     * Test Case: PD-I-001 - Pencairan Dana: Validasi Limit Sisa
+     * Test Case: PD-U-005 - Pencairan Dana: Block Transaksi Over
+     */
     public function test_store_fails_when_exceeding_sisa_dana(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 2000000);
@@ -294,6 +311,10 @@ class PencairanTest extends TestCase
         $this->assertDatabaseCount('t_pencairan_dana', 0);
     }
 
+    /**
+     * Test Case: PD-F-001 - Pencairan Dana: Nominal Negatif
+     * Test Case: PD-F-002 - Pencairan Dana: Nominal Nol
+     */
     public function test_store_validation_rejects_invalid_data(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
@@ -315,6 +336,10 @@ class PencairanTest extends TestCase
     // SELESAI TESTS
     // ========================================
 
+    /**
+     * Test Case: PD-I-002 - Pencairan Dana: Transisi Fase LPJ
+     * Test Case: PD-I-010 - Pencairan Dana: Trigger LPJ Open
+     */
     public function test_bendahara_can_selesai_pencairan(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
@@ -365,6 +390,9 @@ class PencairanTest extends TestCase
             ->assertStatus(403);
     }
 
+    /**
+     * Test Case: PD-I-006 - Pencairan Dana: DB Rollback Mekanik
+     */
     public function test_store_pencairan_is_atomic(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
@@ -386,6 +414,9 @@ class PencairanTest extends TestCase
         \App\Models\PencairanDana::flushEventListeners();
     }
 
+    /**
+     * Test Case: PD-F-013 - Pencairan Dana: Max Sisa Dana
+     */
     public function test_store_pencairan_at_max_limit(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 2000000);
@@ -397,6 +428,65 @@ class PencairanTest extends TestCase
 
         $response->assertStatus(302);
         $response->assertSessionHas('success');
+        $this->assertDatabaseCount('t_pencairan_dana', 1);
+    }
+
+    /**
+     * Test Case: PD-F-015 - Pencairan Dana: Date Range Filter
+     */
+    public function test_bendahara_can_filter_pencairan_by_date_range(): void
+    {
+        $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
+        
+        // 1. Create a transaction today
+        \App\Models\PencairanDana::create([
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'jumlah_dicairkan' => 1000,
+            'created_by' => $this->bendahara->user_id,
+            'tanggal_pencairan' => now()->toDateString(), // Added missing field
+            'created_at' => now(),
+        ]);
+
+        // 2. Filter for tomorrow (should be empty)
+        $response = $this->actingAs($this->bendahara)->get(route('pencairan.index', [
+            'start_date' => now()->addDay()->toDateString(),
+            'end_date' => now()->addDay()->toDateString(),
+        ]));
+        
+        $response->assertInertia(fn ($page) => $page->has('kegiatans', 0));
+
+        // 3. Filter for today (should have 1)
+        $response = $this->actingAs($this->bendahara)->get(route('pencairan.index', [
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->toDateString(),
+        ]));
+        
+        $response->assertInertia(fn ($page) => $page->has('kegiatans', 1));
+    }
+
+    /**
+     * Test Case: PD-I-005 - Pencairan Dana: Race Condition Limit
+     * Note: In a unit/feature test, we can't easily do concurrent requests, 
+     * but we can verify the use of lockForUpdate in the controller if we check implementation or use a partial mock.
+     * Here we just ensure that two sequential requests that would exceed the limit fail correctly.
+     */
+    public function test_sequential_pencairan_honors_remaining_limit(): void
+    {
+        $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 2000000);
+
+        // First pencairan
+        $this->actingAs($this->bendahara)
+            ->post(route('pencairan.store', $kegiatan), [
+                'nominal_pencairan' => 1500000,
+            ]);
+
+        // Second pencairan (remaining is 500k, trying to take 600k)
+        $response = $this->actingAs($this->bendahara)
+            ->post(route('pencairan.store', $kegiatan), [
+                'nominal_pencairan' => 600000,
+            ]);
+
+        $response->assertSessionHasErrors(['nominal_pencairan']);
         $this->assertDatabaseCount('t_pencairan_dana', 1);
     }
 

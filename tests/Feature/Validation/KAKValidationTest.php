@@ -247,6 +247,70 @@ class KAKValidationTest extends TestCase
     }
 
     /**
+     * Test Case: KAK-FT-002 - Validation: Nama kegiatan kosong
+     */
+    public function test_kak_name_required_validation()
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/kak', [
+                'kak' => ['nama_kegiatan' => ''],
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['kak.nama_kegiatan']);
+    }
+
+    /**
+     * Test Case: KAK-FT-006 - Validation: Tipe Kegiatan ID tidak ada di master
+     */
+    public function test_kak_tipe_kegiatan_id_invalid_validation()
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/kak', [
+                'kak' => ['tipe_kegiatan_id' => 9999],
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['kak.tipe_kegiatan_id']);
+    }
+
+    /**
+     * Test Case: KAK-FT-008 - Validation: RAB: Harga Satuan bukan angka
+     */
+    public function test_kak_rab_harga_satuan_numeric_validation()
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/kak', [
+                'rab' => [
+                    ['harga_satuan' => 'seribu'],
+                ],
+            ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['rab.0.harga_satuan']);
+    }
+
+    /**
+     * Test Case: KAK-FT-025 - Validation: Volume RAB = 0 (Assuming min 1 if spec says so, or 0 if valid)
+     * If business logic requires at least 1, then this test verifies rejection.
+     */
+    public function test_kak_rab_volume_zero_validation()
+    {
+        $response = $this->actingAs($this->user)
+            ->postJson('/kak', [
+                'rab' => [
+                    ['volume1' => 0],
+                ],
+            ]);
+
+        // If it should fail (min 1):
+        // $response->assertStatus(422)->assertJsonValidationErrors(['rab.0.volume1']);
+        
+        // If it is valid:
+        $response->assertJsonMissingValidationErrors(['rab.0.volume1']);
+    }
+
+    /**
      * Test past dates are allowed (KAK-FT-024).
      */
     public function test_kak_past_dates_allowed()

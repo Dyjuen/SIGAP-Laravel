@@ -27,6 +27,9 @@ class PanduanTest extends TestCase
         }
     }
 
+    /**
+     * Test Case: TC-P-F01 - Manajemen Panduan: Admin dapat mengakses halaman daftar panduan
+     */
     public function test_admin_can_view_panduan_page(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -43,6 +46,9 @@ class PanduanTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: TC-P-F02 - Manajemen Panduan: Non-admin (Pengusul) dilarang akses halaman panduan
+     */
     public function test_non_admin_cannot_view_panduan_page(): void
     {
         $user = User::factory()->create(['role_id' => 3]); // Pengusul
@@ -53,6 +59,10 @@ class PanduanTest extends TestCase
         $response->assertStatus(403);
     }
 
+    /**
+     * Test Case: TC-P-F05 - Manajemen Panduan: Admin tambah panduan tipe Dokumen PDF
+     * Test Case: TC-P-I01 - Manajemen Panduan [Integrasi]: Upload panduan → file tersimpan di Supabase Storage
+     */
     public function test_admin_can_create_document_panduan(): void
     {
         Storage::fake('supabase');
@@ -80,6 +90,10 @@ class PanduanTest extends TestCase
         $this->assertNotEmpty($files);
     }
 
+    /**
+     * Test Case: TC-P-F04 - Manajemen Panduan: Admin tambah panduan tipe Video (YouTube)
+     * Test Case: TC-P-F07 - Manajemen Panduan: Admin tambah panduan tanpa target role (untuk semua)
+     */
     public function test_admin_can_create_video_panduan(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -101,6 +115,9 @@ class PanduanTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: TC-P-F12 - Manajemen Panduan: Admin update judul panduan video
+     */
     public function test_admin_can_update_panduan(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -127,6 +144,10 @@ class PanduanTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: TC-P-F16 - Manajemen Panduan: Admin hapus panduan dokumen
+     * Test Case: TC-P-I02 - Manajemen Panduan [Integrasi]: Hapus panduan → file ikut terhapus dari Storage
+     */
     public function test_admin_can_delete_panduan(): void
     {
         Storage::fake('supabase');
@@ -148,6 +169,9 @@ class PanduanTest extends TestCase
         $this->assertFalse(Storage::disk('supabase')->exists($path));
     }
 
+    /**
+     * Test Case: TC-P-F08 - Manajemen Panduan: Validasi: judul wajib diisi
+     */
     public function test_validation_requires_judul(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -161,6 +185,9 @@ class PanduanTest extends TestCase
         $response->assertSessionHasErrors('judul_panduan');
     }
 
+    /**
+     * Test Case: TC-P-F09 - Manajemen Panduan: Validasi: URL video harus domain YouTube
+     */
     public function test_validation_rejects_non_youtube_url(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -175,6 +202,9 @@ class PanduanTest extends TestCase
         $response->assertSessionHasErrors('path_media');
     }
 
+    /**
+     * Test Case: TC-P-F11 - Manajemen Panduan: Validasi: format file tidak valid (.exe)
+     */
     public function test_validation_rejects_invalid_file_type(): void
     {
         Storage::fake('supabase');
@@ -191,6 +221,9 @@ class PanduanTest extends TestCase
         $response->assertSessionHasErrors('file');
     }
 
+    /**
+     * Test Case: TC-P-F18 - Manajemen Panduan: Download dokumen PDF
+     */
     public function test_admin_can_download_document(): void
     {
         Storage::fake('supabase');
@@ -212,6 +245,9 @@ class PanduanTest extends TestCase
         // Storage download returns StreamedResponse
     }
 
+    /**
+     * Test Case: TC-P-F15 - Manajemen Panduan: Validasi: ganti ke dokumen tanpa upload file
+     */
     public function test_admin_cannot_switch_to_document_without_file(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -232,6 +268,9 @@ class PanduanTest extends TestCase
         $response->assertSessionHasErrors('file');
     }
 
+    /**
+     * Test Case: TC-P-F13 - Manajemen Panduan: Admin ganti panduan dari video ke dokumen
+     */
     public function test_admin_switches_from_video_to_document_deletes_no_file(): void
     {
         Storage::fake('supabase');
@@ -260,6 +299,9 @@ class PanduanTest extends TestCase
         $this->assertNotEmpty($files);
     }
 
+    /**
+     * Test Case: TC-P-F14 - Manajemen Panduan: Admin ganti panduan dari dokumen ke video
+     */
     public function test_admin_switches_from_document_to_video_deletes_old_file(): void
     {
         Storage::fake('supabase');
@@ -291,6 +333,9 @@ class PanduanTest extends TestCase
         $this->assertFalse(Storage::disk('supabase')->exists($oldPath));
     }
 
+    /**
+     * Test Case: TC-P-F19 - Manajemen Panduan: Preview dokumen PDF inline
+     */
     public function test_admin_can_preview_document_inline(): void
     {
         Storage::fake('supabase');
@@ -311,6 +356,9 @@ class PanduanTest extends TestCase
         $response->assertHeader('Content-Disposition', 'inline; filename="Previewable.pdf"');
     }
 
+    /**
+     * Test Case: TC-P-F20 - Manajemen Panduan: Akses download panduan video → redirect ke YouTube
+     */
     public function test_download_video_redirects_to_youtube(): void
     {
         $admin = User::factory()->create(['role_id' => 1]);
@@ -327,6 +375,9 @@ class PanduanTest extends TestCase
         $response->assertRedirect($videoUrl);
     }
 
+    /**
+     * Test Case: TC-P-F21 - Manajemen Panduan: Download panduan yang file-nya tidak ada di storage
+     */
     public function test_download_missing_file_returns_404(): void
     {
         Storage::fake('supabase');
@@ -344,6 +395,9 @@ class PanduanTest extends TestCase
         $response->assertStatus(404);
     }
 
+    /**
+     * Test Case: TC-P-F22 - Manajemen Panduan: Pengguna tanpa login tidak bisa download panduan
+     */
     public function test_guest_cannot_download_panduan(): void
     {
         $panduan = Panduan::create([

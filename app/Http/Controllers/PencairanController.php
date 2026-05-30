@@ -42,7 +42,7 @@ class PencairanController extends Controller
         }
 
         // Build query with aggregate sums to avoid N+1.
-        $kegiatans = Kegiatan::with([
+        $query = Kegiatan::with([
             'kak.pengusul',
             'kak.mataAnggaran',
             'kak.tipeKegiatan',
@@ -52,8 +52,21 @@ class PencairanController extends Controller
             ->whereHas('approvals', function ($query) {
                 $query->where('approval_level', 'Bendahara-Cair')
                     ->where('status', 'Aktif');
-            })
-            ->get();
+            });
+
+        // Apply filters
+        if ($request->filled('start_date')) {
+            $query->whereHas('pencairanDana', function ($q) use ($request) {
+                $q->whereDate('tanggal_pencairan', '>=', $request->start_date);
+            });
+        }
+        if ($request->filled('end_date')) {
+            $query->whereHas('pencairanDana', function ($q) use ($request) {
+                $q->whereDate('tanggal_pencairan', '<=', $request->end_date);
+            });
+        }
+
+        $kegiatans = $query->get();
 
         // Eager-load the budget sum on each kegiatan's KAK (1 query for all records).
         $kegiatans->load(['kak' => fn ($q) => $q->withSum('anggaran', 'jumlah_diusulkan')]);

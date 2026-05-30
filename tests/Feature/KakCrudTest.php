@@ -25,6 +25,9 @@ class KakCrudTest extends TestCase
         $this->seed(MasterDataSeeder::class);
     }
 
+    /**
+     * Test Case: KAK-FT-022 - Cek Props Inertia
+     */
     public function test_authenticated_user_can_view_kak_index(): void
     {
         $user = User::factory()->create(['role_id' => 3]); // Pengusul
@@ -41,12 +44,19 @@ class KakCrudTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: KAK-FT-021 - Akses Tanpa Login
+     */
     public function test_unauthenticated_user_cannot_access_kak(): void
     {
         $response = $this->get(route('kak.index'));
         $response->assertRedirect(route('login'));
     }
 
+    /**
+     * Test Case: KAK-FT-001 - Simpan KAK data valid (Role Pengusul)
+     * Test Case: KAK-FT-023 - Create dengan Children
+     */
     public function test_pengusul_can_create_kak_with_all_children(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -100,6 +110,10 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak_anggaran', ['uraian' => 'Item 1']);
     }
 
+    /**
+     * Test Case: KAK-FT-016 - Verifikator lihat detail KAK orang lain (Logic validation)
+     * Test Case: KAK-FT-022 - Cek Props Inertia
+     */
     public function test_pengusul_can_view_kak_detail(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -117,6 +131,9 @@ class KakCrudTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: KAK-FT-012 - Pengusul edit KAK status Draft
+     */
     public function test_pengusul_can_update_draft_kak(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -158,6 +175,9 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak_manfaat', ['manfaat' => 'New Manfaat']);
     }
 
+    /**
+     * Test Case: KAK-FT-013 - Pengusul edit KAK status Disetujui
+     */
     public function test_pengusul_cannot_update_approved_kak(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -196,6 +216,9 @@ class KakCrudTest extends TestCase
         $response->assertStatus(403);
     }
 
+    /**
+     * Test Case: KAK-FT-017 - Hapus KAK Draft (Soft Delete)
+     */
     public function test_pengusul_can_delete_draft_kak(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -207,6 +230,9 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseMissing('t_kak', ['kak_id' => $kak->kak_id]);
     }
 
+    /**
+     * Test Case: KAK-FT-035 - Hapus KAK status "Review"
+     */
     public function test_pengusul_cannot_delete_reviewed_kak(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -223,6 +249,9 @@ class KakCrudTest extends TestCase
         $response->assertSessionHasErrors(['kak.nama_kegiatan']);
     }
 
+    /**
+     * Test Case: KAK-IT-011 - DB Atomicity
+     */
     public function test_store_rolls_back_on_child_insert_failure(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -272,6 +301,9 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseMissing('t_kak', ['nama_kegiatan' => 'Rollback Test Activity']);
     }
 
+    /**
+     * Test Case: KAK-FT-031 - Hapus salah satu baris Manfaat saat Edit
+     */
     public function test_update_with_empty_children_clears_old_records(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -443,6 +475,9 @@ class KakCrudTest extends TestCase
         $response->assertSessionHasErrors(['kak.tipe_kegiatan_id']);
     }
 
+    /**
+     * Test Case: KAK-FT-028 - IKU: Duplikasi IKU ID di satu KAK
+     */
     public function test_duplicate_iku_ids_are_deduplicated(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -486,6 +521,9 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak_iku', ['kak_id' => $kak->kak_id, 'iku_id' => $iku->iku_id]);
     }
 
+    /**
+     * Test Case: KAK-FT-014 - Index: Filter KAK berdasarkan Status
+     */
     public function test_kak_index_filtering_by_status(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -502,6 +540,9 @@ class KakCrudTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: KAK-FT-015 - Index: Search KAK berdasarkan Nama
+     */
     public function test_kak_index_searching_by_name(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -518,6 +559,10 @@ class KakCrudTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: KAK-FT-018 - Compute: Otomatis hitung kurun waktu
+     * Test Case: KAK-FT-029 - Calculation: Kurun Waktu Otomatis (Hari)
+     */
     public function test_kak_auto_computes_kurun_waktu(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -564,6 +609,9 @@ class KakCrudTest extends TestCase
         // May 1 to June 5: diffInDays is 35. + 1 = 36. 36 / 30 = 1. 36 % 30 = 6. -> "1 Bulan 6 Hari". Correct.
     }
 
+    /**
+     * Test Case: KAK-FT-027 - Validation: RAB: Multi-volume (Volume 1, 2, 3)
+     */
     public function test_kak_rab_calculation_with_multiple_volumes(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -610,6 +658,9 @@ class KakCrudTest extends TestCase
         ]);
     }
 
+    /**
+     * Test Case: KAK-FT-032 - CRUD Update: Ubah urutan Tahapan Pelaksanaan
+     */
     public function test_kak_tahapan_urutan_reindexed_on_update(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -651,6 +702,9 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak_tahapan', ['tahapan_id' => $s1->tahapan_id, 'urutan' => 2]);
     }
 
+    /**
+     * Test Case: KAK-FT-034 - CRUD Update: Ubah harga RAB yang punya catatan revisi
+     */
     public function test_kak_update_preserves_rab_catatan_verifikator(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
@@ -704,5 +758,68 @@ class KakCrudTest extends TestCase
             'anggaran_id' => $rab->anggaran_id,
             'catatan_verifikator' => 'Please fix price',
         ]);
+    }
+
+    /**
+     * Test Case: KAK-FT-033 - CRUD Update: Tambah RAB baru saat Edit
+     */
+    public function test_kak_update_can_add_new_rab_row(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]);
+        $tipe = \App\Models\TipeKegiatan::first();
+        $satuan = \App\Models\Satuan::first();
+        $iku = \App\Models\Iku::first();
+        $kategori = \App\Models\KategoriBelanja::first();
+
+        $existingRab = \App\Models\KAKAnggaran::create([
+            'kak_id' => $kak->kak_id,
+            'kategori_belanja_id' => $kategori->kategori_belanja_id,
+            'uraian' => 'Existing Item',
+            'volume1' => 1,
+            'satuan1_id' => $satuan->satuan_id,
+            'harga_satuan' => 1000,
+        ]);
+
+        $updatedData = [
+            'kak' => [
+                'nama_kegiatan' => $kak->nama_kegiatan,
+                'deskripsi_kegiatan' => $kak->deskripsi_kegiatan,
+                'metode_pelaksanaan' => $kak->metode_pelaksanaan,
+                'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
+                'tanggal_mulai' => $kak->tanggal_mulai->toDateString(),
+                'tanggal_selesai' => $kak->tanggal_selesai->toDateString(),
+                'lokasi' => $kak->lokasi,
+                'tipe_kegiatan_id' => $kak->tipe_kegiatan_id,
+                'sasaran_utama' => $kak->sasaran_utama,
+                'manfaat' => [['value' => 'M']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'T', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Jan', 'deskripsi_target' => 'T', 'persentase_target' => 50]],
+            ],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => '10', 'satuan_id' => $satuan->satuan_id]],
+            'rab' => [
+                [
+                    'anggaran_id' => $existingRab->anggaran_id,
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'Existing Item',
+                    'volume1' => 1,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 1000,
+                ],
+                [
+                    'anggaran_id' => null, // NEW
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'New Row Added',
+                    'volume1' => 2,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 500,
+                ],
+            ],
+        ];
+
+        $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
+
+        $this->assertDatabaseCount('t_kak_anggaran', 2);
+        $this->assertDatabaseHas('t_kak_anggaran', ['uraian' => 'New Row Added', 'kak_id' => $kak->kak_id]);
     }
 }

@@ -12,6 +12,9 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    /**
+     * Test Case: LGN-F-001 - Login Screen: Tampil Halaman Login
+     */
     public function test_login_screen_can_be_rendered(): void
     {
         $response = $this->get('/login');
@@ -19,6 +22,9 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    /**
+     * Test Case: LGN-F-002 - Login: Login Berhasil (Admin)
+     */
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         // Use factory but override with username
@@ -36,6 +42,23 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
+    /**
+     * Test Case: LGN-F-003 - Login Salah Username
+     */
+    public function test_users_can_not_authenticate_with_invalid_username(): void
+    {
+        $response = $this->post('/login', [
+            'username' => 'wronguser',
+            'password' => 'password',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors();
+    }
+
+    /**
+     * Test Case: LGN-F-004 - Login: Login Salah Password
+     */
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create([
@@ -50,6 +73,9 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
+    /**
+     * Test Case: LGN-I-002 - Logout & Session: Logout Lalu Akses Dashboard
+     */
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
@@ -60,6 +86,9 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/');
     }
 
+    /**
+     * Test Case: LGN-F-002 - Login: Login Berhasil (Admin)
+     */
     public function test_authenticated_user_is_redirected_to_role_dashboard(): void
     {
         // Create roles
@@ -97,6 +126,9 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/dashboard');
     }
 
+    /**
+     * Test Case: LGN-F-009 - Rate Limiting - Lockout
+     */
     public function test_login_is_rate_limited(): void
     {
         $user = User::factory()->create([
@@ -172,6 +204,9 @@ class AuthenticationTest extends TestCase
         $this->assertNotEquals($sessionBefore, $sessionAfter);
     }
 
+    /**
+     * Test Case: LGN-F-013 - Ingat Saya: Centang Ingat Saya
+     */
     public function test_users_can_authenticate_with_remember_me(): void
     {
         $user = User::factory()->create([

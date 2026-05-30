@@ -18,6 +18,9 @@ class KakAuthorizationTest extends TestCase
         $this->seed(MasterDataSeeder::class);
     }
 
+    /**
+     * Test Case: KAK-IT-017 - Pengusul Lihat Milik Sendiri
+     */
     public function test_index_only_shows_owned_kaks_for_pengusul(): void
     {
         $user = User::factory()->create(['role_id' => 3]); // Pengusul
@@ -37,6 +40,9 @@ class KakAuthorizationTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: KAK-IT-016 - RBAC: Verifikator Lihat Daftar
+     */
     public function test_index_only_shows_matching_tipe_kaks_for_verifikator(): void
     {
         // Verifikator 1 matches Tipe 1
@@ -57,6 +63,10 @@ class KakAuthorizationTest extends TestCase
             );
     }
 
+    /**
+     * Test Case: KAK-IT-012 - RBAC Scope: Verifikator1 proses KAK Tipe 2
+     * Test Case: KAK-IT-028 - Authorization: Verifikator1 akses KAK Tipe 2
+     */
     public function test_verifikator_cannot_access_mismatched_tipe_kaks(): void
     {
         $verifikator1 = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
@@ -73,6 +83,9 @@ class KakAuthorizationTest extends TestCase
             ->assertStatus(403);
     }
 
+    /**
+     * Test Case: KAK-IT-018 - Security: ID Manipulation
+     */
     public function test_pengusul_cannot_access_others_kaks(): void
     {
         $me = User::factory()->create(['role_id' => 3]);
@@ -100,6 +113,11 @@ class KakAuthorizationTest extends TestCase
             ->assertStatus(403);
     }
 
+    /**
+     * Test Case: KAK-FT-011 - Auth: Verifikator akses form Create
+     * Test Case: KAK-IT-025 - RBAC: Verifikator Edit KAK
+     * Test Case: KAK-IT-027 - Authorization: Verifikator Akses Edit Form
+     */
     public function test_verifikator_cannot_create_update_delete_kaks(): void
     {
         $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
@@ -125,6 +143,9 @@ class KakAuthorizationTest extends TestCase
             ->assertStatus(403);
     }
 
+    /**
+     * Test Case: KAK-IT-020 - Workflow: Self-Approval Check (Partial)
+     */
     public function test_pengusul_cannot_approve_reject_revise(): void
     {
         $pengusul = User::factory()->create(['role_id' => 3]);
@@ -143,6 +164,9 @@ class KakAuthorizationTest extends TestCase
             ->assertStatus(403);
     }
 
+    /**
+     * Test Case: KAK-IT-026 - Authorization: Admin (Role 1) Akses KAK Siapapun
+     */
     public function test_admin_can_access_any_kak(): void
     {
         $admin = User::factory()->create(['role_id' => 1]); // Admin
