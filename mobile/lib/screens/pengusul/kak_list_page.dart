@@ -46,7 +46,13 @@ class _KakListPageState extends State<KakListPage> {
     try {
       final res = await ApiService.get('/kak');
       if (res.statusCode == 200) {
-        final data = jsonDecode(res.body) as List;
+        final decoded = jsonDecode(res.body);
+        List<dynamic> data = [];
+        if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+          data = decoded['data'] as List<dynamic>;
+        } else if (decoded is List<dynamic>) {
+          data = decoded;
+        }
         setState(() {
           _kaks = data;
           _applyFilter();

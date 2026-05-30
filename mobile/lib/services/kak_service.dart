@@ -38,7 +38,13 @@ class KakService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data ?? [];
+        final rawData = response.data;
+        List<dynamic> data = [];
+        if (rawData is Map<String, dynamic> && rawData.containsKey('data')) {
+          data = rawData['data'] as List<dynamic>;
+        } else if (rawData is List<dynamic>) {
+          data = rawData;
+        }
         return data
             .map((item) => KakDetail.fromJson(item as Map<String, dynamic>))
             .toList();
