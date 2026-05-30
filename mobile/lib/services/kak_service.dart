@@ -123,10 +123,11 @@ class KakService {
   }
 
   /// Approve KAK (Verifikator only)
-  Future<void> approveKak(String kakId) async {
+  Future<void> approveKak(String kakId, Map<String, dynamic> budgetData) async {
     try {
       final response = await dio.post(
         '/kak/$kakId/approve',
+        data: budgetData,
         options: Options(headers: {'Accept': 'application/json'}),
       );
 

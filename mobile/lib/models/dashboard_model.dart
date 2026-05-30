@@ -45,10 +45,10 @@ class DashboardStats {
       lpjApproved: json['lpj_approved'],
       totalDanaDisusulkan: (json['total_dana_diusulkan'] as num?)?.toDouble(),
       totalDanaDicairkan: (json['total_dana_dicairkan'] as num?)?.toDouble(),
-      pendingCount: json['pending_count'],
-      approvedCount: json['approved_count'],
-      rejectedCount: json['rejected_count'],
-      totalVerified: json['total_verified'],
+      pendingCount: json['pending_count'] ?? json['pending_kak'] ?? json['review_kak'],
+      approvedCount: json['approved_count'] ?? json['approved_kak'],
+      rejectedCount: json['rejected_count'] ?? json['rejected_kak'],
+      totalVerified: json['total_verified'] ?? json['total_kak'],
       totalKegiatan: json['total_kegiatan'],
     );
   }

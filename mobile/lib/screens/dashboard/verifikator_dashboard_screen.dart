@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
 import '../verifikator/verifikator_approval_page.dart';
+import '../verifikator/verifikator_kak_list_page.dart';
 
 class VerifikatorDashboardScreen extends StatefulWidget {
   const VerifikatorDashboardScreen({super.key});
@@ -117,12 +118,24 @@ class _VerifikatorDashboardScreenState
                         mainAxisSpacing: 16,
                         crossAxisSpacing: 16,
                         children: [
-                          _StatCard(
-                            label: 'PENDING',
-                            value: stats.pendingCount?.toString() ?? '0',
-                            bgColor: Colors.orange.shade100,
-                            textColor: Colors.orange.shade700,
-                            icon: Icons.pending_actions_rounded,
+                           GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const VerifikatorKakListPage(),
+                                ),
+                              ).then((_) {
+                                context.read<VerifikatorDashboardProvider>().loadDashboard();
+                              });
+                            },
+                            child: _StatCard(
+                              label: 'PENDING',
+                              value: stats.pendingCount?.toString() ?? '0',
+                              bgColor: Colors.orange.shade100,
+                              textColor: Colors.orange.shade700,
+                              icon: Icons.pending_actions_rounded,
+                            ),
                           ),
                           _StatCard(
                             label: 'APPROVED',
@@ -150,14 +163,31 @@ class _VerifikatorDashboardScreenState
                       const SizedBox(height: 24),
                     ],
 
-                    // Section Header
-                    Text(
-                      'KAK Menunggu Verifikasi',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'KAK Menunggu Verifikasi',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const VerifikatorKakListPage(),
+                              ),
+                            ).then((_) {
+                              context.read<VerifikatorDashboardProvider>().loadDashboard();
+                            });
+                          },
+                          child: const Text('Lihat Semua'),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
 
                     // Pending KAKs List
                     if (items.isNotEmpty)
@@ -274,7 +304,7 @@ class _VerificationItemCard extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) =>
-                VerifikatorApprovalPage(kakId: int.parse(item.id)),
+                VerifikatorApprovalPage(kakId: int.tryParse(item.id) ?? 0),
           ),
         ).then((result) {
           if (result == true) {
@@ -357,25 +387,6 @@ class _VerificationItemCard extends StatelessWidget {
                       style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                 ],
-              ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    // Review action
-                  },
-                  icon: const Icon(Icons.arrow_forward, size: 16),
-                  label: const Text('Review'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    backgroundColor: const Color(0xFF33C8DA),
-                    foregroundColor: Colors.white,
-                  ),
-                ),
               ),
             ],
           ),

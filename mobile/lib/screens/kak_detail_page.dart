@@ -10,8 +10,9 @@ import 'pengusul/kak_edit_page.dart';
 
 class KakDetailPage extends StatefulWidget {
   final String kakId;
+  final bool embedMode;
 
-  const KakDetailPage({super.key, required this.kakId});
+  const KakDetailPage({super.key, required this.kakId, this.embedMode = false});
 
   static const String routeName = 'kakDetail';
   static const String routePath = '/kak-detail/:kakId';
@@ -32,6 +33,127 @@ class _KakDetailPageState extends State<KakDetailPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
+    final bodyContent = Consumer<KakDetailProvider>(
+      builder: (context, provider, _) {
+        if (provider.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.primary),
+          );
+        }
+
+        if (provider.isError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: colorScheme.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Terjadi Kesalahan',
+                  style: GoogleFonts.figtree(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    provider.errorMessage ?? 'Unknown error',
+                    style: GoogleFonts.figtree(
+                      fontSize: 14,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: () => provider.retry(widget.kakId),
+                  child: Text(
+                    'Coba Lagi',
+                    style: GoogleFonts.figtree(fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (!provider.hasData || provider.kakDetail == null) {
+          return Center(
+            child: Text(
+              'Data KAK tidak ditemukan',
+              style: GoogleFonts.figtree(
+                fontSize: 14,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          );
+        }
+
+        final kak = provider.kakDetail!;
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header dengan Status
+              _HeaderSection(kak: kak, colorScheme: colorScheme),
+
+              // Informasi Umum
+              _InfoUmumSection(kak: kak, colorScheme: colorScheme),
+
+              // Sasaran & Target
+              _SasaranTargetSection(kak: kak, colorScheme: colorScheme),
+
+              // Manfaat
+              if (kak.manfaat.isNotEmpty)
+                _ManfaatSection(kak: kak, colorScheme: colorScheme),
+
+              // Tahapan
+              if (kak.tahapan.isNotEmpty)
+                _TahapanSection(kak: kak, colorScheme: colorScheme),
+
+              // Indikator Kinerja
+              if (kak.indikatorKinerja.isNotEmpty)
+                _IndikatorKinerjaSection(
+                  kak: kak,
+                  colorScheme: colorScheme,
+                ),
+
+              // RAB (Rencana Anggaran Biaya)
+              if (kak.rab.isNotEmpty)
+                _RabSection(kak: kak, colorScheme: colorScheme),
+
+              // Approvals
+              if (kak.approvals.isNotEmpty)
+                _ApprovalsSection(kak: kak, colorScheme: colorScheme),
+
+              // Action Buttons
+              if (!widget.embedMode)
+                _ActionsSection(
+                  kak: kak,
+                  provider: provider,
+                  colorScheme: colorScheme,
+                ),
+
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (widget.embedMode) {
+      return bodyContent;
+    }
 
     return GestureDetector(
       onTap: () {
@@ -56,121 +178,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
             ),
           ),
         ),
-        body: Consumer<KakDetailProvider>(
-          builder: (context, provider, _) {
-            if (provider.isLoading) {
-              return Center(
-                child: CircularProgressIndicator(color: colorScheme.primary),
-              );
-            }
-
-            if (provider.isError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Terjadi Kesalahan',
-                      style: GoogleFonts.figtree(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        provider.errorMessage ?? 'Unknown error',
-                        style: GoogleFonts.figtree(
-                          fontSize: 14,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () => provider.retry(widget.kakId),
-                      child: Text(
-                        'Coba Lagi',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (!provider.hasData || provider.kakDetail == null) {
-              return Center(
-                child: Text(
-                  'Data KAK tidak ditemukan',
-                  style: GoogleFonts.figtree(
-                    fontSize: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              );
-            }
-
-            final kak = provider.kakDetail!;
-
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header dengan Status
-                  _HeaderSection(kak: kak, colorScheme: colorScheme),
-
-                  // Informasi Umum
-                  _InfoUmumSection(kak: kak, colorScheme: colorScheme),
-
-                  // Sasaran & Target
-                  _SasaranTargetSection(kak: kak, colorScheme: colorScheme),
-
-                  // Manfaat
-                  if (kak.manfaat.isNotEmpty)
-                    _ManfaatSection(kak: kak, colorScheme: colorScheme),
-
-                  // Tahapan
-                  if (kak.tahapan.isNotEmpty)
-                    _TahapanSection(kak: kak, colorScheme: colorScheme),
-
-                  // Indikator Kinerja
-                  if (kak.indikatorKinerja.isNotEmpty)
-                    _IndikatorKinerjaSection(
-                      kak: kak,
-                      colorScheme: colorScheme,
-                    ),
-
-                  // RAB (Rencana Anggaran Biaya)
-                  if (kak.rab.isNotEmpty)
-                    _RabSection(kak: kak, colorScheme: colorScheme),
-
-                  // Approvals
-                  if (kak.approvals.isNotEmpty)
-                    _ApprovalsSection(kak: kak, colorScheme: colorScheme),
-
-                  // Action Buttons
-                  _ActionsSection(
-                    kak: kak,
-                    provider: provider,
-                    colorScheme: colorScheme,
-                  ),
-
-                  const SizedBox(height: 24),
-                ],
-              ),
-            );
-          },
-        ),
+        body: bodyContent,
       ),
     );
   }

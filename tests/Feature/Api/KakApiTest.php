@@ -708,5 +708,86 @@ class KakApiTest extends TestCase
             'is_read' => 0,
         ]);
     }
+
+    public function test_api_verifikator_can_approve_kak_with_mata_anggaran()
+    {
+        $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
+        $kak = KAK::create([
+            'nama_kegiatan' => 'Approve with Mata Anggaran',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 2, // Review Verifikator
+        ]);
+
+        $response = $this->actingAs($verifikator, 'sanctum')
+            ->postJson("/api/kak/{$kak->kak_id}/approve", [
+                'mata_anggaran_id' => 1,
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('t_kak', [
+            'kak_id' => $kak->kak_id,
+            'status_id' => 3, // Disetujui Verifikator
+            'mata_anggaran_id' => 1,
+        ]);
+    }
+
+    public function test_api_verifikator_cannot_approve_without_budget_data()
+    {
+        $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
+        $kak = KAK::create([
+            'nama_kegiatan' => 'Approve with No Budget',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 2,
+        ]);
+
+        $response = $this->actingAs($verifikator, 'sanctum')
+            ->postJson("/api/kak/{$kak->kak_id}/approve", []);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['kode_anggaran']);
+    }
+
+    public function test_api_verifikator_cannot_reject_with_short_catatan()
+    {
+        $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
+        $kak = KAK::create([
+            'nama_kegiatan' => 'To Reject Short Note',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 2,
+        ]);
+
+        $response = $this->actingAs($verifikator, 'sanctum')
+            ->postJson("/api/kak/{$kak->kak_id}/reject", [
+                'catatan' => 'no', // < 5 chars
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['catatan']);
+    }
 }
+
 
