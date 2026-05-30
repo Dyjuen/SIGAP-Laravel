@@ -25,9 +25,11 @@ class _KakDetailPageState extends State<KakDetailPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      context.read<KakDetailProvider>().loadKakDetail(widget.kakId);
-    });
+    if (!widget.embedMode) {
+      Future.microtask(() {
+        context.read<KakDetailProvider>().loadKakDetail(widget.kakId);
+      });
+    }
   }
 
   @override
