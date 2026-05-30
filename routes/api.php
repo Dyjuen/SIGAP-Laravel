@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\KegiatanApiController;
 use App\Http\Controllers\Api\PencairanApiController;
 use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\MasterDataApiController;
+use App\Http\Controllers\Api\LpjApiController;
 use App\Http\Controllers\LampiranController;
 use App\Http\Controllers\LpjController;
 use App\Http\Controllers\MasterDataController;
@@ -120,13 +121,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/lampiran/{lampiran}/history', [LampiranController::class, 'history']);
 
     // LPJ (Laporan Pertanggungjawaban) API Routes
-    Route::get('/lpj', [LpjController::class, 'indexApi']);
-    Route::get('/lpj/{kegiatan}', [LpjController::class, 'showApi']);
-    Route::post('/kegiatan/{kegiatan}/lpj/submit', [LpjController::class, 'submitApi']);
-    Route::post('/kegiatan/{kegiatan}/lpj/approve', [LpjController::class, 'approveApi']);
-    Route::post('/kegiatan/{kegiatan}/lpj/revise', [LpjController::class, 'reviseApi']);
-    Route::post('/kegiatan/{kegiatan}/lpj/resubmit', [LpjController::class, 'resubmitApi']);
-    Route::post('/kegiatan/{kegiatan}/lpj/complete', [LpjController::class, 'completeApi']);
+    Route::get('/lpj', [LpjApiController::class, 'index']);
+    Route::get('/lpj/{kegiatan}', [LpjApiController::class, 'show']);
+    Route::post('/kegiatan/{kegiatan}/lpj/submit', [LpjApiController::class, 'submit']);
+    Route::post('/kegiatan/{kegiatan}/lpj/approve', [LpjApiController::class, 'approve']);
+    Route::post('/kegiatan/{kegiatan}/lpj/revise', [LpjApiController::class, 'revise']);
+    Route::post('/kegiatan/{kegiatan}/lpj/resubmit', [LpjApiController::class, 'resubmit']);
+    Route::post('/kegiatan/{kegiatan}/lpj/complete', [LpjApiController::class, 'complete']);
 });
 
 // Master Data Routes (public, used for KAK form dropdowns, with throttle)

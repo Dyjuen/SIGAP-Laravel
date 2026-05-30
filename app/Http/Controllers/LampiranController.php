@@ -74,13 +74,17 @@ class LampiranController extends Controller
                 'data' => $lampiran,
                 'message' => 'File berhasil diunggah.',
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first('file'),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            // Return 422 for count limit and 500 for other errors to match tests
-            $statusCode = $e->getMessage() === 'Maksimal 10 file per item anggaran. Hapus file lama terlebih dahulu.' ? 422 : 500;
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengunggah file: '.$e->getMessage(),
-            ], $statusCode);
+            ], 500);
         }
     }
 
@@ -174,12 +178,17 @@ class LampiranController extends Controller
                 'data' => $newLampiran,
                 'message' => 'Revisi lampiran berhasil diunggah.',
             ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first('file'),
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
-            $statusCode = $e->getMessage() === 'Lampiran ini tidak memerlukan revisi.' ? 422 : 500;
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], $statusCode);
+            ], 500);
         }
     }
 

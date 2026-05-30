@@ -3,10 +3,13 @@
 namespace App\Http\Requests;
 
 use App\Models\SpkConfig;
+use App\Traits\NormalizesLpjPayload;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SubmitLpjRequest extends FormRequest
 {
+    use NormalizesLpjPayload;
+
     /**
      * Only the KAK's pengusul can submit an LPJ.
      */
@@ -16,6 +19,17 @@ class SubmitLpjRequest extends FormRequest
         $kak = $kegiatan->kak;
 
         return $kak && $kak->pengusul_user_id === $this->user()->user_id;
+    }
+
+    /**
+     * Prepare the data for validation.
+     * Converts sequential array of budget items (mobile payload) into associative
+     * array format keyed by anggaran_id (web/backend format), and links flat
+     * upload files to the first budget item's index.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeLpjPayload();
     }
 
     /**

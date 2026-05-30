@@ -3,10 +3,13 @@
 namespace App\Http\Requests;
 
 use App\Models\SpkConfig;
+use App\Traits\NormalizesLpjPayload;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ResubmitLpjRequest extends FormRequest
 {
+    use NormalizesLpjPayload;
+
     /**
      * Only the KAK's pengusul can resubmit an LPJ.
      */
@@ -16,6 +19,14 @@ class ResubmitLpjRequest extends FormRequest
         $kak = $kegiatan->kak;
 
         return $kak && $kak->pengusul_user_id === $this->user()->user_id;
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->normalizeLpjPayload();
     }
 
     public function rules(): array

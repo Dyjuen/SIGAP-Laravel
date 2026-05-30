@@ -480,4 +480,98 @@ class LpjService
             Storage::disk('supabase')->delete($path);
         }
     }
+
+    /**
+     * Get LPJ list eligible for the user (role-aware).
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     */
+    public function getEligibleLpjs(User $user): \Illuminate\Support\Collection
+    {
+        $role = $user->getRoleName();
+
+        if (!in_array($role, ['Admin', 'Bendahara', 'Pengusul'])) {
+            throw new \Illuminate\Auth\Access\AuthorizationException('Anda tidak memiliki akses ke LPJ.');
+        }
+
+        $query = Kegiatan::select([
+            'kegiatan_id',
+            'kak_id',
+            'lpj_submitted_at',
+            'lpj_approved_at',
+            'lpj_completed_at'
+        ])->with([
+            'kak' => fn ($q) => $q->select([
+                'kak_id',
+                'nama_kegiatan',
+                'status_id',
+                'pengusul_user_id',
+                'mata_anggaran_id',
+                'tipe_kegiatan_id'
+            ]),
+            'kak.pengusul' => fn ($q) => $q->select(['user_id', 'nama_lengkap']),
+            'kak.mataAnggaran' => fn ($q) => $q->select(['mata_anggaran_id', 'nama_mata_anggaran']),
+            'kak.tipeKegiatan' => fn ($q) => $q->select(['tipe_kegiatan_id', 'nama_tipe']),
+            'kak.status' => fn ($q) => $q->select(['status_id', 'nama_status']),
+            'approvals' => fn ($q) => $q->select(['approval_id', 'kegiatan_id', 'approval_level', 'status']),
+        ])->whereHas('kak', function ($q) {
+            // Only show kegiatan with status >= 10 (Approved KAK) and not rejected
+            $q->where('status_id', '>=', 10)->where('status_id', '!=', 14);
+        });
+
+        if ($role === 'Pengusul') {
+            $query->whereHas('kak', function ($q) use ($user) {
+                $q->where('pengusul_user_id', $user->user_id);
+            });
+        }
+
+        $kegiatans = $query->get();
+        $kegiatans->load(['kak' => fn ($q) => $q->select([
+            'kak_id',
+            'nama_kegiatan',
+            'status_id',
+            'pengusul_user_id',
+            'mata_anggaran_id',
+            'tipe_kegiatan_id'
+        ])->withSum('anggaran', 'jumlah_diusulkan')]);
+
+        return $kegiatans->map(function (Kegiatan $kegiatan) {
+            $totalAnggaran = (float) ($kegiatan->kak?->anggaran_sum_jumlah_diusulkan ?? 0);
+            $totalDicairkan = $kegiatan->pencairanDana()->sum('jumlah_dicairkan');
+
+            return [
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'kak_id' => $kegiatan->kak_id,
+                'nama_kegiatan' => $kegiatan->kak?->nama_kegiatan ?? '-',
+                'status_id' => $kegiatan->kak?->status_id,
+                'status_nama' => $kegiatan->kak?->status?->nama_status ?? '-',
+                'total_anggaran_diusulkan' => $totalAnggaran,
+                'dana_dicairkan' => $totalDicairkan,
+                'sisa_dana' => $totalAnggaran - $totalDicairkan,
+                'lpj_submitted_at' => $kegiatan->lpj_submitted_at,
+                'lpj_status' => $this->getLpjStatus($kegiatan),
+            ];
+        });
+    }
+
+    /**
+     * Get LPJ status based on timestamps.
+     */
+    public function getLpjStatus(Kegiatan $kegiatan): string
+    {
+        if ($kegiatan->lpj_completed_at) {
+            return 'Completed';
+        }
+        if ($kegiatan->lpj_approved_at) {
+            return 'Approved';
+        }
+        if ($kegiatan->lpj_submitted_at) {
+            $approval = $kegiatan->approvals->where('approval_level', 'Bendahara-LPJ')->first();
+            if ($approval && $approval->status === 'Revisi') {
+                return 'Revision Requested';
+            }
+            return 'Submitted';
+        }
+        return 'Draft';
+    }
 }

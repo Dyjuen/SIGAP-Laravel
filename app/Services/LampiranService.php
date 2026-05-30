@@ -7,6 +7,7 @@ use App\Models\KegiatanLampiran;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Exception;
 
 class LampiranService
@@ -23,7 +24,9 @@ class LampiranService
             ->count();
 
         if ($count >= 10) {
-            throw new Exception('Maksimal 10 file per item anggaran. Hapus file lama terlebih dahulu.');
+            throw ValidationException::withMessages([
+                'file' => 'Maksimal 10 file per item anggaran. Hapus file lama terlebih dahulu.'
+            ]);
         }
 
         return DB::transaction(function () use ($anggaran, $file, $catatan, $actor) {
@@ -107,7 +110,9 @@ class LampiranService
     public function resubmit(KegiatanLampiran $lampiran, $file, ?string $catatan, User $actor): KegiatanLampiran
     {
         if ($lampiran->status_lampiran !== 'revision_requested') {
-            throw new Exception('Lampiran ini tidak memerlukan revisi.');
+            throw ValidationException::withMessages([
+                'file' => 'Lampiran ini tidak memerlukan revisi.'
+            ]);
         }
 
         return DB::transaction(function () use ($lampiran, $file, $catatan, $actor) {
