@@ -14,10 +14,13 @@ import 'services/kak_service.dart';
 import 'services/master_data_service.dart';
 import 'services/lampiran_service.dart';
 import 'services/lpj_service.dart';
+import 'services/pencairan_service.dart';
+import 'providers/pencairan_provider.dart';
 import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
 import 'screens/pengusul/lpj_list_page.dart';
 import 'screens/pengusul/lpj_form_page.dart';
+import 'screens/bendahara/pencairan_page.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
@@ -83,6 +86,9 @@ void main() async {
         Provider<LpjService>(
           create: (context) => LpjService(context.read<Dio>()),
         ),
+        Provider<PencairanService>(
+          create: (context) => PencairanService(context.read<Dio>()),
+        ),
         ChangeNotifierProvider<MonitoringProvider>(
           create: (context) =>
               MonitoringProvider(context.read<MonitoringService>()),
@@ -96,6 +102,9 @@ void main() async {
         ),
         ChangeNotifierProvider<LpjProvider>(
           create: (context) => LpjProvider(context.read<LpjService>()),
+        ),
+        ChangeNotifierProvider<PencairanProvider>(
+          create: (context) => PencairanProvider(context.read<PencairanService>()),
         ),
       ],
       child: const MyApp(),
@@ -137,6 +146,7 @@ class _MyAppState extends State<MyApp> {
       ),
       routes: {
         '/lpj': (context) => const LpjListPage(),
+        '/bendahara/pencairan': (context) => const PencairanPage(),
       },
       home: _isCheckingAuth
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
