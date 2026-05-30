@@ -57,7 +57,14 @@ export default function UserManagementIndex({ auth, users, roles }) {
     // Handlers
     const handleAddSubmit = (e) => {
         e.preventDefault();
+        // satisfaction for backend StoreUserRequest which expects role_ids array
+        const submitData = {
+            ...addData,
+            role_ids: addData.role_id ? [addData.role_id] : []
+        };
+        
         postAdd(route('admin.users.store'), {
+            data: submitData,
             onSuccess: () => {
                 setShowAddModal(false);
                 resetAdd();
@@ -87,7 +94,14 @@ export default function UserManagementIndex({ auth, users, roles }) {
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
+        // satisfaction for backend UpdateUserRequest which expects role_ids array
+        const submitData = {
+            ...editData,
+            role_ids: editData.role_id ? [editData.role_id] : []
+        };
+        
         putEdit(route('admin.users.update', editingUser.user_id), {
+            data: submitData,
             onSuccess: () => {
                 if (editData.new_password) {
                     router.put(route('admin.users.change-password', editingUser.user_id), {
@@ -323,7 +337,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
-                            <form onSubmit={handleAddSubmit} className="px-6 py-6 space-y-4">
+                            <form onSubmit={handleAddSubmit} noValidate className="px-6 py-6 space-y-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1">Nama Lengkap <span className="text-red-500">*</span></label>
                                     <div className="relative">
@@ -452,7 +466,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </button>
                             </div>
-                            <form onSubmit={handleEditSubmit} className="px-6 py-6 space-y-4">
+                            <form onSubmit={handleEditSubmit} noValidate className="px-6 py-6 space-y-4">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1">Nama Lengkap <span className="text-red-500">*</span></label>
                                     <input

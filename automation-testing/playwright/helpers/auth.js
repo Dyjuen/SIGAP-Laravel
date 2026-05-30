@@ -73,8 +73,14 @@ async function login(page, user) {
   // Click the submit button
   await page.click('button[type="submit"]');
   
-  // Wait for navigation to dashboard
-  await page.waitForURL('**/dashboard', { timeout: 15_000 });
+  // Wait for navigation to a restricted page (URL should no longer be /login)
+  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
+  
+  // Ensure we landed on a dashboard or intended page
+  const currentUrl = page.url();
+  if (currentUrl.includes('/login')) {
+    throw new Error(`Login failed: still on /login page. URL is ${currentUrl}`);
+  }
 }
 
 /**

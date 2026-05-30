@@ -11,7 +11,7 @@
  */
 
 const { test, expect } = require('@playwright/test');
-const { login, USERS } = require('../helpers/auth');
+const { login, USERS } = require('../../helpers/auth');
 const path = require('path');
 const fs = require('fs');
 

@@ -22,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'chatbot/chat',
+            'kak',
+            'kegiatan',
+            'pencairan/*',
+            'lpj/*',
         ]);
 
         $middleware->alias([

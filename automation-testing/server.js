@@ -12,6 +12,20 @@ const ROOT_DIR = path.join(__dirname, '..');
 
 const PORT = 3001;
 
+// Global array to hold SSE connections
+let logClients = [];
+
+function broadcastLog(msg, type = 'info') {
+  const data = JSON.stringify({ msg, type });
+  logClients.forEach(client => {
+    try {
+      client.write(`data: ${data}\n\n`);
+    } catch (e) {
+      // ignore
+    }
+  });
+}
+
 // Helper to check if a port is in use (server running)
 function checkPortActive(port, host = '127.0.0.1') {
   return new Promise((resolve) => {
@@ -33,19 +47,28 @@ function checkPortActive(port, host = '127.0.0.1') {
 // Fallback background process spawner
 async function ensureServersRunning() {
   console.log('[SIGAP] Memeriksa status port server Laravel & Vite...');
+  broadcastLog('Memeriksa status port server Laravel & Vite...');
   
   const isLaravelActive = await checkPortActive(8000);
   if (!isLaravelActive) {
     console.log('[SIGAP] ⚠️ Server Laravel (Port 8000) terdeteksi belum aktif!');
-    console.log('[SIGAP] 🚀 Memulai server Laravel (php artisan serve) di background...');
+    broadcastLog('⚠️ Server Laravel (Port 8000) belum aktif. Mencoba memulai...', 'warn');
     
     // Spawn PHP Artisan serve from root dir
     const laravelProcess = spawn('php', ['artisan', 'serve'], {
       cwd: ROOT_DIR,
       detached: true,
-      stdio: 'ignore' // Ignore to avoid blocking terminal
+      stdio: 'ignore'
     });
-    laravelProcess.unref(); // Allow server.js to exit independently
+    laravelProcess.unref(); 
+
+    // Wait up to 10 seconds for it to start
+    let attempts = 0;
+    while (attempts < 10) {
+      if (await checkPortActive(8000)) break;
+      await new Promise(r => setTimeout(r, 1000));
+      attempts++;
+    }
   } else {
     console.log('[SIGAP] ✅ Server Laravel (Port 8000) sudah aktif.');
   }
@@ -53,15 +76,21 @@ async function ensureServersRunning() {
   const isViteActive = await checkPortActive(5173);
   if (!isViteActive) {
     console.log('[SIGAP] ⚠️ Server Vite (Port 5173) terdeteksi belum aktif!');
-    console.log('[SIGAP] 🚀 Memulai dev server Vite (npm run dev) di background...');
+    broadcastLog('⚠️ Server Vite (Port 5173) belum aktif. Mencoba memulai...', 'warn');
     
-    // Spawn NPM run dev from root dir (executing shell command for cross-platform compatibility)
     const viteProcess = spawn('cmd.exe', ['/c', 'npm run dev'], {
       cwd: ROOT_DIR,
       detached: true,
       stdio: 'ignore'
     });
     viteProcess.unref();
+
+    let attempts = 0;
+    while (attempts < 10) {
+      if (await checkPortActive(5173)) break;
+      await new Promise(r => setTimeout(r, 1000));
+      attempts++;
+    }
   } else {
     console.log('[SIGAP] ✅ Server Vite (Port 5173) sudah aktif.');
   }
@@ -99,19 +128,47 @@ const server = http.createServer((req, res) => {
   const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   let pathname = parsedUrl.pathname;
 
-  // 1. Static Serving for index.html at root "/"
-  if ((pathname === '/' || pathname === '/index.html') && req.method === 'GET') {
-    const indexPath = path.join(__dirname, 'index.html');
-    fs.readFile(indexPath, (err, data) => {
-      if (err) {
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('Gagal memuat index.html. Pastikan file berada di folder automation-testing/.');
-        return;
-      }
-      res.writeHead(200, { 'Content-Type': MIME_TYPES['.html'] });
-      res.end(data);
+  // 0. Server-Sent Events for Live Logs
+  if (pathname === '/logs' && req.method === 'GET') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*'
+    });
+    logClients.push(res);
+    req.on('close', () => {
+      logClients = logClients.filter(c => c !== res);
     });
     return;
+  }
+
+  // 12. Shutdown Endpoint
+  if (req.url === '/shutdown' && req.method === 'POST') {
+    res.writeHead(200, {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end(JSON.stringify({ success: true, message: 'Server is shutting down...' }));
+    console.log('🛑 [SIGAP] Shutdown command received. Closing server...');
+    setTimeout(() => {
+      process.exit(0);
+    }, 1000);
+    return;
+  }
+
+  // 1. Generic Static Serving for automation-testing/ directory
+  if (req.method === 'GET' && !pathname.includes('..')) {
+    const localPath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
+    
+    if (fs.existsSync(localPath) && fs.statSync(localPath).isFile()) {
+      const ext = path.extname(localPath).toLowerCase();
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+      
+      res.writeHead(200, { 'Content-Type': contentType });
+      fs.createReadStream(localPath).pipe(res);
+      return;
+    }
   }
 
   // 2. Static Serving for assets inside "/playwright/test-results"
@@ -210,10 +267,27 @@ const server = http.createServer((req, res) => {
   if (pathname === '/run-phpunit' && req.method === 'POST') {
     console.log('[SIGAP] Menjalankan PHPUnit feature tests...');
     
-    // Execute PHPUnit with JUnit XML output
     const reportPath = path.join(__dirname, 'reports', 'phpunit-report.xml');
-    exec(`vendor\\bin\\phpunit --log-junit automation-testing\\reports\\phpunit-report.xml`, { cwd: ROOT_DIR }, (error, stdout, stderr) => {
-      
+    
+    // Ensure reports dir exists
+    if (!fs.existsSync(path.dirname(reportPath))) {
+      fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+    }
+    
+    // Execute PHPUnit using spawn for streaming output
+    const child = spawn('vendor\\bin\\phpunit', ['--log-junit', 'automation-testing\\reports\\phpunit-report.xml'], { cwd: ROOT_DIR, shell: true });
+    
+    child.stdout.on('data', (data) => {
+      broadcastLog(data.toString());
+      process.stdout.write(data);
+    });
+
+    child.stderr.on('data', (data) => {
+      broadcastLog(data.toString(), 'error');
+      process.stderr.write(data);
+    });
+
+    child.on('close', (code) => {
       const results = {};
       const mappingPath = path.join(__dirname, 'test-mapping.json');
       let mapping = {};
@@ -222,20 +296,32 @@ const server = http.createServer((req, res) => {
         mapping = JSON.parse(fs.readFileSync(mappingPath, 'utf8'));
       }
 
-      // Scan stdout for passed methods
-      // PHPUnit output: PASS Tests\Feature\KakCrudTest
-      // Or: ✓ authenticated user can view kak index
-      
-      // Match "✓ method_name" or "test_method_name"
-      const lines = stdout.split('\n');
-      for (const line of lines) {
-        const passMatch = line.match(/✓\s+(.*)/);
-        if (passMatch) {
-          const methodName = passMatch[1].trim().replace(/\s+/g, '_');
-          // Try exact match or conversion
-          const mappedId = mapping[methodName] || Object.entries(mapping).find(([m, id]) => m.includes(methodName))?.[1];
+      // Parse XML report
+      if (fs.existsSync(reportPath)) {
+        const xmlContent = fs.readFileSync(reportPath, 'utf8');
+        
+        // Match each testcase block: <testcase name="..." ...> ... </testcase> or <testcase ... />
+        const testCaseRegex = /<testcase\s+name="([^"]+)"(.*?)(?:><\/testcase>|\/>|>(.*?)<\/testcase>)/gs;
+        
+        let match;
+        while ((match = testCaseRegex.exec(xmlContent)) !== null) {
+          let methodName = match[1];
+          const innerContent = match[3] || '';
+          
+          // Try to map it
+          const mappedId = mapping[methodName] || Object.entries(mapping).find(([m, id]) => m.includes(methodName) || methodName.includes(m))?.[1];
+          
           if (mappedId) {
-            results[mappedId] = { status: 'Pass', actual: 'Diverifikasi oleh PHPUnit logic test.' };
+            const hasFailure = innerContent.includes('<failure') || innerContent.includes('<error');
+            const hasSkipped = innerContent.includes('<skipped');
+            
+            if (hasFailure) {
+              results[mappedId] = { status: 'Fail', actual: 'Gagal diverifikasi oleh PHPUnit logic test.' };
+            } else if (hasSkipped) {
+              results[mappedId] = { status: 'Skip', actual: 'Dilewati oleh PHPUnit logic test.' };
+            } else {
+              results[mappedId] = { status: 'Pass', actual: 'Diverifikasi oleh PHPUnit logic test.' };
+            }
           }
         }
       }
@@ -244,8 +330,7 @@ const server = http.createServer((req, res) => {
       res.end(JSON.stringify({ 
         success: true, 
         message: 'PHPUnit selesai dijalankan.', 
-        results,
-        stdout: stdout.substring(0, 1000) // snippet
+        results
       }));
     });
     return;
@@ -272,106 +357,125 @@ const server = http.createServer((req, res) => {
 
       console.log(`[SIGAP] Menjalankan Playwright (${moduleName}) di: ${targetPath}`);
       
-      exec(`npx playwright test ${targetPath} --reporter=json`, { cwd: playwrightDir }, (error, stdout, stderr) => {
-        // ... (rest of parsing logic remains same)
-      let jsonReport = null;
-      try {
-        const jsonStart = stdout.indexOf('{');
-        if (jsonStart !== -1) {
-          jsonReport = JSON.parse(stdout.substring(jsonStart));
-        }
-      } catch (e) {
-        console.error('[SIGAP] Gagal parse Playwright JSON output:', e);
+      const reportPath = path.join(playwrightDir, 'reports', 'playwright-report.json');
+      if (!fs.existsSync(path.dirname(reportPath))) {
+        fs.mkdirSync(path.dirname(reportPath), { recursive: true });
       }
 
-      if (!jsonReport) {
-        console.error('[SIGAP] Playwright stdout tidak mengandung JSON valid:', stderr);
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          success: false,
-          error: 'Playwright tidak menghasilkan laporan JSON. Pastikan dependencies sudah terinstall.',
-          stdout,
-          stderr
-        }));
-        return;
-      }
+      const env = Object.assign({}, process.env, {
+        PLAYWRIGHT_JSON_OUTPUT_NAME: 'reports/playwright-report.json'
+      });
 
-      const results = {};
+      const child = spawn('npx', ['playwright', 'test', targetPath, '--reporter=line,json'], { 
+        cwd: playwrightDir, 
+        shell: true,
+        env: env
+      });
 
-      function traverseSuite(suite) {
-        if (!suite) return;
-        let matchedId = null;
-        if (suite.title) {
-          const match = suite.title.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
-          if (match) matchedId = match[1].toUpperCase();
+      child.stdout.on('data', (data) => {
+        broadcastLog(data.toString());
+      });
+
+      child.stderr.on('data', (data) => {
+        broadcastLog(data.toString(), 'error');
+      });
+
+      child.on('close', (code) => {
+        let jsonReport = null;
+        if (fs.existsSync(reportPath)) {
+          try {
+            jsonReport = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+          } catch (e) {
+            console.error('[SIGAP] Gagal parse Playwright JSON output:', e);
+          }
         }
 
-        if (suite.specs) {
-          for (const spec of suite.specs) {
-            let specId = matchedId;
-            if (!specId && spec.title) {
-              const specMatch = spec.title.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
-              if (specMatch) specId = specMatch[1].toUpperCase();
-            }
+        if (!jsonReport) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            success: false,
+            error: 'Playwright tidak menghasilkan laporan JSON. Pastikan dependencies sudah terinstall.'
+          }));
+          return;
+        }
 
-            if (spec.tests) {
-              for (const testRun of spec.tests) {
-                const latestResult = testRun.results && testRun.results[testRun.results.length - 1];
-                const isPassed = latestResult && latestResult.status === 'passed';
-                
-                let errorMsg = '';
-                if (latestResult && latestResult.error) {
-                  errorMsg = latestResult.error.message || 'Assertion failed';
-                  errorMsg = errorMsg.replace(/\u001b\[[0-9;]*m/g, '');
-                }
+        const results = {};
 
-                let screenshotPath = '';
-                let videoPath = '';
-                if (latestResult && latestResult.attachments) {
-                  for (const attachment of latestResult.attachments) {
-                    if (attachment.path) {
-                      const resultsFolder = path.join(playwrightDir, 'test-results');
-                      const relativePath = path.relative(resultsFolder, attachment.path).replace(/\\/g, '/');
-                      if (attachment.name === 'screenshot' || (attachment.contentType && attachment.contentType.startsWith('image/'))) {
-                        screenshotPath = `/playwright/test-results/${relativePath}`;
-                      } else if (attachment.name === 'video' || (attachment.contentType && attachment.contentType.startsWith('video/'))) {
-                        videoPath = `/playwright/test-results/${relativePath}`;
+        function traverseSuite(suite) {
+          if (!suite) return;
+          let matchedId = null;
+          if (suite.title) {
+            const match = suite.title.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
+            if (match) matchedId = match[1].toUpperCase();
+          }
+
+          if (suite.specs) {
+            for (const spec of suite.specs) {
+              let specId = matchedId;
+              if (!specId && spec.title) {
+                const specMatch = spec.title.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
+                if (specMatch) specId = specMatch[1].toUpperCase();
+              }
+
+              if (spec.tests) {
+                for (const testRun of spec.tests) {
+                  const latestResult = testRun.results && testRun.results[testRun.results.length - 1];
+                  const isPassed = latestResult && latestResult.status === 'passed';
+                  
+                  let errorMsg = '';
+                  if (latestResult && latestResult.error) {
+                    errorMsg = latestResult.error.message || 'Assertion failed';
+                    errorMsg = errorMsg.replace(/\u001b\[[0-9;]*m/g, '');
+                  }
+
+                  let screenshotPath = '';
+                  let videoPath = '';
+                  if (latestResult && latestResult.attachments) {
+                    for (const attachment of latestResult.attachments) {
+                      if (attachment.path) {
+                        const resultsFolder = path.join(playwrightDir, 'test-results');
+                        const relativePath = path.relative(resultsFolder, attachment.path).replace(/\\/g, '/');
+                        if (attachment.name === 'screenshot' || (attachment.contentType && attachment.contentType.startsWith('image/'))) {
+                          screenshotPath = `/playwright/test-results/${relativePath}`;
+                        } else if (attachment.name === 'video' || (attachment.contentType && attachment.contentType.startsWith('video/'))) {
+                          videoPath = `/playwright/test-results/${relativePath}`;
+                        }
                       }
                     }
                   }
-                }
 
-                if (specId) {
-                  if (!results[specId]) {
-                    results[specId] = { 
-                      status: 'Pass', 
-                      actual: 'Semua langkah pengujian otomatis berhasil diverifikasi.',
-                      screenshot: '',
-                      video: ''
-                    };
+                  if (specId) {
+                    if (!results[specId]) {
+                      results[specId] = { 
+                        status: 'Pass', 
+                        actual: 'Semua langkah pengujian otomatis berhasil diverifikasi.',
+                        screenshot: '',
+                        video: ''
+                      };
+                    }
+                    if (!isPassed) {
+                      results[specId].status = 'Fail';
+                      results[specId].actual = errorMsg || 'Gagal dalam asersi otomatis.';
+                    }
+                    if (screenshotPath) results[specId].screenshot = screenshotPath;
+                    if (videoPath) results[specId].video = videoPath;
                   }
-                  if (!isPassed) {
-                    results[specId].status = 'Fail';
-                    results[specId].actual = errorMsg || 'Gagal dalam asersi otomatis.';
-                  }
-                  if (screenshotPath) results[specId].screenshot = screenshotPath;
-                  if (videoPath) results[specId].video = videoPath;
                 }
               }
             }
           }
+          if (suite.suites) {
+            for (const subSuite of suite.suites) traverseSuite(subSuite);
+          }
         }
-        if (suite.suites) {
-          for (const subSuite of suite.suites) traverseSuite(subSuite);
+
+        if (jsonReport.suites) {
+          for (const suite of jsonReport.suites) traverseSuite(suite);
         }
-      }
 
-      if (jsonReport.suites) {
-        for (const suite of jsonReport.suites) traverseSuite(suite);
-      }
-
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, results }));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, results }));
+      });
     });
     return;
   }

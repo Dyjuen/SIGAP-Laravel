@@ -20,6 +20,9 @@ module.exports = defineConfig({
 
   /* Run tests in files in parallel */
   fullyParallel: false,
+
+  /* Workers: 1 because php artisan serve is single-threaded */
+  workers: 1,
   
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,

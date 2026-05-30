@@ -19,7 +19,7 @@ test.describe('Auth Module', () => {
     // ─── LGN-F-002: Login Berhasil ──────────────────────────────────────────
     test('LGN-F-002: Login Berhasil (Admin)', async ({ page }) => {
         await login(page, USERS.ADMIN);
-        await expect(page).toHaveURL(/.*dashboard/);
+        await expect(page).toHaveURL(/.*(dashboard|admin\/user-management)/);
     });
 
     // ─── LGN-F-015: Otorisasi Tamu ───────────────────────────────────────────

@@ -35,6 +35,7 @@ public/images/
 
 # Playwright reports, cache, and temp directories
 /automation-testing/playwright/playwright-report
+/automation-testing/playwright/reports
 /automation-testing/playwright/.cache
 
 # Newman (Postman) CLI default export folders

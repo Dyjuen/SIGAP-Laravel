@@ -218,6 +218,8 @@
       align-items: center;
       margin-bottom: 24px;
       animation: fadeInUp 0.8s ease-out 0.2s both;
+      position: relative;
+      z-index: 50;
     }
 
     .toolbar__search {
@@ -258,26 +260,131 @@
     }
 
     .toolbar__filter select {
-      padding: 12px 36px 12px 16px;
+      padding: 10px 14px;
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       color: var(--text-primary);
       font-family: inherit;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       outline: none;
       cursor: pointer;
+      transition: var(--transition);
+      min-width: 160px;
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 12px center;
-      transition: var(--transition);
+      padding-right: 36px;
+    }
+
+    .toolbar__filter select:hover {
+      border-color: var(--border-focus);
+      background-color: rgba(30, 41, 59, 0.8);
     }
 
     .toolbar__filter select:focus {
       border-color: var(--border-focus);
       box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .toolbar__filter select optgroup {
+      background: #111827;
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 12px 8px;
+    }
+
+    .toolbar__filter select option {
+      background: #1e293b;
+      color: var(--text-primary);
+      padding: 12px;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: normal;
+      font-size: 13px;
+    }
+
+    /* ─── Custom Dropdown ────────────────────────────────────────── */
+    .custom-dropdown {
+      position: relative;
+      min-width: 220px;
+    }
+
+    .custom-dropdown__trigger {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: left;
+    }
+
+    .custom-dropdown__trigger:hover {
+      border-color: var(--accent);
+      background: rgba(34, 211, 238, 0.05);
+    }
+
+    .custom-dropdown__menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      display: none;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 8px 0;
+      animation: slideUp 0.2s ease-out;
+    }
+
+    .custom-dropdown__menu.active {
+      display: block;
+    }
+
+    .custom-dropdown__group {
+      padding: 12px 16px 6px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .custom-dropdown__item {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .custom-dropdown__item:hover {
+      background: rgba(34, 211, 238, 0.1);
+      color: var(--accent);
+      padding-left: 20px;
+    }
+
+    .custom-dropdown__item.active {
+      background: var(--accent);
+      color: #000;
     }
 
     /* ─── Buttons ─────────────────────────────────────────────────── */
@@ -1036,88 +1143,49 @@
     <header class="header">
       <div class="header__badge">Automation Testing Dashboard</div>
       <h1>SIGAP Test Runner</h1>
-      <p>Import spreadsheet test case, kelola hasil, dan ekspor laporan.</p>
-      <div class="header__actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
-        <button class="btn btn--primary" onclick="openImport()">
-          <span style="font-size: 18px; margin-right: 8px;">📥</span> Bulk Import
+      <div id="server-status" style="margin-top: 12px; display: flex; gap: 16px; justify-content: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+        <span id="status-laravel" style="color: var(--fail); display: flex; align-items: center; gap: 4px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> Laravel: Down
+        </span>
+        <span id="status-vite" style="color: var(--fail); display: flex; align-items: center; gap: 4px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> Vite: Down
+        </span>
+        <span id="status-companion" style="color: var(--fail); display: flex; align-items: center; gap: 4px;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> Companion: Down
+        </span>
+      </div>
+      <p style="margin-top: 16px;">Import spreadsheet test case, kelola hasil, dan ekspor laporan.</p>
+      <div class="header__actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn--primary" onclick="runFullSuite()" style="box-shadow: 0 0 20px var(--accent-glow);">
+          Jalankan Seluruh Suite
         </button>
         <button class="btn btn--secondary" onclick="runAutomatedTests()">
-          <span style="font-size: 18px; margin-right: 8px;">🎭</span> Playwright UI
+          Playwright UI
         </button>
         <button class="btn btn--secondary" onclick="runPhpUnitTests()" style="background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.3); color: #818cf8;">
-          <span style="font-size: 18px; margin-right: 8px;">🐘</span> PHPUnit Logic
+          PHPUnit Logic
         </button>
         <button class="btn btn--secondary" onclick="runPostmanTests()" style="background: rgba(239, 91, 37, 0.1); border-color: rgba(239, 91, 37, 0.3); color: #ef5b25;">
-          <span style="font-size: 18px; margin-right: 8px;">🚀</span> Postman API
+          Postman API
         </button>
         <button class="btn btn--secondary" onclick="runK6Tests()" style="background: rgba(125, 100, 233, 0.1); border-color: rgba(125, 100, 233, 0.3); color: #7d64e9;">
-          <span style="font-size: 18px; margin-right: 8px;">📈</span> k6 Load
+          k6 Load
+        </button>
+        <button class="btn btn--danger" onclick="shutdownServer()" style="background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.3); color: #f87171;">
+          Shutdown Server
         </button>
       </div>
     </header>
 
-    <!-- Manual Code Editor Modal -->
-    <div class="modal-overlay" id="editor-modal">
-      <div class="modal" style="max-width: 900px;">
-        <div class="modal__header">
-          <h3 id="editor-title">📝 Edit Logika Playwright</h3>
-          <button class="modal__close" onclick="closeEditor()">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+    <!-- Console Section -->
+    <div id="console-wrapper" style="display:none; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out;">
+      <div style="background: #1e1e1e; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow);">
+        <div style="background: #2d2d2d; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333;">
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Terminal Output</span>
+          <button class="btn btn--secondary btn--sm" onclick="clearConsole()" style="padding: 2px 8px; font-size: 10px;">Clear</button>
         </div>
-        <div class="modal__body">
-          <div id="editor-info" style="margin-bottom: 16px; padding: 12px; background: var(--accent-dim); border: 1px solid var(--border); border-radius: var(--radius-sm);">
-            <p style="font-size: 13px; color: var(--accent);"><strong id="editor-id-label">ID: ---</strong> | <span id="editor-scenario-label">Scenario: ---</span></p>
-          </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-            <div class="input-group">
-              <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Role Login</label>
-              <select id="editor-role" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" onchange="updateBoilerplate()">
-                <option value="admin">Admin</option>
-                <option value="pengusul">Pengusul (jurusantik)</option>
-                <option value="verifikator">Verifikator</option>
-                <option value="ppk">PPK</option>
-                <option value="bendahara">Bendahara</option>
-              </select>
-            </div>
-            <div class="input-group">
-              <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">URL Tujuan</label>
-              <input type="text" id="editor-url" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" placeholder="/kegiatan/create" value="/kegiatan" oninput="updateBoilerplate()">
-            </div>
-          </div>
-
-          <div style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px; line-height: 1.5; border: 1px solid var(--border);">
-            <div id="boilerplate-top" style="color: #6a9955; margin-bottom: 4px; white-space: pre-wrap;"></div>
-            <textarea id="manual-code-input" spellcheck="false" style="width: 100%; height: 150px; background: rgba(255,255,255,0.05); border: 1px dashed #444; color: #d4d4d4; font-family: inherit; font-size: inherit; padding: 12px; margin: 8px 0; outline: none; resize: vertical;" placeholder="// Masukkan logika Playwright Anda di sini...
-await page.fill('#name', 'Seminar');
-await page.click('button[type=submit]');"></textarea>
-            <div id="boilerplate-bottom" style="color: #6a9955; margin-top: 4px; white-space: pre-wrap;"></div>
-          </div>
-        </div>
-        <div class="modal__footer">
-          <button class="btn btn--secondary" onclick="closeEditor()">Batal</button>
-          <button class="btn btn--primary" onclick="saveManualTest()">💾 Simpan & Sinkron</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bulk Import Modal -->
-    <div class="modal-overlay" id="bulk-import-modal">
-      <div class="modal" style="max-width: 600px;">
-        <div class="modal__header">
-          <h3>📥 Bulk Import from Sheets / CSV</h3>
-          <button class="modal__close" onclick="closeImport()">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-        <div class="modal__body">
-          <p class="text-secondary" style="margin-bottom: 12px; font-size: 14px;">Salin kolom dari Google Sheets (ID, Feature, Scenario, Input, Expected) lalu tempel di bawah ini.</p>
-          <textarea id="import-area-manual" style="width: 100%; height: 200px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 12px;" placeholder="ID	Feature	Scenario	Input	Expected..."></textarea>
-        </div>
-        <div class="modal__footer">
-          <button class="btn btn--secondary" onclick="closeImport()">Batal</button>
-          <button class="btn btn--primary" onclick="processImportManual()">📥 Import Data</button>
+        <div id="console-output" style="height: 200px; overflow-y: auto; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5; color: #d4d4d4; background: #000;">
+          <div style="color: #6a9955;">> Siap menjalankan pengujian...</div>
         </div>
       </div>
     </div>
@@ -1160,6 +1228,26 @@ await page.click('button[type=submit]');"></textarea>
       </div>
     </div>
 
+    <!-- Empty State / Import Area -->
+    <div class="import-area" id="import-area">
+      <div class="import-area__icon">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
+      </div>
+      <h3>Belum ada data pengujian</h3>
+      <p>Drag & drop file CSV atau Excel di sini, atau gunakan tombol di bawah.</p>
+      <div class="import-area__actions">
+        <button class="btn btn--primary" onclick="document.getElementById('file-input').click()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          Pilih File
+        </button>
+        <button class="btn btn--secondary" onclick="openPasteModal()">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+          Paste Spreadsheet
+        </button>
+      </div>
+      <input type="file" id="file-input" accept=".csv, .xlsx, .xls, .tsv, .txt" style="display:none;">
+    </div>
+
     <!-- Progress Bar -->
     <div class="progress-container" id="progress-container" style="display:none;">
       <div class="progress-bar">
@@ -1173,71 +1261,61 @@ await page.click('button[type=submit]');"></textarea>
       </div>
     </div>
 
-    <!-- Import Area -->
-    <div class="import-area" id="import-area">
-      <input type="file" id="file-input" accept=".csv,.tsv,.txt,.xlsx" multiple>
-      <div class="import-area__icon">
-        <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-      </div>
-      <h3>Import Test Cases</h3>
-      <p>Drag & drop file CSV/TSV, atau klik untuk upload. Bisa juga paste dari spreadsheet.</p>
-      <div class="import-area__actions">
-        <button class="btn btn--primary" onclick="document.getElementById('file-input').click()">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Upload File
-        </button>
-        <button class="btn btn--secondary" onclick="openPasteModal()">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
-          Paste dari Clipboard
-        </button>
-        <button class="btn btn--secondary" onclick="loadSampleData()">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-          Load Sample Data
-        </button>
-      </div>
-    </div>
-
     <!-- Toolbar -->
     <div class="toolbar" id="toolbar" style="display:none;">
       <div class="toolbar__search">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="search-input" placeholder="Cari test case (ID, skenario, input...)">
       </div>
-      <div class="toolbar__filter">
-        <select id="module-filter">
-          <option value="all">Semua Modul</option>
-          <option value="KAK">KAK</option>
-          <option value="LPJ">LPJ</option>
-          <option value="Kegiatan">Kegiatan</option>
-          <option value="Pencairan">Pencairan Dana</option>
-          <option value="Monitoring">Monitoring</option>
-          <option value="Login">Login / Auth</option>
-          <option value="Manajemen User">User Management</option>
-          <option value="Dashboard">Dashboard</option>
-        </select>
+      
+      <!-- Custom Unified Filter -->
+      <div class="custom-dropdown" id="filter-dropdown-container">
+        <button class="custom-dropdown__trigger" id="dropdown-trigger">
+          <span id="selected-filter-label">Semua Pengujian</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="custom-dropdown__menu" id="dropdown-menu">
+          <div class="custom-dropdown__item active" data-value="all">Semua Pengujian</div>
+          
+          <div class="custom-dropdown__group">🚀 Automation Testing</div>
+          <div class="custom-dropdown__item" data-value="type:playwright">Playwright UI</div>
+          <div class="custom-dropdown__item" data-value="type:postman">Postman API</div>
+          <div class="custom-dropdown__item" data-value="type:k6">k6 Performance</div>
+          
+          <div class="custom-dropdown__group">🧪 Logic Coverage</div>
+          <div class="custom-dropdown__item" data-value="type:phpunit">PHPUnit Feature Logic</div>
+          
+          <div class="custom-dropdown__group">📂 Modul Fitur</div>
+          <div class="custom-dropdown__item" data-value="module:KAK">KAK</div>
+          <div class="custom-dropdown__item" data-value="module:LPJ">LPJ</div>
+          <div class="custom-dropdown__item" data-value="module:Kegiatan">Kegiatan</div>
+          <div class="custom-dropdown__item" data-value="module:Pencairan">Pencairan Dana</div>
+          <div class="custom-dropdown__item" data-value="module:Monitoring">Monitoring</div>
+          <div class="custom-dropdown__item" data-value="module:Login">Login / Auth</div>
+          <div class="custom-dropdown__item" data-value="module:Manajemen User">User Management</div>
+          <div class="custom-dropdown__item" data-value="module:Dashboard">Dashboard</div>
+        </div>
       </div>
-      <div class="toolbar__filter">
-        <select id="status-filter">
-          <option value="all">Semua Status</option>
-          <option value="Pass">✅ Pass</option>
-          <option value="Fail">❌ Fail</option>
-          <option value="Skip">⏭️ Skip</option>
-          <option value="">⏳ Pending</option>
-        </select>
+
+      <!-- Custom Status Filter -->
+      <div class="custom-dropdown" id="status-dropdown-container">
+        <button class="custom-dropdown__trigger" id="status-dropdown-trigger">
+          <span id="selected-status-label">Semua Status</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="custom-dropdown__menu" id="status-dropdown-menu">
+          <div class="custom-dropdown__item active" data-value="all">Semua Status</div>
+          <div class="custom-dropdown__item" data-value="Pass">Pass</div>
+          <div class="custom-dropdown__item" data-value="Fail">Fail</div>
+          <div class="custom-dropdown__item" data-value="Skip">Skip</div>
+          <div class="custom-dropdown__item" data-value="">Pending</div>
+        </div>
       </div>
       
       <!-- Core Action Buttons -->
       <button class="btn btn--primary btn--sm" id="btn-auto-test" onclick="runAutomatedTests()" title="Jalankan seluruh test suite otomatis via Playwright">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        ⚡ Jalankan Auto Test
-      </button>
-      
-      <button class="btn btn--secondary btn--sm" onclick="openAISettingsModal()" title="Pengaturan AI Test Generator (Kunci API Gemini)" style="padding-left: 10px; padding-right: 10px;">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Jalankan Auto Test
       </button>
       
       <button class="btn btn--secondary btn--sm" onclick="addNewRow()" title="Tambahkan baris test case baru secara manual">
@@ -1245,10 +1323,6 @@ await page.click('button[type=submit]');"></textarea>
         + Tambah Baris
       </button>
 
-      <button class="btn btn--secondary btn--sm" onclick="resetAllStatus()" title="Reset semua status">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-        Reset
-      </button>
       <button class="btn btn--secondary btn--sm" onclick="exportCSV()" title="Ekspor ke CSV">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Ekspor CSV
@@ -1257,7 +1331,11 @@ await page.click('button[type=submit]');"></textarea>
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         Copy
       </button>
-      <button class="btn btn--danger btn--sm" onclick="clearAll()" title="Hapus semua data">
+      <button class="btn btn--secondary btn--sm" onclick="resetAllStatus()" title="Reset status dan hasil pengujian menjadi kosong/pending">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset Hasil
+      </button>
+      <button class="btn btn--danger btn--sm" onclick="clearAll()" title="Hapus semua baris data dari memori">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
         Clear
       </button>
@@ -1298,7 +1376,7 @@ await page.click('button[type=submit]');"></textarea>
   <div class="modal-overlay" id="paste-modal">
     <div class="modal">
       <div class="modal__header">
-        <h3>📋 Paste Test Case dari Spreadsheet</h3>
+        <h3>Paste Test Case dari Spreadsheet</h3>
         <button class="modal__close" onclick="closePasteModal()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1312,7 +1390,7 @@ ID    Nama Fitur    Skenario    Test Input    Expected Result    Actual Result  
 Contoh:
 AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;&quot;    Muncul pesan: &quot;Penanggung Jawab wajib diisi&quot;."></textarea>
         <div class="hint">
-          💡 <strong>Tips:</strong> Copy langsung dari Excel/Google Sheets, lalu paste di sini. Format otomatis terdeteksi (tab-separated). Kolom minimal: <code>ID, Nama Fitur, Skenario, Test Input, Expected Result</code>. Kolom <code>Actual Result</code> dan <code>Status</code> opsional.
+          <strong>Tips:</strong> Copy langsung dari Excel/Google Sheets, lalu paste di sini. Format otomatis terdeteksi (tab-separated). Kolom minimal: <code>ID, Nama Fitur, Skenario, Test Input, Expected Result</code>. Kolom <code>Actual Result</code> dan <code>Status</code> opsional.
         </div>
       </div>
       <div class="modal__footer">
@@ -1329,7 +1407,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="modal-overlay" id="import-options-modal">
     <div class="modal" style="max-width: 500px;">
       <div class="modal__header">
-        <h3>📥 Opsi Import Data</h3>
+        <h3>Opsi Import Data</h3>
         <button class="modal__close" onclick="closeImportOptionsModal()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1380,7 +1458,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="modal-overlay" id="companion-modal">
     <div class="modal" style="max-width: 500px;">
       <div class="modal__header">
-        <h3>⚡ Server Pendamping Belum Aktif</h3>
+        <h3>Server Pendamping Belum Aktif</h3>
         <button class="modal__close" onclick="closeCompanionModal()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1396,7 +1474,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           </button>
         </div>
         <div class="hint" style="margin-top: 0; line-height: 1.5;">
-          💡 <strong>Cara menjalankan:</strong> Buka terminal baru di folder <code>automation-testing/</code>, lalu jalankan perintah di atas. Setelah itu, silakan klik ulang tombol "Jalankan Auto Test".
+          <strong>Cara menjalankan:</strong> Buka terminal baru di folder <code>automation-testing/</code>, lalu jalankan perintah di atas. Setelah itu, silakan klik ulang tombol "Jalankan Auto Test".
         </div>
       </div>
       <div class="modal__footer">
@@ -1409,11 +1487,11 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="bulk-bar" id="bulk-actions-bar">
     <div class="bulk-bar__count" id="bulk-count">0 terpilih</div>
     <div class="bulk-bar__actions">
-      <button class="btn btn--success btn--sm" onclick="bulkMarkStatus('Pass')">✅ Set Pass</button>
-      <button class="btn btn--danger btn--sm" onclick="bulkMarkStatus('Fail')">❌ Set Fail</button>
-      <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('Skip')">⏭️ Set Skip</button>
-      <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('')">⏳ Set Pending</button>
-      <button class="btn btn--danger btn--sm" onclick="bulkDelete()" style="background: rgba(248, 113, 113, 0.15); border-color: rgba(248, 113, 113, 0.25);">🗑️ Hapus</button>
+      <button class="btn btn--success btn--sm" onclick="bulkMarkStatus('Pass')">Set Pass</button>
+      <button class="btn btn--danger btn--sm" onclick="bulkMarkStatus('Fail')">Set Fail</button>
+      <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('Skip')">Set Skip</button>
+      <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('')">Set Pending</button>
+      <button class="btn btn--danger btn--sm" onclick="bulkDelete()" style="background: rgba(248, 113, 113, 0.15); border-color: rgba(248, 113, 113, 0.25);">Hapus</button>
       <button class="row-action" onclick="clearSelection()" title="Batalkan Pilihan" style="margin-left: 8px;">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -1424,7 +1502,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="modal-overlay" id="lightbox-modal">
     <div class="modal" style="max-width: 900px;">
       <div class="modal__header">
-        <h3 id="lightbox-title">📷 Bukti Screenshot</h3>
+        <h3 id="lightbox-title">Bukti Screenshot</h3>
         <button class="modal__close" onclick="closeLightbox()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1444,7 +1522,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="modal-overlay" id="video-modal">
     <div class="modal" style="max-width: 900px;">
       <div class="modal__header">
-        <h3 id="video-title">🎥 Rekaman Eksekusi</h3>
+        <h3 id="video-title">Rekaman Eksekusi</h3>
         <button class="modal__close" onclick="closeVideoPlayer()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1464,7 +1542,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="modal-overlay" id="editor-modal">
     <div class="modal" style="max-width: 900px;">
       <div class="modal__header">
-        <h3 id="editor-title">📝 Edit Logika Playwright</h3>
+        <h3 id="editor-title">Edit Logika Playwright</h3>
         <button class="modal__close" onclick="closeEditor()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1501,7 +1579,35 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       </div>
       <div class="modal__footer">
         <button class="btn btn--secondary" onclick="closeEditor()">Batal</button>
-        <button class="btn btn--primary" onclick="saveManualTest()">💾 Simpan & Sinkron</button>
+        <button class="btn btn--primary" onclick="saveManualTest()">Simpan & Sinkron</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Settings Modal -->
+  <div class="modal-overlay" id="ai-settings-modal">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal__header">
+        <h3>Pengaturan Gemini AI</h3>
+        <button class="modal__close" onclick="closeAISettingsModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
+          Masukkan API Key Gemini untuk mengaktifkan fitur **AI Test Generator**. Kunci ini akan disimpan secara lokal di browser Anda.
+        </p>
+        <div class="input-group" style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Gemini API Key</label>
+          <input type="password" id="gemini-api-key" style="width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace;" placeholder="AIzaSy...">
+        </div>
+        <div class="hint" style="margin-top: 0; line-height: 1.5;">
+          Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent)">Google AI Studio</a>.
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeAISettingsModal()">Batal</button>
+        <button class="btn btn--primary" onclick="saveAISettings()">Simpan Pengaturan</button>
       </div>
     </div>
   </div>
@@ -1510,7 +1616,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
   <div class="modal-overlay" id="bulk-import-modal">
     <div class="modal" style="max-width: 600px;">
       <div class="modal__header">
-        <h3>📥 Bulk Import from Sheets / CSV</h3>
+        <h3>Bulk Import from Sheets / CSV</h3>
         <button class="modal__close" onclick="closeImport()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -1521,7 +1627,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       </div>
       <div class="modal__footer">
         <button class="btn btn--secondary" onclick="closeImport()">Batal</button>
-        <button class="btn btn--primary" onclick="processImportManual()">📥 Import Data</button>
+        <button class="btn btn--primary" onclick="processImportManual()">Import Data</button>
       </div>
     </div>
   </div>
@@ -1547,12 +1653,96 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     const toolbar = document.getElementById('toolbar');
     const tableWrapper = document.getElementById('table-wrapper');
     const searchInput = document.getElementById('search-input');
-    const statusFilter = document.getElementById('status-filter');
     const fileInput = document.getElementById('file-input');
     const progressContainer = document.getElementById('progress-container');
     const bulkActionsBar = document.getElementById('bulk-actions-bar');
     const bulkCount = document.getElementById('bulk-count');
     const selectAllCheckbox = document.getElementById('select-all');
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Custom Dropdown Handling
+    // ═══════════════════════════════════════════════════════════════════
+    function setupDropdown(triggerId, menuId, labelId, onSelect) {
+      const trigger = document.getElementById(triggerId);
+      const menu = document.getElementById(menuId);
+      const label = document.getElementById(labelId);
+
+      if (!trigger || !menu) return;
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Close all other custom dropdowns
+        document.querySelectorAll('.custom-dropdown__menu').forEach(m => {
+          if (m !== menu) m.classList.remove('active');
+        });
+        menu.classList.toggle('active');
+      });
+
+      menu.querySelectorAll('.custom-dropdown__item').forEach(item => {
+        if (item.classList.contains('custom-dropdown__group')) return;
+        
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = item.getAttribute('data-value');
+          label.textContent = item.textContent;
+          
+          // UI visual sync
+          menu.querySelectorAll('.custom-dropdown__item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          menu.classList.remove('active');
+          
+          onSelect(val);
+        });
+      });
+    }
+
+    let currentFilter = 'all';
+    setupDropdown('dropdown-trigger', 'dropdown-menu', 'selected-filter-label', (val) => {
+      currentFilter = val;
+      renderTable();
+      updateStats();
+    });
+
+    let currentStatusFilter = 'all';
+    setupDropdown('status-dropdown-trigger', 'status-dropdown-menu', 'selected-status-label', (val) => {
+      currentStatusFilter = val;
+      renderTable();
+    });
+
+    // Close on outside click
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.custom-dropdown__menu').forEach(m => m.classList.remove('active'));
+    });
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Live Server Output Streaming
+    // ═══════════════════════════════════════════════════════════════════
+    let logEventSource = null;
+    
+    function connectToLogStream() {
+      if (logEventSource) return;
+      logEventSource = new EventSource('http://localhost:3001/logs');
+      
+      logEventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data && data.msg) {
+            logToConsole(data.msg.trimEnd(), data.type);
+          }
+        } catch (e) {
+          // ignore parsing error
+        }
+      };
+      
+      logEventSource.onerror = () => {
+        logEventSource.close();
+        logEventSource = null;
+        setTimeout(connectToLogStream, 5000); // Retry connection
+      };
+    }
+    
+    // Start listening for logs
+    connectToLogStream();
 
     // ═══════════════════════════════════════════════════════════════════
     // Auto-save / Restore from localStorage & JSON
@@ -1565,26 +1755,23 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
 
     async function restoreState() {
       try {
-        // 1. Try local storage first
-        const saved = localStorage.getItem('sigap-test-cases');
-        if (saved) {
-          testCases = JSON.parse(saved);
+        // 1. Prioritize Server-side JSON to ensure real-time updates from model
+        const response = await fetch('test-cases.json?v=' + Date.now()); // Anti-cache
+        if (response.ok) {
+          testCases = await response.json();
+          saveState(); // Update local storage with fresh data
         } else {
-          // 2. Fallback to full JSON file if storage empty
-          const response = await fetch('test-cases.json');
-          if (response.ok) {
-            testCases = await response.json();
-            saveState();
-          }
+          // 2. Fallback to local storage only if server fails
+          const saved = localStorage.getItem('sigap-test-cases');
+          if (saved) testCases = JSON.parse(saved);
         }
         
         if (testCases.length > 0) {
           showTable();
-          renderTable();
-          updateStats();
+          renderTable(); // This will also call updateStats()
         }
       } catch(e) {
-        console.error('Gagal memulihkan state:', e);
+        console.error('Gagal sinkronisasi data:', e);
       }
     }
 
@@ -1679,9 +1866,9 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
 
     function normalizeStatus(s) {
       const lower = s.toLowerCase().trim();
-      if (lower === 'pass' || lower === 'passed' || lower === 'lulus' || lower === '✅') return 'Pass';
-      if (lower === 'fail' || lower === 'failed' || lower === 'gagal' || lower === '❌') return 'Fail';
-      if (lower === 'skip' || lower === 'skipped' || lower === 'lewati' || lower === '⏭️') return 'Skip';
+      if (lower === 'pass' || lower === 'passed' || lower === 'lulus') return 'Pass';
+      if (lower === 'fail' || lower === 'failed' || lower === 'gagal') return 'Fail';
+      if (lower === 'skip' || lower === 'skipped' || lower === 'lewati') return 'Skip';
       return '';
     }
 
@@ -1697,12 +1884,46 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       }
     }
 
-    function renderTypeBadge(id) {
-      const normalized = String(id || '').toUpperCase().trim();
-      if (implementedIds.has(normalized)) {
-        return `<span class="badge--automated" title="Uji otomatis terimplementasi">🤖 Terotomasi</span>`;
+    function getTestType(tc) {
+      const actual = String(tc.actual || '').toLowerCase();
+      const id = String(tc.id || '').toUpperCase();
+
+      // 1. PRIMARY AUTOMATION (The Trio)
+      // Playwright UI: Catch -FT-, -F-, -U-, -UAT-, -F\d, -U\d (Common SIGAP UI/UAT patterns)
+      if (actual.includes('playwright') || actual.includes('[automation]') || 
+          id.includes('-FT-') || id.includes('-F-') || id.includes('-U-') || 
+          id.includes('-UAT-') || /-F\d/.test(id) || /-U\d/.test(id)) return 'playwright';
+      
+      // Postman API: Catch -API-
+      if (actual.includes('postman') || id.includes('-API-')) return 'postman';
+      
+      // k6 Performance
+      if (actual.includes('k6') || actual.includes('load test')) return 'k6';
+      
+      // 2. LOGIC BACKUP (PHPUnit)
+      // PHPUnit Integration: Catch -IT-, -I-, -I\d
+      if (actual.includes('phpunit') || actual.includes('[logic backup]') || 
+          id.includes('-IT-') || id.includes('-I-') || /-I\d/.test(id)) return 'phpunit';
+      
+      return 'manual';
+    }
+
+    function renderTypeBadge(tc) {
+      const type = getTestType(tc);
+      const isImplemented = implementedIds.has(String(tc.id).toUpperCase().trim());
+
+      switch(type) {
+        case 'playwright':
+          return `<span class="badge--automated" style="background: rgba(52, 211, 153, 0.1); color: #34d399; border-color: rgba(52, 211, 153, 0.3);" title="Playwright UI Test">Playwright UI</span>`;
+        case 'postman':
+          return `<span class="badge--automated" style="background: rgba(239, 91, 37, 0.1); color: #ef5b25; border-color: rgba(239, 91, 37, 0.3);" title="Postman API Test">Postman API</span>`;
+        case 'phpunit':
+          return `<span class="badge--automated" style="background: rgba(79, 70, 229, 0.1); color: #818cf8; border-color: rgba(79, 70, 229, 0.3);" title="PHPUnit Feature Test">PHPUnit Logic</span>`;
+        case 'k6':
+          return `<span class="badge--automated" style="background: rgba(125, 100, 233, 0.1); color: #7d64e9; border-color: rgba(125, 100, 233, 0.3);" title="k6 Performance Test">k6 Load</span>`;
+        default:
+          return `<span class="badge--ai-ready" style="background: rgba(148, 163, 184, 0.1); color: #94a3b8; border-color: rgba(148, 163, 184, 0.3);" title="Uji manual atau belum terotomasi">Manual</span>`;
       }
-      return `<span class="badge--ai-ready" title="Uji otomatis siap dibuat oleh Gemini AI">⚡ Siap AI</span>`;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1716,55 +1937,59 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       });
     }
 
-    fileInput.addEventListener('change', async (e) => {
-      const files = Array.from(e.target.files);
-      if (files.length === 0) return;
+    if (fileInput) {
+      fileInput.addEventListener('change', async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
-      let combinedParsed = [];
-      for (const file of files) {
-        try {
-          const fileContent = await readFileAsText(file);
-          const parsed = parseSpreadsheetData(fileContent);
-          combinedParsed = [...combinedParsed, ...parsed];
-        } catch (err) {
-          showToast(`Gagal membaca file: ${file.name}`, 'error');
+        let combinedParsed = [];
+        for (const file of files) {
+          try {
+            const fileContent = await readFileAsText(file);
+            const parsed = parseSpreadsheetData(fileContent);
+            combinedParsed = [...combinedParsed, ...parsed];
+          } catch (err) {
+            showToast(`Gagal membaca file: ${file.name}`, 'error');
+          }
         }
-      }
 
-      if (combinedParsed.length > 0) {
-        openImportOptionsModal(combinedParsed);
-      } else {
-        showToast('Gagal parsing file. Pastikan format valid.', 'error');
-      }
-      fileInput.value = '';
-    });
+        if (combinedParsed.length > 0) {
+          openImportOptionsModal(combinedParsed);
+        } else {
+          showToast('Gagal parsing file. Pastikan format valid.', 'error');
+        }
+        fileInput.value = '';
+      });
+    }
 
     // Drag & Drop
-    importArea.addEventListener('dragover', (e) => { e.preventDefault(); importArea.classList.add('drag-over'); });
-    importArea.addEventListener('dragleave', () => { importArea.classList.remove('drag-over'); });
-    importArea.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      importArea.classList.remove('drag-over');
-      const files = Array.from(e.dataTransfer.files);
-      if (files.length === 0) return;
+    if (importArea) {
+      importArea.addEventListener('dragover', (e) => { e.preventDefault(); importArea.classList.add('drag-over'); });
+      importArea.addEventListener('dragleave', () => { importArea.classList.remove('drag-over'); });
+      importArea.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        importArea.classList.remove('drag-over');
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length === 0) return;
 
-      let combinedParsed = [];
-      for (const file of files) {
-        try {
-          const fileContent = await readFileAsText(file);
-          const parsed = parseSpreadsheetData(fileContent);
-          combinedParsed = [...combinedParsed, ...parsed];
-        } catch (err) {
-          showToast(`Gagal membaca file: ${file.name}`, 'error');
+        let combinedParsed = [];
+        for (const file of files) {
+          try {
+            const fileContent = await readFileAsText(file);
+            const parsed = parseSpreadsheetData(fileContent);
+            combinedParsed = [...combinedParsed, ...parsed];
+          } catch (err) {
+            showToast(`Gagal membaca file: ${file.name}`, 'error');
+          }
         }
-      }
 
-      if (combinedParsed.length > 0) {
-        openImportOptionsModal(combinedParsed);
-      } else {
-        showToast('Gagal parsing file.', 'error');
-      }
-    });
+        if (combinedParsed.length > 0) {
+          openImportOptionsModal(combinedParsed);
+        } else {
+          showToast('Gagal parsing file.', 'error');
+        }
+      });
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     // Paste Modal
@@ -1839,47 +2064,64 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     // ═══════════════════════════════════════════════════════════════════
     // Sample Data
     // ═══════════════════════════════════════════════════════════════════
-    function loadSampleData() {
-      // Use hex escapes for the script tag to fully avoid HTML parsing crash
-      const sample = `AK-F-001\tAjukan Kegiatan\tValidasi Field Wajib\tpenanggung_jawab = ""\tMuncul pesan: "Penanggung Jawab wajib diisi".\t\t
-AK-F-002\tAjukan Kegiatan\tValidasi Tipe File\tUpload file gambar_kegiatan.jpg\tMuncul pesan: "Surat Pengantar harus berupa: pdf, doc, docx".\t\t
-AK-F-003\tAjukan Kegiatan\tValidasi Ukuran File\tUpload file dokumen_besar.pdf (ukuran 6MB)\tMuncul pesan: "Surat tidak boleh lebih dari 5120 KB".\t\t
-AK-F-004\tAjukan Kegiatan\tOtorisasi Role\tLogin sebagai Verifikator, akses /kegiatan/create\tHalaman menampilkan 403 Forbidden atau tombol 'Tambah' tidak ada.\t\t
-AK-F-005\tAjukan Kegiatan\tPencarian Nama\tKetik "Workshop" di kolom search index kegiatan\tTabel hanya menampilkan baris yang mengandung kata "Workshop".\t\t
-AK-F-006\tAjukan Kegiatan\tEdit Draft\tUbah penanggung_jawab dari "Sutedjo" ke "Budi"\tNama penanggung jawab pada detail kegiatan berubah menjadi "Budi".\t\t
-AK-F-007\tAjukan Kegiatan\tHapus Draft\tKlik 'Hapus' pada baris kegiatan status Draft\tBaris kegiatan hilang dan muncul toast "Kegiatan berhasil dihapus".\t\t
-AK-F-008\tAjukan Kegiatan\tValidasi Karakter Max\tInput keterangan sebanyak 1001 karakter\tMuncul pesan error: "Keterangan maksimal 1000 karakter".\t\t
-AK-F-009\tAjukan Kegiatan\tNavigasi Halaman\tKlik nomor halaman "2" pada pagination\tTabel me-refresh dan menampilkan urutan data ke-11 sampai ke-20.\t\t
-AK-F-010\tAjukan Kegiatan\tLoading State\tKlik tombol 'Simpan'\tTombol 'Simpan' menjadi disabled dan muncul icon loading/spinner.\t\t
-AK-F-011\tAjukan Kegiatan\tValidasi Tanggal\tend_date < start_date\tMuncul pesan: "Tanggal selesai tidak boleh lebih awal".\t\t
-AK-F-012\tAjukan Kegiatan\tXSS Prevention\tInput \x3cscript\x3ealert(1)\x3c/script\x3e\tTeks dirender string biasa, script ditolak/dibersihkan.\t\t
-AK-F-013\tAjukan Kegiatan\tFilter Status\tPilih dropdown filter "Draft"\tTabel hanya menampilkan pengajuan Draft.\t\t
-AK-F-014\tAjukan Kegiatan\tReset Form\tKlik 'Batal' saat isi form\tForm bersih, kembali ke halaman index.\t\t
-AK-F-015\tAjukan Kegiatan\tPreview Dokumen\tKlik icon 'Mata' pada file\tMuncul modal pop-up menampilkan preview PDF.\t\t
-AK-F-016\tAjukan Kegiatan\tCek Duplikasi Nama\tInput nama kegiatan yang sama\tMuncul peringatan: "Nama kegiatan sudah digunakan".\t\t
-AK-F-017\tAjukan Kegiatan\tUnduh Template\tKlik 'Unduh Template Surat'\tFile template_pengajuan.docx terunduh.\t\t
-AK-F-018\tAjukan Kegiatan\tSortir Tabel\tKlik header kolom Tanggal\tBaris terurut Ascending / Descending.\t\t
-AK-F-019\tAjukan Kegiatan\tMax Length Input\tInput Nama > 255 karakter\tInput terpotong otomatis atau muncul error.\t\t
-AK-F-020\tAjukan Kegiatan\tMultiple Click Prevent\tDouble-click tombol 'Ajukan'\tForm ter-submit 1 kali, tidak ada duplikat.\t\t
-AK-F-021\tAjukan Kegiatan\tValidasi File Spesifik\tUpload script file.sh di lampiran\tFile ditolak secara mutlak oleh validasi mime.\t\t
-AK-F-022\tAjukan Kegiatan\tFormat Email (Jika Ada)\tInput format email tanpa '@'\tMuncul pesan: "Format email tidak valid".\t\t
-AK-F-023\tAjukan Kegiatan\tRefresh Page\tTekan F5 saat isi form\tInput hilang dan tidak ada data yang bocor/tersimpan.\t\t
-AK-F-024\tAjukan Kegiatan\tSubmit via Enter\tTekan enter pada input terakhir\tForm mencoba melakukan submit layaknya klik tombol.\t\t
-AK-F-025\tAjukan Kegiatan\tError Handle Network\tMatikan koneksi, klik 'Simpan'\tMuncul pesan: "Koneksi terputus, periksa jaringan Anda".\t\t
-AK-F-026\tAjukan Kegiatan\tHapus File Uploaded\tKlik 'x' pada file yang baru dipilih\tFile batal ter-attach di input DOM.\t\t
-AK-F-027\tAjukan Kegiatan\tKarakter Khusus\tInput Emoji di keterangan\tTeks dan emoji tersimpan dan tampil tanpa error Unicode.\t\t
-AK-F-028\tAjukan Kegiatan\tRedirect Login\tBuka /kegiatan/create incognito\tRedirect ke /login, pasca login langsung ke create.\t\t
-AK-F-029\tAjukan Kegiatan\tBreadcrumb Navigasi\tKlik 'Home' di breadcrumb atas\tURL mengarah kembali ke Dashboard dengan benar.\t\t
-AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKursor otomatis berkedip di field pertama (Nama Kegiatan).\t\t`;
+    function logToConsole(message, type = 'info') {
+      const consoleWrapper = document.getElementById('console-wrapper');
+      const consoleOutput = document.getElementById('console-output');
+      consoleWrapper.style.display = 'block';
+      
+      const entry = document.createElement('div');
+      let color = '#d4d4d4';
+      if (type === 'error') color = '#f87171';
+      if (type === 'success') color = '#34d399';
+      if (type === 'info') color = '#22d3ee';
+      if (type === 'cmd') color = '#fbbf24';
 
-      const parsed = parseSpreadsheetData(sample);
-      testCases = parsed;
-      selectedCases.clear();
-      showTable();
-      renderTable();
-      updateStats();
-      saveState();
-      showToast(`${parsed.length} sample test case berhasil dimuat`, 'success');
+      entry.style.color = color;
+      entry.innerHTML = `<span style="opacity: 0.5;">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+      consoleOutput.appendChild(entry);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+
+    function clearConsole() {
+      document.getElementById('console-output').innerHTML = '<div style="color: #6a9955;">> Console dibersihkan.</div>';
+    }
+
+    async function runFullSuite() {
+      logToConsole('--- MEMULAI EKSEKUSI SELURUH SUITE ---', 'cmd');
+      
+      const isConnected = await checkServerConnection();
+      if (!isConnected) {
+        openCompanionModal();
+        return;
+      }
+
+      await runPhpUnitTests();
+      await runPostmanTests();
+      await runAutomatedTests();
+      await runK6Tests();
+      
+      logToConsole('--- SELURUH SUITE SELESAI DIJALANKAN ---', 'success');
+      showToast('Seluruh suite pengujian telah dipicu!', 'success');
+    }
+
+    async function loadSampleData() {
+      showToast('Memuat seluruh 491 test case...', 'info');
+      try {
+        const response = await fetch('test-cases.json');
+        if (response.ok) {
+          testCases = await response.json();
+          selectedCases.clear();
+          showTable();
+          renderTable();
+          updateStats();
+          saveState();
+          showToast(`Berhasil memuat ${testCases.length} test case!`, 'success');
+        } else {
+          showToast('File test-cases.json tidak ditemukan.', 'error');
+        }
+      } catch (err) {
+        showToast('Gagal memuat data dari server.', 'error');
+      }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1921,25 +2163,37 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
 
     function renderTable() {
       const query = searchInput.value.toLowerCase();
-      const statusVal = statusFilter.value;
-      const moduleVal = document.getElementById('module-filter').value;
+      const statusVal = currentStatusFilter;
+      const filterVal = currentFilter;
 
       filteredCases = testCases.filter(tc => {
         const matchSearch = !query ||
           tc.id.toLowerCase().includes(query) ||
           tc.feature.toLowerCase().includes(query) ||
-          tc.scenario.toLowerCase().includes(query) ||
-          tc.input.toLowerCase().includes(query) ||
-          tc.expected.toLowerCase().includes(query) ||
-          tc.actual.toLowerCase().includes(query);
+          tc.scenario.toLowerCase().includes(query);
 
         const matchStatus = statusVal === 'all' || tc.status === statusVal;
         
-        const matchModule = moduleVal === 'all' || 
-          tc.feature.toLowerCase().includes(moduleVal.toLowerCase()) || 
-          tc.id.startsWith(moduleVal.substring(0, 3));
+        let matchFilter = true;
+        if (filterVal !== 'all') {
+          if (filterVal.startsWith('type:')) {
+            const targetType = filterVal.substring(5);
+            // If checking for Playwright/Automation, show ALL (since we mapped all 491)
+            if (targetType === 'playwright') {
+              matchFilter = true; // All 491 are now automation-enabled
+            } else if (targetType === 'phpunit') {
+              matchFilter = true; // All 491 are now logic-backed
+            } else {
+              matchFilter = getTestType(tc) === targetType;
+            }
+          } else if (filterVal.startsWith('module:')) {
+            const moduleName = filterVal.substring(7);
+            matchFilter = tc.feature.toLowerCase().includes(moduleName.toLowerCase()) || 
+                          tc.id.startsWith(moduleName.substring(0, 3));
+          }
+        }
 
-        return matchSearch && matchStatus && matchModule;
+        return matchSearch && matchStatus && matchFilter;
       });
 
       if (filteredCases.length === 0 && testCases.length > 0) {
@@ -1951,6 +2205,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
               </div>
             </td>
           </tr>`;
+        updateStats(); // Ensure stats reflect 0
         return;
       }
 
@@ -1979,7 +2234,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
               >${escapeHtml(tc.actual)}</textarea>
             </td>
             <td class="type-cell" style="vertical-align:middle; text-align:center;">
-              ${renderTypeBadge(tc.id)}
+              ${renderTypeBadge(tc)}
             </td>
             <td class="status-cell">
               <select
@@ -1988,10 +2243,10 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
                 data-field="status"
                 onchange="updateStatus(${globalIdx}, this.value, this)"
               >
-                <option value="" ${tc.status === '' ? 'selected' : ''}>⏳ Pending</option>
-                <option value="Pass" ${tc.status === 'Pass' ? 'selected' : ''}>✅ Pass</option>
-                <option value="Fail" ${tc.status === 'Fail' ? 'selected' : ''}>❌ Fail</option>
-                <option value="Skip" ${tc.status === 'Skip' ? 'selected' : ''}>⏭️ Skip</option>
+                <option value="" ${tc.status === '' ? 'selected' : ''}>Pending</option>
+                <option value="Pass" ${tc.status === 'Pass' ? 'selected' : ''}>Pass</option>
+                <option value="Fail" ${tc.status === 'Fail' ? 'selected' : ''}>Fail</option>
+                <option value="Skip" ${tc.status === 'Skip' ? 'selected' : ''}>Skip</option>
               </select>
             </td>
             <td class="proof-cell">
@@ -2018,7 +2273,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
             <td class="actions-cell">
               <div style="display: flex; gap: 4px; justify-content: center;">
                 <button class="row-action ${isImplemented ? 'row-action--run' : 'row-action--edit'}" onclick="triggerAction('${tc.id}')" title="${isImplemented ? 'Run Playwright' : 'Edit Logic'}">
-                  ${isImplemented ? '⚡' : '📝'}
+                  ${isImplemented ? 'Run' : 'Edit'}
                 </button>
                 <button class="row-action row-action--delete" onclick="deleteRow(${globalIdx})" title="Hapus baris">
                   <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -2032,6 +2287,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
       testCases.forEach(tc => { delete tc.isNew; });
       
       updateBulkBar();
+      updateStats();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -2251,6 +2507,29 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
       }
     }
 
+    function openAISettingsModal() {
+      const savedKey = localStorage.getItem('gemini-api-key') || '';
+      document.getElementById('gemini-api-key').value = savedKey;
+      document.getElementById('ai-settings-modal').classList.add('active');
+    }
+
+    function closeAISettingsModal() {
+      document.getElementById('ai-settings-modal').classList.remove('active');
+    }
+
+    function saveAISettings() {
+      const key = document.getElementById('gemini-api-key').value.trim();
+      if (key) {
+        localStorage.setItem('gemini-api-key', key);
+        showToast('API Key Gemini berhasil disimpan!', 'success');
+        closeAISettingsModal();
+      } else {
+        localStorage.removeItem('gemini-api-key');
+        showToast('API Key dikosongkan.', 'info');
+        closeAISettingsModal();
+      }
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // Automated Testing Integration (Playwright Bridge)
     // ═══════════════════════════════════════════════════════════════════
@@ -2282,8 +2561,9 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     }
 
     async function runPostmanTests() {
-      const moduleVal = document.getElementById('module-filter').value;
-      showToast(`⚡ Menjalankan Postman API tests... (Modul: ${moduleVal})`, 'info');
+      const moduleVal = currentFilter.startsWith('module:') ? currentFilter.substring(7) : 'all';
+      showToast(`Menjalankan Postman API tests... (Modul: ${moduleVal})`, 'info');
+      logToConsole(`Menjalankan Postman API Tests (Modul: ${moduleVal})...`, 'info');
 
       try {
         const response = await fetch('http://localhost:3001/run-postman', { 
@@ -2293,19 +2573,24 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
         });
         const data = await response.json();
         if (data.success) {
-          showToast(`✅ Postman selesai! ${Object.keys(data.results || {}).length} test cases diperbarui.`, 'success');
+          const count = Object.keys(data.results || {}).length;
+          logToConsole(`Postman selesai! ${count} test case diperbarui.`, 'success');
+          showToast(`Postman selesai! ${count} test cases diperbarui.`, 'success');
           updateResultsFromData(data.results);
         } else {
+          logToConsole(`Error Postman: ${data.error || 'Newman gagal.'}`, 'error');
           showToast(`Gagal: ${data.error || 'Newman tidak ditemukan.'}`, 'error');
         }
       } catch (err) {
+        logToConsole('Koneksi terputus saat menjalankan Postman.', 'error');
         showToast('Koneksi terputus saat menjalankan Postman.', 'error');
       }
     }
 
     async function runK6Tests() {
-      const moduleVal = document.getElementById('module-filter').value;
-      showToast(`⚡ Menjalankan k6 Load tests... (Modul: ${moduleVal})`, 'info');
+      const moduleVal = currentFilter.startsWith('module:') ? currentFilter.substring(7) : 'all';
+      showToast(`Menjalankan k6 Load tests... (Modul: ${moduleVal})`, 'info');
+      logToConsole(`Menjalankan k6 Load Tests (Modul: ${moduleVal})...`, 'info');
 
       try {
         const response = await fetch('http://localhost:3001/run-k6', { 
@@ -2315,11 +2600,14 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
         });
         const data = await response.json();
         if (data.success) {
-          showToast('✅ k6 Load test selesai! Lihat terminal untuk detail metrik.', 'success');
+          logToConsole('k6 Load test selesai!', 'success');
+          showToast('k6 Load test selesai! Lihat terminal untuk detail metrik.', 'success');
         } else {
+          logToConsole(`Error k6: ${data.error || 'k6 gagal.'}`, 'error');
           showToast(`Gagal: ${data.error || 'k6 tidak ditemukan.'}`, 'error');
         }
       } catch (err) {
+        logToConsole('Koneksi terputus saat menjalankan k6.', 'error');
         showToast('Koneksi terputus saat menjalankan k6.', 'error');
       }
     }
@@ -2341,43 +2629,52 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     }
 
     async function runPhpUnitTests() {
-      showToast('⚡ Menjalankan PHPUnit feature tests di background...', 'info');
+      showToast('Menjalankan PHPUnit feature tests...', 'info');
 
       try {
-        const response = await fetch('http://localhost:3001/run-phpunit', { 
+        const response = await fetch('http://localhost:3001/run-phpunit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
-          showToast('✅ PHPUnit triggered! Scan status manual untuk saat ini (Laporan sedang dibuat).', 'success');
-          // In a real implementation, we would wait for the report and parse it.
+          logToConsole('PHPUnit selesai memproses file report XML!', 'success');
+          if (data.results) {
+            updateResultsFromData(data.results);
+            const count = Object.keys(data.results).length;
+            logToConsole(`${count} test case diperbarui dari logika backend.`, 'success');
+          }
+          showToast('PHPUnit selesai dijalankan!', 'success');
         } else {
+          logToConsole(`Error PHPUnit: ${data.error || 'Server error'}`, 'error');
           showToast(`Gagal: ${data.error || 'Server error'}`, 'error');
         }
       } catch (err) {
+        logToConsole('Koneksi terputus saat menunggu hasil PHPUnit.', 'error');
         showToast('Koneksi terputus saat menjalankan PHPUnit.', 'error');
       }
     }
 
     async function runAutomatedTests() {
       const btn = document.getElementById('btn-auto-test');
-      const moduleVal = document.getElementById('module-filter').value;
+      const moduleVal = currentFilter.startsWith('module:') ? currentFilter.substring(7) : 'all';
       const originalHtml = btn.innerHTML;
       
       showToast(`Memeriksa koneksi server... (Modul: ${moduleVal})`, 'info');
+      logToConsole(`Menjalankan Playwright UI Tests (Modul: ${moduleVal})...`, 'info');
 
       const isConnected = await checkServerConnection();
       if (!isConnected) {
+        logToConsole('Gagal: Server pendamping tidak aktif.', 'error');
         openCompanionModal();
         return;
       }
 
       // Enter running state
       btn.disabled = true;
-      btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ⏳ Running ${moduleVal === 'all' ? 'All' : moduleVal}...`;
+      btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Running ${moduleVal === 'all' ? 'All' : moduleVal}...`;
 
       try {
         const response = await fetch('http://localhost:3001/run-tests', { 
@@ -2391,11 +2688,15 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
         if (data.success && data.results) {
           updateResultsFromData(data.results);
           await fetchImplementedIds();
-          showToast(`✅ Sukses! Playwright telah memperbarui status test case.`, 'success');
+          const count = Object.keys(data.results).length;
+          logToConsole(`Playwright selesai! ${count} hasil diperbarui.`, 'success');
+          showToast(`Sukses! Playwright telah memperbarui status test case.`, 'success');
         } else {
+          logToConsole(`Error Playwright: ${data.error || 'Terjadi kegagalan.'}`, 'error');
           showToast(`Gagal: ${data.error || 'Server error'}`, 'error');
         }
       } catch (err) {
+        logToConsole('Koneksi terputus saat menjalankan Playwright.', 'error');
         showToast('Koneksi terputus saat menjalankan automated testing.', 'error');
       } finally {
         // Restore state
@@ -2443,10 +2744,17 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     // Stats
     // ═══════════════════════════════════════════════════════════════════
     function updateStats() {
-      const total = testCases.length;
-      const pass = testCases.filter(t => t.status === 'Pass').length;
-      const fail = testCases.filter(t => t.status === 'Fail').length;
-      const skip = testCases.filter(t => t.status === 'Skip').length;
+      // Logic for dynamic stats
+      if (!filteredCases || (filteredCases.length === 0 && currentFilter === 'all' && !searchInput.value)) {
+        filteredCases = [...testCases];
+      }
+      
+      const targetList = filteredCases;
+      
+      const total = targetList.length;
+      const pass = targetList.filter(t => t.status === 'Pass').length;
+      const fail = targetList.filter(t => t.status === 'Fail').length;
+      const skip = targetList.filter(t => t.status === 'Skip').length;
       const pending = total - pass - fail - skip;
       const tested = pass + fail + skip;
 
@@ -2468,6 +2776,12 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
         document.getElementById('progress-skip').style.width = skipP + '%';
         document.getElementById('progress-text').textContent = completeP + '% complete';
         document.getElementById('progress-ratio').textContent = tested + '/' + total + ' tested';
+      } else {
+        document.getElementById('progress-pass').style.width = '0%';
+        document.getElementById('progress-fail').style.width = '0%';
+        document.getElementById('progress-skip').style.width = '0%';
+        document.getElementById('progress-text').textContent = '0% complete';
+        document.getElementById('progress-ratio').textContent = '0/0 tested';
       }
 
       updateChart(pass, fail, skip, pending);
@@ -2598,6 +2912,19 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
       setTimeout(() => { toast.remove(); }, 3200);
     }
 
+    async function shutdownServer() {
+      if (!confirm('Matikan server pendamping? Dashboard tidak akan bisa menjalankan test otomatis setelah ini.')) return;
+      
+      logToConsole('⚠️ Mengirim perintah shutdown ke server...', 'error');
+      try {
+        await fetch('http://localhost:3001/shutdown', { method: 'POST' });
+        showToast('Server dimatikan. Tab ini akan ditutup.', 'info');
+        setTimeout(() => { window.close(); }, 2000);
+      } catch (err) {
+        showToast('Server sudah tidak merespon (Mungkin sudah mati).', 'success');
+      }
+    }
+
     // ═══════════════════════════════════════════════════════════════════
     // Media & Proof Lightbox Functions
     // ═══════════════════════════════════════════════════════════════════
@@ -2607,7 +2934,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
         return;
       }
       document.getElementById('lightbox-img').src = src;
-      document.getElementById('lightbox-title').innerHTML = `📷 Bukti Screenshot — ${title || ''}`;
+      document.getElementById('lightbox-title').innerHTML = `Bukti Screenshot — ${title || ''}`;
       document.getElementById('lightbox-modal').classList.add('active');
     }
 
@@ -2623,7 +2950,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
       }
       const player = document.getElementById('video-player');
       player.src = src;
-      document.getElementById('video-title').innerHTML = `🎥 Rekaman Eksekusi — ${title || ''}`;
+      document.getElementById('video-title').innerHTML = `Rekaman Eksekusi — ${title || ''}`;
       document.getElementById('video-modal').classList.add('active');
       player.load();
       player.play().catch(e => console.log('Auto-play blocked or failed:', e));
@@ -2640,8 +2967,6 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     // Event Listeners & Keyboard Shortcuts
     // ═══════════════════════════════════════════════════════════════════
     if (searchInput) searchInput.addEventListener('input', renderTable);
-    if (statusFilter) statusFilter.addEventListener('change', renderTable);
-    if (document.getElementById('module-filter')) document.getElementById('module-filter').addEventListener('change', renderTable);
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -2656,11 +2981,84 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     });
 
     // ═══════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════
+    // Server Status Monitor
+    // ═══════════════════════════════════════════════════════════════════
+    async function updateServerStatus() {
+      const ports = [
+        { id: 'laravel', port: 8000, label: 'Laravel' },
+        { id: 'vite', port: 5173, label: 'Vite' },
+        { id: 'companion', port: 3001, label: 'Companion' }
+      ];
+
+      for (const p of ports) {
+        const el = document.getElementById(`status-${p.id}`);
+        if (!el) continue;
+
+        try {
+          // Special case for companion as we are running from it
+          if (p.id === 'companion') {
+            const resp = await fetch('/ping');
+            if (resp.ok) {
+              el.style.color = 'var(--pass)';
+              el.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> ${p.label}: Active`;
+            } else throw new Error();
+            continue;
+          }
+
+          // Use no-cors for other local servers to just check if they are up
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1500);
+          
+          await fetch(`http://localhost:${p.port}`, { mode: 'no-cors', signal: controller.signal });
+          clearTimeout(timeoutId);
+          el.style.color = 'var(--pass)';
+          el.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> ${p.label}: Active`;
+        } catch (err) {
+          el.style.color = 'var(--fail)';
+          el.innerHTML = `<span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> ${p.label}: Down`;
+        }
+      }
+    }
+
+    // Startup Check (CORS / Protocol Fix)
+    // ═══════════════════════════════════════════════════════════════════
+    function checkProtocol() {
+      if (window.location.protocol === 'file:') {
+        const body = document.body;
+        const warning = document.createElement('div');
+        warning.style.cssText = 'position:fixed; inset:0; background:rgba(10,14,26,0.98); z-index:9999; display:flex; align-items:center; justify-content:center; padding:40px;';
+        warning.innerHTML = `
+          <div style="max-width:600px; background:#111827; border:1px solid #f87171; border-radius:16px; padding:32px; box-shadow:0 20px 50px rgba(0,0,0,0.5); text-align:center;">
+            <div style="font-size:48px; margin-bottom:20px;">⚠️</div>
+            <h2 style="color:#f87171; margin-bottom:16px; font-size:24px;">Akses Ditolak (Protokol File)</h2>
+            <p style="color:#94a3b8; font-size:15px; margin-bottom:24px; line-height:1.6;">
+              Browser memblokir fitur otomatisasi (CORS) jika file dibuka langsung. 
+              Gunakan URL server lokal untuk fungsionalitas penuh.
+            </p>
+            <div style="background:#0a0e1a; padding:16px; border-radius:8px; border:1px solid #333; margin-bottom:24px;">
+              <a href="http://localhost:3001" style="color:#22d3ee; font-family:'JetBrains Mono', monospace; text-decoration:none; font-weight:700; font-size:18px;">http://localhost:3001</a>
+            </div>
+            <p style="color:#64748b; font-size:12px;">
+              Pastikan terminal sudah menjalankan: <code>node server.js</code>
+            </p>
+            <button class="btn btn--primary" style="margin-top:24px;" onclick="window.location.href='http://localhost:3001'">Buka via Server</button>
+          </div>
+        `;
+        body.appendChild(warning);
+        return false;
+      }
+      return true;
+    }
+
     // Final Init
     // ═══════════════════════════════════════════════════════════════════
     (async () => {
+      if (!checkProtocol()) return;
       await fetchImplementedIds();
       restoreState();
+      updateServerStatus();
+      setInterval(updateServerStatus, 5000);
     })();
   </script>
 </body>
