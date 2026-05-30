@@ -446,18 +446,24 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w900,
-                  color: isCyan ? Colors.white : const Color(0xFF0F172A),
-                  fontFamily: 'Figtree',
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      color: isCyan ? Colors.white : const Color(0xFF0F172A),
+                      fontFamily: 'Figtree',
+                    ),
+                  ),
                 ),
               ),
+              const SizedBox(width: 4),
               Icon(
                 statIcon,
                 size: 18,
