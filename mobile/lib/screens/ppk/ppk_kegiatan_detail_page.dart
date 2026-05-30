@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../providers/auth_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PpkKegiatanDetailPage extends StatefulWidget {
   final int kegiatanId;
@@ -81,21 +83,122 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
 
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
-    final Uri url = Uri.parse(urlString);
-    try {
-      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-        throw Exception('Could not launch $urlString');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal membuka dokumen: ${e.toString()}'),
-            backgroundColor: const Color(0xFFE57373),
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF00BCD4).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: Color(0xFF00BCD4),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Lampiran KAK',
+                        style: GoogleFonts.figtree(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Salin tautan di bawah ini untuk mengunduh atau membuka dokumen surat pengantar di peramban (browser) Anda:',
+                  style: GoogleFonts.figtree(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceVariant.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                  ),
+                  child: Text(
+                    urlString,
+                    style: GoogleFonts.figtree(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF0E7490),
+                    ),
+                    maxLines: 4,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Batal',
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: urlString));
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Tautan berhasil disalin ke papan klip!'),
+                            backgroundColor: Color(0xFF2E7D32),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      label: Text(
+                        'Salin Tautan',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00BCD4),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
-      }
-    }
+      },
+    );
   }
 
   Future<void> _submitApprove() async {
@@ -192,6 +295,55 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                () {
+                  final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
+                  final ppkApproval = approvals.firstWhere((a) => a['approval_level'] == 'PPK', orElse: () => null);
+                  final ppkCatatan = ppkApproval != null ? ppkApproval['catatan'] : null;
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final isWadir = authProvider.user?.roleId == 5;
+
+                  if (isWadir && ppkCatatan != null && ppkCatatan.toString().trim().isNotEmpty) {
+                    return Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF0FDF4),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFDCFCE7)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.feedback_outlined, color: Colors.green, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Catatan PPK',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF2E7D32),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '"$ppkCatatan"',
+                            style: GoogleFonts.figtree(
+                              fontSize: 13,
+                              fontStyle: FontStyle.italic,
+                              color: const Color(0xFF1B5E20),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }(),
                 TextField(
                   controller: _catatanController,
                   maxLines: 3,
@@ -743,79 +895,106 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                           }
 
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Column(
-                                  children: [
-                                    Icon(
-                                      status == 'Disetujui'
-                                          ? Icons.check_circle
-                                          : status == 'Ditolak'
-                                              ? Icons.cancel
-                                              : Icons.pending,
-                                      color: statusColor,
-                                      size: 20,
-                                    ),
-                                    if (idx < approvals.length - 1)
-                                      Container(
-                                        width: 2,
-                                        height: 40,
-                                        color: const Color(0xFFE2E8F0),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Approval Level: $roleName',
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0F172A),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Oleh: $userName',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        dateStr,
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0xFF94A3B8),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: statusBg,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    status.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.bold,
-                                      color: statusColor,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
+                             padding: const EdgeInsets.only(bottom: 16.0),
+                             child: IntrinsicHeight(
+                               child: Row(
+                                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                                 children: [
+                                   Column(
+                                     children: [
+                                       Icon(
+                                         status == 'Disetujui'
+                                             ? Icons.check_circle
+                                             : status == 'Ditolak'
+                                                 ? Icons.cancel
+                                                 : Icons.pending,
+                                         color: statusColor,
+                                         size: 20,
+                                       ),
+                                       if (idx < approvals.length - 1)
+                                         Expanded(
+                                           child: Container(
+                                             width: 2,
+                                             color: const Color(0xFFE2E8F0),
+                                           ),
+                                         ),
+                                     ],
+                                   ),
+                                   const SizedBox(width: 12),
+                                   Expanded(
+                                     child: Column(
+                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                       children: [
+                                         Text(
+                                           'Approval Level: $roleName',
+                                           style: const TextStyle(
+                                             fontSize: 13,
+                                             fontWeight: FontWeight.bold,
+                                             color: Color(0xFF0F172A),
+                                           ),
+                                         ),
+                                         const SizedBox(height: 2),
+                                         Text(
+                                           'Oleh: $userName',
+                                           style: const TextStyle(
+                                             fontSize: 12,
+                                             color: Color(0xFF64748B),
+                                           ),
+                                         ),
+                                         const SizedBox(height: 2),
+                                         Text(
+                                           dateStr,
+                                           style: const TextStyle(
+                                             fontSize: 11,
+                                             color: Color(0xFF94A3B8),
+                                           ),
+                                         ),
+                                         if (app['catatan'] != null && app['catatan'].toString().trim().isNotEmpty) ...[
+                                           const SizedBox(height: 6),
+                                           Container(
+                                             width: double.infinity,
+                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                             decoration: BoxDecoration(
+                                               color: const Color(0xFFF8FAFC),
+                                               borderRadius: BorderRadius.circular(8),
+                                               border: Border.all(color: const Color(0xFFE2E8F0)),
+                                             ),
+                                             child: Text(
+                                               'Catatan: "${app['catatan']}"',
+                                               style: GoogleFonts.figtree(
+                                                 fontSize: 11,
+                                                 fontStyle: FontStyle.italic,
+                                                 color: const Color(0xFF475569),
+                                               ),
+                                             ),
+                                           ),
+                                         ],
+                                         const SizedBox(height: 12),
+                                       ],
+                                     ),
+                                   ),
+                                   Align(
+                                     alignment: Alignment.topRight,
+                                     child: Container(
+                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                       decoration: BoxDecoration(
+                                         color: statusBg,
+                                         borderRadius: BorderRadius.circular(6),
+                                       ),
+                                       child: Text(
+                                         status.toUpperCase(),
+                                         style: TextStyle(
+                                           fontSize: 9,
+                                           fontWeight: FontWeight.bold,
+                                           color: statusColor,
+                                         ),
+                                       ),
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             ),
+                           );
                         },
                       ),
                   ],
