@@ -527,8 +527,14 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
 
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
-    final activeApproval = _kegiatan['active_approval'] ?? _kegiatan['activeApproval'] ?? {};
-    final bool isPendingMyApproval = activeApproval['status'] == 'Aktif';
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final roleId = authProvider.user?.roleId;
+    final String targetLevel = roleId == 4 ? 'PPK' : (roleId == 5 ? 'Wadir2' : '');
+    final myApproval = approvals.firstWhere(
+      (a) => a['approval_level'] == targetLevel && a['status'] == 'Aktif',
+      orElse: () => null,
+    );
+    final bool isPendingMyApproval = myApproval != null;
 
     return Stack(
       children: [
