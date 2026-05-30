@@ -1037,7 +1037,90 @@
       <div class="header__badge">Automation Testing Dashboard</div>
       <h1>SIGAP Test Runner</h1>
       <p>Import spreadsheet test case, kelola hasil, dan ekspor laporan.</p>
+      <div class="header__actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
+        <button class="btn btn--primary" onclick="openImport()">
+          <span style="font-size: 18px; margin-right: 8px;">📥</span> Bulk Import
+        </button>
+        <button class="btn btn--secondary" onclick="runAutomatedTests()">
+          <span style="font-size: 18px; margin-right: 8px;">🎭</span> Playwright UI
+        </button>
+        <button class="btn btn--secondary" onclick="runPhpUnitTests()" style="background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.3); color: #818cf8;">
+          <span style="font-size: 18px; margin-right: 8px;">🐘</span> PHPUnit Logic
+        </button>
+        <button class="btn btn--secondary" onclick="runPostmanTests()" style="background: rgba(239, 91, 37, 0.1); border-color: rgba(239, 91, 37, 0.3); color: #ef5b25;">
+          <span style="font-size: 18px; margin-right: 8px;">🚀</span> Postman API
+        </button>
+        <button class="btn btn--secondary" onclick="runK6Tests()" style="background: rgba(125, 100, 233, 0.1); border-color: rgba(125, 100, 233, 0.3); color: #7d64e9;">
+          <span style="font-size: 18px; margin-right: 8px;">📈</span> k6 Load
+        </button>
+      </div>
     </header>
+
+    <!-- Manual Code Editor Modal -->
+    <div class="modal-overlay" id="editor-modal">
+      <div class="modal" style="max-width: 900px;">
+        <div class="modal__header">
+          <h3 id="editor-title">📝 Edit Logika Playwright</h3>
+          <button class="modal__close" onclick="closeEditor()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal__body">
+          <div id="editor-info" style="margin-bottom: 16px; padding: 12px; background: var(--accent-dim); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+            <p style="font-size: 13px; color: var(--accent);"><strong id="editor-id-label">ID: ---</strong> | <span id="editor-scenario-label">Scenario: ---</span></p>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+            <div class="input-group">
+              <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Role Login</label>
+              <select id="editor-role" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" onchange="updateBoilerplate()">
+                <option value="admin">Admin</option>
+                <option value="pengusul">Pengusul (jurusantik)</option>
+                <option value="verifikator">Verifikator</option>
+                <option value="ppk">PPK</option>
+                <option value="bendahara">Bendahara</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">URL Tujuan</label>
+              <input type="text" id="editor-url" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" placeholder="/kegiatan/create" value="/kegiatan" oninput="updateBoilerplate()">
+            </div>
+          </div>
+
+          <div style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px; line-height: 1.5; border: 1px solid var(--border);">
+            <div id="boilerplate-top" style="color: #6a9955; margin-bottom: 4px; white-space: pre-wrap;"></div>
+            <textarea id="manual-code-input" spellcheck="false" style="width: 100%; height: 150px; background: rgba(255,255,255,0.05); border: 1px dashed #444; color: #d4d4d4; font-family: inherit; font-size: inherit; padding: 12px; margin: 8px 0; outline: none; resize: vertical;" placeholder="// Masukkan logika Playwright Anda di sini...
+await page.fill('#name', 'Seminar');
+await page.click('button[type=submit]');"></textarea>
+            <div id="boilerplate-bottom" style="color: #6a9955; margin-top: 4px; white-space: pre-wrap;"></div>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button class="btn btn--secondary" onclick="closeEditor()">Batal</button>
+          <button class="btn btn--primary" onclick="saveManualTest()">💾 Simpan & Sinkron</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div class="modal-overlay" id="bulk-import-modal">
+      <div class="modal" style="max-width: 600px;">
+        <div class="modal__header">
+          <h3>📥 Bulk Import from Sheets / CSV</h3>
+          <button class="modal__close" onclick="closeImport()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="modal__body">
+          <p class="text-secondary" style="margin-bottom: 12px; font-size: 14px;">Salin kolom dari Google Sheets (ID, Feature, Scenario, Input, Expected) lalu tempel di bawah ini.</p>
+          <textarea id="import-area-manual" style="width: 100%; height: 200px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 12px;" placeholder="ID	Feature	Scenario	Input	Expected..."></textarea>
+        </div>
+        <div class="modal__footer">
+          <button class="btn btn--secondary" onclick="closeImport()">Batal</button>
+          <button class="btn btn--primary" onclick="processImportManual()">📥 Import Data</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Stats & Analytics Grid -->
     <div class="stats-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out 0.1s both;">
@@ -1123,6 +1206,19 @@
       <div class="toolbar__search">
         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="search-input" placeholder="Cari test case (ID, skenario, input...)">
+      </div>
+      <div class="toolbar__filter">
+        <select id="module-filter">
+          <option value="all">Semua Modul</option>
+          <option value="KAK">KAK</option>
+          <option value="LPJ">LPJ</option>
+          <option value="Kegiatan">Kegiatan</option>
+          <option value="Pencairan">Pencairan Dana</option>
+          <option value="Monitoring">Monitoring</option>
+          <option value="Login">Login / Auth</option>
+          <option value="Manajemen User">User Management</option>
+          <option value="Dashboard">Dashboard</option>
+        </select>
       </div>
       <div class="toolbar__filter">
         <select id="status-filter">
@@ -1364,36 +1460,71 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     </div>
   </div>
 
-  <!-- AI Settings Modal (Pengaturan API Key Gemini) -->
-  <div class="modal-overlay" id="ai-settings-modal">
-    <div class="modal" style="max-width: 500px;">
+  <!-- Manual Code Editor Modal -->
+  <div class="modal-overlay" id="editor-modal">
+    <div class="modal" style="max-width: 900px;">
       <div class="modal__header">
-        <h3>⚙️ Pengaturan AI Test Generator</h3>
-        <button class="modal__close" onclick="closeAISettingsModal()">
+        <h3 id="editor-title">📝 Edit Logika Playwright</h3>
+        <button class="modal__close" onclick="closeEditor()">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="modal__body">
-        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
-          Kunci API Gemini diperlukan untuk mengaktifkan modul pembuatan pengujian otomatis cerdas secara lokal. Kunci disimpan dengan aman di penyimpanan lokal peramban Anda.
-        </p>
-        <div style="margin-bottom: 20px;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Gemini API Key</label>
-          <input type="password" id="gemini-api-key-input" placeholder="Masukkan AIzaSy..." style="width: 100%; padding: 12px 14px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; transition: var(--transition);">
+        <div id="editor-info" style="margin-bottom: 16px; padding: 12px; background: var(--accent-dim); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+          <p style="font-size: 13px; color: var(--accent);"><strong id="editor-id-label">ID: ---</strong> | <span id="editor-scenario-label">Scenario: ---</span></p>
         </div>
-        <div class="hint" style="margin-top: 0; line-height: 1.5; font-size: 12px; color: var(--text-muted);">
-          💡 Kunci API Anda disimpan secara lokal di <code>localStorage</code> peramban di bawah kunci <code>sigap-gemini-api-key</code>. Kunci ini hanya dikirimkan ke server pendamping lokal Anda saat eksekusi.
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+          <div class="input-group">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Role Login</label>
+            <select id="editor-role" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" onchange="updateBoilerplate()">
+              <option value="admin">Admin</option>
+              <option value="pengusul">Pengusul (jurusantik)</option>
+              <option value="verifikator">Verifikator</option>
+              <option value="ppk">PPK</option>
+              <option value="bendahara">Bendahara</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">URL Tujuan</label>
+            <input type="text" id="editor-url" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" placeholder="/kegiatan/create" value="/kegiatan" oninput="updateBoilerplate()">
+          </div>
+        </div>
+
+        <div style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px; line-height: 1.5; border: 1px solid var(--border);">
+          <div id="boilerplate-top" style="color: #6a9955; margin-bottom: 4px; white-space: pre-wrap;"></div>
+          <textarea id="manual-code-input" spellcheck="false" style="width: 100%; height: 150px; background: rgba(255,255,255,0.05); border: 1px dashed #444; color: #d4d4d4; font-family: inherit; font-size: inherit; padding: 12px; margin: 8px 0; outline: none; resize: vertical;" placeholder="// Masukkan logika Playwright Anda di sini...
+  await page.fill('#name', 'Seminar');
+  await page.click('button[type=submit]');"></textarea>
+          <div id="boilerplate-bottom" style="color: #6a9955; margin-top: 4px; white-space: pre-wrap;"></div>
         </div>
       </div>
       <div class="modal__footer">
-        <button class="btn btn--secondary" onclick="closeAISettingsModal()">Batal</button>
-        <button class="btn btn--primary" onclick="saveAISettings()">
-          Simpan Konfigurasi
-        </button>
+        <button class="btn btn--secondary" onclick="closeEditor()">Batal</button>
+        <button class="btn btn--primary" onclick="saveManualTest()">💾 Simpan & Sinkron</button>
       </div>
     </div>
   </div>
 
+  <!-- Bulk Import Modal -->
+  <div class="modal-overlay" id="bulk-import-modal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal__header">
+        <h3>📥 Bulk Import from Sheets / CSV</h3>
+        <button class="modal__close" onclick="closeImport()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="text-secondary" style="margin-bottom: 12px; font-size: 14px;">Salin kolom dari Google Sheets (ID, Feature, Scenario, Input, Expected) lalu tempel di bawah ini.</p>
+        <textarea id="import-area-manual" style="width: 100%; height: 200px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 12px;" placeholder="ID	Feature	Scenario	Input	Expected..."></textarea>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--secondary" onclick="closeImport()">Batal</button>
+        <button class="btn btn--primary" onclick="processImportManual()">📥 Import Data</button>
+      </div>
+    </div>
+  </div>
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -1424,7 +1555,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     const selectAllCheckbox = document.getElementById('select-all');
 
     // ═══════════════════════════════════════════════════════════════════
-    // Auto-save / Restore from localStorage
+    // Auto-save / Restore from localStorage & JSON
     // ═══════════════════════════════════════════════════════════════════
     function saveState() {
       try {
@@ -1432,19 +1563,29 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       } catch(e) {}
     }
 
-    function restoreState() {
+    async function restoreState() {
       try {
+        // 1. Try local storage first
         const saved = localStorage.getItem('sigap-test-cases');
         if (saved) {
           testCases = JSON.parse(saved);
-          if (testCases.length > 0) {
-            showTable();
-            renderTable();
-            updateStats();
-            showToast('Data dipulihkan dari sesi sebelumnya', 'info');
+        } else {
+          // 2. Fallback to full JSON file if storage empty
+          const response = await fetch('test-cases.json');
+          if (response.ok) {
+            testCases = await response.json();
+            saveState();
           }
         }
-      } catch(e) {}
+        
+        if (testCases.length > 0) {
+          showTable();
+          renderTable();
+          updateStats();
+        }
+      } catch(e) {
+        console.error('Gagal memulihkan state:', e);
+      }
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -1781,6 +1922,7 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     function renderTable() {
       const query = searchInput.value.toLowerCase();
       const statusVal = statusFilter.value;
+      const moduleVal = document.getElementById('module-filter').value;
 
       filteredCases = testCases.filter(tc => {
         const matchSearch = !query ||
@@ -1792,8 +1934,12 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
           tc.actual.toLowerCase().includes(query);
 
         const matchStatus = statusVal === 'all' || tc.status === statusVal;
+        
+        const matchModule = moduleVal === 'all' || 
+          tc.feature.toLowerCase().includes(moduleVal.toLowerCase()) || 
+          tc.id.startsWith(moduleVal.substring(0, 3));
 
-        return matchSearch && matchStatus;
+        return matchSearch && matchStatus && matchModule;
       });
 
       if (filteredCases.length === 0 && testCases.length > 0) {
@@ -1811,6 +1957,8 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
       tableBody.innerHTML = filteredCases.map((tc, i) => {
         const globalIdx = testCases.indexOf(tc);
         const isChecked = selectedCases.has(globalIdx);
+        const isImplemented = implementedIds.has(String(tc.id).toUpperCase().trim());
+
         return `
           <tr data-index="${globalIdx}" class="${tc.isNew ? 'row-newly-added' : ''}">
             <td class="chk-cell">
@@ -1868,12 +2016,14 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
               </div>
             </td>
             <td class="actions-cell">
-              <button class="row-action row-action--ai" onclick="openAIModal('${globalIdx}')" title="Buat Auto Test via AI">
-                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              </button>
-              <button class="row-action row-action--delete" onclick="deleteRow(${globalIdx})" title="Hapus baris">
-                <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
+              <div style="display: flex; gap: 4px; justify-content: center;">
+                <button class="row-action ${isImplemented ? 'row-action--run' : 'row-action--edit'}" onclick="triggerAction('${tc.id}')" title="${isImplemented ? 'Run Playwright' : 'Edit Logic'}">
+                  ${isImplemented ? '⚡' : '📝'}
+                </button>
+                <button class="row-action row-action--delete" onclick="deleteRow(${globalIdx})" title="Hapus baris">
+                  <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
             </td>
           </tr>`;
       }).join('');
@@ -2131,11 +2281,93 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
       }
     }
 
+    async function runPostmanTests() {
+      const moduleVal = document.getElementById('module-filter').value;
+      showToast(`⚡ Menjalankan Postman API tests... (Modul: ${moduleVal})`, 'info');
+
+      try {
+        const response = await fetch('http://localhost:3001/run-postman', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ module: moduleVal })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showToast(`✅ Postman selesai! ${Object.keys(data.results || {}).length} test cases diperbarui.`, 'success');
+          updateResultsFromData(data.results);
+        } else {
+          showToast(`Gagal: ${data.error || 'Newman tidak ditemukan.'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Koneksi terputus saat menjalankan Postman.', 'error');
+      }
+    }
+
+    async function runK6Tests() {
+      const moduleVal = document.getElementById('module-filter').value;
+      showToast(`⚡ Menjalankan k6 Load tests... (Modul: ${moduleVal})`, 'info');
+
+      try {
+        const response = await fetch('http://localhost:3001/run-k6', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ module: moduleVal })
+        });
+        const data = await response.json();
+        if (data.success) {
+          showToast('✅ k6 Load test selesai! Lihat terminal untuk detail metrik.', 'success');
+        } else {
+          showToast(`Gagal: ${data.error || 'k6 tidak ditemukan.'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Koneksi terputus saat menjalankan k6.', 'error');
+      }
+    }
+
+    function updateResultsFromData(results) {
+      if (!results) return;
+      let updatedCount = 0;
+      testCases.forEach(tc => {
+        const key = tc.id.toUpperCase().trim();
+        if (results[key]) {
+          tc.status = results[key].status;
+          tc.actual = results[key].actual;
+          updatedCount++;
+        }
+      });
+      renderTable();
+      updateStats();
+      saveState();
+    }
+
+    async function runPhpUnitTests() {
+      showToast('⚡ Menjalankan PHPUnit feature tests di background...', 'info');
+
+      try {
+        const response = await fetch('http://localhost:3001/run-phpunit', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          showToast('✅ PHPUnit triggered! Scan status manual untuk saat ini (Laporan sedang dibuat).', 'success');
+          // In a real implementation, we would wait for the report and parse it.
+        } else {
+          showToast(`Gagal: ${data.error || 'Server error'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Koneksi terputus saat menjalankan PHPUnit.', 'error');
+      }
+    }
+
     async function runAutomatedTests() {
       const btn = document.getElementById('btn-auto-test');
+      const moduleVal = document.getElementById('module-filter').value;
       const originalHtml = btn.innerHTML;
       
-      showToast('Memeriksa koneksi server pendamping lokal...', 'info');
+      showToast(`Memeriksa koneksi server... (Modul: ${moduleVal})`, 'info');
 
       const isConnected = await checkServerConnection();
       if (!isConnected) {
@@ -2145,43 +2377,21 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
 
       // Enter running state
       btn.disabled = true;
-      btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ⏳ Menjalankan Test...`;
-      showToast('⚡ Menjalankan Playwright test suite di background. Harap tunggu...', 'info');
-
-      // Add spin animation CSS style dynamically if not present
-      if (!document.getElementById('spin-keyframes')) {
-        const style = document.createElement('style');
-        style.id = 'spin-keyframes';
-        style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
-        document.head.appendChild(style);
-      }
+      btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ⏳ Running ${moduleVal === 'all' ? 'All' : moduleVal}...`;
 
       try {
         const response = await fetch('http://localhost:3001/run-tests', { 
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ module: moduleVal })
         });
         
         const data = await response.json();
         
         if (data.success && data.results) {
-          let updatedCount = 0;
-          
-          testCases.forEach(tc => {
-            const key = tc.id.toUpperCase().trim();
-            if (data.results[key]) {
-              tc.status = data.results[key].status;
-              tc.actual = data.results[key].actual;
-              updatedCount++;
-            }
-          });
-
+          updateResultsFromData(data.results);
           await fetchImplementedIds();
-
-          renderTable();
-          updateStats();
-          saveState();
-          showToast(`✅ Sukses! ${updatedCount} test case diperbarui otomatis oleh Playwright.`, 'success');
+          showToast(`✅ Sukses! Playwright telah memperbarui status test case.`, 'success');
         } else {
           showToast(`Gagal: ${data.error || 'Server error'}`, 'error');
         }
@@ -2427,136 +2637,26 @@ AK-F-030\tAjukan Kegiatan\tAuto Focus Form\tHalaman form create selesai load\tKu
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // AI Test Generator & Settings Key Functions
+    // Event Listeners & Keyboard Shortcuts
     // ═══════════════════════════════════════════════════════════════════
-    function openAISettingsModal() {
-      const savedKey = localStorage.getItem('sigap-gemini-api-key') || '';
-      document.getElementById('gemini-api-key-input').value = savedKey;
-      document.getElementById('ai-settings-modal').classList.add('active');
-    }
+    if (searchInput) searchInput.addEventListener('input', renderTable);
+    if (statusFilter) statusFilter.addEventListener('change', renderTable);
+    if (document.getElementById('module-filter')) document.getElementById('module-filter').addEventListener('change', renderTable);
 
-    function closeAISettingsModal() {
-      document.getElementById('ai-settings-modal').classList.remove('active');
-    }
-
-    function saveAISettings() {
-      const keyInput = document.getElementById('gemini-api-key-input').value.trim();
-      if (!keyInput) {
-        localStorage.removeItem('sigap-gemini-api-key');
-        showToast('Kunci API dikosongkan. Fitur AI dinonaktifkan.', 'info');
-      } else {
-        localStorage.setItem('sigap-gemini-api-key', keyInput);
-        showToast('Kunci API Gemini berhasil disimpan secara lokal!', 'success');
-      }
-      closeAISettingsModal();
-    }
-
-    function openAIModal(globalIdx) {
-      const tc = testCases[globalIdx];
-      if (!tc) return;
-
-      const apiKey = localStorage.getItem('sigap-gemini-api-key');
-      if (!apiKey) {
-        showToast('💡 Hubungkan API Key Gemini Anda di Pengaturan (ikon gear) terlebih dahulu!', 'info');
-        openAISettingsModal();
-        return;
-      }
-
-      if (confirm(`Apakah Anda ingin meminta AI membuatkan automated test script untuk [${tc.id}] ${tc.scenario}?`)) {
-        generateTestViaAI(globalIdx);
-      }
-    }
-
-    async function generateTestViaAI(globalIdx) {
-      const tc = testCases[globalIdx];
-      if (!tc) return;
-
-      const apiKey = localStorage.getItem('sigap-gemini-api-key');
-      if (!apiKey) return;
-
-      showToast(`⚡ Menghubungi server pendamping untuk membuat script test ${tc.id}...`, 'info');
-
-      try {
-        const isConnected = await checkServerConnection();
-        if (!isConnected) {
-          openCompanionModal();
-          return;
-        }
-
-        // Cari baris tombol aksi untuk memberikan visual loading
-        const rowEl = document.querySelector(`tr[data-index="${globalIdx}"]`);
-        const aiBtn = rowEl ? rowEl.querySelector('.row-action--ai') : null;
-        const originalBtnHtml = aiBtn ? aiBtn.innerHTML : '';
-        
-        if (aiBtn) {
-          aiBtn.disabled = true;
-          aiBtn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
-        }
-
-        const response = await fetch('http://localhost:3001/generate-test', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            index: globalIdx,
-            apiKey: apiKey,
-            testCase: tc
-          })
-        });
-
-        const data = await response.json();
-
-        if (aiBtn) {
-          aiBtn.disabled = false;
-          aiBtn.innerHTML = originalBtnHtml;
-        }
-
-        if (data.success && data.result) {
-          tc.status = data.result.status;
-          tc.actual = data.result.actual;
-          tc.screenshot = data.result.screenshot || '';
-          tc.video = data.result.video || '';
-
-          await fetchImplementedIds();
-
-          renderTable();
-          updateStats();
-          saveState();
-          showToast(`✅ Sukses! Test case ${tc.id} berhasil dibuatkan script & dieksekusi otomatis.`, 'success');
-        } else {
-          showToast(`Gagal membuat test case: ${data.error || 'Server error'}`, 'error');
-        }
-      } catch (err) {
-        showToast('Terjadi kesalahan koneksi saat memproses AI Test Generator.', 'error');
-      }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════
-    // Event Listeners
-    // ═══════════════════════════════════════════════════════════════════
-    searchInput.addEventListener('input', renderTable);
-    statusFilter.addEventListener('change', renderTable);
-
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      // Ctrl+V anywhere opens paste modal if no data
-      if (e.ctrlKey && e.key === 'v' && testCases.length === 0 && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'INPUT') {
-        openPasteModal();
-      }
-      // Escape closes modal
       if (e.key === 'Escape') {
         closePasteModal();
         closeImportOptionsModal();
         closeCompanionModal();
         closeLightbox();
         closeVideoPlayer();
-        closeAISettingsModal();
+        closeEditor();
+        closeImport();
       }
     });
 
     // ═══════════════════════════════════════════════════════════════════
-    // Init
+    // Final Init
     // ═══════════════════════════════════════════════════════════════════
     (async () => {
       await fetchImplementedIds();

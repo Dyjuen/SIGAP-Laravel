@@ -170,24 +170,29 @@ const server = http.createServer((req, res) => {
 
   // 4. Automated Codebase Scanner endpoint
   if (pathname === '/implemented-tests' && req.method === 'GET') {
-    const testsDir = path.join(__dirname, 'playwright', 'tests');
+    const playwrightDir = path.join(__dirname, 'playwright', 'tests');
+    const phpunitDir = path.join(ROOT_DIR, 'tests', 'Feature');
     const implementedIds = new Set();
 
-    try {
-      if (fs.existsSync(testsDir)) {
-        const files = fs.readdirSync(testsDir);
+    function scanDir(dir, extension) {
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir, { recursive: true });
         for (const file of files) {
-          if (file.endsWith('.spec.js')) {
-            const filePath = path.join(testsDir, file);
+          if (file.endsWith(extension)) {
+            const filePath = path.join(dir, file);
             const content = fs.readFileSync(filePath, 'utf8');
-            // Regex to find all patterns of AK-F-XXX
-            const matches = content.match(/(AK-F-\d{3})/gi);
+            const matches = content.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/gi);
             if (matches) {
               matches.forEach(id => implementedIds.add(id.toUpperCase()));
             }
           }
         }
       }
+    }
+
+    try {
+      scanDir(playwrightDir, '.spec.js');
+      scanDir(phpunitDir, '.php');
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -195,21 +200,80 @@ const server = http.createServer((req, res) => {
         implemented: Array.from(implementedIds)
       }));
     } catch (errScanner) {
-      console.error('[SIGAP] Gagal memindai berkas pengujian lokal:', errScanner);
+      console.error('[SIGAP] Gagal memindai berkas pengujian:', errScanner);
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: false, error: 'Gagal memindai folder playwright/tests lokal.' }));
+      res.end(JSON.stringify({ success: false, error: 'Gagal memindai folder pengujian.' }));
     }
     return;
   }
 
-  if (pathname === '/run-tests' && req.method === 'POST') {
-    const playwrightDir = path.join(__dirname, 'playwright');
-    console.log(`[SIGAP] Menjalankan pengujian otomatis di: ${playwrightDir}`);
+  if (pathname === '/run-phpunit' && req.method === 'POST') {
+    console.log('[SIGAP] Menjalankan PHPUnit feature tests...');
     
-    // Execute Playwright with JSON reporter
-    exec('npx playwright test --reporter=json', { cwd: playwrightDir }, (error, stdout, stderr) => {
-      // Note: npx playwright test returns code 1 if tests fail, so error is expected to be present.
-      // We must rely on parsing the stdout JSON.
+    // Execute PHPUnit with JUnit XML output
+    const reportPath = path.join(__dirname, 'reports', 'phpunit-report.xml');
+    exec(`vendor\\bin\\phpunit --log-junit automation-testing\\reports\\phpunit-report.xml`, { cwd: ROOT_DIR }, (error, stdout, stderr) => {
+      
+      const results = {};
+      const mappingPath = path.join(__dirname, 'test-mapping.json');
+      let mapping = {};
+      
+      if (fs.existsSync(mappingPath)) {
+        mapping = JSON.parse(fs.readFileSync(mappingPath, 'utf8'));
+      }
+
+      // Scan stdout for passed methods
+      // PHPUnit output: PASS Tests\Feature\KakCrudTest
+      // Or: ✓ authenticated user can view kak index
+      
+      // Match "✓ method_name" or "test_method_name"
+      const lines = stdout.split('\n');
+      for (const line of lines) {
+        const passMatch = line.match(/✓\s+(.*)/);
+        if (passMatch) {
+          const methodName = passMatch[1].trim().replace(/\s+/g, '_');
+          // Try exact match or conversion
+          const mappedId = mapping[methodName] || Object.entries(mapping).find(([m, id]) => m.includes(methodName))?.[1];
+          if (mappedId) {
+            results[mappedId] = { status: 'Pass', actual: 'Diverifikasi oleh PHPUnit logic test.' };
+          }
+        }
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ 
+        success: true, 
+        message: 'PHPUnit selesai dijalankan.', 
+        results,
+        stdout: stdout.substring(0, 1000) // snippet
+      }));
+    });
+    return;
+  }
+  if (pathname === '/run-tests' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      let params = {};
+      try { params = JSON.parse(body); } catch(e) {}
+      
+      const moduleName = params.module || 'all';
+      const playwrightDir = path.join(__dirname, 'playwright');
+      
+      // Determine which folder to run
+      let targetPath = 'tests';
+      if (moduleName !== 'all') {
+        targetPath = `tests/${moduleName}`;
+        // If folder doesn't exist (e.g. mapping mismatch), fallback to all tests
+        if (!fs.existsSync(path.join(playwrightDir, targetPath))) {
+          targetPath = 'tests';
+        }
+      }
+
+      console.log(`[SIGAP] Menjalankan Playwright (${moduleName}) di: ${targetPath}`);
+      
+      exec(`npx playwright test ${targetPath} --reporter=json`, { cwd: playwrightDir }, (error, stdout, stderr) => {
+        // ... (rest of parsing logic remains same)
       let jsonReport = null;
       try {
         const jsonStart = stdout.indexOf('{');
@@ -225,33 +289,28 @@ const server = http.createServer((req, res) => {
         res.writeHead(500, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           success: false,
-          error: 'Playwright tidak menghasilkan laporan JSON. Pastikan dependencies sudah terinstall dengan menjalankan "npm install" di folder playwright.',
+          error: 'Playwright tidak menghasilkan laporan JSON. Pastikan dependencies sudah terinstall.',
           stdout,
           stderr
         }));
         return;
       }
 
-      // Map Playwright outcome to individual test case IDs (AK-F-001 ~ AK-F-012)
       const results = {};
 
       function traverseSuite(suite) {
         if (!suite) return;
-
-        // Try to match test case ID from suite title (e.g. "AK-F-004: Otorisasi Role")
         let matchedId = null;
         if (suite.title) {
-          const match = suite.title.match(/(AK-F-\d{3})/i);
-          if (match) {
-            matchedId = match[1].toUpperCase();
-          }
+          const match = suite.title.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
+          if (match) matchedId = match[1].toUpperCase();
         }
 
         if (suite.specs) {
           for (const spec of suite.specs) {
             let specId = matchedId;
             if (!specId && spec.title) {
-              const specMatch = spec.title.match(/(AK-F-\d{3})/i);
+              const specMatch = spec.title.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
               if (specMatch) specId = specMatch[1].toUpperCase();
             }
 
@@ -260,26 +319,19 @@ const server = http.createServer((req, res) => {
                 const latestResult = testRun.results && testRun.results[testRun.results.length - 1];
                 const isPassed = latestResult && latestResult.status === 'passed';
                 
-                // Get error message if failed
                 let errorMsg = '';
                 if (latestResult && latestResult.error) {
                   errorMsg = latestResult.error.message || 'Assertion failed';
-                  // Clean ANSI color codes from error message
                   errorMsg = errorMsg.replace(/\u001b\[[0-9;]*m/g, '');
                 }
 
-                // Extract screenshot & video attachments
                 let screenshotPath = '';
                 let videoPath = '';
                 if (latestResult && latestResult.attachments) {
                   for (const attachment of latestResult.attachments) {
                     if (attachment.path) {
-                      // Normalize path to relative URL from automation-testing/ directory
-                      // In this upgraded server, we serve test-results via static routes /playwright/test-results/...
-                      // attachment.path is an absolute path. Let's make it relative to the 'playwright/test-results' folder.
                       const resultsFolder = path.join(playwrightDir, 'test-results');
                       const relativePath = path.relative(resultsFolder, attachment.path).replace(/\\/g, '/');
-                      
                       if (attachment.name === 'screenshot' || (attachment.contentType && attachment.contentType.startsWith('image/'))) {
                         screenshotPath = `/playwright/test-results/${relativePath}`;
                       } else if (attachment.name === 'video' || (attachment.contentType && attachment.contentType.startsWith('video/'))) {
@@ -290,59 +342,44 @@ const server = http.createServer((req, res) => {
                 }
 
                 if (specId) {
-                  // Initialize result object for this ID
                   if (!results[specId]) {
                     results[specId] = { 
                       status: 'Pass', 
-                      actual: 'Semua langkah pengujian otomatis berhasil diverifikasi oleh Playwright.',
+                      actual: 'Semua langkah pengujian otomatis berhasil diverifikasi.',
                       screenshot: '',
                       video: ''
                     };
                   }
-                  
-                  // If any test in the spec failed, the entire test case fails
                   if (!isPassed) {
                     results[specId].status = 'Fail';
-                    results[specId].actual = errorMsg || 'Gagal dalam asersi otomatis Playwright.';
+                    results[specId].actual = errorMsg || 'Gagal dalam asersi otomatis.';
                   }
-
-                  // Assign proof paths if they exist
-                  if (screenshotPath) {
-                    results[specId].screenshot = screenshotPath;
-                  }
-                  if (videoPath) {
-                    results[specId].video = videoPath;
-                  }
+                  if (screenshotPath) results[specId].screenshot = screenshotPath;
+                  if (videoPath) results[specId].video = videoPath;
                 }
               }
             }
           }
         }
-
         if (suite.suites) {
-          for (const subSuite of suite.suites) {
-            traverseSuite(subSuite);
-          }
+          for (const subSuite of suite.suites) traverseSuite(subSuite);
         }
       }
 
       if (jsonReport.suites) {
-        for (const suite of jsonReport.suites) {
-          traverseSuite(suite);
-        }
+        for (const suite of jsonReport.suites) traverseSuite(suite);
       }
 
-      console.log(`[SIGAP] Pengujian selesai. Menemukan ${Object.keys(results).length} hasil terpetakan.`);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        success: true,
-        results
-      }));
+      res.end(JSON.stringify({ success: true, results }));
     });
-  } else if (pathname === '/generate-test' && req.method === 'POST') {
+    return;
+  }
+
+  if (pathname === '/save-manual-test' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
-    req.on('end', async () => {
+    req.on('end', () => {
       let params = null;
       try {
         params = JSON.parse(body);
@@ -352,282 +389,145 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      const { apiKey, testCase } = params;
-      if (!apiKey || !testCase || !testCase.id) {
+      const { testId, feature, scenario, code } = params;
+      if (!testId || !code) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'apiKey dan testCase (id) wajib disertakan' }));
+        res.end(JSON.stringify({ error: 'testId dan code wajib disertakan' }));
         return;
       }
 
-      const playwrightDir = path.join(__dirname, 'playwright');
-      const testsDir = path.join(playwrightDir, 'tests');
-
-      // 1. Gather context from existing spec and helpers
-      let authHelperCode = '';
-      let crudSpecCode = '';
-      try {
-        const authPath = path.join(playwrightDir, 'helpers', 'auth.js');
-        if (fs.existsSync(authPath)) {
-          authHelperCode = fs.readFileSync(authPath, 'utf8');
-        }
-        const crudPath = path.join(testsDir, 'kegiatan-crud.spec.js');
-        if (fs.existsSync(crudPath)) {
-          crudSpecCode = fs.readFileSync(crudPath, 'utf8');
-        }
-      } catch (err) {
-        console.warn('[SIGAP] Gagal membaca berkas bantuan konteks:', err);
+      const manualFilePath = path.join(__dirname, 'playwright', 'tests', 'kegiatan-manual.spec.js');
+      let currentContent = '';
+      
+      if (fs.existsSync(manualFilePath)) {
+        currentContent = fs.readFileSync(manualFilePath, 'utf8');
+      } else {
+        currentContent = `// Manual Test Suite for SIGAP-Laravel\nconst { test, expect } = require('@playwright/test');\nconst { loginAs } = require('../helpers/auth');\n\n`;
       }
 
-      // 2. Formulate prompt for Gemini
-      const prompt = `Anda adalah AI Software Engineer senior spesialis otomasi pengujian Playwright.
-Tugas Anda adalah membuat satu blok pengujian Playwright (menggunakan \`test('...', async ({ page }) => { ... })\`) untuk skenario pengujian di bawah ini untuk aplikasi SIGAP-Laravel (Laravel 11 + Inertia.js React + Tailwind CSS).
+      const testBlockRegex = new RegExp(`// === TEST CASE ${testId} ===[\\s\\S]*?(?=\\/\\/ === TEST CASE|$)`, 'g');
+      const newTestBlock = `// === TEST CASE ${testId} ===\n// Feature: ${feature || 'General'}\n// Scenario: ${scenario || 'Manual'}\n${code}\n\n`;
 
-Informasi Aplikasi Penting:
-- Aplikasi Laravel berjalan di http://localhost:8000
-- Gunakan helper autentikasi yang sudah ada untuk masuk jika diperlukan.
+      let updatedContent;
+      if (testBlockRegex.test(currentContent)) {
+        updatedContent = currentContent.replace(testBlockRegex, newTestBlock);
+      } else {
+        updatedContent = currentContent + newTestBlock;
+      }
 
-Gunakan berkas autentikasi bantuan dan pola pengujian CRUD berikut sebagai panduan konvensi dan struktur penulisan kode Anda:
----
-BANTUAN AUTENTIKASI:
-${authHelperCode}
----
-CONTOH PENGUJIAN LAIN:
-${crudSpecCode}
----
-
-Informasi Skenario Uji yang Harus Dibuat:
-- ID Test Case: ${testCase.id}
-- Fitur: ${testCase.feature}
-- Skenario: ${testCase.scenario}
-- Input Pengujian: ${testCase.input}
-- Hasil yang Diharapkan: ${testCase.expected}
-
-Aturan Penulisan Kode Uji:
-1. Pastikan Anda mengimpor helper autentikasi dengan benar: \`const { loginAs } = require('../helpers/auth');\` (karena file ini akan disimpan di folder \`playwright/tests\`).
-2. Tulis blok pengujian mandiri menggunakan \`test('${testCase.id}: ${testCase.scenario}', async ({ page }) => { ... });\`.
-3. Gunakan \`test.describe('${testCase.feature}', () => { ... })\` hanya jika diperlukan, tetapi lebih baik tulis blok pengujian tunggal yang mandiri.
-4. Gunakan asersi yang kuat dan tepat menggunakan \`expect\`.
-5. Sisipkan pengambilan screenshot sebagai bukti di akhir pengujian atau saat terjadi kesalahan jika dirasa perlu, tetapi Playwright secara default dikonfigurasi merekam screenshot/video saat terjadi kegagalan.
-6. Kembalikan HANYA kode JavaScript executable yang utuh dan bersih. Jangan dibungkus dengan markdown blocks (\`\`\`js atau \`\`\`).
-
-Kembalikan respon JSON dengan skema objek yang memiliki properti 'code' berisi string kode JavaScript executable tersebut.`;
-
-      // 3. Make HTTP request to Gemini API
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-      const payload = JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: 'OBJECT',
-            properties: {
-              code: { type: 'STRING', description: 'The exact executable Playwright JS test code block.' }
-            },
-            required: ['code']
-          }
-        }
-      });
-
-      console.log(`[SIGAP] Meminta pembuatan uji otomatis dari Gemini API untuk ID: ${testCase.id}`);
-
-      let geminiResponseText = '';
-      const reqGemini = https.request(geminiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      }, (resGemini) => {
-        resGemini.setEncoding('utf8');
-        resGemini.on('data', chunk => { geminiResponseText += chunk; });
-        resGemini.on('end', () => {
-          if (resGemini.statusCode !== 200) {
-            console.error('[SIGAP] Gemini API mengembalikan status error:', resGemini.statusCode, geminiResponseText);
-            res.writeHead(502, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Gagal menghubungi Gemini API', details: geminiResponseText }));
-            return;
-          }
-
-          let geminiJson = null;
-          try {
-            geminiJson = JSON.parse(geminiResponseText);
-          } catch (e) {
-            console.error('[SIGAP] Gagal parse respon Gemini:', e);
-          }
-
-          if (!geminiJson || !geminiJson.candidates || !geminiJson.candidates[0] || !geminiJson.candidates[0].content || !geminiJson.candidates[0].content.parts || !geminiJson.candidates[0].content.parts[0]) {
-            res.writeHead(502, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Respon Gemini API tidak lengkap/kosong', raw: geminiResponseText }));
-            return;
-          }
-
-          let responseData = null;
-          try {
-            responseData = JSON.parse(geminiJson.candidates[0].content.parts[0].text.trim());
-          } catch (e) {
-            console.error('[SIGAP] Gagal parse JSON terstruktur dari teks Gemini:', e);
-          }
-
-          if (!responseData || !responseData.code) {
-            res.writeHead(502, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Respon Gemini tidak menghasilkan properti "code" yang valid', raw: geminiResponseText }));
-            return;
-          }
-
-          // 4. Write generated code to playwright/tests/kegiatan-generated.spec.js
-          const generatedFilePath = path.join(testsDir, 'kegiatan-generated.spec.js');
-          let fileContent = '';
-
-          if (!fs.existsSync(generatedFilePath)) {
-            // Write standard header for first time
-            fileContent = `// Auto-generated Test Suite for SIGAP-Laravel by AI Test Generator
-const { test, expect } = require('@playwright/test');
-const { loginAs } = require('../helpers/auth');
-
-`;
-          } else {
-            fileContent = fs.readFileSync(generatedFilePath, 'utf8') + '\n\n';
-          }
-
-          // Clean any markdown formatting if present
-          let cleanCode = responseData.code.trim();
-          if (cleanCode.startsWith('```')) {
-            cleanCode = cleanCode.replace(/^```javascript\r?\n|^```js\r?\n|^```\r?\n/, '');
-            cleanCode = cleanCode.replace(/\r?\n```$/, '');
-          }
-
-          fileContent += `// === TEST CASE ${testCase.id} ===\n${cleanCode}`;
-
-          try {
-            fs.writeFileSync(generatedFilePath, fileContent, 'utf8');
-            console.log(`[SIGAP] Berhasil menulis/menambah kode uji di: ${generatedFilePath}`);
-          } catch (errWrite) {
-            console.error('[SIGAP] Gagal menulis berkas pengujian:', errWrite);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Gagal menyimpan berkas pengujian otomatis di server lokal' }));
-            return;
-          }
-
-          // 5. Execute only the generated test case targeting ID
-          const escapedId = testCase.id.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-          const playwrightCmd = `npx playwright test kegiatan-generated.spec.js -g "${escapedId}" --reporter=json`;
-          console.log(`[SIGAP] Mengeksekusi pengujian otomatis baru: ${playwrightCmd}`);
-
-          exec(playwrightCmd, { cwd: playwrightDir }, (error, stdout, stderr) => {
-            let runReport = null;
-            try {
-              const jsonStart = stdout.indexOf('{');
-              if (jsonStart !== -1) {
-                runReport = JSON.parse(stdout.substring(jsonStart));
-              }
-            } catch (e) {
-              console.error('[SIGAP] Gagal parsing output Playwright JSON:', e);
-            }
-
-            if (!runReport) {
-              res.writeHead(500, { 'Content-Type': 'application/json' });
-              res.end(JSON.stringify({
-                error: 'Playwright tidak menghasilkan laporan JSON pasca pembuatan.',
-                stdout,
-                stderr
-              }));
-              return;
-            }
-
-            // Extract results specifically for this test case
-            let status = 'Fail';
-            let actual = 'Gagal dalam asersi otomatis Playwright.';
-            let screenshot = '';
-            let video = '';
-
-            function traverseGeneratedSuite(suite) {
-              if (!suite) return;
-              if (suite.specs) {
-                for (const spec of suite.specs) {
-                  if (spec.title && spec.title.toUpperCase().includes(testCase.id.toUpperCase())) {
-                    if (spec.tests) {
-                      for (const testRun of spec.tests) {
-                        const latestResult = testRun.results && testRun.results[testRun.results.length - 1];
-                        const isPassed = latestResult && latestResult.status === 'passed';
-                        
-                        if (isPassed) {
-                          status = 'Pass';
-                          actual = 'Semua langkah pengujian otomatis berhasil diverifikasi oleh Playwright.';
-                        } else if (latestResult && latestResult.error) {
-                          actual = (latestResult.error.message || 'Assertion failed').replace(/\u001b\[[0-9;]*m/g, '');
-                        }
-
-                        if (latestResult && latestResult.attachments) {
-                          for (const attachment of latestResult.attachments) {
-                            if (attachment.path) {
-                              const resultsFolder = path.join(playwrightDir, 'test-results');
-                              const relativePath = path.relative(resultsFolder, attachment.path).replace(/\\/g, '/');
-                              if (attachment.name === 'screenshot' || (attachment.contentType && attachment.contentType.startsWith('image/'))) {
-                                screenshot = `/playwright/test-results/${relativePath}`;
-                              } else if (attachment.name === 'video' || (attachment.contentType && attachment.contentType.startsWith('video/'))) {
-                                video = `/playwright/test-results/${relativePath}`;
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              if (suite.suites) {
-                for (const subSuite of suite.suites) {
-                  traverseGeneratedSuite(subSuite);
-                }
-              }
-            }
-
-            if (runReport.suites) {
-              for (const suite of runReport.suites) {
-                traverseGeneratedSuite(suite);
-              }
-            }
-
-            console.log(`[SIGAP] Selesai memproses AI Test Run untuk ${testCase.id}. Status: ${status}`);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({
-              success: true,
-              result: {
-                status,
-                actual,
-                screenshot,
-                video
-              }
-            }));
-          });
-        });
-      });
-
-      reqGemini.on('error', (errGemini) => {
-        console.error('[SIGAP] Error koneksi ke Gemini API:', errGemini);
-        res.writeHead(502, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Kesalahan jaringan saat menghubungi Gemini API', details: errGemini.message }));
-      });
-
-      reqGemini.write(payload);
-      reqGemini.end();
+      try {
+        fs.writeFileSync(manualFilePath, updatedContent, 'utf8');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: `Test case ${testId} berhasil disimpan.` }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, error: 'Gagal menyimpan file manual spec.' }));
+      }
     });
-  } else if (pathname === '/ping' && req.method === 'GET') {
+    return;
+  }
+
+  if (pathname === '/run-postman' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      let params = {};
+      try { params = JSON.parse(body); } catch(e) {}
+      
+      const moduleName = params.module || 'all';
+      const postmanDir = path.join(__dirname, 'postman');
+      const envPath = path.join(postmanDir, 'SIGAP-Local.postman_environment.json');
+      
+      // Determine which collection to run
+      let collectionPath = path.join(postmanDir, 'modules', 'FullSystem_collection.json');
+      if (moduleName !== 'all') {
+        const modCollection = path.join(postmanDir, 'modules', moduleName, 'collection.json');
+        if (fs.existsSync(modCollection)) {
+          collectionPath = modCollection;
+        }
+      }
+
+      console.log(`[SIGAP] Menjalankan Newman (${moduleName}) untuk: ${collectionPath}`);
+      
+      // Execute Newman with JSON reporter to parse results
+      exec(`newman run "${collectionPath}" -e "${envPath}" --reporters cli,json --reporter-json-export reports/postman-report.json`, { cwd: postmanDir }, (error, stdout, stderr) => {
+        const results = {};
+        const reportPath = path.join(postmanDir, 'reports', 'postman-report.json');
+        
+        if (fs.existsSync(reportPath)) {
+          try {
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            if (report.run && report.run.executions) {
+              report.run.executions.forEach(exec => {
+                const name = exec.item.name;
+                // Match ID from request name (e.g. "KAK-FT-001 - Login")
+                const idMatch = name.match(/([A-Z]{1,5}-?[A-Z]?-?\d{1,4})/i);
+                if (idMatch) {
+                  const id = idMatch[1].toUpperCase();
+                  const failed = exec.assertions && exec.assertions.some(a => a.error);
+                  results[id] = {
+                    status: failed ? 'Fail' : 'Pass',
+                    actual: failed ? 'Gagal dalam verifikasi asersi API.' : 'Semua endpoint API berhasil divalidasi.'
+                  };
+                }
+              });
+            }
+          } catch(e) {
+            console.error('[SIGAP] Gagal parse Newman report:', e);
+          }
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, results }));
+      });
+    });
+    return;
+  }
+
+  if (pathname === '/run-k6' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      let params = {};
+      try { params = JSON.parse(body); } catch(e) {}
+      
+      const moduleName = params.module || 'all';
+      const k6Dir = path.join(__dirname, 'k6');
+      
+      // Determine script
+      let scriptPath = path.join(k6Dir, 'modules', 'Common', 'full-load.js');
+      if (moduleName !== 'all') {
+        const modScript = path.join(k6Dir, 'modules', moduleName, 'load.js');
+        if (fs.existsSync(modScript)) {
+          scriptPath = modScript;
+        }
+      }
+
+      console.log(`[SIGAP] Menjalankan k6 Load Test (${moduleName}) script: ${scriptPath}`);
+      
+      exec(`k6 run "${scriptPath}"`, { cwd: k6Dir }, (error, stdout, stderr) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: !error, stdout, stderr }));
+      });
+    });
+    return;
+  }
+
+  if (pathname === '/ping' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ success: true, message: 'SIGAP Test Runner Companion Server is online.' }));
-  } else {
-    res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Endpoint tidak ditemukan' }));
+    return;
   }
+
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ error: 'Endpoint tidak ditemukan' }));
 });
 
-// Run background process fallback check before listening
 ensureServersRunning().then(() => {
   server.listen(PORT, () => {
     console.log(`======================================================================`);
     console.log(`🚀 SIGAP Test Runner Companion Server is running!`);
     console.log(`🔗 URL: http://localhost:${PORT}`);
     console.log(`======================================================================`);
-    console.log(`Tekan Ctrl+C untuk menghentikan server.`);
   });
 });
-
