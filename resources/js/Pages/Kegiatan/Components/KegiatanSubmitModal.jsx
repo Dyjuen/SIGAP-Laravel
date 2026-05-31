@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, FileText } from 'lucide-react';
 
 export default function KegiatanSubmitModal({
     isOpen,
@@ -64,7 +64,7 @@ export default function KegiatanSubmitModal({
                         <p className="text-base text-blue-900 font-bold">{selectedKak.nama_kegiatan}</p>
                     </div>
 
-                    <form onSubmit={onSubmit} className="space-y-5">
+                    <form onSubmit={onSubmit} className="space-y-5" noValidate>
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">Penanggung Jawab</label>
                             <input
@@ -93,31 +93,59 @@ export default function KegiatanSubmitModal({
 
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">Surat Pengantar (PDF/DOC/DOCX)</label>
-                            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-cyan-400 hover:bg-cyan-50/30 transition-colors relative group">
-                                <div className="space-y-1 text-center">
-                                    <svg className="mx-auto h-10 w-10 text-gray-400 group-hover:text-cyan-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                    </svg>
-                                    <div className="flex text-sm text-gray-600 justify-center">
-                                        <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-cyan-600 hover:text-cyan-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-cyan-500">
-                                            <span>Upload a file</span>
-                                            <input 
-                                                id="file-upload" 
-                                                name="file-upload" 
-                                                type="file" 
-                                                className="sr-only"
-                                                accept={".pdf,.doc,.docx"}
-                                                onChange={e => setData('surat_pengantar', e.target.files[0])}
-                                                required
-                                            />
-                                        </label>
-                                        <p className="pl-1">or drag and drop</p>
+                            {data.surat_pengantar ? (
+                                <div className="mt-1 flex items-center justify-between p-4 bg-cyan-50/40 border border-cyan-100 rounded-xl animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="p-2.5 bg-cyan-100/80 text-cyan-600 rounded-lg">
+                                            <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-gray-800 truncate">
+                                                {data.surat_pengantar.name}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {data.surat_pengantar.size > 1024 * 1024 
+                                                    ? `${(data.surat_pengantar.size / (1024 * 1024)).toFixed(1)} MB` 
+                                                    : `${(data.surat_pengantar.size / 1024).toFixed(1)} KB`
+                                                }
+                                            </p>
+                                        </div>
                                     </div>
-                                    <p className="text-xs text-gray-500">
-                                        {data.surat_pengantar ? data.surat_pengantar.name : 'PDF, DOC up to 10MB'}
-                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('surat_pengantar', null)}
+                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Hapus berkas"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-xl hover:border-cyan-400 hover:bg-cyan-50/30 transition-colors relative group">
+                                    <div className="space-y-1 text-center">
+                                        <svg className="mx-auto h-10 w-10 text-gray-400 group-hover:text-cyan-500 transition-colors" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <div className="flex text-sm text-gray-600 justify-center">
+                                            <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-cyan-600 hover:text-cyan-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-cyan-500">
+                                                <span>Unggah berkas</span>
+                                                <input 
+                                                    id="file-upload" 
+                                                    name="file-upload" 
+                                                    type="file" 
+                                                    className="sr-only"
+                                                    accept={".pdf,.doc,.docx"}
+                                                    onChange={e => setData('surat_pengantar', e.target.files[0])}
+                                                />
+                                            </label>
+                                            <p className="pl-1">atau seret dan lepas</p>
+                                        </div>
+                                        <p className="text-xs text-gray-500">
+                                            PDF, DOC hingga 5MB
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                             {errors.surat_pengantar && <p className="mt-1.5 text-sm text-red-500 font-medium">{errors.surat_pengantar}</p>}
                         </div>
 
