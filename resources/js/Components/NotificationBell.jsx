@@ -22,6 +22,7 @@ export default function NotificationBell() {
                         toast: true,
                         position: 'top-end',
                         showConfirmButton: false,
+                        showCloseButton: true,
                         timer: 5000,
                         timerProgressBar: true,
                         didOpen: (toast) => {
@@ -34,6 +35,15 @@ export default function NotificationBell() {
                         icon: 'info',
                         title: 'Notifikasi Baru',
                         text: notif.pesan
+                    }).then(async (result) => {
+                        if (result.dismiss === Swal.DismissReason.close) {
+                            try {
+                                await axios.post(route('notifications.read', notif.notifikasi_id));
+                                router.reload({ only: ['auth'] });
+                            } catch (error) {
+                                console.error('Failed to mark notification as read:', error);
+                            }
+                        }
                     });
 
                     prevNotifIds.current.add(notif.notifikasi_id);

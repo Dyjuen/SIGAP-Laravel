@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/Components/Sidebar/Sidebar';
 import NotificationBell from '@/Components/NotificationBell';
+import ToastContainer from '@/Components/ToastContainer';
 import { Menu } from 'lucide-react';
 import { clsx } from 'clsx';
 import { usePage, router } from '@inertiajs/react';
@@ -25,6 +26,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
 
     return (
         <div className="min-h-screen bg-slate-50 flex bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/images/backgrounds/BG.png')" }}>
+            <ToastContainer />
             <Sidebar
                 isOpen={isSidebarOpen}
                 setIsOpen={setIsSidebarOpen}

@@ -1,8 +1,10 @@
 import { Link } from '@inertiajs/react';
+import ToastContainer from '@/Components/ToastContainer';
 
 export default function GuestLayout({ children }) {
     return (
         <div className="flex items-center justify-center min-h-screen bg-cover bg-center relative overflow-hidden" style={{ backgroundImage: "url('/images/backgrounds/Auth.png')" }}>
+            <ToastContainer />
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
                 <div className="float-circle circle-1"></div>
                 <div className="float-circle circle-2"></div>
