@@ -91,13 +91,19 @@ class _UserManagementPageState extends State<UserManagementPage> {
         final res = await ApiService.delete('/admin/users/$userId');
         if (res.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pengguna berhasil dihapus.'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Pengguna berhasil dihapus.'),
+              backgroundColor: Colors.green,
+            ),
           );
           _loadUsers();
         } else {
           final data = jsonDecode(res.body);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'] ?? 'Gagal menghapus pengguna.'), backgroundColor: Colors.redAccent),
+            SnackBar(
+              content: Text(data['message'] ?? 'Gagal menghapus pengguna.'),
+              backgroundColor: Colors.redAccent,
+            ),
           );
           setState(() {
             _isLoading = false;
@@ -105,7 +111,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Terjadi kesalahan koneksi.'), backgroundColor: Colors.redAccent),
+          const SnackBar(
+            content: Text('Terjadi kesalahan koneksi.'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
         setState(() {
           _isLoading = false;
@@ -173,7 +182,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       prefixIcon: Icon(Icons.badge_outlined),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (v) => v == null || v.isEmpty ? 'Nama lengkap wajib diisi' : null,
+                    validator: (v) => v == null || v.isEmpty
+                        ? 'Nama lengkap wajib diisi'
+                        : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -184,7 +195,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       prefixIcon: Icon(Icons.person_outline),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (v) => v == null || v.isEmpty ? 'Username wajib diisi' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Username wajib diisi' : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -196,7 +208,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => v == null || v.isEmpty ? 'Email wajib diisi' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Email wajib diisi' : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -208,7 +221,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       prefixIcon: Icon(Icons.lock_outline),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (v) => v == null || v.length < 4 ? 'Minimal 4 karakter' : null,
+                    validator: (v) =>
+                        v == null || v.length < 4 ? 'Minimal 4 karakter' : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -241,7 +255,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           Navigator.of(ctx).pop();
-                          
+
                           setState(() {
                             _isLoading = true;
                           });
@@ -257,13 +271,24 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
                             if (res.statusCode == 201) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Pengguna berhasil ditambahkan.'), backgroundColor: Colors.green),
+                                const SnackBar(
+                                  content: Text(
+                                    'Pengguna berhasil ditambahkan.',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
                               );
                               _loadUsers();
                             } else {
                               final data = jsonDecode(res.body);
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(data['message'] ?? 'Gagal menambahkan pengguna.'), backgroundColor: Colors.redAccent),
+                                SnackBar(
+                                  content: Text(
+                                    data['message'] ??
+                                        'Gagal menambahkan pengguna.',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
                               );
                               setState(() {
                                 _isLoading = false;
@@ -271,7 +296,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Terjadi kesalahan koneksi.'), backgroundColor: Colors.redAccent),
+                              const SnackBar(
+                                content: Text('Terjadi kesalahan koneksi.'),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             setState(() {
                               _isLoading = false;
@@ -285,7 +313,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Simpan Pengguna', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      child: const Text(
+                        'Simpan Pengguna',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -334,11 +369,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
             onPressed: _loadUsers,
-          )
+          ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF33C8DA)),
+            )
           : Column(
               children: [
                 Padding(
@@ -351,22 +388,37 @@ class _UserManagementPageState extends State<UserManagementPage> {
                           onChanged: _filterUsers,
                           decoration: InputDecoration(
                             hintText: 'Cari nama, email, atau username...',
-                            hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                            hintStyle: const TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 14,
+                            ),
                             filled: true,
                             fillColor: Colors.white,
-                            prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B)),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Color(0xFF64748B),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                              borderSide: const BorderSide(
+                                color: Color(0xFFE2E8F0),
+                                width: 1,
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                              borderSide: const BorderSide(
+                                color: Color(0xFF33C8DA),
+                                width: 1.5,
+                              ),
                             ),
                           ),
                         ),
@@ -421,10 +473,15 @@ class _UserManagementPageState extends State<UserManagementPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: const Color(0xFF33C8DA),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          child: const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)),
-                        )
+                          child: const Text(
+                            'Tambah',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -437,7 +494,10 @@ class _UserManagementPageState extends State<UserManagementPage> {
                     children: [
                       Text(
                         'Menampilkan ${_filteredUsers.length} dari ${_users.length} pengguna',
-                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -446,7 +506,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
                 Expanded(
                   child: _filteredUsers.isEmpty
-                      ? const Center(child: Text('Tidak ada pengguna ditemukan.', style: TextStyle(color: Color(0xFF64748B))))
+                      ? const Center(
+                          child: Text(
+                            'Tidak ada pengguna ditemukan.',
+                            style: TextStyle(color: Color(0xFF64748B)),
+                          ),
+                        )
                       : ListView.builder(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           itemCount: _filteredUsers.length,
@@ -454,7 +519,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
                             final u = _filteredUsers[idx];
                             final name = u['nama_lengkap'] ?? 'Tanpa Nama';
                             final initials = name.isNotEmpty
-                                ? name.split(' ').map((e) => e[0]).take(2).join('').toUpperCase()
+                                ? name
+                                      .split(' ')
+                                      .map((e) => e[0])
+                                      .take(2)
+                                      .join('')
+                                      .toUpperCase()
                                 : '??';
 
                             return Container(
@@ -463,7 +533,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -482,7 +554,8 @@ class _UserManagementPageState extends State<UserManagementPage> {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           name,
@@ -527,9 +600,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                    onPressed: () => _deleteUser(u['user_id'] as int, name),
-                                  )
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.redAccent,
+                                    ),
+                                    onPressed: () =>
+                                        _deleteUser(u['user_id'] as int, name),
+                                  ),
                                 ],
                               ),
                             );

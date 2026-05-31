@@ -90,12 +90,18 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
         final res = await ApiService.delete('/admin/panduan/$guideId');
         if (res.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Panduan berhasil dihapus.'), backgroundColor: Colors.green),
+            const SnackBar(
+              content: Text('Panduan berhasil dihapus.'),
+              backgroundColor: Colors.green,
+            ),
           );
           _loadGuides();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Gagal menghapus panduan.'), backgroundColor: Colors.redAccent),
+            const SnackBar(
+              content: Text('Gagal menghapus panduan.'),
+              backgroundColor: Colors.redAccent,
+            ),
           );
           setState(() {
             _isLoading = false;
@@ -103,7 +109,10 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Terjadi kesalahan koneksi.'), backgroundColor: Colors.redAccent),
+          const SnackBar(
+            content: Text('Terjadi kesalahan koneksi.'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
         setState(() {
           _isLoading = false;
@@ -160,7 +169,9 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                       prefixIcon: Icon(Icons.description_outlined),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (v) => v == null || v.isEmpty ? 'Judul panduan wajib diisi' : null,
+                    validator: (v) => v == null || v.isEmpty
+                        ? 'Judul panduan wajib diisi'
+                        : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -173,8 +184,14 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                       border: OutlineInputBorder(),
                     ),
                     items: const [
-                      DropdownMenuItem(value: 'document', child: Text('Dokumen PDF')),
-                      DropdownMenuItem(value: 'video', child: Text('Video Tutorial')),
+                      DropdownMenuItem(
+                        value: 'document',
+                        child: Text('Dokumen PDF'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'video',
+                        child: Text('Video Tutorial'),
+                      ),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -190,11 +207,15 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                   TextFormField(
                     controller: pathCtrl,
                     decoration: InputDecoration(
-                      labelText: selectedType == 'video' ? 'URL Video (YouTube / Drive)' : 'Path File Dokumen',
+                      labelText: selectedType == 'video'
+                          ? 'URL Video (YouTube / Drive)'
+                          : 'Path File Dokumen',
                       prefixIcon: const Icon(Icons.link_outlined),
                       border: const OutlineInputBorder(),
                     ),
-                    validator: (v) => v == null || v.isEmpty ? 'Alamat link wajib diisi' : null,
+                    validator: (v) => v == null || v.isEmpty
+                        ? 'Alamat link wajib diisi'
+                        : null,
                   ),
                   const SizedBox(height: 24),
 
@@ -205,26 +226,33 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           Navigator.of(ctx).pop();
-                          
+
                           setState(() {
                             _isLoading = true;
                           });
 
                           try {
-                            final res = await ApiService.post('/admin/panduan', {
-                              'title': titleCtrl.text.trim(),
-                              'type': selectedType,
-                              'path': pathCtrl.text.trim(),
-                            });
+                            final res =
+                                await ApiService.post('/admin/panduan', {
+                                  'title': titleCtrl.text.trim(),
+                                  'type': selectedType,
+                                  'path': pathCtrl.text.trim(),
+                                });
 
                             if (res.statusCode == 201) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Panduan berhasil disimpan.'), backgroundColor: Colors.green),
+                                const SnackBar(
+                                  content: Text('Panduan berhasil disimpan.'),
+                                  backgroundColor: Colors.green,
+                                ),
                               );
                               _loadGuides();
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Gagal menambahkan panduan.'), backgroundColor: Colors.redAccent),
+                                const SnackBar(
+                                  content: Text('Gagal menambahkan panduan.'),
+                                  backgroundColor: Colors.redAccent,
+                                ),
                               );
                               setState(() {
                                 _isLoading = false;
@@ -232,7 +260,10 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                             }
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Terjadi kesalahan koneksi.'), backgroundColor: Colors.redAccent),
+                              const SnackBar(
+                                content: Text('Terjadi kesalahan koneksi.'),
+                                backgroundColor: Colors.redAccent,
+                              ),
                             );
                             setState(() {
                               _isLoading = false;
@@ -246,7 +277,14 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text('Simpan Panduan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                      child: const Text(
+                        'Simpan Panduan',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -302,7 +340,9 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF33C8DA)),
+            )
           : Column(
               children: [
                 // Top Banner "Butuh Bantuan"
@@ -359,10 +399,15 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: const Color(0xFF33C8DA),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                            child: const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)),
-                          )
+                            child: const Text(
+                              'Tambah',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -370,28 +415,47 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
 
                 // Search field
                 Padding(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 12.0),
+                  padding: const EdgeInsets.only(
+                    left: 16.0,
+                    right: 16.0,
+                    bottom: 12.0,
+                  ),
                   child: TextFormField(
                     controller: _searchController,
                     onChanged: _filterGuides,
                     decoration: InputDecoration(
                       hintText: 'Cari judul panduan...',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 14,
+                      ),
                       filled: true,
                       fillColor: Colors.white,
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: Color(0xFF64748B),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFE2E8F0),
+                          width: 1,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF33C8DA),
+                          width: 1.5,
+                        ),
                       ),
                     ),
                   ),
@@ -419,7 +483,9 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -427,12 +493,18 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: isVideo ? const Color(0xFFFFFBEB) : const Color(0xFFE0F7FA),
+                                      color: isVideo
+                                          ? const Color(0xFFFFFBEB)
+                                          : const Color(0xFFE0F7FA),
                                       borderRadius: BorderRadius.circular(14),
                                     ),
                                     child: Icon(
-                                      isVideo ? Icons.play_circle_outline : Icons.description_outlined,
-                                      color: isVideo ? const Color(0xFFF59E0B) : const Color(0xFF33C8DA),
+                                      isVideo
+                                          ? Icons.play_circle_outline
+                                          : Icons.description_outlined,
+                                      color: isVideo
+                                          ? const Color(0xFFF59E0B)
+                                          : const Color(0xFF33C8DA),
                                       size: 26,
                                     ),
                                   ),
@@ -440,7 +512,8 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                   // Text Description
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           g['title'] ?? 'Judul Panduan',
@@ -453,7 +526,9 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          isVideo ? 'Video Tutorial • Ril dari database' : 'Dokumen PDF • Ril dari database',
+                                          isVideo
+                                              ? 'Video Tutorial • Ril dari database'
+                                              : 'Dokumen PDF • Ril dari database',
                                           style: const TextStyle(
                                             color: Color(0xFF64748B),
                                             fontSize: 12,
@@ -467,20 +542,35 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.cloud_download_outlined, color: Color(0xFF33C8DA)),
+                                        icon: const Icon(
+                                          Icons.cloud_download_outlined,
+                                          color: Color(0xFF33C8DA),
+                                        ),
                                         onPressed: () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             SnackBar(
-                                              content: Text('Mengunduh ${g['title']}...'),
-                                              backgroundColor: const Color(0xFF33C8DA),
+                                              content: Text(
+                                                'Mengunduh ${g['title']}...',
+                                              ),
+                                              backgroundColor: const Color(
+                                                0xFF33C8DA,
+                                              ),
                                             ),
                                           );
                                         },
                                       ),
                                       if (isAdmin)
                                         IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                                          onPressed: () => _deleteGuide(g['id'] as int, g['title'] as String),
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.redAccent,
+                                          ),
+                                          onPressed: () => _deleteGuide(
+                                            g['id'] as int,
+                                            g['title'] as String,
+                                          ),
                                         ),
                                     ],
                                   ),

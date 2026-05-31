@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/monitoring_provider.dart';
 import '../../models/dashboard_model.dart';
+import '../profile_page.dart';
 import '../ppk/ppk_kegiatan_list_page.dart';
 import '../ppk/ppk_kegiatan_detail_page.dart';
 import '../kegiatan_monitoring_page.dart';
@@ -39,12 +40,16 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
     final String displayName = user?.namaLengkap.split(' ').first ?? 'User';
-    final String roleLabel = user?.roleId == 4 ? 'PPK (Pengampu Kegiatan)' : 'Wakil Direktur II';
+    final String roleLabel = user?.roleId == 4
+        ? 'PPK (Pengampu Kegiatan)'
+        : 'Wakil Direktur II';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: DashboardDrawer(roleId: user?.roleId ?? 4), // 4 is PPK, 7 is Wadir
+      drawer: DashboardDrawer(
+        roleId: user?.roleId ?? 4,
+      ), // 4 is PPK, 7 is Wadir
       body: Consumer<BaseDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -62,7 +67,11 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 64, color: Color(0xFFE57373)),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Color(0xFFE57373),
+                    ),
                     const SizedBox(height: 16),
                     const Text(
                       'Terjadi Kesalahan',
@@ -145,11 +154,14 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const PpkKegiatanListPage(),
-                                  ),
-                                ).then((_) => provider.loadDashboard());
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const PpkKegiatanListPage(),
+                                      ),
+                                    )
+                                    .then((_) => provider.loadDashboard());
                               },
                               child: BlueStatCard(
                                 label: 'MENUNGGU',
@@ -161,12 +173,17 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                context.read<MonitoringProvider>().setSelectedFilter('Disetujui');
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const KegiatanMonitoringPage(),
-                                  ),
-                                ).then((_) => provider.loadDashboard());
+                                context
+                                    .read<MonitoringProvider>()
+                                    .setSelectedFilter('Disetujui');
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const KegiatanMonitoringPage(),
+                                      ),
+                                    )
+                                    .then((_) => provider.loadDashboard());
                               },
                               child: BlueStatCard(
                                 label: 'DISETUJUI',
@@ -178,12 +195,17 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                           Expanded(
                             child: GestureDetector(
                               onTap: () {
-                                context.read<MonitoringProvider>().setSelectedFilter('Semua');
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const KegiatanMonitoringPage(),
-                                  ),
-                                ).then((_) => provider.loadDashboard());
+                                context
+                                    .read<MonitoringProvider>()
+                                    .setSelectedFilter('Semua');
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const KegiatanMonitoringPage(),
+                                      ),
+                                    )
+                                    .then((_) => provider.loadDashboard());
                               },
                               child: BlueStatCard(
                                 label: 'TOTAL',
@@ -222,7 +244,8 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Menunggu Persetujuan Anda',
@@ -248,11 +271,14 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                                 const SizedBox(width: 8),
                                 ElevatedButton(
                                   onPressed: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => const PpkKegiatanListPage(),
-                                      ),
-                                    ).then((_) => provider.loadDashboard());
+                                    Navigator.of(context)
+                                        .push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const PpkKegiatanListPage(),
+                                          ),
+                                        )
+                                        .then((_) => provider.loadDashboard());
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF33C8DA),
@@ -286,8 +312,10 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: items.length > 5 ? 5 : items.length,
-                              separatorBuilder: (_, _) =>
-                                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                              separatorBuilder: (_, _) => const Divider(
+                                height: 1,
+                                color: Color(0xFFF1F5F9),
+                              ),
                               itemBuilder: (context, index) {
                                 final item = items[index];
                                 return _ApprovalRow(item: item);
@@ -295,7 +323,9 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                             )
                           else
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 48.0),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 48.0,
+                              ),
                               child: Center(
                                 child: Column(
                                   children: [
@@ -361,12 +391,12 @@ class _StatCard extends StatelessWidget {
         border: isCyan ? null : Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: isCyan 
+            color: isCyan
                 ? const Color(0xFF33C8DA).withOpacity(0.15)
                 : const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
@@ -378,7 +408,9 @@ class _StatCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w900,
-              color: isCyan ? Colors.white.withOpacity(0.8) : const Color(0xFF33C8DA),
+              color: isCyan
+                  ? Colors.white.withOpacity(0.8)
+                  : const Color(0xFF33C8DA),
               letterSpacing: 0.5,
               fontFamily: 'Figtree',
             ),
@@ -407,7 +439,9 @@ class _StatCard extends StatelessWidget {
               Icon(
                 statIcon,
                 size: 18,
-                color: isCyan ? Colors.white.withOpacity(0.6) : const Color(0xFF94A3B8),
+                color: isCyan
+                    ? Colors.white.withOpacity(0.6)
+                    : const Color(0xFF94A3B8),
               ),
             ],
           ),
@@ -464,7 +498,10 @@ class _ApprovalRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF7ED),
                   borderRadius: BorderRadius.circular(8),
@@ -493,7 +530,10 @@ class _ApprovalRow extends StatelessWidget {
                   children: [
                     if (item.tipe != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(6),
@@ -511,7 +551,11 @@ class _ApprovalRow extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.calendar_today_outlined, size: 12, color: Color(0xFF94A3B8)),
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 12,
+                            color: Color(0xFF94A3B8),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             item.createdAt!,
@@ -531,23 +575,25 @@ class _ApprovalRow extends StatelessWidget {
                 onPressed: () {
                   final int parsedId = int.tryParse(item.id) ?? 0;
                   if (parsedId > 0) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => PpkKegiatanDetailPage(kegiatanId: parsedId),
-                      ),
-                    ).then((value) {
-                      if (value == true) {
-                        context.read<BaseDashboardProvider>().loadDashboard();
-                      }
-                    });
+                    Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                PpkKegiatanDetailPage(kegiatanId: parsedId),
+                          ),
+                        )
+                        .then((value) {
+                          if (value == true) {
+                            context
+                                .read<BaseDashboardProvider>()
+                                .loadDashboard();
+                          }
+                        });
                   }
                 },
                 icon: const Text(
                   'Detail',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 label: const Icon(Icons.arrow_forward_rounded, size: 14),
                 style: ElevatedButton.styleFrom(
@@ -558,7 +604,10 @@ class _ApprovalRow extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                 ),
               ),
             ],

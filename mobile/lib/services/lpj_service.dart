@@ -155,12 +155,21 @@ class LpjService {
   /// Request revision for LPJ (Bendahara)
   Future<void> reviseLpj({
     required String kegiatanId,
-    required String catatan,
+    List<Map<String, dynamic>>? anggaranComments,
+    List<Map<String, dynamic>>? lampiranComments,
   }) async {
     try {
+      final payload = <String, dynamic>{};
+      if (anggaranComments != null) {
+        payload['anggaran_comments'] = anggaranComments;
+      }
+      if (lampiranComments != null) {
+        payload['lampiran_comments'] = lampiranComments;
+      }
+
       final response = await dio.post(
         '/kegiatan/$kegiatanId/lpj/revise',
-        data: {'catatan': catatan},
+        data: payload,
         options: Options(headers: {'Accept': 'application/json'}),
       );
 

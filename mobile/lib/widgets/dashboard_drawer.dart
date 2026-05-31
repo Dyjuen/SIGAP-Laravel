@@ -37,10 +37,7 @@ class DashboardDrawer extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/logoland.svg',
-                    height: 28,
-                  ),
+                  SvgPicture.asset('assets/images/logoland.svg', height: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -221,10 +218,8 @@ class DashboardDrawer extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  onTap: () => _openPage(
-                    context,
-                    PlaceholderPage(title: title),
-                  ),
+                  onTap: () =>
+                      _openPage(context, PlaceholderPage(title: title)),
                 ),
               ),
             )
@@ -244,10 +239,7 @@ class DashboardDrawer extends StatelessWidget {
 
   void _openPage(BuildContext context, Widget page) {
     Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
   Widget _buildProfileFooter(

@@ -118,14 +118,18 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
                               Expanded(
                                 child: BlueStatCard(
                                   label: 'DANA DIUSULKAN',
-                                  value: _formatCurrency(stats.totalDanaDisusulkan),
+                                  value: _formatCurrency(
+                                    stats.totalDanaDisusulkan,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: BlueStatCard(
                                   label: 'DANA DICAIRKAN',
-                                  value: _formatCurrency(stats.totalDanaDicairkan),
+                                  value: _formatCurrency(
+                                    stats.totalDanaDicairkan,
+                                  ),
                                 ),
                               ),
                             ],
@@ -145,9 +149,14 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
                     const SizedBox(height: 12),
                     InkWell(
                       onTap: () {
-                        Navigator.pushNamed(context, '/bendahara/pencairan').then((_) {
+                        Navigator.pushNamed(
+                          context,
+                          '/bendahara/pencairan',
+                        ).then((_) {
                           if (context.mounted) {
-                            context.read<BendaharaDashboardProvider>().loadDashboard();
+                            context
+                                .read<BendaharaDashboardProvider>()
+                                .loadDashboard();
                           }
                         });
                       },

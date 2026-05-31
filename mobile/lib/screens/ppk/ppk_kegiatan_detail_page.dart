@@ -83,13 +83,15 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
 
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
-    
+
     showDialog(
       context: context,
       builder: (context) {
         final colorScheme = Theme.of(context).colorScheme;
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -138,7 +140,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                    border: Border.all(
+                      color: colorScheme.outline.withOpacity(0.2),
+                    ),
                   ),
                   child: Text(
                     urlString,
@@ -172,7 +176,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Tautan berhasil disalin ke papan klip!'),
+                            content: Text(
+                              'Tautan berhasil disalin ke papan klip!',
+                            ),
                             backgroundColor: Color(0xFF2E7D32),
                           ),
                         );
@@ -210,9 +216,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
       final dio = context.read<Dio>();
       final res = await dio.post(
         '/kegiatan/${widget.kegiatanId}/approve',
-        data: {
-          'catatan': _catatanController.text.trim(),
-        },
+        data: {'catatan': _catatanController.text.trim()},
       );
 
       if (res.statusCode == 200) {
@@ -224,7 +228,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
             ),
           );
           Navigator.of(context).pop(true); // Close bottom sheet
-          Navigator.of(context).pop(true); // Close detail page, notify list to refresh
+          Navigator.of(
+            context,
+          ).pop(true); // Close detail page, notify list to refresh
         }
       } else {
         throw Exception('Server returned status code ${res.statusCode}');
@@ -296,13 +302,24 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                 ),
                 const SizedBox(height: 20),
                 () {
-                  final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
-                  final ppkApproval = approvals.firstWhere((a) => a['approval_level'] == 'PPK', orElse: () => null);
-                  final ppkCatatan = ppkApproval != null ? ppkApproval['catatan'] : null;
-                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final List<dynamic> approvals =
+                      _kegiatan['approvals'] as List? ?? [];
+                  final ppkApproval = approvals.firstWhere(
+                    (a) => a['approval_level'] == 'PPK',
+                    orElse: () => null,
+                  );
+                  final ppkCatatan = ppkApproval != null
+                      ? ppkApproval['catatan']
+                      : null;
+                  final authProvider = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  );
                   final isWadir = authProvider.user?.roleId == 5;
 
-                  if (isWadir && ppkCatatan != null && ppkCatatan.toString().trim().isNotEmpty) {
+                  if (isWadir &&
+                      ppkCatatan != null &&
+                      ppkCatatan.toString().trim().isNotEmpty) {
                     return Container(
                       width: double.infinity,
                       margin: const EdgeInsets.only(bottom: 20),
@@ -317,7 +334,11 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.feedback_outlined, color: Colors.green, size: 16),
+                              const Icon(
+                                Icons.feedback_outlined,
+                                color: Colors.green,
+                                size: 16,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Catatan PPK',
@@ -355,7 +376,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF33C8DA),
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
@@ -364,7 +388,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   children: [
                     Expanded(
                       child: OutlinedButton(
-                        onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
+                        onPressed: _isSubmitting
+                            ? null
+                            : () => Navigator.of(context).pop(),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -374,7 +400,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         ),
                         child: const Text(
                           'Batal',
-                          style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Color(0xFF475569),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -397,7 +426,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text(
@@ -434,7 +465,11 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF0F172A), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF0F172A),
+            size: 20,
+          ),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -458,7 +493,11 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Color(0xFFE57373)),
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Color(0xFFE57373),
+              ),
               const SizedBox(height: 16),
               const Text(
                 'Gagal memuat detail kegiatan',
@@ -502,7 +541,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     final tglSelesai = kak['tanggal_selesai'];
     final lokasi = kak['lokasi'] ?? '-';
     final ikus = kak['ikus'] as List? ?? [];
-    final ikusStr = ikus.map((i) => i['iku']?['nama_iku']).where((n) => n != null).join(', ');
+    final ikusStr = ikus
+        .map((i) => i['iku']?['nama_iku'])
+        .where((n) => n != null)
+        .join(', ');
 
     final String deskripsiKegiatan = kak['deskripsi_kegiatan'] ?? '-';
     final String metodePelaksanaan = kak['metode_pelaksanaan'] ?? '-';
@@ -522,7 +564,8 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
 
     final double totalAnggaran = anggaran.fold(
       0.0,
-      (sum, item) => sum + (double.tryParse(item['jumlah_diusulkan'].toString()) ?? 0.0),
+      (sum, item) =>
+          sum + (double.tryParse(item['jumlah_diusulkan'].toString()) ?? 0.0),
     );
 
     final List<dynamic> manfaat = kak['manfaat'] as List? ?? [];
@@ -531,13 +574,16 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     final List<dynamic> targetIku = kak['target_iku'] as List? ?? [];
 
     // Public URL for surat pengantar (set by API if available)
-    final String? suratPengantarUrl = _kegiatan['surat_pengantar_url'] as String?;
+    final String? suratPengantarUrl =
+        _kegiatan['surat_pengantar_url'] as String?;
 
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final roleId = authProvider.user?.roleId;
-    final String targetLevel = roleId == 4 ? 'PPK' : (roleId == 5 ? 'Wadir2' : '');
+    final String targetLevel = roleId == 4
+        ? 'PPK'
+        : (roleId == 5 ? 'Wadir2' : '');
     final myApproval = approvals.firstWhere(
       (a) => a['approval_level'] == targetLevel && a['status'] == 'Aktif',
       orElse: () => null,
@@ -583,7 +629,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                       runSpacing: 8,
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(8),
@@ -598,7 +647,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFE0F7FA),
                             borderRadius: BorderRadius.circular(8),
@@ -624,17 +676,37 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                 title: 'INFORMASI KAK',
                 icon: Icons.assignment_outlined,
                 children: [
-                  _buildInfoTile(Icons.description_outlined, 'Gambaran Umum / Deskripsi Kegiatan', deskripsiKegiatan),
-                  _buildInfoTile(Icons.edit_note_outlined, 'Metode Pelaksanaan', metodePelaksanaan),
+                  _buildInfoTile(
+                    Icons.description_outlined,
+                    'Gambaran Umum / Deskripsi Kegiatan',
+                    deskripsiKegiatan,
+                  ),
+                  _buildInfoTile(
+                    Icons.edit_note_outlined,
+                    'Metode Pelaksanaan',
+                    metodePelaksanaan,
+                  ),
                   _buildInfoTile(
                     Icons.calendar_today_outlined,
                     'Waktu Pelaksanaan',
                     '${_formatDate(tglMulai)} s/d ${_formatDate(tglSelesai)}',
                   ),
-                  _buildInfoTile(Icons.hourglass_bottom_outlined, 'Kurun Waktu Pelaksanaan', kurunWaktu),
+                  _buildInfoTile(
+                    Icons.hourglass_bottom_outlined,
+                    'Kurun Waktu Pelaksanaan',
+                    kurunWaktu,
+                  ),
                   _buildInfoTile(Icons.location_on_outlined, 'Lokasi', lokasi),
-                  _buildInfoTile(Icons.people_outline, 'Sasaran Utama', sasaranUtama),
-                  _buildInfoTile(Icons.track_changes_outlined, 'IKU Sasaran', ikusStr.isEmpty ? '-' : ikusStr),
+                  _buildInfoTile(
+                    Icons.people_outline,
+                    'Sasaran Utama',
+                    sasaranUtama,
+                  ),
+                  _buildInfoTile(
+                    Icons.track_changes_outlined,
+                    'IKU Sasaran',
+                    ikusStr.isEmpty ? '-' : ikusStr,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -652,7 +724,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                    if (suratPengantarUrl != null)
+                  if (suratPengantarUrl != null)
                     ElevatedButton.icon(
                       onPressed: () => _launchUrl(suratPengantarUrl),
                       icon: const Icon(Icons.file_open_outlined, size: 16),
@@ -664,43 +736,72 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                       ),
                     ),
                   const SizedBox(height: 8),
                   const Text(
                     'Target IKU',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0E7490)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0E7490),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   if (targetIku.isEmpty)
-                    const Text('Tidak ada target IKU.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontStyle: FontStyle.italic))
-                  else
-                    ...targetIku.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: _buildInfoTile(
-                        Icons.track_changes_outlined,
-                        '${item['kode_iku'] ?? '-'} - ${item['nama_iku'] ?? '-'}',
-                        'Target: ${item['target'] ?? '-'} ${item['nama_satuan'] ?? ''}\nCatatan: ${item['catatan_verifikator'] ?? '-'}',
+                    const Text(
+                      'Tidak ada target IKU.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                        fontStyle: FontStyle.italic,
                       ),
-                    )),
+                    )
+                  else
+                    ...targetIku.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: _buildInfoTile(
+                          Icons.track_changes_outlined,
+                          '${item['kode_iku'] ?? '-'} - ${item['nama_iku'] ?? '-'}',
+                          'Target: ${item['target'] ?? '-'} ${item['nama_satuan'] ?? ''}\nCatatan: ${item['catatan_verifikator'] ?? '-'}',
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   const Text(
                     'Approval KAK',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0E7490)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0E7490),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   if (approvals.isEmpty)
-                    const Text('Belum ada approval KAK.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontStyle: FontStyle.italic))
-                  else
-                    ...approvals.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: _buildInfoTile(
-                        Icons.verified_user_outlined,
-                        '${item['approver_nama'] ?? '-'} - ${item['status'] ?? '-'}',
-                        'Tanggal: ${item['tanggal'] ?? '-'}\nCatatan: ${item['catatan'] ?? '-'}',
+                    const Text(
+                      'Belum ada approval KAK.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                        fontStyle: FontStyle.italic,
                       ),
-                    )),
+                    )
+                  else
+                    ...approvals.map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: _buildInfoTile(
+                          Icons.verified_user_outlined,
+                          '${item['approver_nama'] ?? '-'} - ${item['status'] ?? '-'}',
+                          'Tanggal: ${item['tanggal'] ?? '-'}\nCatatan: ${item['catatan'] ?? '-'}',
+                        ),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -718,7 +819,11 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.calculate_outlined, color: Color(0xFF33C8DA), size: 20),
+                        Icon(
+                          Icons.calculate_outlined,
+                          color: Color(0xFF33C8DA),
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'Rincian Anggaran Biaya (RAB)',
@@ -738,7 +843,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         child: Center(
                           child: Text(
                             'Belum ada rincian anggaran.',
-                            style: TextStyle(color: Color(0xFF94A3B8), fontStyle: FontStyle.italic),
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ),
                       )
@@ -749,10 +857,18 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                           children: [
                             Container(
                               width: double.infinity,
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: const BoxDecoration(
                                 color: Color(0xFFF8FAFC),
-                                border: Border(left: BorderSide(color: Color(0xFF33C8DA), width: 4)),
+                                border: Border(
+                                  left: BorderSide(
+                                    color: Color(0xFF33C8DA),
+                                    width: 4,
+                                  ),
+                                ),
                               ),
                               child: Text(
                                 entry.key,
@@ -767,29 +883,48 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                             ...entry.value.map((item) {
                               // build volume string
                               final List<String> vols = [];
-                              final double v1 = double.tryParse(item['volume1']?.toString() ?? '0') ?? 0;
-                              final String s1 = item['satuan1']?['nama_satuan'] ?? '';
+                              final double v1 =
+                                  double.tryParse(
+                                    item['volume1']?.toString() ?? '0',
+                                  ) ??
+                                  0;
+                              final String s1 =
+                                  item['satuan1']?['nama_satuan'] ?? '';
                               if (v1 > 0) vols.add('${v1.toInt()} $s1');
 
-                              final double v2 = double.tryParse(item['volume2']?.toString() ?? '0') ?? 0;
-                              final String s2 = item['satuan2']?['nama_satuan'] ?? '';
+                              final double v2 =
+                                  double.tryParse(
+                                    item['volume2']?.toString() ?? '0',
+                                  ) ??
+                                  0;
+                              final String s2 =
+                                  item['satuan2']?['nama_satuan'] ?? '';
                               if (v2 > 0) vols.add('${v2.toInt()} $s2');
 
-                              final double v3 = double.tryParse(item['volume3']?.toString() ?? '0') ?? 0;
-                              final String s3 = item['satuan3']?['nama_satuan'] ?? '';
+                              final double v3 =
+                                  double.tryParse(
+                                    item['volume3']?.toString() ?? '0',
+                                  ) ??
+                                  0;
+                              final String s3 =
+                                  item['satuan3']?['nama_satuan'] ?? '';
                               if (v3 > 0) vols.add('${v3.toInt()} $s3');
 
                               final String volumeText = vols.join(' x ');
 
                               return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 10.0,
+                                ),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Expanded(
                                       flex: 3,
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             item['uraian'] ?? '',
@@ -813,10 +948,13 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                                     Expanded(
                                       flex: 2,
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
-                                            _formatCurrency(item['jumlah_diusulkan']),
+                                            _formatCurrency(
+                                              item['jumlah_diusulkan'],
+                                            ),
                                             style: const TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
@@ -885,7 +1023,11 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.history_rounded, color: Color(0xFF33C8DA), size: 20),
+                        Icon(
+                          Icons.history_rounded,
+                          color: Color(0xFF33C8DA),
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'Riwayat Persetujuan',
@@ -917,7 +1059,8 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                           final app = approvals[idx];
                           final roleName = app['approval_level'] ?? '-';
                           final status = app['status'] ?? '-';
-                          final userName = app['approver']?['nama_lengkap'] ?? '-';
+                          final userName =
+                              app['approver']?['nama_lengkap'] ?? '-';
                           final dateStr = _formatDate(app['updated_at']);
 
                           // Colors based on status
@@ -932,106 +1075,120 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                           }
 
                           return Padding(
-                             padding: const EdgeInsets.only(bottom: 16.0),
-                             child: IntrinsicHeight(
-                               child: Row(
-                                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                                 children: [
-                                   Column(
-                                     children: [
-                                       Icon(
-                                         status == 'Disetujui'
-                                             ? Icons.check_circle
-                                             : status == 'Ditolak'
-                                                 ? Icons.cancel
-                                                 : Icons.pending,
-                                         color: statusColor,
-                                         size: 20,
-                                       ),
-                                       if (idx < approvals.length - 1)
-                                         Expanded(
-                                           child: Container(
-                                             width: 2,
-                                             color: const Color(0xFFE2E8F0),
-                                           ),
-                                         ),
-                                     ],
-                                   ),
-                                   const SizedBox(width: 12),
-                                   Expanded(
-                                     child: Column(
-                                       crossAxisAlignment: CrossAxisAlignment.start,
-                                       children: [
-                                         Text(
-                                           'Approval Level: $roleName',
-                                           style: const TextStyle(
-                                             fontSize: 13,
-                                             fontWeight: FontWeight.bold,
-                                             color: Color(0xFF0F172A),
-                                           ),
-                                         ),
-                                         const SizedBox(height: 2),
-                                         Text(
-                                           'Oleh: $userName',
-                                           style: const TextStyle(
-                                             fontSize: 12,
-                                             color: Color(0xFF64748B),
-                                           ),
-                                         ),
-                                         const SizedBox(height: 2),
-                                         Text(
-                                           dateStr,
-                                           style: const TextStyle(
-                                             fontSize: 11,
-                                             color: Color(0xFF94A3B8),
-                                           ),
-                                         ),
-                                         if (app['catatan'] != null && app['catatan'].toString().trim().isNotEmpty) ...[
-                                           const SizedBox(height: 6),
-                                           Container(
-                                             width: double.infinity,
-                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                             decoration: BoxDecoration(
-                                               color: const Color(0xFFF8FAFC),
-                                               borderRadius: BorderRadius.circular(8),
-                                               border: Border.all(color: const Color(0xFFE2E8F0)),
-                                             ),
-                                             child: Text(
-                                               'Catatan: "${app['catatan']}"',
-                                               style: GoogleFonts.figtree(
-                                                 fontSize: 11,
-                                                 fontStyle: FontStyle.italic,
-                                                 color: const Color(0xFF475569),
-                                               ),
-                                             ),
-                                           ),
-                                         ],
-                                         const SizedBox(height: 12),
-                                       ],
-                                     ),
-                                   ),
-                                   Align(
-                                     alignment: Alignment.topRight,
-                                     child: Container(
-                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                       decoration: BoxDecoration(
-                                         color: statusBg,
-                                         borderRadius: BorderRadius.circular(6),
-                                       ),
-                                       child: Text(
-                                         status.toUpperCase(),
-                                         style: TextStyle(
-                                           fontSize: 9,
-                                           fontWeight: FontWeight.bold,
-                                           color: statusColor,
-                                         ),
-                                       ),
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             ),
-                           );
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Column(
+                                    children: [
+                                      Icon(
+                                        status == 'Disetujui'
+                                            ? Icons.check_circle
+                                            : status == 'Ditolak'
+                                            ? Icons.cancel
+                                            : Icons.pending,
+                                        color: statusColor,
+                                        size: 20,
+                                      ),
+                                      if (idx < approvals.length - 1)
+                                        Expanded(
+                                          child: Container(
+                                            width: 2,
+                                            color: const Color(0xFFE2E8F0),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Approval Level: $roleName',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0F172A),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'Oleh: $userName',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Color(0xFF64748B),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          dateStr,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Color(0xFF94A3B8),
+                                          ),
+                                        ),
+                                        if (app['catatan'] != null &&
+                                            app['catatan']
+                                                .toString()
+                                                .trim()
+                                                .isNotEmpty) ...[
+                                          const SizedBox(height: 6),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 8,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF8FAFC),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: const Color(0xFFE2E8F0),
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Catatan: "${app['catatan']}"',
+                                              style: GoogleFonts.figtree(
+                                                fontSize: 11,
+                                                fontStyle: FontStyle.italic,
+                                                color: const Color(0xFF475569),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 12),
+                                      ],
+                                    ),
+                                  ),
+                                  Align(
+                                    alignment: Alignment.topRight,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusBg,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        status.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                          color: statusColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
                         },
                       ),
                   ],
@@ -1056,11 +1213,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     color: Colors.black.withOpacity(0.06),
                     blurRadius: 10,
                     offset: const Offset(0, -4),
-                  )
+                  ),
                 ],
-                border: const Border(
-                  top: BorderSide(color: Color(0xFFE2E8F0)),
-                ),
+                border: const Border(top: BorderSide(color: Color(0xFFE2E8F0))),
               ),
               child: Row(
                 children: [
@@ -1108,9 +1263,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                       ),
                       child: const Text(
                         'Setujui Kegiatan',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -1131,7 +1284,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isCyanTint ? const Color(0xFFE0F7FA).withOpacity(0.4) : Colors.white,
+        color: isCyanTint
+            ? const Color(0xFFE0F7FA).withOpacity(0.4)
+            : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isCyanTint ? const Color(0xFFB2EBF2) : const Color(0xFFE2E8F0),

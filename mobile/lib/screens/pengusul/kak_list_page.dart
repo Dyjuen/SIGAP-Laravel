@@ -6,8 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import '../../services/api_service.dart';
-import 'kak_form_page.dart';
-import 'kak_detail_page.dart';
+import 'kak_edit_page.dart';
+import 'kak_create_page.dart';
 
 class KakListPage extends StatefulWidget {
   final int? initialStatusId;
@@ -437,7 +437,7 @@ class _KakListPageState extends State<KakListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => const KakFormPage()))
+            .push(MaterialPageRoute(builder: (_) => const KakCreatePage()))
             .then((_) => _loadKaks()),
         backgroundColor: const Color(0xFF33C8DA),
         foregroundColor: Colors.white,
@@ -688,9 +688,7 @@ class _KakListPageState extends State<KakListPage> {
                     onPressed: () => Navigator.of(context)
                         .push(
                           MaterialPageRoute(
-                            builder: (_) => (statusId == 1 || statusId == 5)
-                                ? KakFormPage(kakId: kakId)
-                                : KakDetailPage(kakId: kakId),
+                            builder: (_) => KakEditPage(kakId: kakId),
                           ),
                         )
                         .then((_) => _loadKaks()),
@@ -700,9 +698,9 @@ class _KakListPageState extends State<KakListPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: Text(
-                      (statusId == 1 || statusId == 5) ? 'Edit' : 'Lihat Detail',
-                      style: const TextStyle(
+                    child: const Text(
+                      'Detail / Edit',
+                      style: TextStyle(
                         color: Color(0xFF475569),
                         fontWeight: FontWeight.bold,
                         fontSize: 13,

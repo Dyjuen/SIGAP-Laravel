@@ -9,10 +9,7 @@ import '../models/lpj_model.dart';
 class LpjDetailPage extends StatefulWidget {
   final int kegiatanId;
 
-  const LpjDetailPage({
-    super.key,
-    required this.kegiatanId,
-  });
+  const LpjDetailPage({super.key, required this.kegiatanId});
 
   @override
   State<LpjDetailPage> createState() => _LpjDetailPageState();
@@ -82,36 +79,31 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                            padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                             child: Row(
                               mainAxisSize: MainAxisSize.max,
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Row(
                                   mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.start,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     IconButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context),
+                                      onPressed: () => Navigator.pop(context),
                                       icon: Icon(
                                         Icons.arrow_back_rounded,
-                                        color: Theme.of(context)
-                                            .primaryTextTheme
-                                            .bodyLarge
-                                            ?.color,
+                                        color: Theme.of(
+                                          context,
+                                        ).primaryTextTheme.bodyLarge?.color,
                                         size: 24,
                                       ),
                                       padding: EdgeInsets.zero,
                                       constraints: const BoxConstraints(
-                                          minWidth: 40, minHeight: 40),
+                                        minWidth: 40,
+                                        minHeight: 40,
+                                      ),
                                     ),
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -125,20 +117,18 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                                           style: GoogleFonts.figtree(
                                             fontSize: 20,
                                             fontWeight: FontWeight.w900,
-                                            color: Theme.of(context)
-                                                .primaryTextTheme
-                                                .bodyLarge
-                                                ?.color,
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryTextTheme.bodyLarge?.color,
                                           ),
                                         ),
                                         Text(
                                           lpj.namaKegiatan ?? 'N/A',
                                           style: GoogleFonts.figtree(
                                             fontSize: 12,
-                                            color: Theme.of(context)
-                                                .primaryTextTheme
-                                                .bodySmall
-                                                ?.color,
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryTextTheme.bodySmall?.color,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -175,8 +165,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                       // Kegiatan Info
                       _buildSectionHeader('Informasi Kegiatan'),
                       const SizedBox(height: 12),
-                      _buildInfoRow(
-                          'Nama Kegiatan', lpj.namaKegiatan ?? 'N/A'),
+                      _buildInfoRow('Nama Kegiatan', lpj.namaKegiatan ?? 'N/A'),
                       _buildInfoRow(
                         'Anggaran Diusulkan',
                         'Rp ${_formatCurrency(lpj.totalAnggaranDiusulkan)}',
@@ -268,17 +257,17 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
       {
         'label': 'Disubmit',
         'date': lpj.lpjSubmittedAt,
-        'active': lpj.lpjSubmittedAt != null
+        'active': lpj.lpjSubmittedAt != null,
       },
       {
         'label': 'Disetujui',
         'date': lpj.lpjApprovedAt,
-        'active': lpj.lpjApprovedAt != null
+        'active': lpj.lpjApprovedAt != null,
       },
       {
         'label': 'Selesai',
         'date': lpj.lpjCompletedAt,
-        'active': lpj.lpjCompletedAt != null
+        'active': lpj.lpjCompletedAt != null,
       },
     ];
 
@@ -324,7 +313,9 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                         style: GoogleFonts.figtree(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context).primaryTextTheme.bodyLarge?.color,
+                          color: Theme.of(
+                            context,
+                          ).primaryTextTheme.bodyLarge?.color,
                         ),
                       ),
                       if (status['date'] != null)
@@ -332,10 +323,9 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                           status['date'].toString().substring(0, 10),
                           style: GoogleFonts.figtree(
                             fontSize: 12,
-                            color: Theme.of(context)
-                                .primaryTextTheme
-                                .bodySmall
-                                ?.color,
+                            color: Theme.of(
+                              context,
+                            ).primaryTextTheme.bodySmall?.color,
                           ),
                         ),
                     ],
@@ -434,37 +424,39 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
             ),
           ],
           rows: (lpj.anggaranItems).map((item) {
-            return DataRow(cells: [
-              DataCell(
-                SizedBox(
-                  width: 150,
-                  child: Text(
-                    item.mataAnggaranNama ?? 'N/A',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+            return DataRow(
+              cells: [
+                DataCell(
+                  SizedBox(
+                    width: 150,
+                    child: Text(
+                      item.mataAnggaranNama ?? 'N/A',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.figtree(fontSize: 12),
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    'Rp ${_formatCurrency(item.jumlahDiusulkan)}',
                     style: GoogleFonts.figtree(fontSize: 12),
                   ),
                 ),
-              ),
-              DataCell(
-                Text(
-                  'Rp ${_formatCurrency(item.jumlahDiusulkan)}',
-                  style: GoogleFonts.figtree(fontSize: 12),
+                DataCell(
+                  Text(
+                    'Rp ${_formatCurrency(item.realisasiJumlah)}',
+                    style: GoogleFonts.figtree(fontSize: 12),
+                  ),
                 ),
-              ),
-              DataCell(
-                Text(
-                  'Rp ${_formatCurrency(item.realisasiJumlah)}',
-                  style: GoogleFonts.figtree(fontSize: 12),
+                DataCell(
+                  Text(
+                    '${item.percentageRealized.toStringAsFixed(1)}%',
+                    style: GoogleFonts.figtree(fontSize: 12),
+                  ),
                 ),
-              ),
-              DataCell(
-                Text(
-                  '${item.percentageRealized.toStringAsFixed(1)}%',
-                  style: GoogleFonts.figtree(fontSize: 12),
-                ),
-              ),
-            ]);
+              ],
+            );
           }).toList(),
         ),
       ),
@@ -540,15 +532,12 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
             children: [
               ElevatedButton(
                 onPressed: () async {
-                  final success =
-                      await provider.approveLpj(lpj.kegiatanId);
+                  final success = await provider.approveLpj(lpj.kegiatanId);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          success
-                              ? 'LPJ disetujui'
-                              : 'Gagal menyetujui LPJ',
+                          success ? 'LPJ disetujui' : 'Gagal menyetujui LPJ',
                         ),
                       ),
                     );
@@ -559,9 +548,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
                 onPressed: () {
                   // Show revision dialog
                   _showRevisionDialog(context, provider, lpj);
@@ -572,19 +559,14 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
           ),
         if (lpj.lpjStatus == 'Approved')
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
             onPressed: () async {
-              final success =
-                  await provider.completeLpj(lpj.kegiatanId);
+              final success = await provider.completeLpj(lpj.kegiatanId);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      success
-                          ? 'LPJ diselesaikan'
-                          : 'Gagal menyelesaikan LPJ',
+                      success ? 'LPJ diselesaikan' : 'Gagal menyelesaikan LPJ',
                     ),
                   ),
                 );
@@ -628,9 +610,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               onPressed: () async {
                 if (controller.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Catatan tidak boleh kosong'),
-                    ),
+                    const SnackBar(content: Text('Catatan tidak boleh kosong')),
                   );
                   return;
                 }
@@ -645,9 +625,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        success
-                            ? 'Revisi dikirim'
-                            : 'Gagal mengirim revisi',
+                        success ? 'Revisi dikirim' : 'Gagal mengirim revisi',
                       ),
                     ),
                   );
@@ -664,7 +642,9 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
 
   String _formatCurrency(double? value) {
     if (value == null) return '0';
-    return value.toStringAsFixed(0).replaceAllMapped(
+    return value
+        .toStringAsFixed(0)
+        .replaceAllMapped(
           RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]}.',
         );

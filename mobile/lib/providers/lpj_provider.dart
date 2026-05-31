@@ -120,7 +120,24 @@ class LpjProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await _lpjService.reviseLpj(kegiatanId: kegiatanId, catatan: catatan);
+      final comments =
+          _selectedLpj?.anggaranItems
+              .map((item) {
+                final anggaranId = int.tryParse(item.anggaranId);
+                if (anggaranId == null) {
+                  return null;
+                }
+
+                return {'id': anggaranId, 'catatan_reviewer': catatan};
+              })
+              .whereType<Map<String, dynamic>>()
+              .toList() ??
+          [];
+
+      await _lpjService.reviseLpj(
+        kegiatanId: kegiatanId,
+        anggaranComments: comments,
+      );
 
       // Refresh detail
       if (_selectedLpj?.kegiatanId == kegiatanId) {

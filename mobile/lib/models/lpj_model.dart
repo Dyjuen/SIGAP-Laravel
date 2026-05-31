@@ -1,5 +1,3 @@
-// LPJ (Laporan Pertanggungjawaban) Models
-
 class LpjRealization {
   final String anggaranId;
   final String kakId;
@@ -9,8 +7,6 @@ class LpjRealization {
   final String? satuanId;
   final double hargaSatuan;
   final double jumlahDiusulkan;
-
-  // Realization fields
   final double? realisasiVolume1;
   final String? realisasiSatuan1Id;
   final double? realisasiVolume2;
@@ -87,23 +83,26 @@ class LpjRealization {
     'realisasi_jumlah': realisasiJumlah,
   };
 
-  double get percentageRealized =>
-      jumlahDiusulkan > 0 ? (realisasiJumlah / jumlahDiusulkan) * 100 : 0;
+  double get percentageRealized {
+    return jumlahDiusulkan > 0 ? (realisasiJumlah / jumlahDiusulkan) * 100 : 0;
+  }
 }
 
 class LpjDetail {
   final String kegiatanId;
   final String kakId;
   final String namaKegiatan;
-  final String
-  lpjStatus; // Draft, Submitted, Approved, Revision Requested, Completed
+  final String lpjStatus;
   final String? lpjSubmittedAt;
   final String? lpjApprovedAt;
   final String? lpjCompletedAt;
+  final String? tglBatasLpj;
+  final int? spkKesesuaianWaktu;
+  final int? spkKesesuaianOutput;
   final String? pengusulNama;
   final String? pengusulId;
   final List<LpjRealization> anggaranItems;
-  final String approvalStatus; // Pending, Aktif, Revisi, Approved, Selesai
+  final String approvalStatus;
   final String? approvalNotes;
 
   LpjDetail({
@@ -114,6 +113,9 @@ class LpjDetail {
     this.lpjSubmittedAt,
     this.lpjApprovedAt,
     this.lpjCompletedAt,
+    this.tglBatasLpj,
+    this.spkKesesuaianWaktu,
+    this.spkKesesuaianOutput,
     this.pengusulNama,
     this.pengusulId,
     required this.anggaranItems,
@@ -135,14 +137,21 @@ class LpjDetail {
       kakId: json['kak_id']?.toString() ?? '',
       namaKegiatan: json['nama_kegiatan'] ?? '',
       lpjStatus: json['lpj_status'] ?? 'Draft',
-      lpjSubmittedAt: json['lpj_submitted_at'],
-      lpjApprovedAt: json['lpj_approved_at'],
-      lpjCompletedAt: json['lpj_completed_at'],
+      lpjSubmittedAt: json['lpj_submitted_at']?.toString(),
+      lpjApprovedAt: json['lpj_approved_at']?.toString(),
+      lpjCompletedAt: json['lpj_completed_at']?.toString(),
+      tglBatasLpj: json['tgl_batas_lpj']?.toString(),
+      spkKesesuaianWaktu: json['spk_kesesuaian_waktu'] != null
+          ? int.tryParse(json['spk_kesesuaian_waktu'].toString())
+          : null,
+      spkKesesuaianOutput: json['spk_kesesuaian_output'] != null
+          ? int.tryParse(json['spk_kesesuaian_output'].toString())
+          : null,
       pengusulNama: json['pengusul']?['nama_lengkap'],
       pengusulId: json['pengusul']?['user_id']?.toString(),
       anggaranItems: anggaranList,
       approvalStatus: json['approval_status'] ?? 'Pending',
-      approvalNotes: json['approval_notes'],
+      approvalNotes: json['approval_notes']?.toString(),
     );
   }
 
@@ -154,24 +163,29 @@ class LpjDetail {
     'lpj_submitted_at': lpjSubmittedAt,
     'lpj_approved_at': lpjApprovedAt,
     'lpj_completed_at': lpjCompletedAt,
+    'tgl_batas_lpj': tglBatasLpj,
+    'spk_kesesuaian_waktu': spkKesesuaianWaktu,
+    'spk_kesesuaian_output': spkKesesuaianOutput,
     'pengusul': {'nama_lengkap': pengusulNama, 'user_id': pengusulId},
     'anggaran_items': anggaranItems.map((i) => i.toJson()).toList(),
     'approval_status': approvalStatus,
     'approval_notes': approvalNotes,
   };
 
-  // Helpers
   bool get isDraft => lpjStatus == 'Draft';
   bool get isSubmitted => lpjStatus == 'Submitted';
   bool get isApproved => lpjStatus == 'Approved';
   bool get isRevisionRequested => lpjStatus == 'Revision Requested';
   bool get isCompleted => lpjStatus == 'Completed';
+  bool get canEditPengusul => isDraft || isRevisionRequested;
 
-  double get totalAnggaranDiusulkan =>
-      anggaranItems.fold(0, (sum, item) => sum + item.jumlahDiusulkan);
+  double get totalAnggaranDiusulkan {
+    return anggaranItems.fold(0, (sum, item) => sum + item.jumlahDiusulkan);
+  }
 
-  double get totalRealisasi =>
-      anggaranItems.fold(0, (sum, item) => sum + item.realisasiJumlah);
+  double get totalRealisasi {
+    return anggaranItems.fold(0, (sum, item) => sum + item.realisasiJumlah);
+  }
 
   double get averageRealizationPercent {
     if (anggaranItems.isEmpty) return 0;
@@ -207,6 +221,7 @@ class LpjListItem {
   final String statusNama;
   final String lpjStatus;
   final String? lpjSubmittedAt;
+  final String? tglBatasLpj;
   final double totalAnggaranDiusulkan;
   final double danaDicairkan;
   final double sisaDana;
@@ -218,6 +233,7 @@ class LpjListItem {
     required this.statusNama,
     required this.lpjStatus,
     this.lpjSubmittedAt,
+    this.tglBatasLpj,
     required this.totalAnggaranDiusulkan,
     required this.danaDicairkan,
     required this.sisaDana,
@@ -230,7 +246,8 @@ class LpjListItem {
       namaKegiatan: json['nama_kegiatan'] ?? '',
       statusNama: json['status_nama'] ?? '',
       lpjStatus: json['lpj_status'] ?? 'Draft',
-      lpjSubmittedAt: json['lpj_submitted_at'],
+      lpjSubmittedAt: json['lpj_submitted_at']?.toString(),
+      tglBatasLpj: json['tgl_batas_lpj']?.toString(),
       totalAnggaranDiusulkan: _parseDouble(json['total_anggaran_diusulkan']),
       danaDicairkan: _parseDouble(json['dana_dicairkan']),
       sisaDana: _parseDouble(json['sisa_dana']),
@@ -244,6 +261,7 @@ class LpjListItem {
     'status_nama': statusNama,
     'lpj_status': lpjStatus,
     'lpj_submitted_at': lpjSubmittedAt,
+    'tgl_batas_lpj': tglBatasLpj,
     'total_anggaran_diusulkan': totalAnggaranDiusulkan,
     'dana_dicairkan': danaDicairkan,
     'sisa_dana': sisaDana,

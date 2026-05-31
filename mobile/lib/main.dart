@@ -103,7 +103,8 @@ void main() async {
           create: (context) => LpjProvider(context.read<LpjService>()),
         ),
         ChangeNotifierProvider<PencairanProvider>(
-          create: (context) => PencairanProvider(context.read<PencairanService>()),
+          create: (context) =>
+              PencairanProvider(context.read<PencairanService>()),
         ),
       ],
       child: const MyApp(),

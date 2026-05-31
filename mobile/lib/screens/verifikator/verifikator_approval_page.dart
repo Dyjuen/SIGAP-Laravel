@@ -1114,6 +1114,7 @@ class _ApproveBottomSheet extends StatefulWidget {
   final Function(Map<String, dynamic> data) onSubmit;
 
   const _ApproveBottomSheet({
+    super.key,
     required this.kakId,
     required this.onSubmit,
   });

@@ -500,8 +500,6 @@ class LpjService
             'kegiatan_id',
             'kak_id',
             'lpj_submitted_at',
-            'lpj_approved_at',
-            'lpj_completed_at',
         ])->with([
             'kak' => fn ($q) => $q->select([
                 'kak_id',
@@ -512,7 +510,7 @@ class LpjService
                 'tipe_kegiatan_id',
             ]),
             'kak.pengusul' => fn ($q) => $q->select(['user_id', 'nama_lengkap']),
-            'kak.mataAnggaran' => fn ($q) => $q->select(['mata_anggaran_id', 'nama_mata_anggaran']),
+            'kak.mataAnggaran' => fn ($q) => $q->select(['mata_anggaran_id', 'nama_sumber_dana']),
             'kak.tipeKegiatan' => fn ($q) => $q->select(['tipe_kegiatan_id', 'nama_tipe']),
             'kak.status' => fn ($q) => $q->select(['status_id', 'nama_status']),
             'approvals' => fn ($q) => $q->select(['approval_kegiatan_id', 'kegiatan_id', 'approval_level', 'status', 'approved_at']),

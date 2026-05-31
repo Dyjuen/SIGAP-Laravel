@@ -37,7 +37,7 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       'volume1': TextEditingController(),
       'harga_satuan': TextEditingController(),
       'kategori_belanja_id': 1,
-    }
+    },
   ];
   List<Map<String, dynamic>> _kategoriBelanja = [];
 
@@ -55,13 +55,18 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       final kategoriRes = await ApiService.get('/master/kategori-belanja');
       if (tipeRes.statusCode == 200 && kategoriRes.statusCode == 200) {
         setState(() {
-          _tipeKegiatanList = List<Map<String, dynamic>>.from(jsonDecode(tipeRes.body));
-          _kategoriBelanja = List<Map<String, dynamic>>.from(jsonDecode(kategoriRes.body));
+          _tipeKegiatanList = List<Map<String, dynamic>>.from(
+            jsonDecode(tipeRes.body),
+          );
+          _kategoriBelanja = List<Map<String, dynamic>>.from(
+            jsonDecode(kategoriRes.body),
+          );
           if (_tipeKegiatanList.isNotEmpty) {
             _tipeKegiatanId = _tipeKegiatanList[0]['tipe_kegiatan_id'] as int;
           }
           if (_kategoriBelanja.isNotEmpty) {
-            _rabItems[0]['kategori_belanja_id'] = _kategoriBelanja[0]['kategori_belanja_id'] as int;
+            _rabItems[0]['kategori_belanja_id'] =
+                _kategoriBelanja[0]['kategori_belanja_id'] as int;
           }
           _masterLoaded = true;
         });
@@ -137,13 +142,19 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       return;
     }
 
-    final manfaatFilled = _manfaatCtrls.where((c) => c.text.trim().isNotEmpty).toList();
-    final tahapanFilled = _tahapanCtrls.where((c) => c.text.trim().isNotEmpty).toList();
+    final manfaatFilled = _manfaatCtrls
+        .where((c) => c.text.trim().isNotEmpty)
+        .toList();
+    final tahapanFilled = _tahapanCtrls
+        .where((c) => c.text.trim().isNotEmpty)
+        .toList();
 
     if (manfaatFilled.isEmpty || tahapanFilled.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tambahkan minimal 1 manfaat dan 1 tahapan pelaksanaan.'),
+          content: Text(
+            'Tambahkan minimal 1 manfaat dan 1 tahapan pelaksanaan.',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -151,10 +162,12 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       return;
     }
 
-    final rabValid = _rabItems.every((r) =>
-        (r['uraian'] as TextEditingController).text.trim().isNotEmpty &&
-        (r['volume1'] as TextEditingController).text.trim().isNotEmpty &&
-        (r['harga_satuan'] as TextEditingController).text.trim().isNotEmpty);
+    final rabValid = _rabItems.every(
+      (r) =>
+          (r['uraian'] as TextEditingController).text.trim().isNotEmpty &&
+          (r['volume1'] as TextEditingController).text.trim().isNotEmpty &&
+          (r['harga_satuan'] as TextEditingController).text.trim().isNotEmpty,
+    );
 
     if (!rabValid) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -179,13 +192,27 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       'tanggal_selesai': _fmtDateApi(_tanggalSelesai!),
       'tipe_kegiatan_id': _tipeKegiatanId,
       'manfaat': manfaatFilled.map((c) => {'value': c.text.trim()}).toList(),
-      'tahapan': tahapanFilled.map((c) => {'nama_tahapan': c.text.trim()}).toList(),
-      'rab': _rabItems.map((r) => {
-        'uraian': (r['uraian'] as TextEditingController).text.trim(),
-        'volume1': double.tryParse((r['volume1'] as TextEditingController).text.trim()) ?? 1,
-        'harga_satuan': double.tryParse((r['harga_satuan'] as TextEditingController).text.trim()) ?? 0,
-        'kategori_belanja_id': r['kategori_belanja_id'] as int,
-      }).toList(),
+      'tahapan': tahapanFilled
+          .map((c) => {'nama_tahapan': c.text.trim()})
+          .toList(),
+      'rab': _rabItems
+          .map(
+            (r) => {
+              'uraian': (r['uraian'] as TextEditingController).text.trim(),
+              'volume1':
+                  double.tryParse(
+                    (r['volume1'] as TextEditingController).text.trim(),
+                  ) ??
+                  1,
+              'harga_satuan':
+                  double.tryParse(
+                    (r['harga_satuan'] as TextEditingController).text.trim(),
+                  ) ??
+                  0,
+              'kategori_belanja_id': r['kategori_belanja_id'] as int,
+            },
+          )
+          .toList(),
     };
 
     try {
@@ -217,7 +244,9 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Terjadi kesalahan koneksi.'), backgroundColor: Colors.redAccent),
+            content: Text('Terjadi kesalahan koneksi.'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     } finally {
@@ -239,14 +268,23 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('SIGAP PNJ',
-                style: TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                    fontFamily: 'Figtree')),
-            Text('Buat KAK Baru',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontFamily: 'Figtree')),
+            Text(
+              'SIGAP PNJ',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+                fontFamily: 'Figtree',
+              ),
+            ),
+            Text(
+              'Buat KAK Baru',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 12,
+                fontFamily: 'Figtree',
+              ),
+            ),
           ],
         ),
       ),
@@ -267,7 +305,11 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
           Expanded(
             child: Form(
               key: _formKey,
-              child: [_buildStep0(), _buildStep1(), _buildStep2()][_currentStep],
+              child: [
+                _buildStep0(),
+                _buildStep1(),
+                _buildStep2(),
+              ][_currentStep],
             ),
           ),
 
@@ -285,10 +327,17 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                         onPressed: () => setState(() => _currentStep--),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFE2E8F0)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                        child: const Text('Kembali',
-                            style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Kembali',
+                          style: TextStyle(
+                            color: Color(0xFF475569),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -310,17 +359,25 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                         backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: _isSubmitting
                           ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white))
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : Text(
                               _currentStep == 2 ? 'Simpan Draft' : 'Lanjutkan',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
                             ),
                     ),
                   ),
@@ -347,12 +404,17 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isActive ? const Color(0xFF33C8DA) : const Color(0xFF94A3B8),
+                  color: isActive
+                      ? const Color(0xFF33C8DA)
+                      : const Color(0xFF94A3B8),
                   fontSize: 13,
                 ),
               ),
             ),
-            Container(height: 2, color: isActive ? const Color(0xFF33C8DA) : Colors.transparent),
+            Container(
+              height: 2,
+              color: isActive ? const Color(0xFF33C8DA) : Colors.transparent,
+            ),
           ],
         ),
       ),
@@ -365,22 +427,43 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Informasi Umum',
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w900, fontFamily: 'Figtree',
-                  color: Color(0xFF0F172A))),
+          const Text(
+            'Informasi Umum',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Figtree',
+              color: Color(0xFF0F172A),
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('Isi informasi dasar kegiatan yang akan diusulkan.',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+          const Text(
+            'Isi informasi dasar kegiatan yang akan diusulkan.',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+          ),
           const SizedBox(height: 20),
 
           _buildField(_namaKegiatanCtrl, 'Nama Kegiatan', Icons.event_outlined),
           const SizedBox(height: 14),
-          _buildField(_deskripsiCtrl, 'Deskripsi / Latar Belakang', Icons.description_outlined, maxLines: 3),
+          _buildField(
+            _deskripsiCtrl,
+            'Deskripsi / Latar Belakang',
+            Icons.description_outlined,
+            maxLines: 3,
+          ),
           const SizedBox(height: 14),
-          _buildField(_metodeCtrl, 'Metode Pelaksanaan', Icons.build_outlined, maxLines: 2),
+          _buildField(
+            _metodeCtrl,
+            'Metode Pelaksanaan',
+            Icons.build_outlined,
+            maxLines: 2,
+          ),
           const SizedBox(height: 14),
-          _buildField(_lokasiCtrl, 'Lokasi Kegiatan', Icons.location_on_outlined),
+          _buildField(
+            _lokasiCtrl,
+            'Lokasi Kegiatan',
+            Icons.location_on_outlined,
+          ),
           const SizedBox(height: 14),
           _buildField(_sasaranCtrl, 'Sasaran Utama', Icons.people_outline),
           const SizedBox(height: 14),
@@ -391,22 +474,36 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
               initialValue: _tipeKegiatanId,
               decoration: InputDecoration(
                 labelText: 'Tipe Kegiatan',
-                prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF64748B)),
+                prefixIcon: const Icon(
+                  Icons.category_outlined,
+                  color: Color(0xFF64748B),
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
                 enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
                 focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5)),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF33C8DA),
+                    width: 1.5,
+                  ),
+                ),
               ),
-              items: _tipeKegiatanList.map((t) => DropdownMenuItem<int>(
-                value: t['tipe_kegiatan_id'] as int,
-                child: Text(t['nama_tipe'] ?? '-'),
-              )).toList(),
+              items: _tipeKegiatanList
+                  .map(
+                    (t) => DropdownMenuItem<int>(
+                      value: t['tipe_kegiatan_id'] as int,
+                      child: Text(t['nama_tipe'] ?? '-'),
+                    ),
+                  )
+                  .toList(),
               onChanged: (val) => setState(() => _tipeKegiatanId = val),
             ),
             const SizedBox(height: 14),
@@ -415,9 +512,21 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
           // Date Pickers
           Row(
             children: [
-              Expanded(child: _buildDatePicker('Tanggal Mulai', _tanggalMulai, () => _pickDate(true))),
+              Expanded(
+                child: _buildDatePicker(
+                  'Tanggal Mulai',
+                  _tanggalMulai,
+                  () => _pickDate(true),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildDatePicker('Tanggal Selesai', _tanggalSelesai, () => _pickDate(false))),
+              Expanded(
+                child: _buildDatePicker(
+                  'Tanggal Selesai',
+                  _tanggalSelesai,
+                  () => _pickDate(false),
+                ),
+              ),
             ],
           ),
         ],
@@ -431,67 +540,117 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Manfaat Kegiatan',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Figtree', color: Color(0xFF0F172A))),
+          const Text(
+            'Manfaat Kegiatan',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Figtree',
+              color: Color(0xFF0F172A),
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('Tuliskan manfaat yang diharapkan dari kegiatan ini.',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+          const Text(
+            'Tuliskan manfaat yang diharapkan dari kegiatan ini.',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+          ),
           const SizedBox(height: 12),
 
-          ..._manfaatCtrls.asMap().entries.map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildField(e.value, 'Manfaat ${e.key + 1}', Icons.check_circle_outline),
+          ..._manfaatCtrls.asMap().entries.map(
+            (e) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildField(
+                      e.value,
+                      'Manfaat ${e.key + 1}',
+                      Icons.check_circle_outline,
                     ),
-                    if (_manfaatCtrls.length > 1)
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-                        onPressed: () => setState(() {
-                          e.value.dispose();
-                          _manfaatCtrls.removeAt(e.key);
-                        }),
+                  ),
+                  if (_manfaatCtrls.length > 1)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: Colors.redAccent,
                       ),
-                  ],
-                ),
-              )),
+                      onPressed: () => setState(() {
+                        e.value.dispose();
+                        _manfaatCtrls.removeAt(e.key);
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
           TextButton.icon(
-            onPressed: () => setState(() => _manfaatCtrls.add(TextEditingController())),
+            onPressed: () =>
+                setState(() => _manfaatCtrls.add(TextEditingController())),
             icon: const Icon(Icons.add, color: Color(0xFF33C8DA)),
-            label: const Text('Tambah Manfaat', style: TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Tambah Manfaat',
+              style: TextStyle(
+                color: Color(0xFF33C8DA),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
 
           const SizedBox(height: 24),
-          const Text('Tahapan Pelaksanaan',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Figtree', color: Color(0xFF0F172A))),
+          const Text(
+            'Tahapan Pelaksanaan',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Figtree',
+              color: Color(0xFF0F172A),
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('Tuliskan tahapan-tahapan yang akan dilaksanakan.',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+          const Text(
+            'Tuliskan tahapan-tahapan yang akan dilaksanakan.',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+          ),
           const SizedBox(height: 12),
 
-          ..._tahapanCtrls.asMap().entries.map((e) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _buildField(e.value, 'Tahapan ${e.key + 1}', Icons.linear_scale_outlined),
+          ..._tahapanCtrls.asMap().entries.map(
+            (e) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildField(
+                      e.value,
+                      'Tahapan ${e.key + 1}',
+                      Icons.linear_scale_outlined,
                     ),
-                    if (_tahapanCtrls.length > 1)
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-                        onPressed: () => setState(() {
-                          e.value.dispose();
-                          _tahapanCtrls.removeAt(e.key);
-                        }),
+                  ),
+                  if (_tahapanCtrls.length > 1)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                        color: Colors.redAccent,
                       ),
-                  ],
-                ),
-              )),
+                      onPressed: () => setState(() {
+                        e.value.dispose();
+                        _tahapanCtrls.removeAt(e.key);
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
           TextButton.icon(
-            onPressed: () => setState(() => _tahapanCtrls.add(TextEditingController())),
+            onPressed: () =>
+                setState(() => _tahapanCtrls.add(TextEditingController())),
             icon: const Icon(Icons.add, color: Color(0xFF33C8DA)),
-            label: const Text('Tambah Tahapan', style: TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Tambah Tahapan',
+              style: TextStyle(
+                color: Color(0xFF33C8DA),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -504,11 +663,20 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Rincian Anggaran Belanja (RAB)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Figtree', color: Color(0xFF0F172A))),
+          const Text(
+            'Rincian Anggaran Belanja (RAB)',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              fontFamily: 'Figtree',
+              color: Color(0xFF0F172A),
+            ),
+          ),
           const SizedBox(height: 4),
-          const Text('Tambahkan setiap komponen biaya yang dibutuhkan.',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+          const Text(
+            'Tambahkan setiap komponen biaya yang dibutuhkan.',
+            style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
+          ),
           const SizedBox(height: 16),
 
           ..._rabItems.asMap().entries.map((e) {
@@ -526,22 +694,34 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Item ${e.key + 1}',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
-                              fontFamily: 'Figtree')),
+                      Text(
+                        'Item ${e.key + 1}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF475569),
+                          fontFamily: 'Figtree',
+                        ),
+                      ),
                       if (_rabItems.length > 1)
                         IconButton(
-                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.redAccent,
+                            size: 20,
+                          ),
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(),
-                          onPressed: () => setState(() => _rabItems.removeAt(e.key)),
+                          onPressed: () =>
+                              setState(() => _rabItems.removeAt(e.key)),
                         ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  _buildField(r['uraian'] as TextEditingController, 'Uraian', Icons.notes_outlined),
+                  _buildField(
+                    r['uraian'] as TextEditingController,
+                    'Uraian',
+                    Icons.notes_outlined,
+                  ),
                   const SizedBox(height: 10),
                   Row(
                     children: [
@@ -570,21 +750,38 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                       initialValue: r['kategori_belanja_id'] as int,
                       decoration: InputDecoration(
                         labelText: 'Kategori Belanja',
-                        prefixIcon: const Icon(Icons.receipt_long_outlined, color: Color(0xFF64748B)),
+                        prefixIcon: const Icon(
+                          Icons.receipt_long_outlined,
+                          color: Color(0xFF64748B),
+                        ),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                         enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE2E8F0),
+                          ),
+                        ),
                       ),
-                      items: _kategoriBelanja.map((k) => DropdownMenuItem<int>(
-                        value: k['kategori_belanja_id'] as int,
-                        child: Text(k['nama_kategori'] ?? '-',
-                            overflow: TextOverflow.ellipsis),
-                      )).toList(),
-                      onChanged: (val) => setState(() => r['kategori_belanja_id'] = val ?? r['kategori_belanja_id']),
+                      items: _kategoriBelanja
+                          .map(
+                            (k) => DropdownMenuItem<int>(
+                              value: k['kategori_belanja_id'] as int,
+                              child: Text(
+                                k['nama_kategori'] ?? '-',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) => setState(
+                        () => r['kategori_belanja_id'] =
+                            val ?? r['kategori_belanja_id'],
+                      ),
                     ),
                   ],
                 ],
@@ -604,8 +801,13 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
               });
             }),
             icon: const Icon(Icons.add, color: Color(0xFF33C8DA)),
-            label: const Text('Tambah Item RAB',
-                style: TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Tambah Item RAB',
+              style: TextStyle(
+                color: Color(0xFF33C8DA),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -629,15 +831,22 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
         filled: true,
         fillColor: Colors.white,
         prefixIcon: Icon(icon, color: const Color(0xFF64748B)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5)),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+        ),
       ),
     );
   }
@@ -651,21 +860,32 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: value != null ? const Color(0xFF33C8DA) : const Color(0xFFE2E8F0)),
+            color: value != null
+                ? const Color(0xFF33C8DA)
+                : const Color(0xFFE2E8F0),
+          ),
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_month_outlined,
-                size: 18,
-                color: value != null ? const Color(0xFF33C8DA) : const Color(0xFF94A3B8)),
+            Icon(
+              Icons.calendar_month_outlined,
+              size: 18,
+              color: value != null
+                  ? const Color(0xFF33C8DA)
+                  : const Color(0xFF94A3B8),
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 value != null ? _fmtDate(value) : label,
                 style: TextStyle(
-                  color: value != null ? const Color(0xFF334155) : const Color(0xFF94A3B8),
+                  color: value != null
+                      ? const Color(0xFF334155)
+                      : const Color(0xFF94A3B8),
                   fontSize: 13,
-                  fontWeight: value != null ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight: value != null
+                      ? FontWeight.w600
+                      : FontWeight.normal,
                 ),
               ),
             ),
