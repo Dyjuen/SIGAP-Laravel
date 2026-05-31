@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart';
 
 class PpkKegiatanDetailPage extends StatefulWidget {
   final int kegiatanId;
@@ -135,7 +136,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceVariant.withOpacity(0.3),
+                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
                   ),
@@ -529,6 +530,9 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     final List<dynamic> targets = kak['indikator_kinerja'] as List? ?? [];
     final List<dynamic> targetIku = kak['target_iku'] as List? ?? [];
 
+    // Public URL for surat pengantar (set by API if available)
+    final String? suratPengantarUrl = _kegiatan['surat_pengantar_url'] as String?;
+
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -648,7 +652,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  if (suratPengantarUrl != null)
+                    if (suratPengantarUrl != null)
                     ElevatedButton.icon(
                       onPressed: () => _launchUrl(suratPengantarUrl),
                       icon: const Icon(Icons.file_open_outlined, size: 16),
@@ -662,7 +666,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       ),
-                    )),
+                    ),
                   const SizedBox(height: 8),
                   const Text(
                     'Target IKU',

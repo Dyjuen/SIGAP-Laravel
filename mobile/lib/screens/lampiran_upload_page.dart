@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:file_picker/file_picker.dart';
-import '../models/lampiran_model.dart';
 import '../providers/lampiran_provider.dart';
 
 class LampiranUploadPage extends StatefulWidget {
@@ -289,8 +288,9 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
     if (fileName.endsWith('.pdf')) return Icons.picture_as_pdf;
     if (fileName.endsWith('.png') ||
         fileName.endsWith('.jpg') ||
-        fileName.endsWith('.jpeg'))
+        fileName.endsWith('.jpeg')) {
       return Icons.image;
+    }
     return Icons.file_present;
   }
 }

@@ -8,7 +8,6 @@ import '../verifikator/verifikator_approval_page.dart';
 import '../verifikator/verifikator_kak_list_page.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
-import '../../widgets/blue_stat_card.dart';
 
 class VerifikatorDashboardScreen extends StatefulWidget {
   const VerifikatorDashboardScreen({super.key});

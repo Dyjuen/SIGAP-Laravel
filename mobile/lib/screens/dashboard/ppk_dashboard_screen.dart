@@ -4,7 +4,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/monitoring_provider.dart';
 import '../../models/dashboard_model.dart';
-import '../profile_page.dart';
 import '../ppk/ppk_kegiatan_list_page.dart';
 import '../ppk/ppk_kegiatan_detail_page.dart';
 import '../kegiatan_monitoring_page.dart';
@@ -287,7 +286,7 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemCount: items.length > 5 ? 5 : items.length,
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (_, _) =>
                                   const Divider(height: 1, color: Color(0xFFF1F5F9)),
                               itemBuilder: (context, index) {
                                 final item = items[index];

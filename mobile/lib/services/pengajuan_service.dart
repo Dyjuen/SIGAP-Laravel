@@ -16,8 +16,9 @@ class PengajuanService {
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        if (response.data is Map<String, dynamic>)
+        if (response.data is Map<String, dynamic>) {
           return response.data as Map<String, dynamic>;
+        }
         return {'success': true};
       }
 

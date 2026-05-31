@@ -373,7 +373,7 @@ class _LpjListPageState extends State<LpjListPage> {
                               );
                             },
                           );
-                        }).toList(),
+                        }),
                       ],
                     );
                   },

@@ -192,7 +192,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                             ),
                           ),
                           Text(
-                            user?.namaLengkap ?? 'Pengusul Kegiatan',
+                            authProvider.user?.namaLengkap ?? 'Pengusul Kegiatan',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.figtree(
                               fontSize: 28,
@@ -476,9 +476,9 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                   ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

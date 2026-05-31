@@ -68,10 +68,6 @@ class BaseDashboardProvider extends ChangeNotifier {
     }
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
 /// Pengusul Dashboard Provider

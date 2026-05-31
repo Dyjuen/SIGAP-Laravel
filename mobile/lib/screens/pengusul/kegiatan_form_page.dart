@@ -76,8 +76,12 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
     _metodeCtrl.dispose();
     _lokasiCtrl.dispose();
     _sasaranCtrl.dispose();
-    for (final c in _manfaatCtrls) c.dispose();
-    for (final c in _tahapanCtrls) c.dispose();
+    for (final c in _manfaatCtrls) {
+      c.dispose();
+    }
+    for (final c in _tahapanCtrls) {
+      c.dispose();
+    }
     for (final r in _rabItems) {
       (r['uraian'] as TextEditingController).dispose();
       (r['volume1'] as TextEditingController).dispose();
@@ -384,7 +388,7 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
           // Tipe Kegiatan Dropdown
           if (_masterLoaded && _tipeKegiatanList.isNotEmpty) ...[
             DropdownButtonFormField<int>(
-              value: _tipeKegiatanId,
+              initialValue: _tipeKegiatanId,
               decoration: InputDecoration(
                 labelText: 'Tipe Kegiatan',
                 prefixIcon: const Icon(Icons.category_outlined, color: Color(0xFF64748B)),
@@ -563,7 +567,7 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                   if (_masterLoaded && _kategoriBelanja.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     DropdownButtonFormField<int>(
-                      value: r['kategori_belanja_id'] as int,
+                      initialValue: r['kategori_belanja_id'] as int,
                       decoration: InputDecoration(
                         labelText: 'Kategori Belanja',
                         prefixIcon: const Icon(Icons.receipt_long_outlined, color: Color(0xFF64748B)),

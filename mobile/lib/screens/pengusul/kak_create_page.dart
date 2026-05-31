@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/kak_detail_provider.dart';
 import '../../services/kak_service.dart';
 import '../../services/master_data_service.dart';
 import 'kak_create_edit_form.dart';
 
 class KakCreatePage extends StatefulWidget {
-  const KakCreatePage({Key? key}) : super(key: key);
+  const KakCreatePage({super.key});
 
   @override
   State<KakCreatePage> createState() => _KakCreatePageState();

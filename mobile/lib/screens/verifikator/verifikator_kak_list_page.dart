@@ -4,11 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 
 import '../../models/dashboard_model.dart';
-import '../../services/kak_service.dart';
 import 'verifikator_approval_page.dart';
 
 class VerifikatorKakListPage extends StatefulWidget {
-  const VerifikatorKakListPage({Key? key}) : super(key: key);
+  const VerifikatorKakListPage({super.key});
 
   @override
   State<VerifikatorKakListPage> createState() => _VerifikatorKakListPageState();

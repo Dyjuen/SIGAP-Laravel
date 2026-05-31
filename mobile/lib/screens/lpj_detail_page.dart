@@ -355,7 +355,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }

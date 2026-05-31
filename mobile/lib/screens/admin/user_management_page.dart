@@ -213,7 +213,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   const SizedBox(height: 16),
 
                   DropdownButtonFormField<int>(
-                    value: selectedRoleId,
+                    initialValue: selectedRoleId,
                     decoration: const InputDecoration(
                       labelText: 'Peran Akses',
                       prefixIcon: Icon(Icons.security_outlined),

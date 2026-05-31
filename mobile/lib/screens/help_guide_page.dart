@@ -166,7 +166,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
 
                   // Tipe Media
                   DropdownButtonFormField<String>(
-                    value: selectedType,
+                    initialValue: selectedType,
                     decoration: const InputDecoration(
                       labelText: 'Tipe Media',
                       prefixIcon: Icon(Icons.perm_media_outlined),

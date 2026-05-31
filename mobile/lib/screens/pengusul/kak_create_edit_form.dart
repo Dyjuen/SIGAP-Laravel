@@ -93,7 +93,7 @@ class KakCreateEditForm extends StatefulWidget {
   final Function(Map<String, dynamic>) onFormChange;
 
   const KakCreateEditForm({
-    Key? key,
+    super.key,
     this.initialData,
     required this.tipeKegiatanOptions,
     this.ikuOptions = const [],
@@ -101,7 +101,7 @@ class KakCreateEditForm extends StatefulWidget {
     required this.onSubmit,
     this.isLoading = false,
     required this.onFormChange,
-  }) : super(key: key);
+  });
 
   @override
   State<KakCreateEditForm> createState() => _KakCreateEditFormState();
@@ -441,7 +441,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   if (hasNote) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Catatan Verifikator: ${note}',
+                      'Catatan Verifikator: $note',
                       style: GoogleFonts.figtree(
                         fontSize: 12,
                         color: Colors.redAccent,
@@ -464,7 +464,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DropdownButtonFormField<int>(
-                    value: selectedTipeKegiatan,
+                    initialValue: selectedTipeKegiatan,
                     decoration: InputDecoration(
                       labelText: 'Tipe Kegiatan',
                       border: OutlineInputBorder(
@@ -578,7 +578,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   if (hasNote) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Catatan Verifikator: ${note}',
+                      'Catatan Verifikator: $note',
                       style: GoogleFonts.figtree(
                         fontSize: 12,
                         color: Colors.redAccent,
@@ -631,7 +631,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   if (hasNote) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Catatan Verifikator: ${note}',
+                      'Catatan Verifikator: $note',
                       style: GoogleFonts.figtree(
                         fontSize: 12,
                         color: Colors.redAccent,
@@ -741,7 +741,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                 ],
               ),
             );
-          }).toList(),
+          }),
           if (manfaatList.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -798,7 +798,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   if (hasNote) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Catatan Verifikator: ${note}',
+                      'Catatan Verifikator: $note',
                       style: GoogleFonts.figtree(
                         fontSize: 12,
                         color: Colors.redAccent,
@@ -926,7 +926,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                 ],
               ),
             );
-          }).toList(),
+          }),
           if (tahapanList.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -1087,7 +1087,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                 ),
               ),
             );
-          }).toList(),
+          }),
           if (indikatorKinerjaList.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -1458,7 +1458,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                 ),
               ),
             );
-          }).toList(),
+          }),
           if (rabList.isEmpty)
             Padding(
               padding: const EdgeInsets.only(bottom: 16),

@@ -70,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        backgroundColor: colorScheme.background,
+        backgroundColor: colorScheme.surface,
         body: Stack(
           alignment: AlignmentDirectional(-1, -1),
           children: [

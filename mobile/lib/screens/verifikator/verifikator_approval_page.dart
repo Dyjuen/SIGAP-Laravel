@@ -12,8 +12,7 @@ import '../kak_detail_page.dart';
 class VerifikatorApprovalPage extends StatefulWidget {
   final int kakId;
 
-  const VerifikatorApprovalPage({Key? key, required this.kakId})
-    : super(key: key);
+  const VerifikatorApprovalPage({super.key, required this.kakId});
 
   @override
   State<VerifikatorApprovalPage> createState() =>
@@ -1115,10 +1114,9 @@ class _ApproveBottomSheet extends StatefulWidget {
   final Function(Map<String, dynamic> data) onSubmit;
 
   const _ApproveBottomSheet({
-    Key? key,
     required this.kakId,
     required this.onSubmit,
-  }) : super(key: key);
+  });
 
   @override
   State<_ApproveBottomSheet> createState() => _ApproveBottomSheetState();
@@ -1323,7 +1321,7 @@ class _ApproveBottomSheetState extends State<_ApproveBottomSheet> {
                       vertical: 12,
                     ),
                   ),
-                  value: _selectedMataAnggaranId,
+                  initialValue: _selectedMataAnggaranId,
                   items: _mataAnggaranList.map((item) {
                     return DropdownMenuItem<int>(
                       value: item['mata_anggaran_id'] as int,

@@ -168,13 +168,14 @@ class _KegiatanPageState extends State<KegiatanPage> {
                                 ? resp.data['message'] ??
                                       'Gagal mengajukan kegiatan.'
                                 : 'Gagal mengajukan kegiatan.';
-                            if (context.mounted)
+                            if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(msg),
                                   backgroundColor: Colors.redAccent,
                                 ),
                               );
+                            }
                           }
                         } on DioException catch (e) {
                           final responseMessage = e.response?.data is Map

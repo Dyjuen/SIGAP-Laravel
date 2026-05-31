@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/kak_model.dart';
-import '../../providers/kak_detail_provider.dart';
 import '../../services/kak_service.dart';
 import '../../services/master_data_service.dart';
 import 'kak_create_edit_form.dart';
@@ -11,7 +10,7 @@ import 'kak_create_edit_form.dart';
 class KakEditPage extends StatefulWidget {
   final int kakId;
 
-  const KakEditPage({Key? key, required this.kakId}) : super(key: key);
+  const KakEditPage({super.key, required this.kakId});
 
   @override
   State<KakEditPage> createState() => _KakEditPageState();

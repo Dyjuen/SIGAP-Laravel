@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/lpj_provider.dart';
-import '../../models/lpj_model.dart';
 import 'lpj_detail_page.dart';
 import 'lpj_form_page.dart';
 
