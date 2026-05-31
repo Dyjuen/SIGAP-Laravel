@@ -61,27 +61,15 @@ class MonitoringKegiatanTest extends TestCase
         );
     }
 
-    public function test_verifikator_can_only_see_matching_tipe_kegiatan(): void
+    public function test_unauthorized_roles_cannot_access_monitoring(): void
     {
-        $verifikator1 = $this->createVerifikator(1); // Tipe 1
-        $pengusul = $this->createPengusul();
+        $verifikator = $this->createVerifikator(1);
+        $bendahara = User::factory()->create(['role_id' => 6]);
+        $rektorat = User::factory()->create(['role_id' => 7]);
 
-        $kak1 = KAK::factory()->create(['pengusul_user_id' => $pengusul->user_id, 'tipe_kegiatan_id' => 1]);
-        $kak2 = KAK::factory()->create(['pengusul_user_id' => $pengusul->user_id, 'tipe_kegiatan_id' => 2]);
-
-        $kegiatan1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);
-        $kegiatan2 = Kegiatan::create(['kak_id' => $kak2->kak_id]);
-
-        $response = $this->actingAs($verifikator1)->get(route('kegiatan.monitoring'));
-
-        $response->assertStatus(200);
-
-        $response->assertInertia(
-            fn (AssertableInertia $page) => $page
-                ->component('Kegiatan/Monitoring')
-                ->has('kegiatans.data', 1)
-                ->where('kegiatans.data.0.kegiatan_id', $kegiatan1->kegiatan_id)
-        );
+        $this->actingAs($verifikator)->get(route('kegiatan.monitoring'))->assertStatus(403);
+        $this->actingAs($bendahara)->get(route('kegiatan.monitoring'))->assertStatus(403);
+        $this->actingAs($rektorat)->get(route('kegiatan.monitoring'))->assertStatus(403);
     }
 
     public function test_admin_can_see_all_kegiatan(): void

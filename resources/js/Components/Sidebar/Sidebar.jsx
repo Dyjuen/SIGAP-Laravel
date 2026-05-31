@@ -57,13 +57,14 @@ export default function Sidebar({ isOpen, setIsOpen, isExpanded, setIsExpanded }
             href: route('kegiatan.index'),
             icon: ClipboardCheck,
             active: route().current('kegiatan.*') && !route().current('kegiatan.monitoring'),
-            roles: [1, 3, 4, 5, 6, 7]
+            roles: [1, 3, 4, 5]
         },
         {
             label: 'Pemantauan Kegiatan',
             href: route('kegiatan.monitoring'),
             icon: Eye,
-            active: route().current('kegiatan.monitoring')
+            active: route().current('kegiatan.monitoring'),
+            roles: [1, 3, 4, 5]
         },
         {
             label: 'Pencairan Dana',

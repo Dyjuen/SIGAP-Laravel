@@ -297,7 +297,7 @@ export default function Index({ auth, kegiatans }) {
                                                         <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                                             <div
                                                                 className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-500"
-                                                                style={{ width: `${Math.min(100, (item.dana_dicairkan / item.total_anggaran_diusulkan) * 100)}%` }}
+                                                                style={{ width: `${item.total_anggaran_diusulkan > 0 ? Math.min(100, (item.dana_dicairkan / item.total_anggaran_diusulkan) * 100) : 0}%` }}
                                                             />
                                                         </div>
                                                     </div>

@@ -50,10 +50,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Kegiatan Routes
-    Route::get('/kegiatan/monitoring', [KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Rektorat')->group(function () {
-        Route::resource('kegiatan', KegiatanController::class)->only(['index', 'store', 'show', 'update']);
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
+        Route::get('/kegiatan/monitoring', [KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
+        Route::resource('kegiatan', KegiatanController::class)->only(['index', 'store', 'update']);
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanController::class, 'approve'])->name('kegiatan.approve');
+    });
+
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara')->group(function () {
+        Route::get('/kegiatan/{kegiatan}', [KegiatanController::class, 'show'])->name('kegiatan.show');
     });
 
     // Pencairan Routes

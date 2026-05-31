@@ -624,4 +624,32 @@ class KegiatanTest extends TestCase
 
         \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\KAKWorkflowMail::class);
     }
+
+    public function test_unauthorized_roles_cannot_access_kegiatan_routes(): void
+    {
+        $bendahara = User::factory()->create(['role_id' => 6]);
+        $rektorat = User::factory()->create(['role_id' => 7]);
+
+        // Verifikator (role 2), Bendahara (role 6), Rektorat (role 7) cannot access /kegiatan
+        $this->actingAs($this->verifikator)->get('/kegiatan')->assertStatus(403);
+        $this->actingAs($bendahara)->get('/kegiatan')->assertStatus(403);
+        $this->actingAs($rektorat)->get('/kegiatan')->assertStatus(403);
+
+        // Create a kegiatan
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        // Verifikator and Rektorat cannot access /kegiatan/{kegiatan}
+        $this->actingAs($this->verifikator)->get("/kegiatan/{$kegiatan->kegiatan_id}")->assertStatus(403);
+        $this->actingAs($rektorat)->get("/kegiatan/{$kegiatan->kegiatan_id}")->assertStatus(403);
+    }
+
+    public function test_bendahara_can_access_kegiatan_show_route(): void
+    {
+        $bendahara = User::factory()->create(['role_id' => 6]);
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $this->actingAs($bendahara)->get("/kegiatan/{$kegiatan->kegiatan_id}")->assertStatus(200);
+    }
 }
