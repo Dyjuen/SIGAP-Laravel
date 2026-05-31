@@ -1,11 +1,13 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../../widgets/blue_stat_card.dart';
 import '../../widgets/activity_item.dart';
+import '../../widgets/blue_stat_card.dart';
+import '../help_guide_page.dart';
+import '../profile_page.dart';
 import '../pengusul/kak_create_page.dart';
 import '../pengusul/kak_list_page.dart';
 import '../help_guide_page.dart';
@@ -25,6 +27,91 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
     super.initState();
     Future.microtask(
       () => context.read<PengusulDashboardProvider>().loadDashboard(),
+    );
+  }
+
+  Future<void> _openPageAndReload(
+    BuildContext context,
+    PengusulDashboardProvider dashboardProvider,
+    Widget page,
+  ) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+
+    if (!mounted) {
+      return;
+    }
+
+    await dashboardProvider.loadDashboard();
+  }
+
+  Future<void> _openDrawerPage(
+    BuildContext context,
+    PengusulDashboardProvider dashboardProvider,
+    Widget page,
+  ) async {
+    Navigator.pop(context);
+    await _openPageAndReload(context, dashboardProvider, page);
+  }
+
+  Widget _buildDrawerTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool selected = false,
+  }) {
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: selected ? const Color(0xFF00BCD4) : const Color(0xFF475569),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.figtree(
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? const Color(0xFF00BCD4) : const Color(0xFF0F172A),
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildQuickActionCard({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: const Color(0xFF0F172A), size: 32),
+                const SizedBox(height: 8),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.figtree(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF0F172A),
+                    letterSpacing: 0,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -49,8 +136,10 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
               );
             }
 
-            if (dashboardProvider.isError) {
-              return Center(
+          if (dashboardProvider.isError) {
+            return Scaffold(
+              backgroundColor: const Color(0xFFF8FAFC),
+              body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -68,15 +157,14 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                     Text(dashboardProvider.errorMessage),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () {
-                        dashboardProvider.loadDashboard();
-                      },
+                      onPressed: dashboardProvider.loadDashboard,
                       child: const Text('Coba Lagi'),
                     ),
                   ],
                 ),
-              );
-            }
+              ),
+            );
+          }
 
             return RefreshIndicator(
               onRefresh: () => dashboardProvider.loadDashboard(),
@@ -104,8 +192,8 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                             ),
                           ),
                           Text(
-                            authProvider.user?.namaLengkap ??
-                                'Pengusul Kegiatan',
+                            user?.namaLengkap ?? 'Pengusul Kegiatan',
+                            textAlign: TextAlign.center,
                             style: GoogleFonts.figtree(
                               fontSize: 28,
                               fontWeight: FontWeight.w900,
@@ -122,11 +210,14 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Stat Cards 2x2 Grid
-                          if (dashboardProvider.stats != null) ...[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                          if (dashboardProvider.stats != null)
+                            GridView.count(
+                              crossAxisCount: 2,
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 1.15,
                               children: [
                                 Expanded(
                                   child: GestureDetector(
@@ -215,10 +306,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
-                          ],
-
-                          // Quick Actions
+                          const SizedBox(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -233,16 +321,11 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                 ),
                               ),
                               GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const KakListPage(),
-                                    ),
-                                  ).then((_) {
-                                    dashboardProvider.loadDashboard();
-                                  });
-                                },
+                                onTap: () => _openPageAndReload(
+                                  context,
+                                  dashboardProvider,
+                                  const KakListPage(),
+                                ),
                                 child: Text(
                                   'Lihat Semua',
                                   style: GoogleFonts.figtree(
@@ -259,162 +342,47 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const KakCreatePage(),
-                                      ),
-                                    ).then((result) {
-                                      if (result == true) {
-                                        // Reload dashboard after create
-                                        dashboardProvider.loadDashboard();
-                                      }
-                                    });
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
-                                        width: 1,
-                                      ),
+                              _buildQuickActionCard(
+                                icon: Icons.add_circle_outline_rounded,
+                                label: 'Buat KAK',
+                                onTap: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const KakCreatePage(),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.add_circle_outline_rounded,
-                                            color: const Color(0xFF0F172A),
-                                            size: 32,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Buat KAK',
-                                            style: GoogleFonts.figtree(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: const Color(0xFF0F172A),
-                                              letterSpacing: 0,
-                                              height: 1.3,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+                                  );
+
+                                  if (result == true && mounted) {
+                                    await dashboardProvider.loadDashboard();
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 16),
+                              _buildQuickActionCard(
+                                icon: Icons.assignment_rounded,
+                                label: 'Daftar KAK',
+                                onTap: () => _openPageAndReload(
+                                  context,
+                                  dashboardProvider,
+                                  const KakListPage(),
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const KakListPage(),
-                                      ),
-                                    ).then((_) {
-                                      dashboardProvider.loadDashboard();
-                                    });
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
-                                        width: 1,
-                                      ),
+                              _buildQuickActionCard(
+                                icon: Icons.help_outline_rounded,
+                                label: 'Panduan',
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const HelpGuidePage(),
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.assignment_rounded,
-                                            color: const Color(0xFF0F172A),
-                                            size: 32,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Daftar KAK',
-                                            style: GoogleFonts.figtree(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: const Color(0xFF0F172A),
-                                              letterSpacing: 0,
-                                              height: 1.3,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const HelpGuidePage(),
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.help_outline_rounded,
-                                            color: const Color(0xFF0F172A),
-                                            size: 32,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Panduan',
-                                            style: GoogleFonts.figtree(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: const Color(0xFF0F172A),
-                                              letterSpacing: 0,
-                                              height: 1.3,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
+                                  );
+                                },
                               ),
                             ],
                           ),
                           const SizedBox(height: 24),
-
-                          // Activities
                           Text(
                             'Aktivitas Terbaru',
                             style: GoogleFonts.figtree(
@@ -508,9 +476,9 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                   ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

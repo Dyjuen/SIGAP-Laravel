@@ -3,19 +3,22 @@
 class KakManfaat {
   final String manfaatId;
   final String manfaat;
+  final String? catatan;
 
-  KakManfaat({required this.manfaatId, required this.manfaat});
+  KakManfaat({required this.manfaatId, required this.manfaat, this.catatan});
 
   factory KakManfaat.fromJson(Map<String, dynamic> json) {
     return KakManfaat(
       manfaatId: json['manfaat_id']?.toString() ?? '',
       manfaat: json['manfaat'] ?? '',
+      catatan: json['catatan_manfaat'],
     );
   }
 
   Map<String, dynamic> toJson() => {
     'manfaat_id': manfaatId,
     'manfaat': manfaat,
+    'catatan_manfaat': catatan,
   };
 }
 
@@ -23,11 +26,13 @@ class KakTahapan {
   final String tahapanId;
   final String namaTahapan;
   final int urutan;
+  final String? catatanVerifikator;
 
   KakTahapan({
     required this.tahapanId,
     required this.namaTahapan,
     required this.urutan,
+    this.catatanVerifikator,
   });
 
   factory KakTahapan.fromJson(Map<String, dynamic> json) {
@@ -35,6 +40,7 @@ class KakTahapan {
       tahapanId: json['tahapan_id']?.toString() ?? '',
       namaTahapan: json['nama_tahapan'] ?? '',
       urutan: json['urutan'] ?? 0,
+      catatanVerifikator: json['catatan_verifikator'],
     );
   }
 
@@ -42,6 +48,7 @@ class KakTahapan {
     'tahapan_id': tahapanId,
     'nama_tahapan': namaTahapan,
     'urutan': urutan,
+    'catatan_verifikator': catatanVerifikator,
   };
 }
 
@@ -50,12 +57,14 @@ class KakIndikatorKinerja {
   final String bulanIndikator;
   final String deskripsiTarget;
   final double persentaseTarget;
+  final String? catatanVerifikator;
 
   KakIndikatorKinerja({
     required this.targetId,
     required this.bulanIndikator,
     required this.deskripsiTarget,
     required this.persentaseTarget,
+    this.catatanVerifikator,
   });
 
   factory KakIndikatorKinerja.fromJson(Map<String, dynamic> json) {
@@ -64,6 +73,7 @@ class KakIndikatorKinerja {
       bulanIndikator: json['bulan_indikator'] ?? '',
       deskripsiTarget: json['deskripsi_target'] ?? '',
       persentaseTarget: _parseDouble(json['persentase_target']),
+      catatanVerifikator: json['catatan_verifikator'],
     );
   }
 
@@ -72,6 +82,7 @@ class KakIndikatorKinerja {
     'bulan_indikator': bulanIndikator,
     'deskripsi_target': deskripsiTarget,
     'persentase_target': persentaseTarget,
+    'catatan_verifikator': catatanVerifikator,
   };
 }
 
@@ -82,6 +93,7 @@ class KakTargetIku {
   final String target;
   final String? satuanId;
   final String? satuanNama;
+  final String? catatanVerifikator;
 
   KakTargetIku({
     required this.ikuId,
@@ -90,6 +102,7 @@ class KakTargetIku {
     required this.target,
     this.satuanId,
     this.satuanNama,
+    this.catatanVerifikator,
   });
 
   factory KakTargetIku.fromJson(Map<String, dynamic> json) {
@@ -100,6 +113,7 @@ class KakTargetIku {
       target: json['target']?.toString() ?? '',
       satuanId: json['satuan_id']?.toString(),
       satuanNama: json['satuan']?['nama_satuan'] ?? json['nama_satuan'],
+      catatanVerifikator: json['catatan_verifikator'],
     );
   }
 
@@ -110,6 +124,7 @@ class KakTargetIku {
     'target': target,
     'satuan_id': satuanId,
     'nama_satuan': satuanNama,
+    'catatan_verifikator': catatanVerifikator,
   };
 }
 
@@ -121,6 +136,7 @@ class KakRab {
   final double? volume3;
   final double? hargaSatuan;
   final double? jumlahDiusulkan;
+  final String? catatanVerifikator;
 
   KakRab({
     required this.anggaranId,
@@ -130,6 +146,7 @@ class KakRab {
     this.volume3,
     this.hargaSatuan,
     this.jumlahDiusulkan,
+    this.catatanVerifikator,
   });
 
   factory KakRab.fromJson(Map<String, dynamic> json) {
@@ -141,6 +158,7 @@ class KakRab {
       volume3: _parseDoubleOrNull(json['volume3']),
       hargaSatuan: _parseDoubleOrNull(json['harga_satuan']),
       jumlahDiusulkan: _parseDoubleOrNull(json['jumlah_diusulkan']),
+      catatanVerifikator: json['catatan_verifikator'],
     );
   }
 
@@ -152,6 +170,7 @@ class KakRab {
     'volume3': volume3,
     'harga_satuan': hargaSatuan,
     'jumlah_diusulkan': jumlahDiusulkan,
+    'catatan_verifikator': catatanVerifikator,
   };
 }
 
@@ -207,6 +226,13 @@ class KakDetail {
   // Pengusul Info
   final String? pengusulNama;
   final String updatedAt;
+  final String? catatanNamaKegiatan;
+  final String? catatanDeskripsiKegiatan;
+  final String? catatanTipeKegiatan;
+  final String? catatanSasaranUtama;
+  final String? catatanMetodePelaksanaan;
+  final String? catatanLokasi;
+  final String? catatanTanggal;
 
   // Child Collections
   final List<KakManfaat> manfaat;
@@ -232,6 +258,13 @@ class KakDetail {
     this.tipe,
     this.pengusulNama,
     required this.updatedAt,
+    this.catatanNamaKegiatan,
+    this.catatanDeskripsiKegiatan,
+    this.catatanTipeKegiatan,
+    this.catatanSasaranUtama,
+    this.catatanMetodePelaksanaan,
+    this.catatanLokasi,
+    this.catatanTanggal,
     required this.manfaat,
     required this.tahapan,
     required this.indikatorKinerja,
@@ -257,6 +290,13 @@ class KakDetail {
       tipe: json['tipe'],
       pengusulNama: json['pengusul_nama'],
       updatedAt: json['updated_at'] ?? '',
+      catatanNamaKegiatan: json['catatan_nama_kegiatan'],
+      catatanDeskripsiKegiatan: json['catatan_deskripsi_kegiatan'],
+      catatanTipeKegiatan: json['catatan_tipe_kegiatan'],
+      catatanSasaranUtama: json['catatan_sasaran_utama'],
+      catatanMetodePelaksanaan: json['catatan_metode_pelaksanaan'],
+      catatanLokasi: json['catatan_lokasi'],
+      catatanTanggal: json['catatan_tanggal'],
       manfaat:
           (json['manfaat'] as List?)
               ?.map((e) => KakManfaat.fromJson(e as Map<String, dynamic>))

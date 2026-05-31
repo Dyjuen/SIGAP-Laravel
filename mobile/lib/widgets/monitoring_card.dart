@@ -110,7 +110,7 @@ class MonitoringCardWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Tanggal Pengajuan',
+                          'Tanggal Tahap',
                           style: GoogleFonts.figtree(
                             fontWeight: FontWeight.w400,
                             fontSize: 12,
@@ -137,7 +137,7 @@ class MonitoringCardWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          'Penanggung Jawab',
+                          'Tahap Saat Ini',
                           style: GoogleFonts.figtree(
                             fontWeight: FontWeight.w400,
                             fontSize: 12,

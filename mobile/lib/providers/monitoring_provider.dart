@@ -1,12 +1,17 @@
 import 'package:flutter/foundation.dart';
-import '../models/dashboard_model.dart';
+import '../models/monitoring_model.dart';
 import '../services/monitoring_service.dart';
 
 class MonitoringProvider extends ChangeNotifier {
   final MonitoringService monitoringService;
 
-  List<DashboardItem> _allItems = [];
-  List<DashboardItem> _filteredItems = [];
+  List<MonitoringItem> _allItems = [];
+  List<MonitoringItem> _filteredItems = [];
+  MonitoringStats _stats = const MonitoringStats(
+    total: 0,
+    running: 0,
+    completed: 0,
+  );
   String _selectedFilter = 'Semua';
   String _searchQuery = '';
   bool _isLoading = false;
@@ -15,27 +20,33 @@ class MonitoringProvider extends ChangeNotifier {
   MonitoringProvider(this.monitoringService);
 
   // Getters
-  List<DashboardItem> get items => _filteredItems;
+  List<MonitoringItem> get items => _filteredItems;
+  MonitoringStats get stats => _stats;
   String get selectedFilter => _selectedFilter;
   String get searchQuery => _searchQuery;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isError => _errorMessage != null;
 
-  /// Load all KAKs for monitoring
+  /// Load monitoring data from API.
   Future<void> loadItems() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _allItems = await monitoringService.getAllKaks();
+      final response = await monitoringService.getMonitoring(
+        search: _searchQuery.isEmpty ? null : _searchQuery,
+      );
+      _allItems = response.items;
+      _stats = response.stats;
       _applyFiltersAndSearch();
       _errorMessage = null;
     } catch (e) {
       _errorMessage = e.toString();
       _allItems = [];
       _filteredItems = [];
+      _stats = const MonitoringStats(total: 0, running: 0, completed: 0);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -43,10 +54,9 @@ class MonitoringProvider extends ChangeNotifier {
   }
 
   /// Set search query and reapply filters
-  void setSearchQuery(String query) {
+  Future<void> setSearchQuery(String query) async {
     _searchQuery = query;
-    _applyFiltersAndSearch();
-    notifyListeners();
+    await loadItems();
   }
 
   /// Set selected status filter and reapply filters
@@ -60,17 +70,6 @@ class MonitoringProvider extends ChangeNotifier {
   void _applyFiltersAndSearch() {
     // First apply status filter
     var items = monitoringService.filterByStatus(_allItems, _selectedFilter);
-
-    // Then apply search filter
-    if (_searchQuery.isNotEmpty) {
-      items = items
-          .where(
-            (item) =>
-                item.nama.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                (item.id.toLowerCase().contains(_searchQuery.toLowerCase())),
-          )
-          .toList();
-    }
 
     _filteredItems = items;
   }

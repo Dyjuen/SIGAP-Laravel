@@ -143,6 +143,13 @@ class KakApiController extends Controller
             'lokasi' => $kak->lokasi,
             'sasaran_utama' => $kak->sasaran_utama,
             'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
+            'catatan_nama_kegiatan' => $kak->catatan_nama_kegiatan,
+            'catatan_deskripsi_kegiatan' => $kak->catatan_deskripsi_kegiatan,
+            'catatan_tipe_kegiatan' => $kak->catatan_tipe_kegiatan,
+            'catatan_sasaran_utama' => $kak->catatan_sasaran_utama,
+            'catatan_metode_pelaksanaan' => $kak->catatan_metode_pelaksanaan,
+            'catatan_lokasi' => $kak->catatan_lokasi,
+            'catatan_tanggal' => $kak->catatan_tanggal,
             'status_id' => $kak->status_id,
             'status_nama' => $kak->status?->nama_status,
             'tipe' => $kak->tipeKegiatan?->nama_tipe,
@@ -152,17 +159,20 @@ class KakApiController extends Controller
             'manfaat' => $kak->manfaat->map(fn ($m) => [
                 'manfaat_id' => $m->manfaat_id,
                 'manfaat' => $m->manfaat,
+                'catatan_manfaat' => $m->catatan_manfaat,
             ]),
             'tahapan' => $kak->tahapan->map(fn ($t) => [
                 'tahapan_id' => $t->tahapan_id,
                 'nama_tahapan' => $t->nama_tahapan,
                 'urutan' => $t->urutan,
+                'catatan_verifikator' => $t->catatan_verifikator,
             ])->sortBy('urutan')->values(),
             'indikator_kinerja' => $kak->targets->map(fn ($t) => [
                 'target_id' => $t->target_id,
                 'bulan_indikator' => $t->bulan_indikator,
                 'deskripsi_target' => $t->deskripsi_target,
                 'persentase_target' => $t->persentase_target,
+                'catatan_verifikator' => $t->catatan_verifikator,
             ]),
             'target_iku' => $kak->ikus->map(fn ($ti) => [
                 'iku_id' => $ti->iku_id,
@@ -171,6 +181,7 @@ class KakApiController extends Controller
                 'target' => $ti->target,
                 'satuan_id' => $ti->satuan_id,
                 'nama_satuan' => $ti->satuan?->nama_satuan,
+                'catatan_verifikator' => $ti->catatan_verifikator,
             ]),
             'rab' => $kak->anggaran->map(fn ($a) => [
                 'anggaran_id' => $a->anggaran_id,
@@ -180,6 +191,7 @@ class KakApiController extends Controller
                 'volume3' => $a->volume3,
                 'harga_satuan' => $a->harga_satuan,
                 'jumlah_diusulkan' => $a->jumlah_diusulkan,
+                'catatan_verifikator' => $a->catatan_verifikator,
             ]),
             'approvals' => $kak->approvals->map(fn ($a) => [
                 'approver_nama' => $a->approver?->nama_lengkap,
