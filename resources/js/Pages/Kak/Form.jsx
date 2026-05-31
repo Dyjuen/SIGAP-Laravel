@@ -9,7 +9,7 @@ import Step2Iku from './Partials/Step2Iku';
 import Step3Rab from './Partials/Step3Rab';
 import CommentModal from './Components/CommentModal';
 import CustomSwal from '@/Utils/CustomSwal';
-import { ChevronLeft, ChevronRight, Save, Check, FileWarning } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Save, Check, FileWarning, XCircle } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
 export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategori_belanja, mata_anggaran = [], readOnly = false }) {
@@ -73,6 +73,279 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             harga_satuan: a.harga_satuan
         })) || []
     });
+
+    // --- FRONTEND CLIENT-SIDE VALIDATION ---
+    const [clientErrors, setClientErrors] = useState({});
+
+    const validateField = (path, value, currentData = data) => {
+        let error = '';
+        const parts = path.split('.');
+
+        if (path === 'kak.nama_kegiatan') {
+            if (!value || String(value).trim() === '') {
+                error = 'Nama kegiatan wajib diisi.';
+            } else if (String(value).trim().length < 5) {
+                error = 'Nama kegiatan minimal 5 karakter.';
+            } else if (String(value).trim().length > 255) {
+                error = 'Nama kegiatan maksimal 255 karakter.';
+            }
+        }
+        else if (path === 'kak.tipe_kegiatan_id') {
+            if (!value) {
+                error = 'Tipe kegiatan wajib dipilih.';
+            }
+        }
+        else if (path === 'kak.deskripsi_kegiatan' || path === 'kak.gambaran_umum') {
+            if (!value || String(value).trim() === '') {
+                error = 'Gambaran umum kegiatan wajib diisi.';
+            } else if (String(value).trim().length < 5) {
+                error = 'Gambaran umum kegiatan minimal 5 karakter.';
+            }
+        }
+        else if (path === 'kak.sasaran_utama') {
+            if (!value || String(value).trim() === '') {
+                error = 'Sasaran utama wajib diisi.';
+            } else if (String(value).trim().length > 255) {
+                error = 'Sasaran utama maksimal 255 karakter.';
+            }
+        }
+        else if (parts[0] === 'kak' && parts[1] === 'manfaat' && parts[3] === 'value') {
+            if (!value || String(value).trim() === '') {
+                error = 'Output / Manfaat wajib diisi.';
+            } else if (String(value).trim().length > 255) {
+                error = 'Output / Manfaat maksimal 255 karakter.';
+            }
+        }
+        else if (path === 'kak.metode_pelaksanaan') {
+            if (!value || String(value).trim() === '') {
+                error = 'Metode pelaksanaan wajib diisi.';
+            } else if (String(value).trim().length < 5) {
+                error = 'Metode pelaksanaan minimal 5 karakter.';
+            }
+        }
+        else if (parts[0] === 'kak' && parts[1] === 'tahapan_pelaksanaan' && parts[3] === 'nama_tahapan') {
+            if (!value || String(value).trim() === '') {
+                error = 'Nama tahapan wajib diisi.';
+            } else if (String(value).trim().length > 255) {
+                error = 'Nama tahapan maksimal 255 karakter.';
+            }
+        }
+        else if (parts[0] === 'kak' && parts[1] === 'indikator_kinerja') {
+            const field = parts[3];
+            if (field === 'bulan_indikator') {
+                if (!value) {
+                    error = 'Bulan indikator wajib dipilih.';
+                }
+            } else if (field === 'deskripsi_target') {
+                if (!value || String(value).trim() === '') {
+                    error = 'Indikator keberhasilan wajib diisi.';
+                } else if (String(value).trim().length > 255) {
+                    error = 'Indikator keberhasilan maksimal 255 karakter.';
+                }
+            } else if (field === 'persentase_target') {
+                if (value === undefined || value === null || String(value).trim() === '') {
+                    error = 'Target persentase wajib diisi.';
+                } else {
+                    const num = Number(value);
+                    if (isNaN(num)) {
+                        error = 'Target harus berupa angka.';
+                    } else if (num < 0 || num > 100) {
+                        error = 'Target harus antara 0 dan 100.';
+                    }
+                }
+            }
+        }
+        else if (path === 'kak.tanggal_mulai') {
+            if (!value) {
+                error = 'Tanggal mulai wajib diisi.';
+            }
+        }
+        else if (path === 'kak.tanggal_selesai') {
+            if (!value) {
+                error = 'Tanggal selesai wajib diisi.';
+            } else if (currentData.kak.tanggal_mulai && new Date(value) < new Date(currentData.kak.tanggal_mulai)) {
+                error = 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.';
+            }
+        }
+        else if (path === 'kak.lokasi') {
+            if (!value || String(value).trim() === '') {
+                error = 'Lokasi wajib diisi.';
+            } else if (String(value).trim().length > 255) {
+                error = 'Lokasi maksimal 255 karakter.';
+            }
+        }
+        else if (parts[0] === 'target_iku') {
+            const field = parts[2];
+            if (field === 'iku_id') {
+                if (!value) {
+                    error = 'IKU wajib dipilih.';
+                }
+            } else if (field === 'target') {
+                if (!value || String(value).trim() === '') {
+                    error = 'Target IKU wajib diisi.';
+                } else if (String(value).trim().length > 255) {
+                    error = 'Target IKU maksimal 255 karakter.';
+                }
+            } else if (field === 'satuan_id') {
+                if (!value) {
+                    error = 'Satuan IKU wajib dipilih.';
+                }
+            }
+        }
+        else if (parts[0] === 'rab') {
+            const field = parts[2];
+            if (field === 'uraian') {
+                if (!value || String(value).trim() === '') {
+                    error = 'Uraian RAB wajib diisi.';
+                } else if (String(value).trim().length > 255) {
+                    error = 'Uraian RAB maksimal 255 karakter.';
+                }
+            } else if (field === 'volume1') {
+                if (value === undefined || value === null || String(value).trim() === '') {
+                    error = 'Volume 1 wajib diisi.';
+                } else {
+                    const num = Number(value);
+                    if (isNaN(num)) {
+                        error = 'Volume 1 harus berupa angka.';
+                    } else if (num < 0) {
+                        error = 'Volume 1 minimal 0.';
+                    }
+                }
+            } else if (field === 'satuan1_id') {
+                if (!value) {
+                    error = 'Satuan 1 wajib dipilih.';
+                }
+            } else if (field === 'harga_satuan') {
+                if (value === undefined || value === null || String(value).trim() === '') {
+                    error = 'Harga satuan wajib diisi.';
+                } else {
+                    const num = Number(value);
+                    if (isNaN(num)) {
+                        error = 'Harga satuan harus berupa angka.';
+                    } else if (num < 0) {
+                        error = 'Harga satuan minimal 0.';
+                    }
+                }
+            }
+        }
+        return error;
+    };
+
+    const handleBlur = (path, value) => {
+        const error = validateField(path, value);
+        setClientErrors(prev => {
+            const next = { ...prev };
+            if (error) {
+                next[path] = error;
+            } else {
+                delete next[path];
+            }
+            return next;
+        });
+    };
+
+    const handleFieldChange = (path, value) => {
+        if (clientErrors[path]) {
+            const error = validateField(path, value);
+            setClientErrors(prev => {
+                const next = { ...prev };
+                if (error) {
+                    next[path] = error;
+                } else {
+                    delete next[path];
+                }
+                return next;
+            });
+        }
+    };
+
+    const validateSubStep = (subStepName) => {
+        const errorsList = {};
+        
+        if (subStepName === 'gambaran-umum') {
+            const e1 = validateField('kak.nama_kegiatan', data.kak.nama_kegiatan);
+            const e2 = validateField('kak.tipe_kegiatan_id', data.kak.tipe_kegiatan_id);
+            const e3 = validateField('kak.deskripsi_kegiatan', data.kak.deskripsi_kegiatan);
+            
+            if (e1) errorsList['kak.nama_kegiatan'] = e1;
+            if (e2) errorsList['kak.tipe_kegiatan_id'] = e2;
+            if (e3) errorsList['kak.deskripsi_kegiatan'] = e3;
+        }
+        
+        else if (subStepName === 'penerima-manfaat') {
+            const e1 = validateField('kak.sasaran_utama', data.kak.sasaran_utama);
+            if (e1) errorsList['kak.sasaran_utama'] = e1;
+            
+            data.kak.manfaat.forEach((item, idx) => {
+                const err = validateField(`kak.manfaat.${idx}.value`, item.value);
+                if (err) errorsList[`kak.manfaat.${idx}.value`] = err;
+            });
+        }
+        
+        else if (subStepName === 'strategi-pencapaian') {
+            const e1 = validateField('kak.metode_pelaksanaan', data.kak.metode_pelaksanaan);
+            if (e1) errorsList['kak.metode_pelaksanaan'] = e1;
+            
+            data.kak.tahapan_pelaksanaan.forEach((item, idx) => {
+                const err = validateField(`kak.tahapan_pelaksanaan.${idx}.nama_tahapan`, item.nama_tahapan);
+                if (err) errorsList[`kak.tahapan_pelaksanaan.${idx}.nama_tahapan`] = err;
+            });
+        }
+        
+        else if (subStepName === 'indikator-kinerja') {
+            data.kak.indikator_kinerja.forEach((item, idx) => {
+                const e1 = validateField(`kak.indikator_kinerja.${idx}.bulan_indikator`, item.bulan_indikator);
+                const e2 = validateField(`kak.indikator_kinerja.${idx}.deskripsi_target`, item.deskripsi_target);
+                const e3 = validateField(`kak.indikator_kinerja.${idx}.persentase_target`, item.persentase_target);
+                
+                if (e1) errorsList[`kak.indikator_kinerja.${idx}.bulan_indikator`] = e1;
+                if (e2) errorsList[`kak.indikator_kinerja.${idx}.deskripsi_target`] = e2;
+                if (e3) errorsList[`kak.indikator_kinerja.${idx}.persentase_target`] = e3;
+            });
+        }
+        
+        else if (subStepName === 'kurun-waktu') {
+            const e1 = validateField('kak.tanggal_mulai', data.kak.tanggal_mulai);
+            const e2 = validateField('kak.tanggal_selesai', data.kak.tanggal_selesai);
+            const e3 = validateField('kak.lokasi', data.kak.lokasi);
+            
+            if (e1) errorsList['kak.tanggal_mulai'] = e1;
+            if (e2) errorsList['kak.tanggal_selesai'] = e2;
+            if (e3) errorsList['kak.lokasi'] = e3;
+        }
+        
+        return errorsList;
+    };
+
+    const validateStep2 = () => {
+        const errorsList = {};
+        data.target_iku.forEach((item, idx) => {
+            const e1 = validateField(`target_iku.${idx}.iku_id`, item.iku_id);
+            const e2 = validateField(`target_iku.${idx}.target`, item.target);
+            const e3 = validateField(`target_iku.${idx}.satuan_id`, item.satuan_id);
+            
+            if (e1) errorsList[`target_iku.${idx}.iku_id`] = e1;
+            if (e2) errorsList[`target_iku.${idx}.target`] = e2;
+            if (e3) errorsList[`target_iku.${idx}.satuan_id`] = e3;
+        });
+        return errorsList;
+    };
+
+    const validateStep3 = () => {
+        const errorsList = {};
+        data.rab.forEach((item, idx) => {
+            const e1 = validateField(`rab.${idx}.uraian`, item.uraian);
+            const e2 = validateField(`rab.${idx}.volume1`, item.volume1);
+            const e3 = validateField(`rab.${idx}.satuan1_id`, item.satuan1_id);
+            const e4 = validateField(`rab.${idx}.harga_satuan`, item.harga_satuan);
+            
+            if (e1) errorsList[`rab.${idx}.uraian`] = e1;
+            if (e2) errorsList[`rab.${idx}.volume1`] = e2;
+            if (e3) errorsList[`rab.${idx}.satuan1_id`] = e3;
+            if (e4) errorsList[`rab.${idx}.harga_satuan`] = e4;
+        });
+        return errorsList;
+    };
 
     // --- REVISION STATE MANAGEMENT ---
     const [revisiData, setRevisiData] = useState({
@@ -176,12 +449,45 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         });
     };
 
+    const submitRejection = () => {
+        CustomSwal.fire({
+            title: 'Tolak KAK?',
+            html: '<textarea id="swal-catatan-tolak" class="w-full rounded-xl border-gray-200 text-sm focus:border-red-400 focus:ring-0 min-h-[100px] p-3" placeholder="Masukkan alasan penolakan di sini..."></textarea>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Tolak!',
+            cancelButtonText: 'Batal',
+            preConfirm: () => {
+                const catatan = CustomSwal.getPopup().querySelector('#swal-catatan-tolak').value;
+                if (!catatan || catatan.trim() === '') {
+                    CustomSwal.showValidationMessage('Alasan penolakan wajib diisi');
+                    return false;
+                }
+                if (catatan.trim().length < 5) {
+                    CustomSwal.showValidationMessage('Alasan penolakan minimal 5 karakter');
+                    return false;
+                }
+                return { catatan: catatan };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                router.post(route('kak.reject', kak.kak_id), { catatan: result.value.catatan }, {
+                    onSuccess: () => {
+                        CustomSwal.fire({ title: 'Ditolak!', text: 'KAK berhasil ditolak.', icon: 'success' }).then(() => {
+                            router.get(route('kak.index'));
+                        });
+                    }
+                });
+            }
+        });
+    };
+
     const submitApproval = () => {
         const optionsHtml = mata_anggaran.map(ma =>
             `<option value="${ma.mata_anggaran_id}">${ma.kode_anggaran} — ${ma.nama_sumber_dana}</option>`
         ).join('');
 
-        Swal.fire({
+        CustomSwal.fire({
             title: `<span style="font-size:2rem;font-weight:900;color:#0f172a;letter-spacing:-0.02em;">Setujui KAK?</span>`,
             html: `
                 <p style="font-size:0.8rem;color:#64748b;margin-bottom:1.2rem;line-height:1.5;">
@@ -314,8 +620,8 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                 popup: 'rounded-3xl border-none shadow-2xl',
                 title: 'text-lg font-black',
                 htmlContainer: 'text-left',
-                confirmButton: 'rounded-xl px-6 py-2.5 text-sm font-bold uppercase tracking-wider',
-                cancelButton: 'rounded-xl px-6 py-2.5 text-sm font-bold uppercase tracking-wider',
+                confirmButton: 'px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl shadow-lg hover:shadow-emerald-500/30 hover:-translate-y-0.5 transition-all duration-300 font-bold uppercase tracking-wider mx-2',
+                cancelButton: 'px-8 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:-translate-y-0.5 transition-all duration-300 font-bold uppercase tracking-wider mx-2',
             },
             preConfirm: () => {
                 const selectVal = document.getElementById('swal-select-anggaran').value;
@@ -348,7 +654,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             if (result.isConfirmed) {
                 router.post(route('kak.approve', kak.kak_id), result.value, {
                     onSuccess: () => {
-                        Swal.fire({
+                        CustomSwal.fire({
                             title: 'KAK Disetujui!',
                             text: 'KAK berhasil disetujui dan siap dilanjutkan ke tahap pengajuan kegiatan.',
                             icon: 'success',
@@ -373,10 +679,25 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
     // ------------------------------------
 
     const nextStep = () => {
-        // Basic Client-side Validation before proceeding
+        if (readOnly) {
+            const currentSubIndex = step1Menu.indexOf(subStep);
+            if (currentStep === 1 && currentSubIndex < step1Menu.length - 1) {
+                setSubStep(step1Menu[currentSubIndex + 1]);
+                return;
+            }
+            setCurrentStep(prev => Math.min(prev + 1, 3));
+            return;
+        }
+
         if (currentStep === 1) {
-            if (!data.kak.nama_kegiatan || !data.kak.tipe_kegiatan_id) {
-                CustomSwal.fire({ title: 'Mohon Lengkapi', text: 'Nama Kegiatan dan Tipe Kegiatan wajib diisi.', icon: 'warning' });
+            const stepErrors = validateSubStep(subStep);
+            if (Object.keys(stepErrors).length > 0) {
+                setClientErrors(prev => ({ ...prev, ...stepErrors }));
+                CustomSwal.fire({
+                    title: 'Mohon Lengkapi Data',
+                    text: 'Terdapat input yang kosong atau tidak valid di bagian ini. Silakan periksa kembali.',
+                    icon: 'warning'
+                });
                 return;
             }
 
@@ -385,8 +706,48 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                 setSubStep(step1Menu[currentSubIndex + 1]);
                 return;
             }
+        } else if (currentStep === 2) {
+            const stepErrors = validateStep2();
+            if (Object.keys(stepErrors).length > 0) {
+                setClientErrors(prev => ({ ...prev, ...stepErrors }));
+                CustomSwal.fire({
+                    title: 'Mohon Lengkapi Data',
+                    text: 'Terdapat input IKU yang kosong atau tidak valid. Silakan periksa kembali.',
+                    icon: 'warning'
+                });
+                return;
+            }
         }
         setCurrentStep(prev => Math.min(prev + 1, 3));
+    };
+
+    const handleStepClick = (targetStep) => {
+        if (readOnly) {
+            setCurrentStep(targetStep);
+            return;
+        }
+
+        if (targetStep > currentStep) {
+            let errorsList = {};
+            if (currentStep === 1) {
+                step1Menu.forEach(sub => {
+                    errorsList = { ...errorsList, ...validateSubStep(sub) };
+                });
+            } else if (currentStep === 2) {
+                errorsList = { ...errorsList, ...validateStep2() };
+            }
+
+            if (Object.keys(errorsList).length > 0) {
+                setClientErrors(prev => ({ ...prev, ...errorsList }));
+                CustomSwal.fire({
+                    title: 'Mohon Lengkapi Data',
+                    text: 'Terdapat input yang kosong atau tidak valid. Silakan periksa kembali.',
+                    icon: 'warning'
+                });
+                return;
+            }
+        }
+        setCurrentStep(targetStep);
     };
 
     const prevStep = () => {
@@ -402,16 +763,33 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
         setCurrentStep(prev => Math.max(prev - 1, 1));
     };
 
+    const getDurationText = (start, end) => {
+        if (!start || !end) return '';
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+
+        if (diffDays < 30) return `${diffDays} Hari`;
+        const months = Math.floor(diffDays / 30);
+        const days = diffDays % 30;
+        return `${months} Bulan ${days > 0 ? `${days} Hari` : ''}`;
+    };
+
     // Cleanup data before sending to server
     transform((data) => ({
         ...data,
         kak: {
             ...data.kak,
+            kurun_waktu_pelaksanaan: getDurationText(data.kak.tanggal_mulai, data.kak.tanggal_selesai),
             manfaat: data.kak.manfaat.map(({ value, manfaat_id }) => ({
                 value,
                 ...(manfaat_id ? { manfaat_id } : {})
             })),
-            tahapan_pelaksanaan: data.kak.tahapan_pelaksanaan.map(({ _id, ...rest }) => rest), // Remove _id
+            tahapan_pelaksanaan: data.kak.tahapan_pelaksanaan.map(({ _id, ...rest }, index) => ({
+                ...rest,
+                urutan: index + 1
+            })), // Remove _id and add urutan
             indikator_kinerja: data.kak.indikator_kinerja.map(({ _id, ...rest }) => rest), // Strip frontend-only _id key
         },
         target_iku: data.target_iku.map(({ _id, ...rest }) => rest),
@@ -472,6 +850,91 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
     const handleSubmit = (e) => {
         e.preventDefault();
 
+        // 1. Run all client-side validations across all steps
+        let allErrors = {};
+        
+        // Step 1 sub-steps
+        step1Menu.forEach(menu => {
+            allErrors = { ...allErrors, ...validateSubStep(menu) };
+        });
+        // Step 2
+        allErrors = { ...allErrors, ...validateStep2() };
+        // Step 3
+        allErrors = { ...allErrors, ...validateStep3() };
+
+        if (Object.keys(allErrors).length > 0) {
+            setClientErrors(allErrors);
+            
+            const errorMessages = [];
+            
+            if (allErrors['kak.nama_kegiatan']) errorMessages.push(`<strong>Nama Kegiatan:</strong> ${allErrors['kak.nama_kegiatan']}`);
+            if (allErrors['kak.tipe_kegiatan_id']) errorMessages.push(`<strong>Tipe Kegiatan:</strong> ${allErrors['kak.tipe_kegiatan_id']}`);
+            if (allErrors['kak.deskripsi_kegiatan']) errorMessages.push(`<strong>Gambaran Umum:</strong> ${allErrors['kak.deskripsi_kegiatan']}`);
+            if (allErrors['kak.sasaran_utama']) errorMessages.push(`<strong>Sasaran Utama:</strong> ${allErrors['kak.sasaran_utama']}`);
+            
+            let hasManfaatErr = false;
+            Object.keys(allErrors).forEach(k => {
+                if (k.startsWith('kak.manfaat.') && !hasManfaatErr) {
+                    errorMessages.push(`<strong>Output / Manfaat:</strong> Ada baris output yang belum diisi dengan benar.`);
+                    hasManfaatErr = true;
+                }
+            });
+            
+            if (allErrors['kak.metode_pelaksanaan']) errorMessages.push(`<strong>Metode Pelaksanaan:</strong> ${allErrors['kak.metode_pelaksanaan']}`);
+            
+            let hasTahapanErr = false;
+            Object.keys(allErrors).forEach(k => {
+                if (k.startsWith('kak.tahapan_pelaksanaan.') && !hasTahapanErr) {
+                    errorMessages.push(`<strong>Tahapan Pelaksanaan:</strong> Ada baris tahapan yang belum diisi dengan benar.`);
+                    hasTahapanErr = true;
+                }
+            });
+            
+            let hasIndikatorErr = false;
+            Object.keys(allErrors).forEach(k => {
+                if (k.startsWith('kak.indikator_kinerja.') && !hasIndikatorErr) {
+                    errorMessages.push(`<strong>Indikator Kinerja Kegiatan:</strong> Ada baris indikator yang belum diisi dengan benar.`);
+                    hasIndikatorErr = true;
+                }
+            });
+            
+            if (allErrors['kak.tanggal_mulai']) errorMessages.push(`<strong>Tanggal Mulai:</strong> ${allErrors['kak.tanggal_mulai']}`);
+            if (allErrors['kak.tanggal_selesai']) errorMessages.push(`<strong>Tanggal Selesai:</strong> ${allErrors['kak.tanggal_selesai']}`);
+            if (allErrors['kak.lokasi']) errorMessages.push(`<strong>Lokasi:</strong> ${allErrors['kak.lokasi']}`);
+            
+            let hasIkuErr = false;
+            Object.keys(allErrors).forEach(k => {
+                if (k.startsWith('target_iku.') && !hasIkuErr) {
+                    errorMessages.push(`<strong>Indikator Kinerja Utama (IKU):</strong> Ada baris IKU yang belum diisi dengan benar.`);
+                    hasIkuErr = true;
+                }
+            });
+            
+            let hasRabErr = false;
+            Object.keys(allErrors).forEach(k => {
+                if (k.startsWith('rab.') && !hasRabErr) {
+                    errorMessages.push(`<strong>Rencana Anggaran Biaya (RAB):</strong> Ada baris RAB yang belum diisi dengan benar.`);
+                    hasRabErr = true;
+                }
+            });
+
+            const htmlErrorList = `
+                <div class="text-left bg-red-50 p-4 rounded-xl border border-red-200 mt-3 text-xs md:text-sm text-red-700 max-h-60 overflow-y-auto">
+                    <ul class="list-disc list-inside space-y-1.5">
+                        ${errorMessages.map(msg => `<li>${msg}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+
+            CustomSwal.fire({
+                title: 'Data Tidak Valid',
+                html: `<p class="text-sm text-gray-500">Silakan lengkapi atau perbaiki inputan berikut sebelum menyimpan:</p>${htmlErrorList}`,
+                icon: 'error',
+                confirmButtonText: 'Perbaiki'
+            });
+            return;
+        }
+
         const submitMethod = isEdit ? put : post;
         const submitUrl = isEdit ? route('kak.update', kak.kak_id) : route('kak.store');
 
@@ -489,7 +952,22 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
             },
             onError: (errors) => {
                 console.error("Validation Errors:", errors);
-                CustomSwal.fire({ title: 'Gagal!', text: 'Terdapat kesalahan pada inputan Anda. Silakan cek kembali.', icon: 'error' });
+                
+                const errorMessages = Object.values(errors);
+                const htmlErrorList = `
+                    <div class="text-left bg-red-50 p-4 rounded-xl border border-red-200 mt-3 text-xs md:text-sm text-red-700 max-h-60 overflow-y-auto">
+                        <ul class="list-disc list-inside space-y-1.5">
+                            ${errorMessages.map(msg => `<li>${msg}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                CustomSwal.fire({
+                    title: 'Gagal Menyimpan KAK',
+                    html: `<p class="text-sm text-gray-500">Terdapat kesalahan pada inputan Anda. Silakan cek dan perbaiki kembali:</p>${htmlErrorList}`,
+                    icon: 'error',
+                    confirmButtonText: 'Perbaiki'
+                });
             }
         });
     };
@@ -516,7 +994,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                         <div className="hidden xl:block"></div>
                         
                         <div className="flex justify-center">
-                            <WizardProgress currentStep={currentStep} onStepClick={setCurrentStep} />
+                            <WizardProgress currentStep={currentStep} onStepClick={handleStepClick} />
                         </div>
                         
                         <div className="flex justify-center xl:justify-end">
@@ -586,6 +1064,9 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                         openCommentModal={openCommentModal}
                                         revisiData={revisiData}
                                         originalKak={kak}
+                                        clientErrors={clientErrors}
+                                        handleBlur={handleBlur}
+                                        handleFieldChange={handleFieldChange}
                                     />
                                 )}
 
@@ -604,6 +1085,9 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                         openCommentModal={openCommentModal}
                                         revisiData={revisiData}
                                         originalKak={kak}
+                                        clientErrors={clientErrors}
+                                        handleBlur={handleBlur}
+                                        handleFieldChange={handleFieldChange}
                                     />
                                 )}
                                 {currentStep === 3 && (
@@ -621,6 +1105,9 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                         openCommentModal={openCommentModal}
                                         revisiData={revisiData}
                                         originalKak={kak}
+                                        clientErrors={clientErrors}
+                                        handleBlur={handleBlur}
+                                        handleFieldChange={handleFieldChange}
                                     />
                                 )}
                             </motion.div>
@@ -675,7 +1162,15 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
 
                                 {/* Verifikator Revision/Accept Action */}
                                 {isVerifikator && currentStep === 3 && (
-                                    <>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={submitRejection}
+                                            className="px-8 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl shadow-lg hover:shadow-red-500/30 hover:-translate-y-1 transition-all duration-300 font-bold flex items-center gap-2"
+                                        >
+                                            <XCircle size={18} />
+                                            Tolak KAK
+                                        </button>
                                         {hasNewComments ? (
                                             <button
                                                 type="button"
@@ -695,7 +1190,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
                                                 Terima KAK
                                             </button>
                                         )}
-                                    </>
+                                    </div>
                                 )}
                             </div>
                         </div>

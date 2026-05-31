@@ -79,19 +79,22 @@ export default function KakIndex({ auth, kaks, filters }) {
             html: '<textarea id="catatan-tolak" class="w-full rounded-xl border-gray-200 text-sm focus:border-red-400 focus:ring-0 min-h-[100px] p-3" placeholder="Masukkan alasan penolakan di sini..."></textarea>',
             icon: 'warning',
             showCancelButton: true,
-            showConfirmButton: false,
-            showDenyButton: true,
-            denyButtonText: 'Ya, Tolak!',
+            confirmButtonText: 'Ya, Tolak!',
             cancelButtonText: 'Batal',
             preConfirm: () => {
                 const catatan = CustomSwal.getPopup().querySelector('#catatan-tolak').value;
-                if (!catatan) {
+                if (!catatan || catatan.trim() === '') {
                     CustomSwal.showValidationMessage('Alasan penolakan wajib diisi');
+                    return false;
+                }
+                if (catatan.trim().length < 5) {
+                    CustomSwal.showValidationMessage('Alasan penolakan minimal 5 karakter');
+                    return false;
                 }
                 return { catatan: catatan };
             }
         }).then((result) => {
-            if (result.isDenied) {
+            if (result.isConfirmed) {
                 router.post(route('kak.reject', item.kak_id), { catatan: result.value.catatan }, {
                     onSuccess: () => CustomSwal.fire({ title: 'Ditolak!', text: 'KAK berhasil ditolak.', icon: 'success' })
                 });

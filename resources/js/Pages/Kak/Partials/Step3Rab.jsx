@@ -9,17 +9,28 @@ export default function Step3Rab({
     data, setData, errors, kategori_belanja = [], satuan = [], readOnly = false,
     isVerifikator = false, isPengusul = false, isPengusulFixing = false,
     openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null,
+    clientErrors = {}, handleBlur = () => {}, handleFieldChange = () => {}, setClientErrors = () => {}
 }) {
 
     // --- Dynamic Field Handlers ---
     const addRab = (kategori_id) => setData('rab', [...data.rab, { _id: Math.random(), kategori_belanja_id: kategori_id, uraian: '', volume1: '', satuan1_id: '', volume2: '', satuan2_id: '', volume3: '', satuan3_id: '', harga_satuan: '' }]);
     const removeRab = (index) => {
         setData('rab', data.rab.filter((_, i) => i !== index));
+        setClientErrors(prev => {
+            const next = { ...prev };
+            Object.keys(next).forEach(key => {
+                if (key.startsWith('rab.')) {
+                    delete next[key];
+                }
+            });
+            return next;
+        });
     };
     const updateRab = (index, field, value) => {
         const newItems = [...data.rab];
         newItems[index][field] = value;
         setData('rab', newItems);
+        handleFieldChange(`rab.${index}.${field}`, value);
     };
 
     // --- Calculation Helpers ---
@@ -102,13 +113,34 @@ export default function Step3Rab({
                                                                 style={{ zIndex: 100 - index }}
                                                             >
                                                                 <td className="px-2 py-2 w-48 align-top">
-                                                                    <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.uraian || ''} onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." required />
+                                                                    <input type="text" className={`w-full rounded-lg text-xs py-2 focus:ring-0 shadow-sm ${
+                                                                        (clientErrors[`rab.${item.originalIndex}.uraian`] || errors[`rab.${item.originalIndex}.uraian`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                        value={item.uraian || ''}
+                                                                        onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)}
+                                                                        onBlur={() => handleBlur(`rab.${item.originalIndex}.uraian`, item.uraian)}
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        placeholder="Nama item..."
+                                                                        required />
+                                                                    {(clientErrors[`rab.${item.originalIndex}.uraian`] || errors[`rab.${item.originalIndex}.uraian`]) && (
+                                                                        <p className="text-[10px] text-red-500 mt-1 max-w-[12rem] break-words">{clientErrors[`rab.${item.originalIndex}.uraian`] || errors[`rab.${item.originalIndex}.uraian`]}</p>
+                                                                    )}
                                                                 </td>
                                                                 {/* Vol 1 */}
                                                                 <td className="px-1 py-2 align-top">
-                                                                    <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.volume1 || ''} onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="-" required />
+                                                                    <input type="number" className={`w-full rounded-lg text-xs py-2 text-center focus:ring-0 shadow-sm ${
+                                                                        (clientErrors[`rab.${item.originalIndex}.volume1`] || errors[`rab.${item.originalIndex}.volume1`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                        value={item.volume1 || ''}
+                                                                        onChange={e => updateRab(item.originalIndex, 'volume1', e.target.value)}
+                                                                        onBlur={() => handleBlur(`rab.${item.originalIndex}.volume1`, item.volume1)}
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        min="0"
+                                                                        placeholder="-"
+                                                                        required />
+                                                                    {(clientErrors[`rab.${item.originalIndex}.volume1`] || errors[`rab.${item.originalIndex}.volume1`]) && (
+                                                                        <p className="text-[10px] text-red-500 mt-1 text-center">{clientErrors[`rab.${item.originalIndex}.volume1`] || errors[`rab.${item.originalIndex}.volume1`]}</p>
+                                                                    )}
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
@@ -118,13 +150,25 @@ export default function Step3Rab({
                                                                         placeholder="-"
                                                                         disabled={readOnly && !isPengusulFixing}
                                                                         required
-                                                                        className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
+                                                                        className={`w-full rounded-lg py-2 pl-2 pr-8 text-xs ${
+                                                                            (clientErrors[`rab.${item.originalIndex}.satuan1_id`] || errors[`rab.${item.originalIndex}.satuan1_id`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                                        }`}
                                                                     />
+                                                                    {(clientErrors[`rab.${item.originalIndex}.satuan1_id`] || errors[`rab.${item.originalIndex}.satuan1_id`]) && (
+                                                                        <p className="text-[10px] text-red-500 mt-1 text-center">{clientErrors[`rab.${item.originalIndex}.satuan1_id`] || errors[`rab.${item.originalIndex}.satuan1_id`]}</p>
+                                                                    )}
                                                                 </td>
                                                                 {/* Vol 2 (Optional) */}
                                                                 <td className="px-1 py-2 align-top">
-                                                                    <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.volume2 || ''} onChange={e => updateRab(item.originalIndex, 'volume2', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
+                                                                    <input type="number" className={`w-full rounded-lg text-xs py-2 text-center focus:ring-0 shadow-sm ${
+                                                                        (clientErrors[`rab.${item.originalIndex}.volume2`] || errors[`rab.${item.originalIndex}.volume2`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                        value={item.volume2 || ''}
+                                                                        onChange={e => updateRab(item.originalIndex, 'volume2', e.target.value)}
+                                                                        onBlur={() => handleBlur(`rab.${item.originalIndex}.volume2`, item.volume2)}
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        placeholder="-"
+                                                                        min="0" />
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
@@ -133,13 +177,22 @@ export default function Step3Rab({
                                                                         options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
                                                                         placeholder="-"
                                                                         disabled={readOnly && !isPengusulFixing}
-                                                                        className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
+                                                                        className={`w-full rounded-lg py-2 pl-2 pr-8 text-xs ${
+                                                                            (clientErrors[`rab.${item.originalIndex}.satuan2_id`] || errors[`rab.${item.originalIndex}.satuan2_id`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                                        }`}
                                                                     />
                                                                 </td>
                                                                 {/* Vol 3 (Optional) */}
                                                                 <td className="px-1 py-2 align-top">
-                                                                    <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.volume3 || ''} onChange={e => updateRab(item.originalIndex, 'volume3', e.target.value)} disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" />
+                                                                    <input type="number" className={`w-full rounded-lg text-xs py-2 text-center focus:ring-0 shadow-sm ${
+                                                                        (clientErrors[`rab.${item.originalIndex}.volume3`] || errors[`rab.${item.originalIndex}.volume3`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                        value={item.volume3 || ''}
+                                                                        onChange={e => updateRab(item.originalIndex, 'volume3', e.target.value)}
+                                                                        onBlur={() => handleBlur(`rab.${item.originalIndex}.volume3`, item.volume3)}
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        placeholder="-"
+                                                                        min="0" />
                                                                 </td>
                                                                 <td className="px-1 py-2 align-top relative" style={{ zIndex: 100 - index }}>
                                                                     <CustomSelect
@@ -148,13 +201,26 @@ export default function Step3Rab({
                                                                         options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
                                                                         placeholder="-"
                                                                         disabled={readOnly && !isPengusulFixing}
-                                                                        className="w-full rounded-lg py-2 pl-2 pr-8 text-xs"
+                                                                        className={`w-full rounded-lg py-2 pl-2 pr-8 text-xs ${
+                                                                            (clientErrors[`rab.${item.originalIndex}.satuan3_id`] || errors[`rab.${item.originalIndex}.satuan3_id`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                                        }`}
                                                                     />
                                                                 </td>
                                                                 {/* Harga */}
                                                                 <td className="px-2 py-2 align-top">
-                                                                    <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-right focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                                        value={item.harga_satuan || ''} onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)} disabled={readOnly && !isPengusulFixing} min="0" placeholder="0" required />
+                                                                    <input type="number" className={`w-full rounded-lg text-xs py-2 text-right focus:ring-0 shadow-sm ${
+                                                                        (clientErrors[`rab.${item.originalIndex}.harga_satuan`] || errors[`rab.${item.originalIndex}.harga_satuan`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                        value={item.harga_satuan || ''}
+                                                                        onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)}
+                                                                        onBlur={() => handleBlur(`rab.${item.originalIndex}.harga_satuan`, item.harga_satuan)}
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        min="0"
+                                                                        placeholder="0"
+                                                                        required />
+                                                                    {(clientErrors[`rab.${item.originalIndex}.harga_satuan`] || errors[`rab.${item.originalIndex}.harga_satuan`]) && (
+                                                                        <p className="text-[10px] text-red-500 mt-1 text-right">{clientErrors[`rab.${item.originalIndex}.harga_satuan`] || errors[`rab.${item.originalIndex}.harga_satuan`]}</p>
+                                                                    )}
                                                                 </td>
                                                                 <td className="px-4 py-2 text-right font-bold text-gray-700 bg-gray-50/50 align-top">
                                                                     <div className="py-2">{formatCurrency(calculateRowTotal(item))}</div>
@@ -262,10 +328,21 @@ export default function Step3Rab({
                                                     {readOnly ? (
                                                         <p className="text-sm font-semibold text-gray-800">{item.uraian || '-'}</p>
                                                     ) : (
-                                                        <input type="text"
-                                                            className="w-full rounded-xl border-gray-200 bg-gray-50 text-sm py-2 px-3 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
-                                                            value={item.uraian || ''} onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)}
-                                                            disabled={readOnly && !isPengusulFixing} placeholder="Nama item..." required />
+                                                        <>
+                                                            <input type="text"
+                                                                className={`w-full rounded-xl bg-gray-50 text-sm py-2 px-3 focus:bg-white focus:ring-0 transition-all ${
+                                                                    (clientErrors[`rab.${item.originalIndex}.uraian`] || errors[`rab.${item.originalIndex}.uraian`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                }`}
+                                                                value={item.uraian || ''}
+                                                                onChange={e => updateRab(item.originalIndex, 'uraian', e.target.value)}
+                                                                onBlur={() => handleBlur(`rab.${item.originalIndex}.uraian`, item.uraian)}
+                                                                disabled={readOnly && !isPengusulFixing}
+                                                                placeholder="Nama item..."
+                                                                required />
+                                                            {(clientErrors[`rab.${item.originalIndex}.uraian`] || errors[`rab.${item.originalIndex}.uraian`]) && (
+                                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`rab.${item.originalIndex}.uraian`] || errors[`rab.${item.originalIndex}.uraian`]}</p>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </div>
 
@@ -278,8 +355,8 @@ export default function Step3Rab({
                                                     { volKey: 'volume2', satKey: 'satuan2_id', label: 'Vol 2', required: false },
                                                     { volKey: 'volume3', satKey: 'satuan3_id', label: 'Vol 3', required: false },
                                                 ].map(({ volKey, satKey, label, required }) => (
-                                                    <div key={volKey} className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">{label} {required && <span className="text-red-500">*</span>}</span>
+                                                    <div key={volKey} className="flex items-start gap-2">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0 mt-2.5">{label} {required && <span className="text-red-500">*</span>}</span>
                                                         <div className="flex-1 grid grid-cols-2 gap-2">
                                                             {readOnly ? (
                                                                 <>
@@ -290,19 +367,38 @@ export default function Step3Rab({
                                                                 </>
                                                             ) : (
                                                                 <>
-                                                                    <input type="number"
-                                                                        className="w-full rounded-lg border-gray-200 bg-gray-50 text-xs py-2 text-center focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
-                                                                        value={item[volKey] || ''} onChange={e => updateRab(item.originalIndex, volKey, e.target.value)}
-                                                                        disabled={readOnly && !isPengusulFixing} placeholder="-" min="0" required={required} />
-                                                                    <CustomSelect
-                                                                        value={item[satKey] || ''}
-                                                                        onChange={(val) => updateRab(item.originalIndex, satKey, val)}
-                                                                        options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
-                                                                        placeholder="Satuan"
-                                                                        disabled={readOnly && !isPengusulFixing}
-                                                                        required={required}
-                                                                        className="w-full rounded-lg py-2 pl-2 pr-7 text-xs"
-                                                                    />
+                                                                    <div className="w-full">
+                                                                        <input type="number"
+                                                                            className={`w-full rounded-lg bg-gray-50 text-xs py-2 text-center focus:bg-white focus:ring-0 transition-all ${
+                                                                                (clientErrors[`rab.${item.originalIndex}.${volKey}`] || errors[`rab.${item.originalIndex}.${volKey}`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                            }`}
+                                                                            value={item[volKey] || ''}
+                                                                            onChange={e => updateRab(item.originalIndex, volKey, e.target.value)}
+                                                                            onBlur={() => handleBlur(`rab.${item.originalIndex}.${volKey}`, item[volKey])}
+                                                                            disabled={readOnly && !isPengusulFixing}
+                                                                            placeholder="-"
+                                                                            min="0"
+                                                                            required={required} />
+                                                                        {(clientErrors[`rab.${item.originalIndex}.${volKey}`] || errors[`rab.${item.originalIndex}.${volKey}`]) && (
+                                                                            <p className="text-[10px] text-red-500 mt-1 text-center">{clientErrors[`rab.${item.originalIndex}.${volKey}`] || errors[`rab.${item.originalIndex}.${volKey}`]}</p>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="w-full">
+                                                                        <CustomSelect
+                                                                            value={item[satKey] || ''}
+                                                                            onChange={(val) => updateRab(item.originalIndex, satKey, val)}
+                                                                            options={satuan.map(s => ({ value: s.satuan_id, label: s.nama_satuan }))}
+                                                                            placeholder="Satuan"
+                                                                            disabled={readOnly && !isPengusulFixing}
+                                                                            required={required}
+                                                                            className={`w-full rounded-lg py-2 pl-2 pr-7 text-xs ${
+                                                                                (clientErrors[`rab.${item.originalIndex}.${satKey}`] || errors[`rab.${item.originalIndex}.${satKey}`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                                            }`}
+                                                                        />
+                                                                        {(clientErrors[`rab.${item.originalIndex}.${satKey}`] || errors[`rab.${item.originalIndex}.${satKey}`]) && (
+                                                                            <p className="text-[10px] text-red-500 mt-1 text-center">{clientErrors[`rab.${item.originalIndex}.${satKey}`] || errors[`rab.${item.originalIndex}.${satKey}`]}</p>
+                                                                        )}
+                                                                    </div>
                                                                 </>
                                                             )}
                                                         </div>
@@ -313,16 +409,28 @@ export default function Step3Rab({
                                                 <div className="border-t border-dashed border-gray-100" />
 
                                                 {/* Harga Satuan */}
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0">Harga {<span className="text-red-500">*</span>}</span>
+                                                <div className="flex items-start gap-2">
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest w-9 shrink-0 mt-2.5">Harga {<span className="text-red-500">*</span>}</span>
                                                     <div className="flex-1">
                                                         {readOnly ? (
                                                             <p className="text-sm font-semibold text-gray-800 text-right">{formatCurrency(parseFloat(item.harga_satuan) || 0)}</p>
                                                         ) : (
-                                                            <input type="number"
-                                                                className="w-full rounded-lg border-gray-200 bg-gray-50 text-xs py-2 text-right focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all"
-                                                                value={item.harga_satuan || ''} onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)}
-                                                                disabled={readOnly && !isPengusulFixing} placeholder="0" min="0" required />
+                                                            <>
+                                                                <input type="number"
+                                                                    className={`w-full rounded-lg bg-gray-50 text-xs py-2 text-right focus:bg-white focus:ring-0 transition-all ${
+                                                                        (clientErrors[`rab.${item.originalIndex}.harga_satuan`] || errors[`rab.${item.originalIndex}.harga_satuan`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                    value={item.harga_satuan || ''}
+                                                                    onChange={e => updateRab(item.originalIndex, 'harga_satuan', e.target.value)}
+                                                                    onBlur={() => handleBlur(`rab.${item.originalIndex}.harga_satuan`, item.harga_satuan)}
+                                                                    disabled={readOnly && !isPengusulFixing}
+                                                                    placeholder="0"
+                                                                    min="0"
+                                                                    required />
+                                                                {(clientErrors[`rab.${item.originalIndex}.harga_satuan`] || errors[`rab.${item.originalIndex}.harga_satuan`]) && (
+                                                                    <p className="text-xs text-red-500 mt-1 text-right">{clientErrors[`rab.${item.originalIndex}.harga_satuan`] || errors[`rab.${item.originalIndex}.harga_satuan`]}</p>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>

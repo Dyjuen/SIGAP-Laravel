@@ -11,10 +11,12 @@ export default function Step1Kak({
     subStep, setSubStep,
     isVerifikator = false, isPengusul = false, isPengusulFixing = false,
     openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null,
+    clientErrors = {}, handleBlur = () => {}, handleFieldChange = () => {}, setClientErrors = () => {}
 }) {
 
     const updateKak = (field, value) => {
         setData('kak', { ...data.kak, [field]: value });
+        handleFieldChange(`kak.${field}`, value);
     };
 
     // Helper to calculate duration for Kurun Waktu display
@@ -36,36 +38,66 @@ export default function Step1Kak({
     const removeManfaat = (index) => {
         if (data.kak.manfaat.length > 1) {
             setData('kak', { ...data.kak, manfaat: data.kak.manfaat.filter((_, i) => i !== index) });
+            setClientErrors(prev => {
+                const next = { ...prev };
+                Object.keys(next).forEach(key => {
+                    if (key.startsWith('kak.manfaat.')) {
+                        delete next[key];
+                    }
+                });
+                return next;
+            });
         }
     };
     const updateManfaat = (index, value) => {
         const newManfaat = [...data.kak.manfaat];
         newManfaat[index].value = value; // Update value property
         setData('kak', { ...data.kak, manfaat: newManfaat });
+        handleFieldChange(`kak.manfaat.${index}.value`, value);
     };
 
     const addTahapan = () => setData('kak', { ...data.kak, tahapan_pelaksanaan: [...data.kak.tahapan_pelaksanaan, { _id: Math.random(), nama_tahapan: '' }] });
     const removeTahapan = (index) => {
         if (data.kak.tahapan_pelaksanaan.length > 1) {
             setData('kak', { ...data.kak, tahapan_pelaksanaan: data.kak.tahapan_pelaksanaan.filter((_, i) => i !== index) });
+            setClientErrors(prev => {
+                const next = { ...prev };
+                Object.keys(next).forEach(key => {
+                    if (key.startsWith('kak.tahapan_pelaksanaan.')) {
+                        delete next[key];
+                    }
+                });
+                return next;
+            });
         }
     };
     const updateTahapan = (index, value) => {
         const newItems = [...data.kak.tahapan_pelaksanaan];
         newItems[index].nama_tahapan = value;
         setData('kak', { ...data.kak, tahapan_pelaksanaan: newItems });
+        handleFieldChange(`kak.tahapan_pelaksanaan.${index}.nama_tahapan`, value);
     };
 
     const addIndikator = () => setData('kak', { ...data.kak, indikator_kinerja: [...data.kak.indikator_kinerja, { _id: Math.random(), bulan_indikator: '', deskripsi_target: '', persentase_target: '' }] });
     const removeIndikator = (index) => {
         if (data.kak.indikator_kinerja.length > 1) {
             setData('kak', { ...data.kak, indikator_kinerja: data.kak.indikator_kinerja.filter((_, i) => i !== index) });
+            setClientErrors(prev => {
+                const next = { ...prev };
+                Object.keys(next).forEach(key => {
+                    if (key.startsWith('kak.indikator_kinerja.')) {
+                        delete next[key];
+                    }
+                });
+                return next;
+            });
         }
     };
     const updateIndikator = (index, field, value) => {
         const newItems = [...data.kak.indikator_kinerja];
         newItems[index][field] = value;
         setData('kak', { ...data.kak, indikator_kinerja: newItems });
+        handleFieldChange(`kak.indikator_kinerja.${index}.${field}`, value);
     };
 
     const menuItems = [
@@ -174,9 +206,12 @@ export default function Step1Kak({
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12"
+                                                className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                    (clientErrors['kak.nama_kegiatan'] || errors['kak.nama_kegiatan']) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                                 value={data.kak.nama_kegiatan || ''}
                                                 onChange={(e) => updateKak('nama_kegiatan', e.target.value)}
+                                                onBlur={() => handleBlur('kak.nama_kegiatan', data.kak.nama_kegiatan)}
                                                 placeholder="Masukkan nama kegiatan..."
                                                 disabled={readOnly && !isPengusulFixing}
                                                 required
@@ -196,9 +231,11 @@ export default function Step1Kak({
                                                 />
                                             )}
                                         </div>
-                                        {errors['kak.nama_kegiatan'] && <p className="text-xs text-red-500 mt-1">{errors['kak.nama_kegiatan']}</p>}
+                                        {(clientErrors['kak.nama_kegiatan'] || errors['kak.nama_kegiatan']) && (
+                                            <p className="text-xs text-red-500 mt-1">{clientErrors['kak.nama_kegiatan'] || errors['kak.nama_kegiatan']}</p>
+                                        )}
                                     </div>
-
+ 
                                     {/* Tipe Kegiatan (Select) */}
                                     <div className="relative group/field">
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Tipe Kegiatan {<span className="text-red-500">*</span>}</label>
@@ -210,7 +247,9 @@ export default function Step1Kak({
                                                 placeholder="Pilih Tipe Kegiatan"
                                                 disabled={readOnly && !isPengusulFixing}
                                                 required
-                                                className="w-full rounded-xl py-2.5 pl-4 pr-12 text-sm"
+                                                className={`w-full rounded-xl py-2.5 pl-4 pr-12 text-sm ${
+                                                    (clientErrors['kak.tipe_kegiatan_id'] || errors['kak.tipe_kegiatan_id']) ? 'border-red-300 focus:border-red-400 focus:ring-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                             />
                                             {/* Revision Comments */}
                                             {(isVerifikator || isPengusulFixing) && (
@@ -227,17 +266,22 @@ export default function Step1Kak({
                                                 />
                                             )}
                                         </div>
-                                        {errors['kak.tipe_kegiatan_id'] && <p className="text-xs text-red-500 mt-1">{errors['kak.tipe_kegiatan_id']}</p>}
+                                        {(clientErrors['kak.tipe_kegiatan_id'] || errors['kak.tipe_kegiatan_id']) && (
+                                            <p className="text-xs text-red-500 mt-1">{clientErrors['kak.tipe_kegiatan_id'] || errors['kak.tipe_kegiatan_id']}</p>
+                                        )}
                                     </div>
-
+ 
                                     {/* Deskripsi / Gambaran Umum */}
                                     <div className="relative group/field">
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Gambaran Umum Kegiatan {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <textarea
-                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 min-h-[150px] resize-y disabled:opacity-70 disabled:cursor-not-allowed pr-12"
+                                                className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 min-h-[150px] resize-y disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                    (clientErrors['kak.deskripsi_kegiatan'] || errors['kak.deskripsi_kegiatan']) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                                 value={data.kak.gambaran_umum || data.kak.deskripsi_kegiatan || ''} // Fallback for transition
                                                 onChange={(e) => updateKak('deskripsi_kegiatan', e.target.value)}
+                                                onBlur={() => handleBlur('kak.deskripsi_kegiatan', data.kak.gambaran_umum || data.kak.deskripsi_kegiatan)}
                                                 placeholder="Jelaskan gambaran umum kegiatan..."
                                                 disabled={readOnly && !isPengusulFixing}
                                                 required
@@ -258,8 +302,9 @@ export default function Step1Kak({
                                                 />
                                             )}
                                         </div>
-                                        {errors['kak.deskripsi_kegiatan'] && <p className="text-xs text-red-500 mt-1">{errors['kak.deskripsi_kegiatan']}</p>}
-                                    </div>
+                                        {(clientErrors['kak.deskripsi_kegiatan'] || errors['kak.deskripsi_kegiatan']) && (
+                                            <p className="text-xs text-red-500 mt-1">{clientErrors['kak.deskripsi_kegiatan'] || errors['kak.deskripsi_kegiatan']}</p>
+                                        )}          </div>
                                 </div>
                             )}
 
@@ -273,9 +318,12 @@ export default function Step1Kak({
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Sasaran Utama {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <textarea
-                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 min-h-[100px] disabled:opacity-70 disabled:cursor-not-allowed pr-12"
+                                                className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 min-h-[100px] disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                    (clientErrors['kak.sasaran_utama'] || errors['kak.sasaran_utama']) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                                 value={data.kak.sasaran_utama}
                                                 onChange={(e) => updateKak('sasaran_utama', e.target.value)}
+                                                onBlur={() => handleBlur('kak.sasaran_utama', data.kak.sasaran_utama)}
                                                 disabled={readOnly && !isPengusulFixing}
                                                 required
                                             ></textarea>
@@ -294,9 +342,11 @@ export default function Step1Kak({
                                                 />
                                             )}
                                         </div>
-                                        {errors['kak.sasaran_utama'] && <p className="text-xs text-red-500 mt-1">{errors['kak.sasaran_utama']}</p>}
+                                        {(clientErrors['kak.sasaran_utama'] || errors['kak.sasaran_utama']) && (
+                                            <p className="text-xs text-red-500 mt-1">{clientErrors['kak.sasaran_utama'] || errors['kak.sasaran_utama']}</p>
+                                        )}
                                     </div>
-
+ 
                                     {/* Manfaat Loop */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
@@ -305,57 +355,60 @@ export default function Step1Kak({
                                         <div className="space-y-3">
                                             <AnimatePresence mode="popLayout">
                                                 {data.kak.manfaat.map((item, index) => {
-                                                    // Find if this specific Manfaat ID has a comment
-                                                    const originalManfaat = originalKak?.manfaat?.find(m => m.manfaat === item.value); // Naive matching if no ID initially, but we added IDs in backend? For new items during edit, they won't have it.
-                                                    // In a real scenario, we need the DB 'manfaat_id' available in the frontend data model if we are editing existing ones.
-                                                    // Since KAKForm is initializing from kak.manfaat strings, we need to adapt our data model if we want to attach to specific IDs.
-                                                    // For now, let's attach to the whole Manfaat section as a single 'catatan_manfaat' in main KAK table for ease, or we use the index if it's a child.
-                                                    // Let's assume we map to the whole Manfaat section as a global 'catatan_manfaat' for ease.
+                                                    const originalManfaat = originalKak?.manfaat?.find(m => m.manfaat === item.value);
                                                     return (
                                                         <motion.div
-                                                            key={item._id || index} // Use _id for stability
+                                                            key={item._id || index}
                                                             initial={{ opacity: 0, height: 0 }}
                                                             animate={{ opacity: 1, height: 'auto' }}
                                                             exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                                            className="flex gap-2 relative group/field"
+                                                            className="flex flex-col gap-1 relative group/field"
                                                         >
-                                                            <div className="relative flex-1">
-                                                                <input
-                                                                    type="text"
-                                                                    className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12"
-                                                                    value={item.value}
-                                                                    onChange={(e) => updateManfaat(index, e.target.value)}
-                                                                    placeholder={`Manfaat ${index + 1}`}
-                                                                    disabled={readOnly && !isPengusulFixing}
-                                                                    required
-                                                                />
-                                                                {(isVerifikator || isPengusulFixing) && item.manfaat_id && (
-                                                                    <CommentIcon
-                                                                        hasComment={!!revisiData.anak?.t_kak_manfaat?.find(r => r.id === item.manfaat_id)?.catatan_manfaat || !!originalKak?.manfaat?.find(m => m.manfaat_id === item.manfaat_id)?.catatan_manfaat}
-                                                                        isPastNote={!!originalKak?.manfaat?.find(m => m.manfaat_id === item.manfaat_id)?.catatan_manfaat && !revisiData.anak?.t_kak_manfaat?.find(r => r.id === item.manfaat_id)?.catatan_manfaat}
-                                                                        isPengusul={isPengusul}
-                                                                        onClick={() => {
-                                                                            const existingNote = revisiData.anak?.t_kak_manfaat?.find(r => r.id === item.manfaat_id)?.catatan_manfaat;
-                                                                            const oldNote = originalKak?.manfaat?.find(m => m.manfaat_id === item.manfaat_id)?.catatan_manfaat;
-                                                                            openCommentModal(
-                                                                                { field: 'manfaat', type: 'anak', table: 't_kak_manfaat', id: item.manfaat_id },
-                                                                                `Catatan Output: ${item.value}`,
-                                                                                existingNote || oldNote || '',
-                                                                                !!oldNote && !existingNote
-                                                                            );
-                                                                        }}
+                                                            <div className="flex gap-2">
+                                                                <div className="relative flex-1">
+                                                                    <input
+                                                                        type="text"
+                                                                        className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                                            (clientErrors[`kak.manfaat.${index}.value`] || errors[`kak.manfaat.${index}.value`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                        }`}
+                                                                        value={item.value}
+                                                                        onChange={(e) => updateManfaat(index, e.target.value)}
+                                                                        onBlur={() => handleBlur(`kak.manfaat.${index}.value`, item.value)}
+                                                                        placeholder={`Manfaat ${index + 1}`}
+                                                                        disabled={readOnly && !isPengusulFixing}
+                                                                        required
                                                                     />
+                                                                    {(isVerifikator || isPengusulFixing) && item.manfaat_id && (
+                                                                        <CommentIcon
+                                                                            hasComment={!!revisiData.anak?.t_kak_manfaat?.find(r => r.id === item.manfaat_id)?.catatan_manfaat || !!originalKak?.manfaat?.find(m => m.manfaat_id === item.manfaat_id)?.catatan_manfaat}
+                                                                            isPastNote={!!originalKak?.manfaat?.find(m => m.manfaat_id === item.manfaat_id)?.catatan_manfaat && !revisiData.anak?.t_kak_manfaat?.find(r => r.id === item.manfaat_id)?.catatan_manfaat}
+                                                                            isPengusul={isPengusul}
+                                                                            onClick={() => {
+                                                                                const existingNote = revisiData.anak?.t_kak_manfaat?.find(r => r.id === item.manfaat_id)?.catatan_manfaat;
+                                                                                const oldNote = originalKak?.manfaat?.find(m => m.manfaat_id === item.manfaat_id)?.catatan_manfaat;
+                                                                                openCommentModal(
+                                                                                    { field: 'manfaat', type: 'anak', table: 't_kak_manfaat', id: item.manfaat_id },
+                                                                                    `Catatan Output: ${item.value}`,
+                                                                                    existingNote || oldNote || '',
+                                                                                    !!oldNote && !existingNote
+                                                                                );
+                                                                            }}
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                                {!readOnly && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeManfaat(index)}
+                                                                        disabled={data.kak.manfaat.length <= 1}
+                                                                        className={`p-2 transition-colors z-20 relative ${data.kak.manfaat.length <= 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-400 hover:text-red-600'}`}
+                                                                    >
+                                                                        <Trash size={18} />
+                                                                    </button>
                                                                 )}
                                                             </div>
-                                                            {!readOnly && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => removeManfaat(index)}
-                                                                    disabled={data.kak.manfaat.length <= 1}
-                                                                    className={`p-2 transition-colors z-20 relative ${data.kak.manfaat.length <= 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-400 hover:text-red-600'}`}
-                                                                >
-                                                                    <Trash size={18} />
-                                                                </button>
+                                                            {(clientErrors[`kak.manfaat.${index}.value`] || errors[`kak.manfaat.${index}.value`]) && (
+                                                                <p className="text-xs text-red-500 ml-1">{clientErrors[`kak.manfaat.${index}.value`] || errors[`kak.manfaat.${index}.value`]}</p>
                                                             )}
                                                         </motion.div>
                                                     )
@@ -370,20 +423,23 @@ export default function Step1Kak({
                                     </div>
                                 </div>
                             )}
-
+ 
                             {/* --- Strategi Pencapaian --- */}
                             {subStep === 'strategi-pencapaian' && (
                                 <div className="space-y-6">
                                     <h4 className="text-xl font-bold text-cyan-600 mb-6">Strategi Pencapaian</h4>
-
+ 
                                     {/* Metode Pelaksanaan */}
                                     <div className="relative group/field">
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Metode Pelaksanaan {<span className="text-red-500">*</span>}</label>
                                         <div className="relative">
                                             <textarea
-                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 min-h-[150px] disabled:opacity-70 disabled:cursor-not-allowed pr-12"
+                                                className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 min-h-[150px] disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                    (clientErrors['kak.metode_pelaksanaan'] || errors['kak.metode_pelaksanaan']) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                                 value={data.kak.metode_pelaksanaan || ''}
                                                 onChange={(e) => updateKak('metode_pelaksanaan', e.target.value)}
+                                                onBlur={() => handleBlur('kak.metode_pelaksanaan', data.kak.metode_pelaksanaan)}
                                                 disabled={readOnly && !isPengusulFixing}
                                                 required
                                             ></textarea>
@@ -402,9 +458,11 @@ export default function Step1Kak({
                                                 />
                                             )}
                                         </div>
-                                        {errors['kak.metode_pelaksanaan'] && <p className="text-xs text-red-500 mt-1">{errors['kak.metode_pelaksanaan']}</p>}
+                                        {(clientErrors['kak.metode_pelaksanaan'] || errors['kak.metode_pelaksanaan']) && (
+                                            <p className="text-xs text-red-500 mt-1">{clientErrors['kak.metode_pelaksanaan'] || errors['kak.metode_pelaksanaan']}</p>
+                                        )}
                                     </div>
-
+ 
                                     {/* Tahapan Pelaksanaan */}
                                     <div>
                                         <div className="flex items-center justify-between mb-2">
@@ -418,46 +476,54 @@ export default function Step1Kak({
                                                         initial={{ opacity: 0, height: 0 }}
                                                         animate={{ opacity: 1, height: 'auto' }}
                                                         exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                                        className="flex gap-2 items-center"
+                                                        className="flex flex-col gap-1"
                                                     >
-                                                        <span className="text-sm font-bold text-gray-400 w-6">{index + 1}.</span>
-                                                        <div className="relative flex-1">
-                                                            <input
-                                                                type="text"
-                                                                className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12"
-                                                                value={item.nama_tahapan}
-                                                                onChange={(e) => updateTahapan(index, e.target.value)}
-                                                                placeholder="Nama Tahapan"
-                                                                disabled={readOnly && !isPengusulFixing}
-                                                                required
-                                                            />
-                                                            {(isVerifikator || isPengusulFixing) && item.tahapan_id && (
-                                                                <CommentIcon
-                                                                    hasComment={!!revisiData.anak?.t_kak_tahapan?.find(r => r.id === item.tahapan_id)?.catatan_verifikator || !!originalKak?.tahapan?.find(t => t.tahapan_id === item.tahapan_id)?.catatan_verifikator}
-                                                                    isPastNote={!!originalKak?.tahapan?.find(t => t.tahapan_id === item.tahapan_id)?.catatan_verifikator && !revisiData.anak?.t_kak_tahapan?.find(r => r.id === item.tahapan_id)?.catatan_verifikator}
-                                                                    isPengusul={isPengusul}
-                                                                    onClick={() => {
-                                                                        const existingNote = revisiData.anak?.t_kak_tahapan?.find(r => r.id === item.tahapan_id)?.catatan_verifikator;
-                                                                        const oldNote = originalKak?.tahapan?.find(t => t.tahapan_id === item.tahapan_id)?.catatan_verifikator;
-                                                                        openCommentModal(
-                                                                            { field: 'tahapan', type: 'anak', table: 't_kak_tahapan', id: item.tahapan_id },
-                                                                            `Catatan Tahapan: ${item.nama_tahapan}`,
-                                                                            existingNote || oldNote || '',
-                                                                            !!oldNote && !existingNote
-                                                                        );
-                                                                    }}
+                                                        <div className="flex gap-2 items-center">
+                                                            <span className="text-sm font-bold text-gray-400 w-6">{index + 1}.</span>
+                                                            <div className="relative flex-1">
+                                                                <input
+                                                                    type="text"
+                                                                    className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                                        (clientErrors[`kak.tahapan_pelaksanaan.${index}.nama_tahapan`] || errors[`kak.tahapan_pelaksanaan.${index}.nama_tahapan`]) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                                    }`}
+                                                                    value={item.nama_tahapan}
+                                                                    onChange={(e) => updateTahapan(index, e.target.value)}
+                                                                    onBlur={() => handleBlur(`kak.tahapan_pelaksanaan.${index}.nama_tahapan`, item.nama_tahapan)}
+                                                                    placeholder="Nama Tahapan"
+                                                                    disabled={readOnly && !isPengusulFixing}
+                                                                    required
                                                                 />
+                                                                {(isVerifikator || isPengusulFixing) && item.tahapan_id && (
+                                                                    <CommentIcon
+                                                                        hasComment={!!revisiData.anak?.t_kak_tahapan?.find(r => r.id === item.tahapan_id)?.catatan_verifikator || !!originalKak?.tahapan?.find(t => t.tahapan_id === item.tahapan_id)?.catatan_verifikator}
+                                                                        isPastNote={!!originalKak?.tahapan?.find(t => t.tahapan_id === item.tahapan_id)?.catatan_verifikator && !revisiData.anak?.t_kak_tahapan?.find(r => r.id === item.tahapan_id)?.catatan_verifikator}
+                                                                        isPengusul={isPengusul}
+                                                                        onClick={() => {
+                                                                            const existingNote = revisiData.anak?.t_kak_tahapan?.find(r => r.id === item.tahapan_id)?.catatan_verifikator;
+                                                                            const oldNote = originalKak?.tahapan?.find(t => t.tahapan_id === item.tahapan_id)?.catatan_verifikator;
+                                                                            openCommentModal(
+                                                                                { field: 'tahapan', type: 'anak', table: 't_kak_tahapan', id: item.tahapan_id },
+                                                                                `Catatan Tahapan: ${item.nama_tahapan}`,
+                                                                                existingNote || oldNote || '',
+                                                                                !!oldNote && !existingNote
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                            {!readOnly && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeTahapan(index)}
+                                                                    disabled={data.kak.tahapan_pelaksanaan.length <= 1}
+                                                                    className={`p-2 transition-colors z-20 relative ${data.kak.tahapan_pelaksanaan.length <= 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-400 hover:text-red-600'}`}
+                                                                >
+                                                                    <Trash size={18} />
+                                                                </button>
                                                             )}
                                                         </div>
-                                                        {!readOnly && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => removeTahapan(index)}
-                                                                disabled={data.kak.tahapan_pelaksanaan.length <= 1}
-                                                                className={`p-2 transition-colors z-20 relative ${data.kak.tahapan_pelaksanaan.length <= 1 ? 'text-gray-300 cursor-not-allowed' : 'text-red-400 hover:text-red-600'}`}
-                                                            >
-                                                                <Trash size={18} />
-                                                            </button>
+                                                        {(clientErrors[`kak.tahapan_pelaksanaan.${index}.nama_tahapan`] || errors[`kak.tahapan_pelaksanaan.${index}.nama_tahapan`]) && (
+                                                            <p className="text-xs text-red-500 ml-8">{clientErrors[`kak.tahapan_pelaksanaan.${index}.nama_tahapan`] || errors[`kak.tahapan_pelaksanaan.${index}.nama_tahapan`]}</p>
                                                         )}
                                                     </motion.div>
                                                 ))}
@@ -515,27 +581,40 @@ export default function Step1Kak({
                                                                 placeholder="Pilih Bulan"
                                                                 disabled={readOnly && !isPengusulFixing}
                                                                 required
-                                                                className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
+                                                                className={`w-full rounded-lg py-2 pl-3 pr-10 text-xs ${
+                                                                    (clientErrors[`kak.indikator_kinerja.${index}.bulan_indikator`] || errors[`kak.indikator_kinerja.${index}.bulan_indikator`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                                }`}
                                                             />
+                                                            {(clientErrors[`kak.indikator_kinerja.${index}.bulan_indikator`] || errors[`kak.indikator_kinerja.${index}.bulan_indikator`]) && (
+                                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`kak.indikator_kinerja.${index}.bulan_indikator`] || errors[`kak.indikator_kinerja.${index}.bulan_indikator`]}</p>
+                                                            )}
                                                         </div>
                                                         <div className="md:col-span-6">
                                                             <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Keberhasilan</label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed pr-10"
+                                                                className={`w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed pr-10 ${
+                                                                    (clientErrors[`kak.indikator_kinerja.${index}.deskripsi_target`] || errors[`kak.indikator_kinerja.${index}.deskripsi_target`]) ? 'border-red-300 focus:border-red-500' : 'border-gray-200'
+                                                                }`}
                                                                 value={item.deskripsi_target}
                                                                 onChange={(e) => updateIndikator(index, 'deskripsi_target', e.target.value)}
+                                                                onBlur={() => handleBlur(`kak.indikator_kinerja.${index}.deskripsi_target`, item.deskripsi_target)}
                                                                 placeholder="Contoh: Tersedianya dokumen laporan"
                                                                 disabled={readOnly && !isPengusulFixing}
                                                                 required
                                                             />
+                                                            {(clientErrors[`kak.indikator_kinerja.${index}.deskripsi_target`] || errors[`kak.indikator_kinerja.${index}.deskripsi_target`]) && (
+                                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`kak.indikator_kinerja.${index}.deskripsi_target`] || errors[`kak.indikator_kinerja.${index}.deskripsi_target`]}</p>
+                                                            )}
                                                         </div>
                                                         <div className="md:col-span-3">
                                                             <label className="block text-xs font-bold text-gray-500 mb-1">Target</label>
                                                             <div className="flex items-center gap-2">
                                                                 <input
                                                                     type="number"
-                                                                    className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                                    className={`w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed ${
+                                                                        (clientErrors[`kak.indikator_kinerja.${index}.persentase_target`] || errors[`kak.indikator_kinerja.${index}.persentase_target`]) ? 'border-red-300 focus:border-red-500' : 'border-gray-200'
+                                                                    }`}
                                                                     value={item.persentase_target}
                                                                     onChange={(e) => {
                                                                         let val = e.target.value;
@@ -545,6 +624,7 @@ export default function Step1Kak({
                                                                         }
                                                                         updateIndikator(index, 'persentase_target', val);
                                                                     }}
+                                                                    onBlur={() => handleBlur(`kak.indikator_kinerja.${index}.persentase_target`, item.persentase_target)}
                                                                     placeholder="0"
                                                                     min="0"
                                                                     max="100"
@@ -553,6 +633,9 @@ export default function Step1Kak({
                                                                 />
                                                                 <span className="text-sm font-bold text-gray-500">%</span>
                                                             </div>
+                                                            {(clientErrors[`kak.indikator_kinerja.${index}.persentase_target`] || errors[`kak.indikator_kinerja.${index}.persentase_target`]) && (
+                                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`kak.indikator_kinerja.${index}.persentase_target`] || errors[`kak.indikator_kinerja.${index}.persentase_target`]}</p>
+                                                            )}
                                                         </div>
                                                     </div>
 
@@ -622,16 +705,24 @@ export default function Step1Kak({
                                                             endDate: data.kak.tanggal_selesai || null
                                                         }}
                                                         onChange={(newValue) => {
+                                                            const start = newValue?.startDate || '';
+                                                            const end = newValue?.endDate || '';
                                                             setData('kak', {
                                                                 ...data.kak,
-                                                                tanggal_mulai: newValue?.startDate || '',
-                                                                tanggal_selesai: newValue?.endDate || ''
+                                                                tanggal_mulai: start,
+                                                                tanggal_selesai: end
                                                             });
+                                                            if (handleBlur) {
+                                                                handleBlur('kak.tanggal_mulai', start);
+                                                                handleBlur('kak.tanggal_selesai', end);
+                                                            }
                                                         }}
                                                         placeholder="Pilih Rentang Tanggal..."
                                                         disabled={readOnly && !isPengusulFixing}
                                                         showClearButton={false}
-                                                        inputClassName="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-14"
+                                                        inputClassName={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-14 ${
+                                                            (clientErrors['kak.tanggal_mulai'] || clientErrors['kak.tanggal_selesai'] || errors['kak.tanggal_mulai'] || errors['kak.tanggal_selesai']) ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-cyan-400'
+                                                        }`}
                                                         toggleClassName="absolute top-1/2 -translate-y-1/2 right-12 text-cyan-500 cursor-pointer z-10"
                                                     />
                                                     {(isVerifikator || isPengusulFixing) && (
@@ -649,8 +740,8 @@ export default function Step1Kak({
                                                         />
                                                     )}
                                                 </div>
-                                                {errors['kak.tanggal_mulai'] && <p className="text-xs text-red-500 mt-1">{errors['kak.tanggal_mulai']}</p>}
-                                                {errors['kak.tanggal_selesai'] && <p className="text-xs text-red-500 mt-1">{errors['kak.tanggal_selesai']}</p>}
+                                                {(clientErrors['kak.tanggal_mulai'] || errors['kak.tanggal_mulai']) && <p className="text-xs text-red-500 mt-1">{clientErrors['kak.tanggal_mulai'] || errors['kak.tanggal_mulai']}</p>}
+                                                {(clientErrors['kak.tanggal_selesai'] || errors['kak.tanggal_selesai']) && <p className="text-xs text-red-500 mt-1">{clientErrors['kak.tanggal_selesai'] || errors['kak.tanggal_selesai']}</p>}
                                             </div>
 
                                             <div className="relative group/field md:col-span-2">
@@ -664,9 +755,12 @@ export default function Step1Kak({
                                                 <div className="relative">
                                                     <input
                                                         type="text"
-                                                        className="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-cyan-400 focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12"
+                                                        className={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed pr-12 ${
+                                                            (clientErrors['kak.lokasi'] || errors['kak.lokasi']) ? 'border-red-300 focus:border-red-400' : 'border-gray-200 focus:border-cyan-400'
+                                                        }`}
                                                         value={data.kak.lokasi || ''}
                                                         onChange={(e) => updateKak('lokasi', e.target.value)}
+                                                        onBlur={() => handleBlur('kak.lokasi', data.kak.lokasi)}
                                                         placeholder="Contoh: Gedung Direktorat Lt.2, Kampus PNJ"
                                                         disabled={readOnly && !isPengusulFixing}
                                                         required
@@ -685,7 +779,9 @@ export default function Step1Kak({
                                                         />
                                                     )}
                                                 </div>
-                                                {errors['kak.lokasi'] && <p className="text-xs text-red-500 mt-1">{errors['kak.lokasi']}</p>}
+                                                {(clientErrors['kak.lokasi'] || errors['kak.lokasi']) && (
+                                                    <p className="text-xs text-red-500 mt-1">{clientErrors['kak.lokasi'] || errors['kak.lokasi']}</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

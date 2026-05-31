@@ -41,22 +41,8 @@ class KakController extends Controller
         $user = Auth::user();
         $query = KAK::with(['status', 'tipeKegiatan', 'mataAnggaran', 'pengusul']);
 
-        // Filter by role
-        if ($user->role_id === 3) {
-            // Pengusul: Only own KAKs
-            $query->where('pengusul_user_id', $user->user_id);
-        } elseif ($user->role_id === 2) {
-            // Verifikator: Only KAKs in "Review Verifikator" status (status_id = 2)
-            // and matching their Tipe Kegiatan (derived from username 'verifikatorN')
-            $query->where('status_id', 2);
-            if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
-                $allowedTipeId = (int) $matches[1];
-                $query->where('tipe_kegiatan_id', $allowedTipeId);
-            } else {
-                $query->whereRaw('1 = 0');
-            }
-        }
-        // Others (Admin/PPK): Currently see all? Restrict if needed. For now allow all for visualization.
+        // Filter by role & stage status via KakService
+        $query = $this->kakService->applyListFilters($query, $user);
 
         if ($request->filled('search')) {
             $search = strtolower($request->search);

@@ -9,18 +9,29 @@ export default function Step2Iku({
     data, setData, errors, iku = [], satuan = [], readOnly = false,
     isVerifikator = false, isPengusul = false, isPengusulFixing = false,
     openCommentModal = () => { }, revisiData = { catatan_kak: {}, anak: {} }, originalKak = null,
+    clientErrors = {}, handleBlur = () => {}, handleFieldChange = () => {}, setClientErrors = () => {}
 }) {
 
     const addTargetIku = () => setData('target_iku', [...data.target_iku, { _id: Math.random(), iku_id: '', target: '', satuan_id: '' }]);
     const removeTargetIku = (index) => {
         if (data.target_iku.length > 1) {
             setData('target_iku', data.target_iku.filter((_, i) => i !== index));
+            setClientErrors(prev => {
+                const next = { ...prev };
+                Object.keys(next).forEach(key => {
+                    if (key.startsWith('target_iku.')) {
+                        delete next[key];
+                    }
+                });
+                return next;
+            });
         }
     };
     const updateTargetIku = (index, field, value) => {
         const newItems = [...data.target_iku];
         newItems[index][field] = value;
         setData('target_iku', newItems);
+        handleFieldChange(`target_iku.${index}.${field}`, value);
     };
 
     return (
@@ -44,7 +55,7 @@ export default function Step2Iku({
                                     layout
                                     className="p-4 rounded-xl bg-gray-50 border border-gray-100 group hover:border-cyan-200 transition-colors relative"
                                 >
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
                                         {/* IKU Select */}
                                         <div className="md:col-span-6">
                                             <label className="block text-xs font-bold text-gray-500 mb-1">Indikator Kinerja Utama {<span className="text-red-500">*</span>}</label>
@@ -55,8 +66,13 @@ export default function Step2Iku({
                                                 placeholder="Pilih IKU"
                                                 disabled={readOnly}
                                                 required
-                                                className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
+                                                className={`w-full rounded-lg py-2 pl-3 pr-10 text-xs ${
+                                                    (clientErrors[`target_iku.${index}.iku_id`] || errors[`target_iku.${index}.iku_id`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                             />
+                                            {(clientErrors[`target_iku.${index}.iku_id`] || errors[`target_iku.${index}.iku_id`]) && (
+                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`target_iku.${index}.iku_id`] || errors[`target_iku.${index}.iku_id`]}</p>
+                                            )}
                                         </div>
 
                                         {/* Target Input */}
@@ -64,14 +80,20 @@ export default function Step2Iku({
                                             <label className="block text-xs font-bold text-gray-500 mb-1">Target {<span className="text-red-500">*</span>}</label>
                                             <input
                                                 type="number"
-                                                className="w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                className={`w-full rounded-lg border-gray-200 text-sm focus:border-cyan-400 focus:ring-0 disabled:opacity-70 disabled:cursor-not-allowed ${
+                                                    (clientErrors[`target_iku.${index}.target`] || errors[`target_iku.${index}.target`]) ? 'border-red-300 focus:border-red-500' : 'border-gray-200'
+                                                }`}
                                                 value={item.target}
                                                 onChange={(e) => updateTargetIku(index, 'target', e.target.value)}
+                                                onBlur={() => handleBlur(`target_iku.${index}.target`, item.target)}
                                                 placeholder="0"
                                                 min="0"
                                                 disabled={readOnly}
                                                 required
                                             />
+                                            {(clientErrors[`target_iku.${index}.target`] || errors[`target_iku.${index}.target`]) && (
+                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`target_iku.${index}.target`] || errors[`target_iku.${index}.target`]}</p>
+                                            )}
                                         </div>
 
                                         {/* Satuan Select */}
@@ -84,8 +106,13 @@ export default function Step2Iku({
                                                 placeholder="Satuan"
                                                 disabled={readOnly}
                                                 required
-                                                className="w-full rounded-lg py-2 pl-3 pr-10 text-xs"
+                                                className={`w-full rounded-lg py-2 pl-3 pr-10 text-xs ${
+                                                    (clientErrors[`target_iku.${index}.satuan_id`] || errors[`target_iku.${index}.satuan_id`]) ? 'border-red-300 focus:border-red-400 bg-red-50/50' : 'border-gray-200 focus:border-cyan-400'
+                                                }`}
                                             />
+                                            {(clientErrors[`target_iku.${index}.satuan_id`] || errors[`target_iku.${index}.satuan_id`]) && (
+                                                <p className="text-xs text-red-500 mt-1">{clientErrors[`target_iku.${index}.satuan_id`] || errors[`target_iku.${index}.satuan_id`]}</p>
+                                            )}
                                         </div>
 
                                         {/* Action Buttons */}

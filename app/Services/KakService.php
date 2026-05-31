@@ -216,4 +216,37 @@ class KakService
 
         return $days > 0 ? "{$months} Bulan {$days} Hari" : "{$months} Bulan";
     }
+
+    public function applyListFilters($query, User $user): \Illuminate\Database\Eloquent\Builder
+    {
+        if ($user->role_id === 3) {
+            // Pengusul: only own KAKs in KAK stage (statuses 1, 2, 4, 5)
+            $query->where('pengusul_user_id', $user->user_id)
+                  ->whereIn('status_id', [1, 2, 4, 5]);
+        } elseif ($user->role_id === 2) {
+            // Verifikator: only KAKs in "Review Verifikator" status (status_id = 2)
+            // and matching their Tipe Kegiatan
+            $query->where('status_id', 2);
+
+            if (method_exists($user, 'getVerifikatorTipeId')) {
+                $tipeId = $user->getVerifikatorTipeId();
+            } else {
+                $tipeId = null;
+                if (preg_match('/verifikator(\d+)/', $user->username, $matches)) {
+                    $tipeId = (int) $matches[1];
+                }
+            }
+
+            if ($tipeId !== null) {
+                $query->where('tipe_kegiatan_id', $tipeId);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        } else {
+            // Admin/Others: only KAKs in KAK stage (statuses 1, 2, 4, 5)
+            $query->whereIn('status_id', [1, 2, 4, 5]);
+        }
+
+        return $query;
+    }
 }

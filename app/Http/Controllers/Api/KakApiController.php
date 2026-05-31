@@ -43,21 +43,11 @@ class KakApiController extends Controller
         $user = $request->user();
         $query = KAK::with(['status', 'tipeKegiatan']);
 
-        if ($user->role_id === 3) {
-            // Pengusul: only own KAKs
-            $query->where('pengusul_user_id', $user->user_id);
-        } elseif ($user->role_id === 2) {
-            // Verifikator: only pending KAKs of their matching tipe_kegiatan_id
-            $query->where('status_id', 2);
-            $tipeKegiatanId = $user->getVerifikatorTipeId();
-            if ($tipeKegiatanId !== null) {
-                $query->where('tipe_kegiatan_id', $tipeKegiatanId);
-            }
-        } elseif ($user->role_id === 1) {
-            // Admin: sees all
-        } else {
+        if (!in_array($user->role_id, [1, 2, 3])) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
+
+        $query = $this->kakService->applyListFilters($query, $user);
 
         if ($request->filled('search')) {
             $query->where('nama_kegiatan', 'ilike', '%'.$request->search.'%');
@@ -92,7 +82,7 @@ class KakApiController extends Controller
             $uid = $user->user_id;
 
             return response()->json([
-                'total_kak' => KAK::where('pengusul_user_id', $uid)->count(),
+                'total_kak' => KAK::where('pengusul_user_id', $uid)->where('status_id', '<=', 5)->count(),
                 'draft_kak' => KAK::where('pengusul_user_id', $uid)->where('status_id', 1)->count(),
                 'review_kak' => KAK::where('pengusul_user_id', $uid)->where('status_id', 2)->count(),
                 'approved_kak' => KAK::where('pengusul_user_id', $uid)->where('status_id', 3)->count(),
@@ -114,9 +104,10 @@ class KakApiController extends Controller
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 
-        $kaks = KAK::with(['status', 'tipeKegiatan'])
-            ->where('pengusul_user_id', $user->user_id)
-            ->orderBy('updated_at', 'desc')
+        $query = KAK::with(['status', 'tipeKegiatan']);
+        $query = $this->kakService->applyListFilters($query, $user);
+
+        $kaks = $query->orderBy('updated_at', 'desc')
             ->limit(5)
             ->get()
             ->map(fn ($kak) => [
