@@ -50,4 +50,15 @@ class Kegiatan extends Model
     {
         return $this->hasMany(PencairanDana::class, 'kegiatan_id');
     }
+
+    public function getLpjApprovedAtAttribute()
+    {
+        return $this->approvals->where('approval_level', 'Bendahara-LPJ')->first()?->approved_at;
+    }
+
+    public function getLpjCompletedAtAttribute()
+    {
+        return $this->approvals->where('approval_level', 'Bendahara-Setor')->first()?->approved_at;
+    }
 }
+

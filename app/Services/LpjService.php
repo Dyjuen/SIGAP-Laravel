@@ -497,9 +497,7 @@ class LpjService
         $query = Kegiatan::select([
             'kegiatan_id',
             'kak_id',
-            'lpj_submitted_at',
-            'lpj_approved_at',
-            'lpj_completed_at'
+            'lpj_submitted_at'
         ])->with([
             'kak' => fn ($q) => $q->select([
                 'kak_id',
@@ -513,7 +511,7 @@ class LpjService
             'kak.mataAnggaran' => fn ($q) => $q->select(['mata_anggaran_id', 'nama_mata_anggaran']),
             'kak.tipeKegiatan' => fn ($q) => $q->select(['tipe_kegiatan_id', 'nama_tipe']),
             'kak.status' => fn ($q) => $q->select(['status_id', 'nama_status']),
-            'approvals' => fn ($q) => $q->select(['approval_id', 'kegiatan_id', 'approval_level', 'status']),
+            'approvals' => fn ($q) => $q->select(['approval_kegiatan_id', 'kegiatan_id', 'approval_level', 'status', 'approved_at']),
         ])->whereHas('kak', function ($q) {
             // Only show kegiatan with status >= 10 (Approved KAK) and not rejected
             $q->where('status_id', '>=', 10)->where('status_id', '!=', 14);
