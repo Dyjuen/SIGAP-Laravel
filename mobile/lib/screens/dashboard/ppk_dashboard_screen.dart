@@ -8,6 +8,8 @@ import '../profile_page.dart';
 import '../ppk/ppk_kegiatan_list_page.dart';
 import '../ppk/ppk_kegiatan_detail_page.dart';
 import '../kegiatan_monitoring_page.dart';
+import '../../widgets/dashboard_drawer.dart';
+import '../../widgets/blue_stat_card.dart';
 
 class PpkDashboardScreen extends StatefulWidget {
   const PpkDashboardScreen({super.key});
@@ -42,72 +44,14 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: const Text(
-          'SIGAP PNJ',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF0F172A),
-            fontFamily: 'Figtree',
-            letterSpacing: -0.5,
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
-          child: CircleAvatar(
-            backgroundColor: const Color(0xFFE0F7FA),
-            child: const Icon(Icons.assignment_ind, color: Color(0xFF00BCD4), size: 20),
-          ),
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Monitoring Kegiatan',
-            icon: const Icon(Icons.analytics_outlined, color: Color(0xFF00BCD4)),
-            onPressed: () {
-              context.read<MonitoringProvider>().setSelectedFilter('Semua');
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const KegiatanMonitoringPage(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF475569)),
-            onPressed: () {},
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                );
-              },
-              child: CircleAvatar(
-                backgroundColor: const Color(0xFFF1F5F9),
-                child: Text(
-                  displayName.substring(0, 1).toUpperCase(),
-                  style: const TextStyle(
-                    color: Color(0xFF475569),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+      appBar: const DashboardAppBar(),
+      drawer: DashboardDrawer(roleId: user?.roleId ?? 4), // 4 is PPK, 7 is Wadir
       body: Consumer<BaseDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
               ),
             );
           }
@@ -142,7 +86,7 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                       icon: const Icon(Icons.refresh),
                       label: const Text('Coba Lagi'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -160,7 +104,7 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
 
           return RefreshIndicator(
             onRefresh: () => provider.loadDashboard(),
-            color: const Color(0xFF00BCD4),
+            color: const Color(0xFF33C8DA),
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Padding(
@@ -208,10 +152,9 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                                   ),
                                 ).then((_) => provider.loadDashboard());
                               },
-                              child: _StatCard(
+                              child: BlueStatCard(
                                 label: 'MENUNGGU',
                                 value: stats.pendingCount?.toString() ?? '0',
-                                isCyan: true,
                               ),
                             ),
                           ),
@@ -226,10 +169,9 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                                   ),
                                 ).then((_) => provider.loadDashboard());
                               },
-                              child: _StatCard(
+                              child: BlueStatCard(
                                 label: 'DISETUJUI',
                                 value: stats.approvedCount?.toString() ?? '0',
-                                isCyan: false,
                               ),
                             ),
                           ),
@@ -244,10 +186,9 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                                   ),
                                 ).then((_) => provider.loadDashboard());
                               },
-                              child: _StatCard(
+                              child: BlueStatCard(
                                 label: 'TOTAL',
                                 value: stats.totalKegiatan?.toString() ?? '0',
-                                isCyan: false,
                               ),
                             ),
                           ),
@@ -315,7 +256,7 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                                     ).then((_) => provider.loadDashboard());
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF00BCD4),
+                                    backgroundColor: const Color(0xFF33C8DA),
                                     foregroundColor: Colors.white,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
@@ -416,13 +357,13 @@ class _StatCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isCyan ? const Color(0xFF00BCD4) : Colors.white,
+        color: isCyan ? const Color(0xFF33C8DA) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: isCyan ? null : Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
             color: isCyan 
-                ? const Color(0xFF00BCD4).withOpacity(0.15)
+                ? const Color(0xFF33C8DA).withOpacity(0.15)
                 : const Color(0xFF0F172A).withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -438,7 +379,7 @@ class _StatCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w900,
-              color: isCyan ? Colors.white.withOpacity(0.8) : const Color(0xFF00BCD4),
+              color: isCyan ? Colors.white.withOpacity(0.8) : const Color(0xFF33C8DA),
               letterSpacing: 0.5,
               fontFamily: 'Figtree',
             ),

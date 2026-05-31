@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../widgets/floating_circle.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dashboard_router.dart';
 
 class LoginPage extends StatefulWidget {
@@ -74,187 +74,170 @@ class _LoginPageState extends State<LoginPage> {
         body: Stack(
           alignment: AlignmentDirectional(-1, -1),
           children: [
-            Stack(
-              alignment: AlignmentDirectional(-1, -1),
-              children: [
-                Align(
-                  alignment: const AlignmentDirectional(-1.2, -0.8),
-                  child: FloatingCircleWidget(
-                    color: colorScheme.primary,
-                    size: 300.0,
-                  ),
+            // Background image — sama dengan web
+            Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/auth-bg.png'),
+                  fit: BoxFit.cover,
                 ),
-                Align(
-                  alignment: const AlignmentDirectional(1.3, -0.4),
-                  child: FloatingCircleWidget(
-                    color: colorScheme.tertiary,
-                    size: 250.0,
-                  ),
-                ),
-                Align(
-                  alignment: const AlignmentDirectional(-0.5, 0.9),
-                  child: FloatingCircleWidget(
-                    color: Colors.blueAccent,
-                    size: 200.0,
-                  ),
-                ),
-                Align(
-                  alignment: const AlignmentDirectional(0.8, 1.1),
-                  child: FloatingCircleWidget(
-                    color: colorScheme.primary,
-                    size: 180.0,
-                  ),
-                ),
-              ],
+              ),
             ),
             SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 48.0),
+              padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 56.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 24),
-                  // Header
+                  const SizedBox(height: 16),
+                  // Header — sesuai web: logo SVG polos di tengah tanpa kotak
                   Column(
                     children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(32),
-                        ),
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.security_rounded,
-                          color: colorScheme.onSurface,
-                          size: 40,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'SIGAP',
-                            style: GoogleFonts.figtree(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: colorScheme.onBackground,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'PNJ',
-                            style: GoogleFonts.figtree(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
                       Text(
-                        'Gerbang Administrasi Terpadu',
+                        'Selamat Datang di',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.figtree(
-                          fontSize: 14,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1F2937),
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      Text(
+                        'SIGAP PNJ!',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.figtree(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1F2937),
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Silahkan masukkan nama pengguna dan kata sandi Anda',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.figtree(
+                          fontSize: 13,
                           color: Colors.grey[600],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  // Glassmorphism Card
+                  const SizedBox(height: 28),
+                  // Glassmorphism Card — sama dengan web
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                       child: Container(
-                        padding: const EdgeInsets.all(40),
+                        padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
-                          color: colorScheme.surface.withOpacity(0.7),
+                          color: Colors.white.withOpacity(0.70),
                           borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.white.withOpacity(0.5)),
                         ),
                         child: Form(
                           key: _formKey,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Text(
-                                'Masuk ke Akun',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.figtree(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
-                                  color: colorScheme.onSurface,
+                              Align(
+                                alignment: Alignment.center,
+                                child: SvgPicture.asset(
+                                  'assets/images/logoauth.svg',
+                                  width: 40,
+                                  height: 40,
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              // Email Input
+                              // Username field
                               Text(
-                                'Email atau NIP',
+                                'Nama Pengguna',
                                 style: GoogleFonts.figtree(
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.grey[700],
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               TextFormField(
                                 controller: _usernameController,
                                 decoration: InputDecoration(
-                                  hintText: 'Masukkan email/NIP',
+                                  hintText: 'Masukkan nama pengguna Anda',
                                   hintStyle: GoogleFonts.figtree(fontSize: 14, color: Colors.grey),
-                                  prefixIcon: const Icon(Icons.person_outline_rounded),
+                                  prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.05),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                                 ),
+                                textInputAction: TextInputAction.next,
                                 validator: (val) => val == null || val.isEmpty ? 'Harap diisi' : null,
                               ),
                               const SizedBox(height: 16),
-                              // Password Input
+                              // Password field
                               Text(
                                 'Kata Sandi',
                                 style: GoogleFonts.figtree(
-                                  fontSize: 12,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.grey[700],
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               TextFormField(
                                 controller: _passwordController,
                                 obscureText: true,
                                 decoration: InputDecoration(
-                                  hintText: '••••••••',
+                                  hintText: 'Masukkan kata sandi Anda',
                                   hintStyle: GoogleFonts.figtree(fontSize: 14, color: Colors.grey),
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded),
+                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Colors.grey, width: 1),
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withOpacity(0.05),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                                 ),
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (_) => _submit(),
                                 validator: (val) => val == null || val.isEmpty ? 'Harap diisi' : null,
                               ),
                               const SizedBox(height: 16),
-                              // Remember me & Forgot Pass
+                              // Remember me & forgot pass
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
                                       SizedBox(
-                                        width: 24,
-                                        height: 24,
+                                        width: 20,
+                                        height: 20,
                                         child: Checkbox(
                                           value: _rememberMe,
-                                          activeColor: colorScheme.primary,
+                                          activeColor: const Color(0xFF33C8DA),
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                                           onChanged: (val) {
                                             setState(() => _rememberMe = val ?? false);
                                           },
@@ -262,90 +245,60 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
-                                        'Ingat saya',
-                                        style: GoogleFonts.figtree(fontSize: 14, color: colorScheme.onSurface),
+                                        'Ingat Saya',
+                                        style: GoogleFonts.figtree(fontSize: 13, color: Colors.grey[700]),
                                       ),
                                     ],
                                   ),
                                   Text(
-                                    'Lupa sandi?',
+                                    'Lupa Kata Sandi?',
                                     style: GoogleFonts.figtree(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: colorScheme.primary,
+                                      color: const Color(0xFF33C8DA),
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 24),
-                              // Submit Button
+                              // Submit Button — gradient seperti web
                               SizedBox(
-                                height: 50,
-                                child: ElevatedButton(
-                                  onPressed: authProvider.isLoading ? null : _submit,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: colorScheme.primary,
-                                    foregroundColor: colorScheme.onPrimary,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  child: authProvider.isLoading
-                                      ? const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                        )
-                                      : Text(
-                                          'Masuk Sekarang',
-                                          style: GoogleFonts.figtree(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
+                                height: 52,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: authProvider.isLoading
+                                        ? null
+                                        : const LinearGradient(
+                                            colors: [Color(0xFF33C8DA), Color(0xFF2BA9B8)],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
                                           ),
-                                        ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(child: Divider(color: Colors.grey[300])),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    child: Text(
-                                      'ATAU',
-                                      style: GoogleFonts.figtree(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.bold,
+                                    color: authProvider.isLoading ? Colors.grey.shade300 : null,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: authProvider.isLoading ? null : _submit,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
-                                  ),
-                                  Expanded(child: Divider(color: Colors.grey[300])),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              SizedBox(
-                                height: 50,
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    // Custom login trigger for SSO
-                                    _usernameController.text = 'admin';
-                                    _passwordController.text = 'admin';
-                                    _submit();
-                                  },
-                                  icon: Icon(Icons.login_rounded, size: 18, color: colorScheme.onSurface),
-                                  label: Text(
-                                    'Login SSO PNJ',
-                                    style: GoogleFonts.figtree(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                                    child: authProvider.isLoading
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                          )
+                                        : Text(
+                                            'Masuk',
+                                            style: GoogleFonts.figtree(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                   ),
                                 ),
                               ),
@@ -355,42 +308,21 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Belum punya akun? ',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      Text(
-                        'Hubungi Admin',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onBackground,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 20),
                   Text(
-                    '© 2024 Politeknik Negeri Jakarta',
+                    'Sistem Informasi Gerbang Administrasi Pengajuan PNJ',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.figtree(
-                      fontSize: 12,
-                      color: colorScheme.onBackground,
+                      fontSize: 11,
+                      color: Colors.grey[500],
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    'Versi 1.0.4',
+                    '© 2025 SIGAP PNJ · Politeknik Negeri Jakarta',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.figtree(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: Colors.grey[500],
                     ),
                   ),

@@ -280,7 +280,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -332,13 +332,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
             onPressed: _loadUsers,
           )
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
           : Column(
               children: [
                 Padding(
@@ -366,7 +366,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1.5),
+                              borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
                             ),
                           ),
                         ),
@@ -380,7 +380,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00BCD4),
+                      color: const Color(0xFF33C8DA),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
@@ -420,7 +420,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                           onPressed: _showAddUserDialog,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFF00BCD4),
+                            foregroundColor: const Color(0xFF33C8DA),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                           child: const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -540,7 +540,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddUserDialog,
-        backgroundColor: const Color(0xFF00BCD4),
+        backgroundColor: const Color(0xFF33C8DA),
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         child: const Icon(Icons.person_add, size: 26),

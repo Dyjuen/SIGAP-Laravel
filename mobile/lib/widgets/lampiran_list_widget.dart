@@ -84,7 +84,7 @@ class LampiranListWidget extends StatelessWidget {
                       : lampiran.isImage
                       ? Icons.image
                       : Icons.file_present,
-                  color: const Color(0xFF00BCD4),
+                  color: const Color(0xFF33C8DA),
                   size: 28,
                 ),
                 const SizedBox(width: 12),

@@ -433,7 +433,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               ),
             ),
           ],
-          rows: (lpj.anggaran ?? []).map((item) {
+          rows: (lpj.anggaranItems).map((item) {
             return DataRow(cells: [
               DataCell(
                 SizedBox(
@@ -541,7 +541,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               ElevatedButton(
                 onPressed: () async {
                   final success =
-                      await provider.approveLpj(lpj.kegiatanId ?? 0);
+                      await provider.approveLpj(lpj.kegiatanId);
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -577,7 +577,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
             ),
             onPressed: () async {
               final success =
-                  await provider.completeLpj(lpj.kegiatanId ?? 0);
+                  await provider.completeLpj(lpj.kegiatanId);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -636,8 +636,8 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 }
 
                 final success = await provider.reviseLpj(
-                  lpj.kegiatanId ?? 0,
-                  controller.text,
+                  kegiatanId: lpj.kegiatanId,
+                  catatan: controller.text,
                 );
 
                 if (mounted) {

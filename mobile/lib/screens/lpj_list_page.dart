@@ -355,14 +355,14 @@ class _LpjListPageState extends State<LpjListPage> {
                         ),
                         ...lpjProvider.lpjList.map((item) {
                           return LpjDocumentItemWidget(
-                            title: item.nama,
-                            date: item.createdAt?.toString().substring(0, 10) ?? 'N/A',
+                            title: item.namaKegiatan,
+                            date: item.lpjSubmittedAt?.substring(0, 10) ?? 'N/A',
                             files: '2 Files',
                             statusText: item.lpjStatus ?? 'Draft',
                             statusBg: _getStatusColor(item.lpjStatus).withOpacity(0.2),
                             statusColor: _getStatusColor(item.lpjStatus),
                             actionText: _getActionText(item.lpjStatus),
-                            actionIcon: _getActionIcon(item.lpjStatus),
+                            actionIcon: Icon(_getActionIcon(item.lpjStatus), size: 16),
                             actionVariant: _getActionVariant(item.lpjStatus),
                             onTap: () {
                               // Navigate to detail or form page

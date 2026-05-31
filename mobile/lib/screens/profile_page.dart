@@ -25,7 +25,7 @@ class ProfilePage extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.edit, color: Color(0xFF33C8DA)),
             onPressed: () {},
           )
         ],
@@ -46,7 +46,7 @@ class ProfilePage extends StatelessWidget {
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFF00BCD4), width: 3),
+                          border: Border.all(color: const Color(0xFF33C8DA), width: 3),
                         ),
                         child: const CircleAvatar(
                           radius: 56,
@@ -62,7 +62,7 @@ class ProfilePage extends StatelessWidget {
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00BCD4),
+                            color: const Color(0xFF33C8DA),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 3),
                           ),
@@ -198,7 +198,7 @@ class ProfilePage extends StatelessWidget {
                       color: const Color(0xFFE0F7FA),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.shield_outlined, color: Color(0xFF00BCD4)),
+                    child: const Icon(Icons.shield_outlined, color: Color(0xFF33C8DA)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -243,7 +243,7 @@ class ProfilePage extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: const Color(0xFF00BCD4), size: 22),
+        Icon(icon, color: const Color(0xFF33C8DA), size: 22),
         const SizedBox(width: 16),
         Expanded(
           child: Column(

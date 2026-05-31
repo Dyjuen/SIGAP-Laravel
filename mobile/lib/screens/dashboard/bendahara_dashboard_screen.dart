@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
+import '../../widgets/dashboard_drawer.dart';
+import '../../widgets/blue_stat_card.dart';
 
 class BendaharaDashboardScreen extends StatefulWidget {
   const BendaharaDashboardScreen({super.key});
@@ -23,29 +25,9 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'SIGAP PNJ',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.green.shade100,
-            child: Icon(
-              Icons.account_balance_wallet,
-              color: Colors.green.shade700,
-            ),
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: const DashboardAppBar(),
+      drawer: const DashboardDrawer(roleId: 5), // Bendahara
       body: Consumer<BendaharaDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -111,41 +93,42 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
 
                     // Stat Cards
                     if (stats != null) ...[
-                      GridView.count(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.8,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
+                      Column(
                         children: [
-                          _StatCard(
-                            label: 'LPJ PENDING',
-                            value: stats.lpjPending?.toString() ?? '0',
-                            bgColor: Colors.orange.shade100,
-                            textColor: Colors.orange.shade700,
-                            icon: Icons.assignment_late_rounded,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'LPJ PENDING',
+                                  value: stats.lpjPending?.toString() ?? '0',
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'LPJ APPROVED',
+                                  value: stats.lpjApproved?.toString() ?? '0',
+                                ),
+                              ),
+                            ],
                           ),
-                          _StatCard(
-                            label: 'LPJ APPROVED',
-                            value: stats.lpjApproved?.toString() ?? '0',
-                            bgColor: Colors.green.shade100,
-                            textColor: Colors.green.shade700,
-                            icon: Icons.assignment_turned_in_rounded,
-                          ),
-                          _StatCard(
-                            label: 'DANA DIUSULKAN',
-                            value: _formatCurrency(stats.totalDanaDisusulkan),
-                            bgColor: Colors.blue.shade100,
-                            textColor: Colors.blue.shade700,
-                            icon: Icons.trending_up_rounded,
-                          ),
-                          _StatCard(
-                            label: 'DANA DICAIRKAN',
-                            value: _formatCurrency(stats.totalDanaDicairkan),
-                            bgColor: Colors.green.shade100,
-                            textColor: Colors.green.shade700,
-                            icon: Icons.account_balance_rounded,
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'DANA DIUSULKAN',
+                                  value: _formatCurrency(stats.totalDanaDisusulkan),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'DANA DICAIRKAN',
+                                  value: _formatCurrency(stats.totalDanaDicairkan),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -315,48 +298,55 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        child: Row(
-          children: [
-            Icon(icon, color: textColor, size: 22),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: textColor.withOpacity(0.7),
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF33C8DA).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ],
-        ),
+            child: Icon(icon, color: const Color(0xFF33C8DA), size: 20),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1F2937),
+              fontFamily: 'Figtree',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6B7280),
+              fontFamily: 'Figtree',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

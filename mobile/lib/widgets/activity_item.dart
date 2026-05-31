@@ -87,7 +87,7 @@ class ActivityItem extends StatelessWidget {
                   style: GoogleFonts.figtree(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF00BCD4),
+                    color: const Color(0xFF33C8DA),
                     height: 1.2,
                   ),
                 ),

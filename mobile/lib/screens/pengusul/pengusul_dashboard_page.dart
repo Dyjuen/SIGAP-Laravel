@@ -64,10 +64,10 @@ class _PengusulDashboardPageState extends State<PengusulDashboardPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F4F8),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: const Color(0xFF00BCD4),
+              color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(

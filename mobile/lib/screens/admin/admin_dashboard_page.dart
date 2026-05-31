@@ -93,7 +93,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
             onPressed: _loadData,
           ),
           Padding(
@@ -108,7 +108,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF00BCD4), width: 1.5),
+                  border: Border.all(color: const Color(0xFF33C8DA), width: 1.5),
                 ),
                 child: const CircleAvatar(
                   radius: 18,
@@ -123,12 +123,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF00BCD4),
+                color: Color(0xFF33C8DA),
               ),
             )
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: const Color(0xFF00BCD4),
+              color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(24.0),
@@ -159,7 +159,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           title: 'Total KAK',
                           value: _stats['total_kak']?.toString() ?? '0',
                           subtitle: 'Dokumen',
-                          bg: const Color(0xFF00BCD4),
+                          bg: const Color(0xFF33C8DA),
                           textColor: Colors.white,
                         ),
                         _buildStatCard(
@@ -167,7 +167,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           value: _stats['total_kegiatan']?.toString() ?? '0',
                           subtitle: 'Aktif',
                           bg: Colors.white,
-                          textColor: const Color(0xFF00BCD4),
+                          textColor: const Color(0xFF33C8DA),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         _buildStatCard(
@@ -175,7 +175,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           value: _stats['pending_approvals']?.toString() ?? '0',
                           subtitle: 'Menunggu',
                           bg: Colors.white,
-                          textColor: const Color(0xFF00BCD4),
+                          textColor: const Color(0xFF33C8DA),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         _buildStatCard(
@@ -426,7 +426,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
               ],
             ),
-            child: Icon(icon, color: const Color(0xFF00BCD4), size: 26),
+            child: Icon(icon, color: const Color(0xFF33C8DA), size: 26),
           ),
         ),
         const SizedBox(height: 8),

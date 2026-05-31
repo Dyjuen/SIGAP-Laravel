@@ -42,7 +42,7 @@ class _BaseDashboardWidgetState extends State<BaseDashboardWidget> {
           if (provider.isLoading) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
               ),
             );
           }
@@ -75,7 +75,7 @@ class _BaseDashboardWidgetState extends State<BaseDashboardWidget> {
           return SafeArea(
             child: RefreshIndicator(
               onRefresh: () => provider.loadDashboard(),
-              color: const Color(0xFF00BCD4),
+              color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
@@ -124,7 +124,7 @@ class _BaseDashboardWidgetState extends State<BaseDashboardWidget> {
                                           style: GoogleFonts.figtree(
                                             fontSize: 24,
                                             fontWeight: FontWeight.w900,
-                                            color: const Color(0xFF00BCD4),
+                                            color: const Color(0xFF33C8DA),
                                           ),
                                         ),
                                       ],
@@ -149,7 +149,7 @@ class _BaseDashboardWidgetState extends State<BaseDashboardWidget> {
                                   ),
                                   child: const Icon(
                                     Icons.person,
-                                    color: Color(0xFF00BCD4),
+                                    color: Color(0xFF33C8DA),
                                     size: 24,
                                   ),
                                 ),

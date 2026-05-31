@@ -82,7 +82,7 @@ class FeaturesSection extends StatelessWidget {
                       ),
                       child: Icon(
                         f['icon'] as IconData,
-                        color: const Color(0xFF00BCD4),
+                        color: const Color(0xFF33C8DA),
                         size: 28,
                       ),
                     ),

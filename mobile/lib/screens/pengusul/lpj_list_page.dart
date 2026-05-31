@@ -42,7 +42,7 @@ class _LpjListPageState extends State<LpjListPage> {
         builder: (context, provider, child) {
           if (provider.isLoading) {
             return const Center(
-              child: CircularProgressIndicator(color: Color(0xFF00BCD4)),
+              child: CircularProgressIndicator(color: Color(0xFF33C8DA)),
             );
           }
 
@@ -123,7 +123,7 @@ class _LpjListPageState extends State<LpjListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF00BCD4),
+        backgroundColor: const Color(0xFF33C8DA),
         onPressed: () {
           // This should ideally select a KAK to create LPJ for, but for now we route to form.
           // Since form requires a kegiatanId, we'll route and let form handle if missing or passed null.

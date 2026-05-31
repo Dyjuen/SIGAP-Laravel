@@ -53,7 +53,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
               child: const Text('Batal', style: TextStyle(color: Colors.grey))),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF33C8DA)),
             child: const Text('Ajukan', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -102,13 +102,13 @@ class _KakDetailPageState extends State<KakDetailPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
             onPressed: _loadKak,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
           : _error != null
               ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent)))
               : _buildBody(),
@@ -245,7 +245,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
                             Text(
                               _formatRupiah(_parseDouble(r['jumlah_diusulkan'])),
                               style: const TextStyle(
-                                  color: Color(0xFF00BCD4), fontWeight: FontWeight.bold, fontSize: 13),
+                                  color: Color(0xFF33C8DA), fontWeight: FontWeight.bold, fontSize: 13),
                             ),
                           ],
                         ),
@@ -259,7 +259,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
                       Text(_formatRupiah(totalRab),
                           style: const TextStyle(
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF00BCD4),
+                              color: Color(0xFF33C8DA),
                               fontSize: 16,
                               fontFamily: 'Figtree')),
                     ],
@@ -299,7 +299,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
                               height: 8,
                               margin: const EdgeInsets.only(top: 5),
                               decoration: const BoxDecoration(
-                                  color: Color(0xFF00BCD4), shape: BoxShape.circle),
+                                  color: Color(0xFF33C8DA), shape: BoxShape.circle),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -347,7 +347,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BCD4),
+                  backgroundColor: const Color(0xFF33C8DA),
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -424,7 +424,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
                   children: [
                     Text(
                       numbered ? '${e.key + 1}.' : '•',
-                      style: const TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(width: 8),
                     Expanded(

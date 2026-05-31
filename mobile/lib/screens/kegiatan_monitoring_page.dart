@@ -635,12 +635,12 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00BCD4).withOpacity(0.1),
+                        color: const Color(0xFF33C8DA).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.timeline_rounded,
-                        color: Color(0xFF00BCD4),
+                        color: Color(0xFF33C8DA),
                         size: 24,
                       ),
                     ),
@@ -722,13 +722,13 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
       iconWidget = const Icon(Icons.check_rounded, size: 16, color: Color(0xFF2E7D32));
     } else if (step.status == 'active') {
       iconBg = const Color(0xFFE0F7FA);
-      iconColor = const Color(0xFF00BCD4);
+      iconColor = const Color(0xFF33C8DA);
       iconWidget = const SizedBox(
         width: 14,
         height: 14,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
         ),
       );
     } else if (step.status == 'rejected') {
@@ -767,7 +767,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                   color: iconBg,
                   shape: BoxShape.circle,
                   border: step.status == 'active'
-                      ? Border.all(color: const Color(0xFF00BCD4), width: 1.5)
+                      ? Border.all(color: const Color(0xFF33C8DA), width: 1.5)
                       : null,
                 ),
                 alignment: Alignment.center,
@@ -812,10 +812,10 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00BCD4).withOpacity(0.08),
+                            color: const Color(0xFF33C8DA).withOpacity(0.08),
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: const Color(0xFF00BCD4).withOpacity(0.2),
+                              color: const Color(0xFF33C8DA).withOpacity(0.2),
                             ),
                           ),
                           child: Text(
@@ -823,7 +823,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                             style: GoogleFonts.figtree(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: const Color(0xFF00BCD4),
+                              color: const Color(0xFF33C8DA),
                             ),
                           ),
                         ),

@@ -22,7 +22,7 @@ class DashboardRouter extends StatelessWidget {
     if (user == null) {
       return const Scaffold(
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF00BCD4)),
+          child: CircularProgressIndicator(color: Color(0xFF33C8DA)),
         ),
       );
     }

@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../widgets/feature_card.dart';
-import '../widgets/faq_item.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'login_page.dart';
 
 class LandingPage extends StatefulWidget {
@@ -13,8 +11,6 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
-  final List<bool> _faqExpanded = [false, false, false, false];
-
   final List<Map<String, dynamic>> _features = [
     {
       'title': 'Pengajuan Cepat',
@@ -29,376 +25,313 @@ class _LandingPageState extends State<LandingPage> {
     {
       'title': 'Arsip Terpusat',
       'desc': 'Semua dokumen LPJ tersimpan aman dan mudah diakses kapan saja.',
-      'icon': Icons.security_rounded,
+      'icon': Icons.folder_open_rounded,
+    },
+    {
+      'title': 'Multi-Role Approval',
+      'desc': 'Alur persetujuan berlapis dari Verifikator, PPK, hingga Wadir.',
+      'icon': Icons.verified_user_rounded,
     },
   ];
 
   final List<Map<String, String>> _faqs = [
-    {'q': 'Bagaimana cara membuat akun?', 'a': 'Akun dibuat secara otomatis melalui integrasi SSO. Hubungi admin jika Anda mengalami kendala login.'},
-    {'q': 'Apakah bisa merevisi KAK yang sudah dikirim?', 'a': 'Bisa, KAK yang dikirim dapat direvisi apabila Verifikator atau PPK mengembalikan dokumen tersebut dengan catatan revisi.'},
-    {'q': 'Berapa lama proses pencairan dana?', 'a': 'Pencairan dana bergantung pada kelengkapan LPJ dan proses verifikasi akhir oleh Bendahara, biasanya 3-5 hari kerja.'},
+    {
+      'q': 'Siapa yang bisa menggunakan SIGAP?',
+      'a': 'SIGAP digunakan oleh civitas akademika PNJ, termasuk Pengusul (Dosen/Tendik), Verifikator, PPK, WD2, dan Bendahara sesuai hak akses masing-masing.',
+    },
+    {
+      'q': 'Bagaimana cara mengajukan KAK?',
+      'a': 'Login sebagai Pengusul, masuk ke menu "Ajukan Usulan", isi formulir digital, unggah dokumen pendukung, dan kirim untuk verifikasi.',
+    },
+    {
+      'q': 'Apakah saya bisa memantau status usulan?',
+      'a': 'Tentu! Fitur "Pelacakan Langsung" memungkinkan Anda melihat status terkini usulan Anda, apakah sedang diverifikasi, disetujui, atau perlu revisi.',
+    },
+    {
+      'q': 'Format dokumen apa yang dihasilkan?',
+      'a': 'Sistem secara otomatis menghasilkan dokumen formal (KAK, LPJ, Surat Tugas) dalam format PDF yang siap cetak dan tanda tangan digital.',
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final primaryColor = colorScheme.primary;
+    const primary = Color(0xFF33C8DA);
+    const dark = Color(0xFF1F2937);
+    const muted = Color(0xFF6B7280);
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
-      body: Stack(
-        children: [
-          // Background Gradient (Replacement for RadialTurbulenceGradientShaderFill)
-          Container(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  primaryColor.withOpacity(0.15),
-                  colorScheme.background,
-                  colorScheme.background,
-                ],
-                center: const Alignment(0, -0.6),
-                radius: 1.5,
-                stops: const [0.0, 0.5, 1.0],
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Navbar ──────────────────────────────────────────────────
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              child: SafeArea(
+                bottom: false,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SvgPicture.asset('assets/images/logoland.svg', height: 34),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Text('Masuk', style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 14)),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          // Content
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Top Nav / Header
-                ClipRRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface.withOpacity(0.6),
-                      ),
-                      child: SafeArea(
-                        bottom: false,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'SIGAP',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'PNJ',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const LoginPage()),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryColor,
-                                foregroundColor: colorScheme.onPrimary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                'Masuk',
-                                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+            const Divider(height: 1, color: Color(0xFFE5E7EB)),
+
+            // ── Hero Section ─────────────────────────────────────────────
+            Container(
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 48),
+              child: Column(
+                children: [
+                  // Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(99),
+                      border: Border.all(color: primary.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      'Sistem Terpadu PNJ',
+                      style: GoogleFonts.figtree(fontSize: 12, fontWeight: FontWeight.w600, color: primary),
                     ),
                   ),
-                ),
-                // Hero Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(9999),
-                          border: Border.all(color: primaryColor.withOpacity(0.2)),
-                        ),
-                        child: Text(
-                          'v2.0 Is Now Live',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: primaryColor,
-                          ),
-                        ),
+                  const SizedBox(height: 20),
+                  Text.rich(
+                    TextSpan(
+                      text: 'Kelola Kegiatan Kampus\nSecara ',
+                      style: GoogleFonts.figtree(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 30,
+                        color: dark,
+                        height: 1.25,
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Administrasi Kampus Jadi Lebih Cepat',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 32,
-                          color: colorScheme.onBackground,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Sistem Informasi Gerbang Administrasi Pengajuan untuk civitas akademika Politeknik Negeri Jakarta.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.figtree(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const LoginPage()),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              foregroundColor: colorScheme.onPrimary,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Mulai Sekarang',
-                              style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          OutlinedButton(
-                            onPressed: () {}, // Optional action
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colorScheme.onBackground,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                              side: BorderSide(color: Colors.grey.withOpacity(0.3)),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Pelajari',
-                              style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Dashboard Preview Image
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    height: 240,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      image: const DecorationImage(
-                        image: NetworkImage('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'), // Placeholder for dashboard
-                        fit: BoxFit.cover,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+                      children: [
+                        TextSpan(
+                          text: 'cepat, transparan,\ndan efisien',
+                          style: GoogleFonts.figtree(color: primary),
                         ),
                       ],
                     ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            colorScheme.background,
-                            Colors.transparent,
-                          ],
-                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Sistem Informasi Gerbang Administrasi Pengajuan\nuntuk civitas akademika Politeknik Negeri Jakarta.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(fontSize: 14, color: muted, height: 1.6),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                      ),
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                      label: Text(
+                        'Mulai Sekarang',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ),
                   ),
-                ),
-                // Fitur Unggulan
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                  child: Column(
-                    children: [
-                      Text(
-                        'FITUR UNGGULAN',
-                        style: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
-                          color: colorScheme.onBackground,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Solusi Digital Terintegrasi',
-                        style: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 24,
-                          color: colorScheme.onBackground,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ..._features.map((f) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: FeatureCardWidget(
-                          title: f['title'] as String,
-                          desc: f['desc'] as String,
-                          icon: Icon(
-                            f['icon'] as IconData,
-                            color: primaryColor,
-                            size: 24,
-                          ),
-                        ),
-                      )),
-                    ],
+                ],
+              ),
+            ),
+
+            // ── Stats strip ──────────────────────────────────────────────
+            Container(
+              color: primary,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _stat('500+', 'Kegiatan'),
+                  _divider(),
+                  _stat('6', 'Role Pengguna'),
+                  _divider(),
+                  _stat('100%', 'Digital'),
+                ],
+              ),
+            ),
+
+            // ── Fitur Unggulan ───────────────────────────────────────────
+            Container(
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 48),
+              child: Column(
+                children: [
+                  Text(
+                    'FITUR UNGGULAN',
+                    style: GoogleFonts.figtree(
+                      fontSize: 12, fontWeight: FontWeight.w800,
+                      color: primary, letterSpacing: 1.5,
+                    ),
                   ),
-                ),
-                // FAQ Section
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Pertanyaan Sering Diajukan',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 24,
-                          color: colorScheme.onBackground,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ..._faqs.asMap().entries.map((e) {
-                        final idx = e.key;
-                        final q = e.value['q']!;
-                        final a = e.value['a']!;
-                        return FaqItemWidget(
-                          question: q,
-                          answer: a,
-                          isExpanded: _faqExpanded[idx],
-                          onTap: () {
-                            setState(() {
-                              _faqExpanded[idx] = !_faqExpanded[idx];
-                            });
-                          },
-                        );
-                      }),
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Solusi Digital Terintegrasi',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(fontSize: 22, fontWeight: FontWeight.w900, color: dark),
                   ),
-                ),
-                const SizedBox(height: 24),
-                // Footer
-                Container(
-                  color: colorScheme.surface,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Divider(color: Colors.grey.withOpacity(0.2), height: 1),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'SIGAP',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 18,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'PNJ',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 18,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              '© 2024 Politeknik Negeri Jakarta\nSistem Informasi Gerbang Administrasi Pengajuan',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.figtree(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.facebook_rounded, color: Colors.grey[600], size: 20),
-                                const SizedBox(width: 16),
-                                Icon(Icons.language_rounded, color: Colors.grey[600], size: 20),
-                                const SizedBox(width: 16),
-                                Icon(Icons.email_rounded, color: Colors.grey[600], size: 20),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 32),
+                  ...(_features.map((f) => _featureCard(f, primary))),
+                ],
+              ),
+            ),
+
+            // ── FAQ ──────────────────────────────────────────────────────
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
+              child: Column(
+                children: [
+                  Text(
+                    'Pertanyaan Sering Diajukan',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(fontSize: 22, fontWeight: FontWeight.w900, color: dark),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Temukan jawaban atas pertanyaan umum seputar SIGAP.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(fontSize: 13, color: muted),
+                  ),
+                  const SizedBox(height: 28),
+                  Image.asset(
+                    'assets/images/landing/faq-boy-with-logos.png',
+                    height: 200,
+                  ),
+                  const SizedBox(height: 24),
+                  ...(_faqs.map((faq) => _faqTile(faq, primary))),
+                ],
+              ),
+            ),
+
+            // ── Footer ───────────────────────────────────────────────────
+            Container(
+              color: const Color(0xFFF8FAFC),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+              child: Column(
+                children: [
+                  const Divider(color: Color(0xFFE5E7EB)),
+                  const SizedBox(height: 20),
+                  SvgPicture.asset('assets/images/logoland.svg', height: 30),
+                  const SizedBox(height: 12),
+                  Text(
+                    '© 2025 SIGAP PNJ · Politeknik Negeri Jakarta',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.figtree(fontSize: 12, color: muted),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _stat(String value, String label) {
+    return Column(
+      children: [
+        Text(value, style: GoogleFonts.figtree(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white)),
+        const SizedBox(height: 2),
+        Text(label, style: GoogleFonts.figtree(fontSize: 12, color: Colors.white.withOpacity(0.85))),
+      ],
+    );
+  }
+
+  Widget _divider() => Container(width: 1, height: 36, color: Colors.white.withOpacity(0.3));
+
+  Widget _featureCard(Map<String, dynamic> f, Color primary) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(f['icon'] as IconData, color: primary, size: 22),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(f['title'] as String, style: GoogleFonts.figtree(fontWeight: FontWeight.w700, fontSize: 15, color: const Color(0xFF1F2937))),
+                const SizedBox(height: 4),
+                Text(f['desc'] as String, style: GoogleFonts.figtree(fontSize: 13, color: const Color(0xFF6B7280), height: 1.4)),
               ],
             ),
           ),
-          // Floating Action Button (from original landing page)
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: FloatingActionButton(
-                onPressed: () {},
-                backgroundColor: primaryColor,
-                foregroundColor: colorScheme.onPrimary,
-                shape: const CircleBorder(),
-                elevation: 4,
-                child: const Icon(Icons.chat_bubble_rounded),
-              ),
-            ),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _faqTile(Map<String, String> faq, Color primary) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+          collapsedIconColor: const Color(0xFF6B7280),
+          iconColor: primary,
+          title: Text(
+            faq['q']!,
+            style: GoogleFonts.figtree(fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF1F2937)),
+          ),
+          children: [
+            Text(
+              faq['a']!,
+              style: GoogleFonts.figtree(fontSize: 13, color: const Color(0xFF6B7280), height: 1.6),
+            ),
+          ],
+        ),
       ),
     );
   }

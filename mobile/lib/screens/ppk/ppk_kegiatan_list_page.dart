@@ -149,7 +149,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
         ),
       );
     }
@@ -184,7 +184,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Coba Lagi'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BCD4),
+                  backgroundColor: const Color(0xFF33C8DA),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -235,7 +235,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
 
     return RefreshIndicator(
       onRefresh: _fetchKegiatans,
-      color: const Color(0xFF00BCD4),
+      color: const Color(0xFF33C8DA),
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemCount: _filteredKegiatans.length,
@@ -361,7 +361,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
                         ElevatedButton(
                           onPressed: () => _navigateToDetail(kegiatanId),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF00BCD4),
+                            backgroundColor: const Color(0xFF33C8DA),
                             foregroundColor: Colors.white,
                             elevation: 0,
                             shape: RoundedRectangleBorder(

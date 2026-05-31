@@ -128,7 +128,7 @@ class _KakListPageState extends State<KakListPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BCD4)),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF33C8DA)),
             child: const Text('Ajukan', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -178,7 +178,7 @@ class _KakListPageState extends State<KakListPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
             onPressed: _loadKaks,
           ),
         ],
@@ -187,7 +187,7 @@ class _KakListPageState extends State<KakListPage> {
         onPressed: () => Navigator.of(context)
             .push(MaterialPageRoute(builder: (_) => KegiatanFormPage(onSuccess: _loadKaks)))
             .then((_) => _loadKaks()),
-        backgroundColor: const Color(0xFF00BCD4),
+        backgroundColor: const Color(0xFF33C8DA),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Buat KAK', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -213,7 +213,7 @@ class _KakListPageState extends State<KakListPage> {
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1.5)),
+                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5)),
               ),
             ),
           ),
@@ -233,7 +233,7 @@ class _KakListPageState extends State<KakListPage> {
                     margin: const EdgeInsets.only(right: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF00BCD4) : Colors.white,
+                      color: isSelected ? const Color(0xFF33C8DA) : Colors.white,
                       border: Border.all(
                           color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0)),
                       borderRadius: BorderRadius.circular(10),
@@ -255,7 +255,7 @@ class _KakListPageState extends State<KakListPage> {
 
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4)))
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
                 : _filtered.isEmpty
                     ? Center(
                         child: Column(
@@ -401,7 +401,7 @@ class _KakListPageState extends State<KakListPage> {
                     child: ElevatedButton(
                       onPressed: () => _submitKak(kakId, nama),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

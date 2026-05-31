@@ -92,7 +92,7 @@ class _ExampleKakDetailWithLampiranState
     return Scaffold(
       appBar: AppBar(
         title: const Text('KAK Detail dengan Lampiran'),
-        backgroundColor: const Color(0xFF00BCD4),
+        backgroundColor: const Color(0xFF33C8DA),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -117,7 +117,7 @@ class _ExampleKakDetailWithLampiranState
                     icon: const Icon(Icons.upload_file),
                     label: const Text('Upload'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00BCD4),
+                      backgroundColor: const Color(0xFF33C8DA),
                     ),
                   ),
                 ],

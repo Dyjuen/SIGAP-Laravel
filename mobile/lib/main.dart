@@ -141,7 +141,16 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'SIGAP PNJ',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF33C8DA)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF33C8DA),
+          primary: const Color(0xFF33C8DA),
+          onPrimary: Colors.white,
+          secondary: const Color(0xFF2BA9B8),
+          surface: Colors.white,
+          background: const Color(0xFFF8FAFC),
+          onBackground: const Color(0xFF1F2937),
+          onSurface: const Color(0xFF1F2937),
+        ),
         useMaterial3: true,
       ),
       routes: {

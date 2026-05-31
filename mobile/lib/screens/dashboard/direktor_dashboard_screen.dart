@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/dashboard_drawer.dart';
+import '../../widgets/blue_stat_card.dart';
 
 class DirektorDashboardScreen extends StatefulWidget {
   const DirektorDashboardScreen({super.key});
@@ -22,26 +24,9 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'SIGAP PNJ',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.red.shade100,
-            child: Icon(Icons.admin_panel_settings, color: Colors.red.shade700),
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: const DashboardAppBar(),
+      drawer: const DashboardDrawer(roleId: 6), // Direktur/Admin
       body: Consumer<DirektorDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -108,41 +93,42 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
 
                     // Overview Cards
                     if (stats != null) ...[
-                      GridView.count(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.8,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
+                      Column(
                         children: [
-                          _OverviewCard(
-                            label: 'TOTAL KAK',
-                            value: stats.totalKak.toString(),
-                            bgColor: const Color(0xFF33C8DA),
-                            icon: Icons.folder_open_rounded,
-                            textColor: Colors.white,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'TOTAL KAK',
+                                  value: stats.totalKak.toString(),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'KAK DISETUJUI',
+                                  value: stats.approvedKak.toString(),
+                                ),
+                              ),
+                            ],
                           ),
-                          _OverviewCard(
-                            label: 'KAK DISETUJUI',
-                            value: stats.approvedKak.toString(),
-                            bgColor: Colors.green.shade100,
-                            icon: Icons.done_all_rounded,
-                            textColor: Colors.green.shade700,
-                          ),
-                          _OverviewCard(
-                            label: 'TOTAL KEGIATAN',
-                            value: stats.reviewKak.toString(),
-                            bgColor: Colors.orange.shade100,
-                            icon: Icons.assignment_rounded,
-                            textColor: Colors.orange.shade700,
-                          ),
-                          _OverviewCard(
-                            label: 'SELESAI',
-                            value: stats.draftKak.toString(),
-                            bgColor: Colors.blue.shade100,
-                            icon: Icons.check_circle_rounded,
-                            textColor: Colors.blue.shade700,
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'TOTAL KEGIATAN',
+                                  value: stats.reviewKak.toString(),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'SELESAI',
+                                  value: stats.draftKak.toString(),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -261,48 +247,55 @@ class _OverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        child: Row(
-          children: [
-            Icon(icon, color: textColor, size: 22),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: textColor.withOpacity(0.7),
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF33C8DA).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ],
-        ),
+            child: Icon(icon, color: const Color(0xFF33C8DA), size: 20),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1F2937),
+              fontFamily: 'Figtree',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6B7280),
+              fontFamily: 'Figtree',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

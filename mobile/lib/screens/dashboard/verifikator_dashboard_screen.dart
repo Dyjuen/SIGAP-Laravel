@@ -4,6 +4,9 @@ import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
 import '../verifikator/verifikator_approval_page.dart';
 import '../verifikator/verifikator_kak_list_page.dart';
+import '../../widgets/dashboard_drawer.dart';
+import '../../widgets/blue_stat_card.dart';
+import '../../widgets/blue_stat_card.dart';
 
 class VerifikatorDashboardScreen extends StatefulWidget {
   const VerifikatorDashboardScreen({super.key});
@@ -26,26 +29,9 @@ class _VerifikatorDashboardScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'SIGAP PNJ',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black87,
-          ),
-        ),
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundColor: Colors.blue.shade100,
-            child: Icon(Icons.verified_user, color: Colors.blue.shade700),
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: const DashboardAppBar(),
+      drawer: const DashboardDrawer(roleId: 3), // Verifikator
       body: Consumer<VerifikatorDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -111,53 +97,56 @@ class _VerifikatorDashboardScreenState
 
                     // Stat Cards
                     if (stats != null) ...[
-                      GridView.count(
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.8,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
+                      Column(
                         children: [
-                           GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const VerifikatorKakListPage(),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const VerifikatorKakListPage(),
+                                      ),
+                                    ).then((_) {
+                                      if (context.mounted) {
+                                        context.read<VerifikatorDashboardProvider>().loadDashboard();
+                                      }
+                                    });
+                                  },
+                                  child: BlueStatCard(
+                                    label: 'PENDING',
+                                    value: stats.pendingCount?.toString() ?? '0',
+                                  ),
                                 ),
-                              ).then((_) {
-                                context.read<VerifikatorDashboardProvider>().loadDashboard();
-                              });
-                            },
-                            child: _StatCard(
-                              label: 'PENDING',
-                              value: stats.pendingCount?.toString() ?? '0',
-                              bgColor: Colors.orange.shade100,
-                              textColor: Colors.orange.shade700,
-                              icon: Icons.pending_actions_rounded,
-                            ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'APPROVED',
+                                  value: stats.approvedCount?.toString() ?? '0',
+                                ),
+                              ),
+                            ],
                           ),
-                          _StatCard(
-                            label: 'APPROVED',
-                            value: stats.approvedCount?.toString() ?? '0',
-                            bgColor: Colors.green.shade100,
-                            textColor: Colors.green.shade700,
-                            icon: Icons.check_circle_rounded,
-                          ),
-                          _StatCard(
-                            label: 'REJECTED',
-                            value: stats.rejectedCount?.toString() ?? '0',
-                            bgColor: Colors.red.shade100,
-                            textColor: Colors.red.shade700,
-                            icon: Icons.close_rounded,
-                          ),
-                          _StatCard(
-                            label: 'TOTAL VERIFIED',
-                            value: stats.totalVerified?.toString() ?? '0',
-                            bgColor: Colors.blue.shade100,
-                            textColor: Colors.blue.shade700,
-                            icon: Icons.verified_rounded,
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'REJECTED',
+                                  value: stats.rejectedCount?.toString() ?? '0',
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: BlueStatCard(
+                                  label: 'TOTAL VERIFIED',
+                                  value: stats.totalVerified?.toString() ?? '0',
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -251,48 +240,53 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        child: Row(
-          children: [
-            Icon(icon, color: textColor, size: 22),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: textColor.withOpacity(0.7),
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF33C8DA).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ],
-        ),
+            child: Icon(icon, color: const Color(0xFF33C8DA), size: 20),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1F2937),
+              fontFamily: 'Figtree',
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6B7280),
+              fontFamily: 'Figtree',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

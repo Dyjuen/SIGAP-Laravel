@@ -108,7 +108,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Upload Lampiran'),
-        backgroundColor: const Color(0xFF00BCD4),
+        backgroundColor: const Color(0xFF33C8DA),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -154,7 +154,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
               child: Container(
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF00BCD4), width: 2),
+                  border: Border.all(color: const Color(0xFF33C8DA), width: 2),
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.cyan[50],
                 ),
@@ -163,14 +163,14 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                     Icon(
                       Icons.cloud_upload_outlined,
                       size: 48,
-                      color: const Color(0xFF00BCD4),
+                      color: const Color(0xFF33C8DA),
                     ),
                     const SizedBox(height: 12),
                     if (_selectedFileName != null) ...[
                       Icon(
                         _getFileIcon(_selectedFileName!),
                         size: 32,
-                        color: const Color(0xFF00BCD4),
+                        color: const Color(0xFF33C8DA),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -230,7 +230,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF00BCD4)),
+                  borderSide: const BorderSide(color: Color(0xFF33C8DA)),
                 ),
               ),
             ),
@@ -243,7 +243,7 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
                     ? null
                     : _uploadFile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BCD4),
+                  backgroundColor: const Color(0xFF33C8DA),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   disabledBackgroundColor: Colors.grey[300],
                 ),

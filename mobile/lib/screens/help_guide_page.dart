@@ -241,7 +241,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -296,13 +296,13 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
             onPressed: _loadGuides,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00BCD4)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
           : Column(
               children: [
                 // Top Banner "Butuh Bantuan"
@@ -313,7 +313,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF00BCD4), Color(0xFF0097A7)],
+                        colors: [Color(0xFF33C8DA), Color(0xFF0097A7)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -358,7 +358,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                             onPressed: _showAddGuideDialog,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF00BCD4),
+                              foregroundColor: const Color(0xFF33C8DA),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             ),
                             child: const Text('Tambah', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -391,7 +391,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1.5),
+                        borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
                       ),
                     ),
                   ),
@@ -432,7 +432,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                     ),
                                     child: Icon(
                                       isVideo ? Icons.play_circle_outline : Icons.description_outlined,
-                                      color: isVideo ? const Color(0xFFF59E0B) : const Color(0xFF00BCD4),
+                                      color: isVideo ? const Color(0xFFF59E0B) : const Color(0xFF33C8DA),
                                       size: 26,
                                     ),
                                   ),
@@ -467,12 +467,12 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.cloud_download_outlined, color: Color(0xFF00BCD4)),
+                                        icon: const Icon(Icons.cloud_download_outlined, color: Color(0xFF33C8DA)),
                                         onPressed: () {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
                                               content: Text('Mengunduh ${g['title']}...'),
-                                              backgroundColor: const Color(0xFF00BCD4),
+                                              backgroundColor: const Color(0xFF33C8DA),
                                             ),
                                           );
                                         },

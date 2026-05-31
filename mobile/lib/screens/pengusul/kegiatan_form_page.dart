@@ -303,7 +303,7 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -343,12 +343,12 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isActive ? const Color(0xFF00BCD4) : const Color(0xFF94A3B8),
+                  color: isActive ? const Color(0xFF33C8DA) : const Color(0xFF94A3B8),
                   fontSize: 13,
                 ),
               ),
             ),
-            Container(height: 2, color: isActive ? const Color(0xFF00BCD4) : Colors.transparent),
+            Container(height: 2, color: isActive ? const Color(0xFF33C8DA) : Colors.transparent),
           ],
         ),
       ),
@@ -397,7 +397,7 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                     borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                 focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1.5)),
+                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5)),
               ),
               items: _tipeKegiatanList.map((t) => DropdownMenuItem<int>(
                 value: t['tipe_kegiatan_id'] as int,
@@ -454,8 +454,8 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
               )),
           TextButton.icon(
             onPressed: () => setState(() => _manfaatCtrls.add(TextEditingController())),
-            icon: const Icon(Icons.add, color: Color(0xFF00BCD4)),
-            label: const Text('Tambah Manfaat', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.add, color: Color(0xFF33C8DA)),
+            label: const Text('Tambah Manfaat', style: TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
           ),
 
           const SizedBox(height: 24),
@@ -486,8 +486,8 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
               )),
           TextButton.icon(
             onPressed: () => setState(() => _tahapanCtrls.add(TextEditingController())),
-            icon: const Icon(Icons.add, color: Color(0xFF00BCD4)),
-            label: const Text('Tambah Tahapan', style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.add, color: Color(0xFF33C8DA)),
+            label: const Text('Tambah Tahapan', style: TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -599,9 +599,9 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                     : 1,
               });
             }),
-            icon: const Icon(Icons.add, color: Color(0xFF00BCD4)),
+            icon: const Icon(Icons.add, color: Color(0xFF33C8DA)),
             label: const Text('Tambah Item RAB',
-                style: TextStyle(color: Color(0xFF00BCD4), fontWeight: FontWeight.bold)),
+                style: TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -633,7 +633,7 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
             borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 1.5)),
+            borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5)),
       ),
     );
   }
@@ -647,13 +647,13 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: value != null ? const Color(0xFF00BCD4) : const Color(0xFFE2E8F0)),
+              color: value != null ? const Color(0xFF33C8DA) : const Color(0xFFE2E8F0)),
         ),
         child: Row(
           children: [
             Icon(Icons.calendar_month_outlined,
                 size: 18,
-                color: value != null ? const Color(0xFF00BCD4) : const Color(0xFF94A3B8)),
+                color: value != null ? const Color(0xFF33C8DA) : const Color(0xFF94A3B8)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

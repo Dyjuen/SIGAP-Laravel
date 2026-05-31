@@ -115,7 +115,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                         ).then((_) => provider.getLpjDetail(widget.kegiatanId));
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: const Text('Edit / Submit LPJ', style: TextStyle(color: Colors.white)),
@@ -134,7 +134,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          const Icon(Icons.circle, size: 12, color: Color(0xFF00BCD4)),
+          const Icon(Icons.circle, size: 12, color: Color(0xFF33C8DA)),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

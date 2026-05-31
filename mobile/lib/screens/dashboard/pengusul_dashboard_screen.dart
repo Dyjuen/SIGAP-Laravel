@@ -9,6 +9,7 @@ import '../../widgets/activity_item.dart';
 import '../pengusul/kak_create_page.dart';
 import '../pengusul/kak_list_page.dart';
 import '../help_guide_page.dart';
+import '../../widgets/dashboard_drawer.dart';
 
 class PengusulDashboardScreen extends StatefulWidget {
   const PengusulDashboardScreen({super.key});
@@ -36,12 +37,14 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
+        appBar: const DashboardAppBar(),
+        drawer: const DashboardDrawer(roleId: 2), // Pengusul
         body: Consumer2<AuthProvider, PengusulDashboardProvider>(
           builder: (context, authProvider, dashboardProvider, _) {
             if (dashboardProvider.isLoading) {
               return const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
                 ),
               );
             }
@@ -77,110 +80,18 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
 
             return RefreshIndicator(
               onRefresh: () => dashboardProvider.loadDashboard(),
-              color: const Color(0xFF00BCD4),
+              color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header with backdrop
-                    ClipRRect(
-                      borderRadius: BorderRadius.zero,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.95),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  24,
-                                  24,
-                                  24,
-                                  16,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'SIGAP',
-                                              style: GoogleFonts.figtree(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w900,
-                                                color: const Color(0xFF0F172A),
-                                                letterSpacing: 0,
-                                                height: 1.3,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              'PNJ',
-                                              style: GoogleFonts.figtree(
-                                                fontSize: 24,
-                                                fontWeight: FontWeight.w900,
-                                                color: const Color(0xFF00BCD4),
-                                                letterSpacing: 0,
-                                                height: 1.3,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Text(
-                                          'Sistem Informasi Gerbang Administrasi',
-                                          style: GoogleFonts.figtree(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                            color: const Color(0xFF64748B),
-                                            letterSpacing: 0,
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFE0F7FA),
-                                        borderRadius: BorderRadius.circular(
-                                          9999,
-                                        ),
-                                      ),
-                                      padding: const EdgeInsets.all(8),
-                                      child: const Icon(
-                                        Icons.person,
-                                        color: Color(0xFF00BCD4),
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                height: 1,
-                                color: const Color(0xFFE2E8F0),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Custom header dihapus karena sudah pakai AppBar dan Drawer
                     Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Selamat Datang,',
@@ -228,7 +139,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                       ).then((_) => dashboardProvider.loadDashboard());
                                     },
                                     child: BlueStatCard(
-                                      bg: const Color(0xFF00BCD4),
+                                      bg: const Color(0xFF33C8DA),
                                       label: 'PENCAIRAN',
                                       textColor: Colors.white,
                                       value: dashboardProvider.stats!.totalKak
@@ -250,7 +161,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     child: BlueStatCard(
                                       bg: Colors.white,
                                       label: 'KEGIATAN',
-                                      textColor: const Color(0xFF00BCD4),
+                                      textColor: const Color(0xFF33C8DA),
                                       value: dashboardProvider.stats!.draftKak
                                           .toString(),
                                     ),
@@ -276,7 +187,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     child: BlueStatCard(
                                       bg: Colors.white,
                                       label: 'LPJ',
-                                      textColor: const Color(0xFF00BCD4),
+                                      textColor: const Color(0xFF33C8DA),
                                       value: dashboardProvider.stats!.reviewKak
                                         .toString(),
                                     ),
@@ -296,7 +207,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     child: BlueStatCard(
                                       bg: const Color(0xFFE0F7FA),
                                       label: 'REVISI',
-                                      textColor: const Color(0xFF00BCD4),
+                                      textColor: const Color(0xFF33C8DA),
                                       value: dashboardProvider.stats!.approvedKak
                                           .toString(),
                                     ),
@@ -337,7 +248,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                   style: GoogleFonts.figtree(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF00BCD4),
+                                    color: const Color(0xFF33C8DA),
                                     letterSpacing: 0,
                                     height: 1.3,
                                   ),
@@ -526,7 +437,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     child: ActivityItem(
                                       icon: Icon(
                                         Icons.history_edu_rounded,
-                                        color: const Color(0xFF00BCD4),
+                                        color: const Color(0xFF33C8DA),
                                         size: 24,
                                       ),
                                       status: item.status ?? 'PENDING',

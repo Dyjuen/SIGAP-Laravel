@@ -101,12 +101,12 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00BCD4).withOpacity(0.1),
+                        color: const Color(0xFF33C8DA).withOpacity(0.1),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.picture_as_pdf_rounded,
-                        color: Color(0xFF00BCD4),
+                        color: Color(0xFF33C8DA),
                         size: 24,
                       ),
                     ),
@@ -183,7 +183,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -355,7 +355,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF00BCD4), width: 2),
+                      borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 2),
                     ),
                   ),
                 ),
@@ -383,7 +383,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _submitApprove,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00BCD4),
+                          backgroundColor: const Color(0xFF33C8DA),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -446,7 +446,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00BCD4)),
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
         ),
       );
     }
@@ -481,7 +481,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                 icon: const Icon(Icons.refresh),
                 label: const Text('Coba Lagi'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BCD4),
+                  backgroundColor: const Color(0xFF33C8DA),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -652,7 +652,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                       icon: const Icon(Icons.file_open_outlined, size: 16),
                       label: const Text('Buka Surat Pengantar (PDF)'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -687,7 +687,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.calculate_outlined, color: Color(0xFF00BCD4), size: 20),
+                        Icon(Icons.calculate_outlined, color: Color(0xFF33C8DA), size: 20),
                         SizedBox(width: 8),
                         Text(
                           'Rincian Anggaran Biaya (RAB)',
@@ -721,7 +721,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: const BoxDecoration(
                                 color: Color(0xFFF8FAFC),
-                                border: Border(left: BorderSide(color: Color(0xFF00BCD4), width: 4)),
+                                border: Border(left: BorderSide(color: Color(0xFF33C8DA), width: 4)),
                               ),
                               child: Text(
                                 entry.key,
@@ -789,7 +789,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                                             style: const TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF00BCD4),
+                                              color: Color(0xFF33C8DA),
                                             ),
                                           ),
                                           const SizedBox(height: 2),
@@ -829,7 +829,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF00BCD4),
+                              color: Color(0xFF33C8DA),
                               fontFamily: 'Figtree',
                             ),
                           ),
@@ -854,7 +854,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.history_rounded, color: Color(0xFF00BCD4), size: 20),
+                        Icon(Icons.history_rounded, color: Color(0xFF33C8DA), size: 20),
                         SizedBox(width: 8),
                         Text(
                           'Riwayat Persetujuan',
@@ -1067,7 +1067,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     child: ElevatedButton(
                       onPressed: _showApproveBottomSheet,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -1112,7 +1112,7 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
         children: [
           Row(
             children: [
-              Icon(icon, color: const Color(0xFF00BCD4), size: 20),
+              Icon(icon, color: const Color(0xFF33C8DA), size: 20),
               const SizedBox(width: 8),
               Text(
                 title,

@@ -59,7 +59,7 @@ class _FaqSectionState extends State<FaqSection> {
                 color: Colors.white.withOpacity(0.9),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isOpen ? const Color(0xFF00BCD4) : const Color(0xFFE2E8F0),
+                  color: isOpen ? const Color(0xFF33C8DA) : const Color(0xFFE2E8F0),
                   width: isOpen ? 1.5 : 1,
                 ),
                 boxShadow: [
@@ -91,7 +91,7 @@ class _FaqSectionState extends State<FaqSection> {
                   ),
                   trailing: Icon(
                     isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: isOpen ? const Color(0xFF00BCD4) : const Color(0xFF64748B),
+                    color: isOpen ? const Color(0xFF33C8DA) : const Color(0xFF64748B),
                   ),
                   children: [
                     Padding(

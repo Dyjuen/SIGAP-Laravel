@@ -97,7 +97,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                 ElevatedButton(
                   onPressed: provider.isSubmitting ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00BCD4),
+                    backgroundColor: const Color(0xFF33C8DA),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: provider.isSubmitting

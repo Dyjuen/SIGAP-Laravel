@@ -57,7 +57,7 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      return 'Terjadi kesalahan koneksi.';
+      return 'Gagal terhubung ke server. Pastikan:\n1. Server Laravel sedang berjalan (php artisan serve)\n2. Perangkat Anda terhubung ke jaringan yang sama\n3. IP di api_service.dart sudah benar';
     }
   }
 
