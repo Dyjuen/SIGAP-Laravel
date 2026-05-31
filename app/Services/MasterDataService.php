@@ -133,9 +133,10 @@ class MasterDataService
 
     public function getConfig(string $type): array
     {
-        if (!$this->hasType($type)) {
+        if (! $this->hasType($type)) {
             throw new \InvalidArgumentException("Tipe master data tidak valid: {$type}");
         }
+
         return $this->allowedTypes[$type];
     }
 
@@ -174,6 +175,7 @@ class MasterDataService
         }
 
         $modelClass = $config['model'];
+
         return $modelClass::create($data);
     }
 
@@ -190,6 +192,7 @@ class MasterDataService
         $modelClass = $config['model'];
         $item = $modelClass::findOrFail($id);
         $item->update($data);
+
         return $item;
     }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\KAK;
+use App\Models\Notifikasi;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -30,8 +31,8 @@ class KakNotificationTest extends TestCase
             'penerima_user_id' => $verif->user_id,
             'is_read' => 0,
         ]);
-        
-        $notif = \App\Models\Notifikasi::where('penerima_user_id', $verif->user_id)->first();
+
+        $notif = Notifikasi::where('penerima_user_id', $verif->user_id)->first();
         $this->assertStringContainsString('Budi Pengusul', $notif->pesan);
         $this->assertStringContainsString('menunggu verifikasi', $notif->pesan);
     }
@@ -54,7 +55,7 @@ class KakNotificationTest extends TestCase
             'is_read' => 0,
         ]);
 
-        $notif = \App\Models\Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
+        $notif = Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
         $this->assertStringContainsString('disetujui', $notif->pesan);
     }
 
@@ -71,7 +72,7 @@ class KakNotificationTest extends TestCase
             'is_read' => 0,
         ]);
 
-        $notif = \App\Models\Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
+        $notif = Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
         $this->assertStringContainsString('ditolak', $notif->pesan);
     }
 
@@ -88,7 +89,7 @@ class KakNotificationTest extends TestCase
             'is_read' => 0,
         ]);
 
-        $notif = \App\Models\Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
+        $notif = Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
         $this->assertStringContainsString('perlu direvisi', $notif->pesan);
     }
 }

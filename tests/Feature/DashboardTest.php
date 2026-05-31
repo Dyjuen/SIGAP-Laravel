@@ -154,7 +154,7 @@ class DashboardTest extends TestCase
     public function test_bendahara_sees_ready_to_disburse(): void
     {
         $bendahara = User::factory()->create(['role_id' => 6]); // Bendahara
-        
+
         // 1. Waiting
         $kak1 = KAK::factory()->create(['status_id' => 8]);
         $keg1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);

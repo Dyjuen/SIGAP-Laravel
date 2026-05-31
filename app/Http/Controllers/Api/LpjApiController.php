@@ -38,7 +38,8 @@ class LpjApiController extends Controller
                 'message' => 'Data LPJ berhasil diambil.',
             ]);
         } catch (\Exception $e) {
-            Log::error('LPJ Index Error: ' . $e->getMessage());
+            Log::error('LPJ Index Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data LPJ.',
@@ -63,7 +64,7 @@ class LpjApiController extends Controller
                 ], 403);
             }
 
-            if (!in_array($user->getRoleName(), ['Admin', 'Bendahara', 'Pengusul'])) {
+            if (! in_array($user->getRoleName(), ['Admin', 'Bendahara', 'Pengusul'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized',
@@ -120,7 +121,8 @@ class LpjApiController extends Controller
                 'message' => 'Detail LPJ berhasil diambil.',
             ]);
         } catch (\Exception $e) {
-            Log::error('LPJ Show Error: ' . $e->getMessage());
+            Log::error('LPJ Show Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil detail LPJ.',
@@ -153,10 +155,11 @@ class LpjApiController extends Controller
                 'message' => 'LPJ berhasil disubmit. Tunggu approval dari Bendahara.',
             ], 201);
         } catch (\Exception $e) {
-            Log::error('LPJ Submit Error: ' . $e->getMessage());
+            Log::error('LPJ Submit Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal submit LPJ: ' . $e->getMessage(),
+                'message' => 'Gagal submit LPJ: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -175,10 +178,11 @@ class LpjApiController extends Controller
                 'message' => 'LPJ berhasil disetujui.',
             ]);
         } catch (\Exception $e) {
-            Log::error('LPJ Approve Error: ' . $e->getMessage());
+            Log::error('LPJ Approve Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal approve LPJ: ' . $e->getMessage(),
+                'message' => 'Gagal approve LPJ: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -202,10 +206,11 @@ class LpjApiController extends Controller
                 'message' => 'Permintaan revisi LPJ berhasil dikirim ke Pengusul.',
             ]);
         } catch (\Exception $e) {
-            Log::error('LPJ Revise Error: ' . $e->getMessage());
+            Log::error('LPJ Revise Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal request revisi: ' . $e->getMessage(),
+                'message' => 'Gagal request revisi: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -236,10 +241,11 @@ class LpjApiController extends Controller
                 'message' => 'LPJ berhasil diresubmit untuk review ulang.',
             ]);
         } catch (\Exception $e) {
-            Log::error('LPJ Resubmit Error: ' . $e->getMessage());
+            Log::error('LPJ Resubmit Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal resubmit LPJ: ' . $e->getMessage(),
+                'message' => 'Gagal resubmit LPJ: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -258,10 +264,11 @@ class LpjApiController extends Controller
                 'message' => 'LPJ berhasil diselesaikan.',
             ]);
         } catch (\Exception $e) {
-            Log::error('LPJ Complete Error: ' . $e->getMessage());
+            Log::error('LPJ Complete Error: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal complete LPJ: ' . $e->getMessage(),
+                'message' => 'Gagal complete LPJ: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -283,8 +290,10 @@ class LpjApiController extends Controller
             if ($approval && $approval->status === 'Revisi') {
                 return 'Revision Requested';
             }
+
             return 'Submitted';
         }
+
         return 'Draft';
     }
 }

@@ -305,7 +305,7 @@ class KAKValidationTest extends TestCase
 
         // If it should fail (min 1):
         // $response->assertStatus(422)->assertJsonValidationErrors(['rab.0.volume1']);
-        
+
         // If it is valid:
         $response->assertJsonMissingValidationErrors(['rab.0.volume1']);
     }

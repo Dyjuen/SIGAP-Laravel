@@ -10,7 +10,5 @@ class KakRevised
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public KAK $kak, public string $type = 'revised', public ?string $catatan = null)
-    {
-    }
+    public function __construct(public KAK $kak, public string $type = 'revised', public ?string $catatan = null) {}
 }

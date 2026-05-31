@@ -73,10 +73,24 @@ async function login(page, user) {
   // Click the submit button
   await page.click('button[type="submit"]');
   
-  // Wait for navigation to a restricted page (URL should no longer be /login)
-  await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 });
+  // Wait for navigation or error
+  // Admin role might land on /admin/user-management
+  // Other roles might land on /dashboard
+  try {
+    await page.waitForURL((url) => {
+      const p = url.pathname;
+      return p.includes('/dashboard') || p.includes('/admin/') || (p.length <= 1 && p !== '/login');
+    }, { timeout: 20000 });
+  } catch (e) {
+    // Check if there are validation errors on the page
+    const errorMsg = await page.locator('.text-red-500, [role="alert"]').first().textContent().catch(() => null);
+    if (errorMsg) {
+      throw new Error(`Login failed with error: ${errorMsg.trim()}`);
+    }
+    throw new Error(`Login timeout: still on ${page.url()}`);
+  }
   
-  // Ensure we landed on a dashboard or intended page
+  // Final verification
   const currentUrl = page.url();
   if (currentUrl.includes('/login')) {
     throw new Error(`Login failed: still on /login page. URL is ${currentUrl}`);

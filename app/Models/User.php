@@ -87,6 +87,7 @@ class User extends Authenticatable
         if (preg_match('/verifikator(\d+)/i', $this->username, $matches)) {
             return (int) $matches[1];
         }
+
         return null;
     }
 }

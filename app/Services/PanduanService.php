@@ -60,6 +60,7 @@ class PanduanService
         }
 
         $panduan->save();
+
         return $panduan;
     }
 

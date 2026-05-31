@@ -14,6 +14,7 @@ class LPJValidationTest extends TestCase
     use RefreshDatabase;
 
     private User $bendahara;
+
     private Kegiatan $kegiatan;
 
     protected function setUp(): void
@@ -22,7 +23,7 @@ class LPJValidationTest extends TestCase
         $this->seed(MasterDataSeeder::class);
 
         $this->bendahara = User::factory()->create(['role_id' => 6]); // Bendahara
-        
+
         $pengusul = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->create(['pengusul_user_id' => $pengusul->user_id, 'status_id' => 11]); // Review LPJ
         $this->kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
@@ -34,17 +35,17 @@ class LPJValidationTest extends TestCase
         $response = $this->actingAs($this->bendahara)
             ->postJson(route('lpj.revise', $this->kegiatan), [
                 'lampiran_comments' => [
-                    ['id' => 1, 'catatan_reviewer' => '']
+                    ['id' => 1, 'catatan_reviewer' => ''],
                 ],
                 'anggaran_comments' => [
-                    ['id' => 1, 'catatan_reviewer' => '']
-                ]
+                    ['id' => 1, 'catatan_reviewer' => ''],
+                ],
             ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors([
                 'lampiran_comments.0.catatan_reviewer',
-                'anggaran_comments.0.catatan_reviewer'
+                'anggaran_comments.0.catatan_reviewer',
             ]);
 
         // Test LPJ-F-004: Catatan reviewer max 1000 characters
@@ -52,8 +53,8 @@ class LPJValidationTest extends TestCase
         $response = $this->actingAs($this->bendahara)
             ->postJson(route('lpj.revise', $this->kegiatan), [
                 'lampiran_comments' => [
-                    ['id' => 1, 'catatan_reviewer' => $longComment]
-                ]
+                    ['id' => 1, 'catatan_reviewer' => $longComment],
+                ],
             ]);
 
         $response->assertStatus(422)
@@ -63,8 +64,8 @@ class LPJValidationTest extends TestCase
         $response = $this->actingAs($this->bendahara)
             ->postJson(route('lpj.revise', $this->kegiatan), [
                 'lampiran_comments' => [
-                    ['id' => 99999, 'catatan_reviewer' => 'Valid comment']
-                ]
+                    ['id' => 99999, 'catatan_reviewer' => 'Valid comment'],
+                ],
             ]);
 
         $response->assertStatus(422)

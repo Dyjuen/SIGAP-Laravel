@@ -16,7 +16,7 @@ class MasterDataServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new MasterDataService();
+        $this->service = new MasterDataService;
     }
 
     public function test_it_lists_items_with_pagination(): void

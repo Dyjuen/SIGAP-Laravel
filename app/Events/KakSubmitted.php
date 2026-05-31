@@ -10,7 +10,5 @@ class KakSubmitted
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public KAK $kak, public string $type = 'submitted')
-    {
-    }
+    public function __construct(public KAK $kak, public string $type = 'submitted') {}
 }

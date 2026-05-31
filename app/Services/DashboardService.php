@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\Panduan;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +17,7 @@ class DashboardService
      */
     public function getPanduans(?int $roleId): array
     {
-        if (!$roleId) {
+        if (! $roleId) {
             return [];
         }
 
@@ -578,6 +578,7 @@ class DashboardService
 
         return $activities->map(function ($act) {
             $act->jurusan = $this->parseJurusan($act->pengusul_nama);
+
             return (array) $act;
         })->toArray();
     }
@@ -709,4 +710,3 @@ class DashboardService
         };
     }
 }
-

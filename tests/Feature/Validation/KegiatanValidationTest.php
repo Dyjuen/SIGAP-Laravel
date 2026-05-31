@@ -9,6 +9,7 @@ use App\Models\MataAnggaran;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class KegiatanValidationTest extends TestCase
@@ -98,11 +99,11 @@ class KegiatanValidationTest extends TestCase
     public function test_kegiatan_file_validation()
     {
         // Test invalid mime type (AK-F-002, AK-F-021)
-        $invalidFile = \Illuminate\Http\UploadedFile::fake()->create('script.sh', 100);
-        
+        $invalidFile = UploadedFile::fake()->create('script.sh', 100);
+
         $response = $this->actingAs($this->user)
             ->postJson('/kegiatan', [
-                'surat_pengantar' => $invalidFile
+                'surat_pengantar' => $invalidFile,
             ]);
 
         $response->assertStatus(422)
@@ -111,11 +112,11 @@ class KegiatanValidationTest extends TestCase
             ]);
 
         // Test oversized file (AK-F-003)
-        $largeFile = \Illuminate\Http\UploadedFile::fake()->create('document.pdf', 6144); // 6MB
+        $largeFile = UploadedFile::fake()->create('document.pdf', 6144); // 6MB
 
         $response = $this->actingAs($this->user)
             ->postJson('/kegiatan', [
-                'surat_pengantar' => $largeFile
+                'surat_pengantar' => $largeFile,
             ]);
 
         $response->assertStatus(422)
@@ -158,9 +159,9 @@ class KegiatanValidationTest extends TestCase
     public function test_kegiatan_xss_prevention()
     {
         $xssInput = '<script>alert("xss")</script>Test Kegiatan';
-        
+
         // Assuming the application should strip tags or escape them.
-        // For Inertia, usually we store as is and React handles escaping, 
+        // For Inertia, usually we store as is and React handles escaping,
         // but let's check if there's any backend sanitization.
         $response = $this->actingAs($this->user)
             ->patchJson('/kegiatan/1', [
@@ -173,7 +174,7 @@ class KegiatanValidationTest extends TestCase
             ]);
 
         $response->assertStatus(302);
-        
+
         $kegiatan = Kegiatan::find(1)->load('kak');
         // If we want it "rejected/cleaned", we expect tags to be gone or escaped.
         // Many Laravel apps use e() or strip_tags() in observers or mutators.
@@ -186,7 +187,7 @@ class KegiatanValidationTest extends TestCase
     public function test_kegiatan_emoji_support()
     {
         $emojiInput = 'Kegiatan Seru 🚀🔥';
-        
+
         $response = $this->actingAs($this->user)
             ->patchJson('/kegiatan/1', [
                 'nama_kegiatan' => $emojiInput,
@@ -198,7 +199,7 @@ class KegiatanValidationTest extends TestCase
             ]);
 
         $response->assertStatus(302);
-        
+
         $kegiatan = Kegiatan::find(1)->load('kak');
         $this->assertEquals($emojiInput, $kegiatan->kak->nama_kegiatan);
     }

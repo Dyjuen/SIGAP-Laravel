@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Exceptions\KakWorkflowException;
-use App\Events\KakSubmitted;
 use App\Events\KakApproved;
 use App\Events\KakRejected;
 use App\Events\KakRevised;
+use App\Events\KakSubmitted;
+use App\Exceptions\KakWorkflowException;
 use App\Models\KAK;
 use App\Models\KAKApproval;
 use App\Models\KAKLogStatus;
@@ -33,7 +33,7 @@ class KakWorkflowService
             $this->logStatus($kak, $oldStatus, 2, $actor);
 
             $type = ($oldStatus === 5) ? 'resubmitted' : 'submitted';
-            
+
             // Dispatch event outside or within transaction using DB::afterCommit if desired,
             // but standard event dispatching inside works since transaction is short.
             event(new KakSubmitted($kak, $type));

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class UserSeeder extends Seeder
 {
@@ -49,6 +50,10 @@ class UserSeeder extends Seeder
 
         foreach ($users as $row) {
             User::updateOrCreate(['user_id' => $row['user_id']], $row);
+        }
+
+        if (config('database.default') === 'pgsql') {
+            DB::statement("SELECT setval('m_users_user_id_seq', (SELECT MAX(user_id) FROM m_users))");
         }
     }
 }

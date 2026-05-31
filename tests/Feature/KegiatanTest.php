@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use App\Mail\KAKWorkflowMail;
 use App\Models\KAK;
+use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -382,11 +385,11 @@ class KegiatanTest extends TestCase
         // Mock KegiatanApproval to throw exception during create
         // This is a bit tricky with Eloquent models, but we can use an observer or event listener
         // Or we can just simulate a database error by passing invalid data if there was no validation
-        // But here we use a try-catch in controller. 
+        // But here we use a try-catch in controller.
         // Let's use a partial mock or just simulate a failure by mocking Mail or something that happens after DB insert
-        
+
         // Actually, let's mock the DB transaction or use an event
-        \App\Models\KegiatanApproval::creating(function() {
+        KegiatanApproval::creating(function () {
             throw new \Exception('Simulated DB Failure');
         });
 
@@ -403,9 +406,9 @@ class KegiatanTest extends TestCase
             'kak_id' => $kak->kak_id,
             'status_id' => 3, // Still approved, not moved to review
         ]);
-        
+
         // Clean up the event listener for other tests
-        \App\Models\KegiatanApproval::flushEventListeners();
+        KegiatanApproval::flushEventListeners();
     }
 
     /**
@@ -415,7 +418,7 @@ class KegiatanTest extends TestCase
     {
         Storage::fake('supabase');
         $kak = $this->createApprovedKak($this->pengusul);
-        
+
         $this->actingAs($this->pengusul)->post('/kegiatan', [
             'kak_id' => $kak->kak_id,
             'penanggung_jawab_manual' => 'John Doe',
@@ -460,7 +463,7 @@ class KegiatanTest extends TestCase
 
         // 4. Bendahara Cairkan (Termin 1)
         // Setup budget sum for sisa dana computation
-        \App\Models\KAKAnggaran::create([
+        KAKAnggaran::create([
             'kak_id' => $kak->kak_id,
             'kategori_belanja_id' => 1,
             'uraian' => 'Test',
@@ -576,7 +579,7 @@ class KegiatanTest extends TestCase
     public function test_kegiatan_submission_is_rate_limited(): void
     {
         $kak = $this->createApprovedKak($this->pengusul);
-        
+
         // Laravel's default 'api' throttle is 60 requests per minute
         // But for web routes it might be different or not applied.
         // Assuming there's a throttle middleware on the route.
@@ -587,13 +590,14 @@ class KegiatanTest extends TestCase
                 'pelaksana_manual' => 'PL',
                 'surat_pengantar' => UploadedFile::fake()->create('test.pdf', 10),
             ]);
-            
+
             if ($response->status() === 429) {
                 $response->assertStatus(429);
+
                 return;
             }
         }
-        
+
         // If we reach here, either rate limit is not 60 or not applied
         $this->markTestIncomplete('Rate limit not hit or not applied to /kegiatan route.');
     }
@@ -607,7 +611,7 @@ class KegiatanTest extends TestCase
         // Assuming there's a route for template download
         // If not found in routes/web.php, I'll need to check the exact route name
         $response = $this->actingAs($this->pengusul)->get(route('kegiatan.download-template'));
-        
+
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     }
@@ -615,14 +619,14 @@ class KegiatanTest extends TestCase
 
     public function test_wadir_approve_triggers_email(): void
     {
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
         $kak = $this->createApprovedKak($this->pengusul);
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
         KegiatanApproval::create(['kegiatan_id' => $kegiatan->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Aktif']);
 
         $this->actingAs($this->wadir)->post("/kegiatan/{$kegiatan->kegiatan_id}/approve", ['catatan' => 'ACC']);
 
-        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\KAKWorkflowMail::class);
+        Mail::assertQueued(KAKWorkflowMail::class);
     }
 
     public function test_unauthorized_roles_cannot_access_kegiatan_routes(): void

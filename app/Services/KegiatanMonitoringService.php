@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\Kegiatan;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 class KegiatanMonitoringService
 {
     public const APPROVAL_STEP_MAPPING = [
-        'PPK'             => ['step' => 1, 'dateKey' => 'accPPK'],
-        'Wadir2'          => ['step' => 2, 'dateKey' => 'accWD2'],
-        'Bendahara-Cair'  => ['step' => 3, 'dateKey' => 'uangMuka'],
-        'Bendahara-LPJ'   => ['step' => 4, 'dateKey' => 'lpj'],
+        'PPK' => ['step' => 1, 'dateKey' => 'accPPK'],
+        'Wadir2' => ['step' => 2, 'dateKey' => 'accWD2'],
+        'Bendahara-Cair' => ['step' => 3, 'dateKey' => 'uangMuka'],
+        'Bendahara-LPJ' => ['step' => 4, 'dateKey' => 'lpj'],
         'Bendahara-Setor' => ['step' => 5, 'dateKey' => 'setorFisik'],
     ];
 
@@ -40,7 +40,7 @@ class KegiatanMonitoringService
         if ($searchTerm) {
             $operator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
             $query->whereHas('kak', function ($q) use ($searchTerm, $operator) {
-                $q->where('nama_kegiatan', $operator, '%' . $searchTerm . '%');
+                $q->where('nama_kegiatan', $operator, '%'.$searchTerm.'%');
             });
         }
 
@@ -79,8 +79,8 @@ class KegiatanMonitoringService
         $statsQuery = $this->buildStatsQuery($user);
 
         return [
-            'total'     => $statsQuery->count(),
-            'running'   => (clone $statsQuery)->whereHas('kak', function ($q) {
+            'total' => $statsQuery->count(),
+            'running' => (clone $statsQuery)->whereHas('kak', function ($q) {
                 $q->whereNotIn('status_id', [5, 10]);
             })->whereHas('approvals', function ($q) {
                 $q->where('approval_level', 'Bendahara-Setor')->where('status', '!=', 'Disetujui');
@@ -114,7 +114,7 @@ class KegiatanMonitoringService
         }
 
         $maxApprovedStep = ! empty($approvedSteps) ? max($approvedSteps) : 0;
-        $activeApproval  = $kegiatan->approvals->where('status', 'Aktif')->first();
+        $activeApproval = $kegiatan->approvals->where('status', 'Aktif')->first();
 
         if ($activeApproval && isset(self::APPROVAL_STEP_MAPPING[$activeApproval->approval_level])) {
             $currentStatus = self::APPROVAL_STEP_MAPPING[$activeApproval->approval_level]['step'];
@@ -123,12 +123,12 @@ class KegiatanMonitoringService
         }
 
         return [
-            'kak_id'        => $kegiatan->kak_id,
-            'kegiatan_id'   => $kegiatan->kegiatan_id,
+            'kak_id' => $kegiatan->kak_id,
+            'kegiatan_id' => $kegiatan->kegiatan_id,
             'nama_kegiatan' => $kegiatan->kak ? $kegiatan->kak->nama_kegiatan : '-',
-            'status'        => $currentStatus,
-            'dates'         => $dates,
-            'overdueDays'   => 0,
+            'status' => $currentStatus,
+            'dates' => $dates,
+            'overdueDays' => 0,
         ];
     }
 }

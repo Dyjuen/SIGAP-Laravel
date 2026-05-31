@@ -19,6 +19,8 @@ class PanduanTest extends TestCase
     {
         parent::setUp();
 
+        Storage::fake('supabase');
+
         // Seed roles
         if (Role::count() === 0) {
             Role::create(['role_id' => 1, 'nama_role' => 'Admin']);
@@ -65,7 +67,6 @@ class PanduanTest extends TestCase
      */
     public function test_admin_can_create_document_panduan(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('guide.pdf', 100, 'application/pdf');
 
@@ -150,7 +151,6 @@ class PanduanTest extends TestCase
      */
     public function test_admin_can_delete_panduan(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('delete.pdf', 100);
         $path = $file->store('panduan', 'supabase');
@@ -207,7 +207,6 @@ class PanduanTest extends TestCase
      */
     public function test_validation_rejects_invalid_file_type(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('malicious.exe', 100);
 
@@ -226,7 +225,6 @@ class PanduanTest extends TestCase
      */
     public function test_admin_can_download_document(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('test.pdf', 100);
         $path = $file->store('panduan', 'supabase');
@@ -273,7 +271,6 @@ class PanduanTest extends TestCase
      */
     public function test_admin_switches_from_video_to_document_deletes_no_file(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $panduan = Panduan::create([
             'judul_panduan' => 'Video Guide',
@@ -304,7 +301,6 @@ class PanduanTest extends TestCase
      */
     public function test_admin_switches_from_document_to_video_deletes_old_file(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $oldFile = UploadedFile::fake()->create('old.pdf', 100);
         $oldPath = $oldFile->store('panduan', 'supabase');
@@ -338,7 +334,6 @@ class PanduanTest extends TestCase
      */
     public function test_admin_can_preview_document_inline(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
         $file = UploadedFile::fake()->create('test.pdf', 100);
         $path = $file->store('panduan', 'supabase');
@@ -380,9 +375,8 @@ class PanduanTest extends TestCase
      */
     public function test_download_missing_file_returns_404(): void
     {
-        Storage::fake('supabase');
         $admin = User::factory()->create(['role_id' => 1]);
-        
+
         $panduan = Panduan::create([
             'judul_panduan' => 'Missing',
             'tipe_media' => 'document',

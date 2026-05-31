@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Models\Iku;
 use App\Models\KAK;
+use App\Models\KAKAnggaran;
 use App\Models\KAKManfaat;
+use App\Models\KAKTahapan;
 use App\Models\KategoriBelanja;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
@@ -595,7 +597,7 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => '15 Days Activity', 'kurun_waktu_pelaksanaan' => '15 Hari']);
 
         // 1 Month 6 Days case (inclusive 31 + 6 = 37 days total)
-        // 01/05 to 05/06 -> 36 days diff + 1 = 37 days. 37 / 30 = 1 month 7 days? 
+        // 01/05 to 05/06 -> 36 days diff + 1 = 37 days. 37 / 30 = 1 month 7 days?
         // Logic in KakController: 37 % 30 = 7. So "1 Bulan 7 Hari".
         $dataMonth = $data15;
         $dataMonth['kak']['nama_kegiatan'] = 'Month Activity';
@@ -605,7 +607,7 @@ class KakCrudTest extends TestCase
         $this->actingAs($user)->post(route('kak.store'), $dataMonth);
         $this->assertDatabaseHas('t_kak', ['nama_kegiatan' => 'Month Activity', 'kurun_waktu_pelaksanaan' => '1 Bulan 6 Hari']);
         // Wait, 01/05 to 05/06 is 31 days in May + 5 days in June = 36 days total.
-        // Controller logic: Carbon diffInDays + 1. 
+        // Controller logic: Carbon diffInDays + 1.
         // May 1 to June 5: diffInDays is 35. + 1 = 36. 36 / 30 = 1. 36 % 30 = 6. -> "1 Bulan 6 Hari". Correct.
     }
 
@@ -671,8 +673,8 @@ class KakCrudTest extends TestCase
         $kategori = KategoriBelanja::first();
 
         // Initial steps
-        $s1 = \App\Models\KAKTahapan::create(['kak_id' => $kak->kak_id, 'nama_tahapan' => 'Step A', 'urutan' => 1]);
-        $s2 = \App\Models\KAKTahapan::create(['kak_id' => $kak->kak_id, 'nama_tahapan' => 'Step B', 'urutan' => 2]);
+        $s1 = KAKTahapan::create(['kak_id' => $kak->kak_id, 'nama_tahapan' => 'Step A', 'urutan' => 1]);
+        $s2 = KAKTahapan::create(['kak_id' => $kak->kak_id, 'nama_tahapan' => 'Step B', 'urutan' => 2]);
 
         $updatedData = [
             'kak' => [
@@ -714,7 +716,7 @@ class KakCrudTest extends TestCase
         $iku = Iku::first();
         $kategori = KategoriBelanja::first();
 
-        $rab = \App\Models\KAKAnggaran::create([
+        $rab = KAKAnggaran::create([
             'kak_id' => $kak->kak_id,
             'kategori_belanja_id' => $kategori->kategori_belanja_id,
             'uraian' => 'Item X',
@@ -767,12 +769,12 @@ class KakCrudTest extends TestCase
     {
         $user = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]);
-        $tipe = \App\Models\TipeKegiatan::first();
-        $satuan = \App\Models\Satuan::first();
-        $iku = \App\Models\Iku::first();
-        $kategori = \App\Models\KategoriBelanja::first();
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
 
-        $existingRab = \App\Models\KAKAnggaran::create([
+        $existingRab = KAKAnggaran::create([
             'kak_id' => $kak->kak_id,
             'kategori_belanja_id' => $kategori->kategori_belanja_id,
             'uraian' => 'Existing Item',

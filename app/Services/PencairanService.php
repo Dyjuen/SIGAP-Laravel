@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Exceptions\PencairanException;
 use App\Events\PencairanSelesai;
+use App\Exceptions\PencairanException;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
@@ -44,7 +44,7 @@ class PencairanService
             ->where('status', 'Aktif')
             ->first();
 
-        if (!$bendaharaCairApproval) {
+        if (! $bendaharaCairApproval) {
             throw new PencairanException('Pencairan belum dapat dilakukan. Status persetujuan Bendahara-Cair belum Aktif.');
         }
 
@@ -75,7 +75,7 @@ class PencairanService
             ->where('status', 'Aktif')
             ->first();
 
-        if (!$bendaharaCairApproval) {
+        if (! $bendaharaCairApproval) {
             throw new PencairanException('Proses pencairan belum aktif atau sudah diselesaikan.');
         }
 

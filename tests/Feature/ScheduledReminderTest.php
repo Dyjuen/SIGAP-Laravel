@@ -2,11 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Mail\WorkflowReminderMail;
 use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
-use App\Models\Notifikasi;
 use App\Models\User;
 use Carbon\Carbon;
 use Database\Seeders\MasterDataSeeder;
@@ -34,7 +32,6 @@ class ScheduledReminderTest extends TestCase
     /**
      * Precision Bottleneck Tests (3 Days)
      */
-
     public function test_bottleneck_trigger_boundaries(): void
     {
         $now = Carbon::create(2026, 5, 23, 10, 0, 0); // Saturday 10:00 AM
@@ -48,21 +45,21 @@ class ScheduledReminderTest extends TestCase
         $kakBoundary = KAK::factory()->create([
             'status_id' => 2,
             'tipe_kegiatan_id' => 1,
-            'updated_at' => $now->copy()->subDays(3)
+            'updated_at' => $now->copy()->subDays(3),
         ]);
 
         // 2. Just under 3 days (2 days, 23 hours, 59 mins) -> Should NOT trigger
         $kakJustUnder = KAK::factory()->create([
             'status_id' => 2,
             'tipe_kegiatan_id' => 1,
-            'updated_at' => $now->copy()->subDays(2)->subHours(23)->subMinutes(59)
+            'updated_at' => $now->copy()->subDays(2)->subHours(23)->subMinutes(59),
         ]);
 
         // 3. Just over 3 days (3 days, 1 minute) -> SHOULD trigger
         $kakJustOver = KAK::factory()->create([
             'status_id' => 2,
             'tipe_kegiatan_id' => 1,
-            'updated_at' => $now->copy()->subDays(3)->subMinutes(1)
+            'updated_at' => $now->copy()->subDays(3)->subMinutes(1),
         ]);
 
         $this->artisan('app:check-workflow-reminders');
@@ -70,22 +67,21 @@ class ScheduledReminderTest extends TestCase
         // Verify only the 'Just Over' KAK triggered a notification
         $this->assertDatabaseHas('t_notifikasi', [
             'penerima_user_id' => $verif->user_id,
-            'pesan' => "KAK '{$kakJustOver->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari."
+            'pesan' => "KAK '{$kakJustOver->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari.",
         ]);
 
         $this->assertDatabaseMissing('t_notifikasi', [
-            'pesan' => "KAK '{$kakJustUnder->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari."
+            'pesan' => "KAK '{$kakJustUnder->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari.",
         ]);
-        
+
         $this->assertDatabaseMissing('t_notifikasi', [
-            'pesan' => "KAK '{$kakBoundary->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari."
+            'pesan' => "KAK '{$kakBoundary->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari.",
         ]);
     }
 
     /**
      * Precision LPJ Deadline Tests (10 Days)
      */
-
     public function test_lpj_deadline_trigger_boundaries(): void
     {
         $now = Carbon::create(2026, 5, 23, 10, 0, 0);
@@ -99,7 +95,7 @@ class ScheduledReminderTest extends TestCase
             'kegiatan_id' => $kegiatanJustUnder->kegiatan_id,
             'approval_level' => 'Bendahara-LPJ',
             'status' => 'Aktif',
-            'updated_at' => $now->copy()->subDays(9)->subHours(23)
+            'updated_at' => $now->copy()->subDays(9)->subHours(23),
         ]);
 
         // 2. Just over 10 days -> SHOULD trigger
@@ -108,18 +104,18 @@ class ScheduledReminderTest extends TestCase
             'kegiatan_id' => $kegiatanJustOver->kegiatan_id,
             'approval_level' => 'Bendahara-LPJ',
             'status' => 'Aktif',
-            'updated_at' => $now->copy()->subDays(10)->subMinutes(1)
+            'updated_at' => $now->copy()->subDays(10)->subMinutes(1),
         ]);
 
         $this->artisan('app:check-workflow-reminders');
 
         $this->assertDatabaseHas('t_notifikasi', [
             'penerima_user_id' => $pengusul->user_id,
-            'pesan' => "Kegiatan '{$kegiatanJustOver->kak->nama_kegiatan}' hampir melewati tenggat waktu LPJ (14 hari). Silakan segera submit LPJ."
+            'pesan' => "Kegiatan '{$kegiatanJustOver->kak->nama_kegiatan}' hampir melewati tenggat waktu LPJ (14 hari). Silakan segera submit LPJ.",
         ]);
 
         $this->assertDatabaseMissing('t_notifikasi', [
-            'pesan' => "Kegiatan '{$kegiatanJustUnder->kak->nama_kegiatan}' hampir melewati tenggat waktu LPJ (14 hari). Silakan segera submit LPJ."
+            'pesan' => "Kegiatan '{$kegiatanJustUnder->kak->nama_kegiatan}' hampir melewati tenggat waktu LPJ (14 hari). Silakan segera submit LPJ.",
         ]);
     }
 
@@ -132,7 +128,7 @@ class ScheduledReminderTest extends TestCase
         $kak = KAK::factory()->create([
             'status_id' => 2,
             'tipe_kegiatan_id' => 1,
-            'updated_at' => Carbon::now()->subDays(4)
+            'updated_at' => Carbon::now()->subDays(4),
         ]);
 
         // Run Day 4

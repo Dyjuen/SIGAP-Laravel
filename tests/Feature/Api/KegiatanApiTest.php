@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Api;
 
+use App\Mail\KAKWorkflowMail;
 use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
@@ -9,6 +10,7 @@ use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -17,7 +19,9 @@ class KegiatanApiTest extends TestCase
     use RefreshDatabase;
 
     private User $pengusul;
+
     private User $ppk;
+
     private User $wadir;
 
     protected function setUp(): void
@@ -57,7 +61,7 @@ class KegiatanApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'approvedKaks',
-            'pendingKegiatan'
+            'pendingKegiatan',
         ]);
     }
 
@@ -105,9 +109,9 @@ class KegiatanApiTest extends TestCase
             'kegiatan' => [
                 'kegiatan_id',
                 'kak' => [
-                    'nama_kegiatan'
-                ]
-            ]
+                    'nama_kegiatan',
+                ],
+            ],
         ]);
     }
 
@@ -192,7 +196,7 @@ class KegiatanApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'data',
-            'stats'
+            'stats',
         ]);
     }
 
@@ -223,7 +227,7 @@ class KegiatanApiTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonFragment([
-            'message' => 'KAK belum disetujui Verifikator.'
+            'message' => 'KAK belum disetujui Verifikator.',
         ]);
     }
 
@@ -258,7 +262,7 @@ class KegiatanApiTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonFragment([
-            'message' => 'Kegiatan untuk KAK ini sudah diajukan.'
+            'message' => 'Kegiatan untuk KAK ini sudah diajukan.',
         ]);
     }
 
@@ -401,7 +405,7 @@ class KegiatanApiTest extends TestCase
         $kak = $this->createApprovedKak($this->pengusul);
         $file = UploadedFile::fake()->create('surat.pdf', 100);
 
-        \App\Models\KegiatanApproval::creating(function() {
+        KegiatanApproval::creating(function () {
             throw new \Exception('Simulated DB Failure');
         });
 
@@ -423,8 +427,8 @@ class KegiatanApiTest extends TestCase
             'kak_id' => $kak->kak_id,
             'status_id' => 3,
         ]);
-        
-        \App\Models\KegiatanApproval::flushEventListeners();
+
+        KegiatanApproval::flushEventListeners();
     }
 
     public function test_api_ppk_cannot_approve_wadir_step()
@@ -463,13 +467,13 @@ class KegiatanApiTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonFragment([
-            'message' => 'Tidak ada langkah persetujuan yang aktif.'
+            'message' => 'Tidak ada langkah persetujuan yang aktif.',
         ]);
     }
 
     public function test_api_wadir_approve_triggers_email()
     {
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
         $kak = $this->createApprovedKak($this->pengusul);
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
         KegiatanApproval::create([
@@ -487,13 +491,13 @@ class KegiatanApiTest extends TestCase
         ]);
 
         $response->assertStatus(200);
-        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\KAKWorkflowMail::class);
+        Mail::assertQueued(KAKWorkflowMail::class);
     }
 
     public function test_api_pengusul_can_only_see_own_kegiatan()
     {
         $pengusul2 = User::factory()->create(['role_id' => 3]);
-        
+
         $kak1 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id]);
         $kak2 = KAK::factory()->create(['pengusul_user_id' => $pengusul2->user_id]);
 
@@ -540,11 +544,32 @@ class KegiatanApiTest extends TestCase
             'Accept' => 'application/json',
         ])->getJson('/api/kegiatan/monitoring')->assertStatus(403);
     }
+    public function test_api_verifikator_can_only_see_matching_tipe_kegiatan()
+    {
+        $verifikator1 = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
+
+        $kak1 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 1]);   
+        $kak2 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 2]);   
+
+        $kegiatan1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);
+        $kegiatan2 = Kegiatan::create(['kak_id' => $kak2->kak_id]);
+
+        $token = $verifikator1->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$token,
+            'Accept' => 'application/json',
+        ])->getJson('/api/kegiatan/monitoring');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data.data');
+        $this->assertEquals($kegiatan1->kegiatan_id, $response->json('data.data.0.kegiatan_id'));
+    }
 
     public function test_api_admin_can_see_all_kegiatan()
     {
         $admin = User::factory()->create(['role_id' => 1]);
-        
+
         $kak1 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 1]);
         $kak2 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 2]);
 
@@ -700,4 +725,3 @@ class KegiatanApiTest extends TestCase
             ->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(200);
     }
 }
-

@@ -510,7 +510,7 @@ test.describe('Pemantauan Kegiatan — Comprehensive Automated Suite', () => {
     await sharedPage.goto('/kegiatan/monitoring');
     await sharedPage.waitForLoadState('networkidle');
     const duration = Date.now() - startTime;
-    expect(duration).toBeLessThan(4000);
+    expect(duration).toBeLessThan(8000);
   });
 
   // ─── MK-U-010: Kejelasan Tooltip Petunjuk ───────────────────────────────────

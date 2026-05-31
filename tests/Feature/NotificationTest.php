@@ -21,22 +21,22 @@ class NotificationTest extends TestCase
     public function test_inertia_shared_props_contains_unread_notifications_for_authenticated_user(): void
     {
         $user = User::factory()->create(['user_id' => 1]);
-        
+
         // Create 3 unread notifications
         Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Test 1',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
         Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Test 2',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
         Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Test 3',
-            'is_read' => 1 // Read
+            'is_read' => 1, // Read
         ]);
 
         $response = $this->actingAs($user)->get('/dashboard');
@@ -50,13 +50,13 @@ class NotificationTest extends TestCase
     public function test_inertia_shared_props_limits_to_10_latest_unread_notifications(): void
     {
         $user = User::factory()->create(['user_id' => 1]);
-        
+
         // Create 15 unread notifications
         for ($i = 1; $i <= 15; $i++) {
             Notifikasi::create([
                 'penerima_user_id' => $user->user_id,
                 'pesan' => "Test $i",
-                'is_read' => 0
+                'is_read' => 0,
             ]);
         }
 
@@ -74,11 +74,11 @@ class NotificationTest extends TestCase
     {
         $userA = User::factory()->create(['user_id' => 1]);
         $userB = User::factory()->create(['user_id' => 2]);
-        
+
         Notifikasi::create([
             'penerima_user_id' => $userB->user_id,
             'pesan' => 'For B',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $response = $this->actingAs($userA)->get('/dashboard');
@@ -100,7 +100,7 @@ class NotificationTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Unread',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $response = $this->actingAs($user)->post("/notifications/{$notif->notifikasi_id}/read");
@@ -108,7 +108,7 @@ class NotificationTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseHas('t_notifikasi', [
             'notifikasi_id' => $notif->notifikasi_id,
-            'is_read' => 1
+            'is_read' => 1,
         ]);
     }
 
@@ -119,7 +119,7 @@ class NotificationTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $userB->user_id,
             'pesan' => 'For B',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $response = $this->actingAs($userA)->post("/notifications/{$notif->notifikasi_id}/read");
@@ -128,7 +128,7 @@ class NotificationTest extends TestCase
         $response->assertStatus(403);
         $this->assertDatabaseHas('t_notifikasi', [
             'notifikasi_id' => $notif->notifikasi_id,
-            'is_read' => 0
+            'is_read' => 0,
         ]);
     }
 
@@ -138,7 +138,7 @@ class NotificationTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'For Someone',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $response = $this->post("/notifications/{$notif->notifikasi_id}/read");
@@ -152,7 +152,7 @@ class NotificationTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Read',
-            'is_read' => 1
+            'is_read' => 1,
         ]);
 
         $response = $this->actingAs($user)->post("/notifications/{$notif->notifikasi_id}/read");
@@ -160,7 +160,7 @@ class NotificationTest extends TestCase
         $response->assertStatus(200);
         $this->assertDatabaseHas('t_notifikasi', [
             'notifikasi_id' => $notif->notifikasi_id,
-            'is_read' => 1
+            'is_read' => 1,
         ]);
     }
 
@@ -175,7 +175,7 @@ class NotificationTest extends TestCase
         Notifikasi::create(['penerima_user_id' => $user->user_id, 'pesan' => '2', 'is_read' => 0]);
         Notifikasi::create(['penerima_user_id' => $otherUser->user_id, 'pesan' => 'Other', 'is_read' => 0]);
 
-        $response = $this->actingAs($user)->post("/notifications/read-all");
+        $response = $this->actingAs($user)->post('/notifications/read-all');
 
         $response->assertStatus(200);
         $this->assertEquals(2, Notifikasi::where('penerima_user_id', $user->user_id)->where('is_read', 1)->count());

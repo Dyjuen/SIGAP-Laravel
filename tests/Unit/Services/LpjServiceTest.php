@@ -2,18 +2,17 @@
 
 namespace Tests\Unit\Services;
 
-use App\Exceptions\LpjException;
-use App\Events\LpjSubmitted;
-use App\Events\LpjRevised;
 use App\Events\LpjApproved;
 use App\Events\LpjCompleted;
+use App\Events\LpjRevised;
+use App\Events\LpjSubmitted;
+use App\Exceptions\LpjException;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
 use App\Models\Satuan;
-use App\Models\SpkConfig;
 use App\Models\User;
 use App\Services\LpjService;
 use Database\Seeders\MasterDataSeeder;
@@ -28,15 +27,18 @@ class LpjServiceTest extends TestCase
     use RefreshDatabase;
 
     private LpjService $service;
+
     private User $pengusul;
+
     private User $bendahara;
+
     private Satuan $satuan;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(MasterDataSeeder::class);
-        $this->service = new LpjService();
+        $this->service = new LpjService;
 
         $this->pengusul = User::factory()->create(['role_id' => 3]);
         $this->bendahara = User::factory()->create(['role_id' => 6]);
@@ -170,7 +172,7 @@ class LpjServiceTest extends TestCase
         $lampiran = KegiatanLampiran::create([
             'anggaran_id' => $anggaran->anggaran_id,
             'nama_file_asli' => 'old_bukti.pdf',
-            'path_file_disimpan' => 'lampiran/' . $anggaran->anggaran_id . '/old_bukti.pdf',
+            'path_file_disimpan' => 'lampiran/'.$anggaran->anggaran_id.'/old_bukti.pdf',
             'uploader_user_id' => $this->pengusul->user_id,
             'status_lampiran' => 'pending',
         ]);
@@ -245,10 +247,10 @@ class LpjServiceTest extends TestCase
         ]);
 
         $anggaranComments = [
-            ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => 'Revisi Anggaran']
+            ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => 'Revisi Anggaran'],
         ];
         $lampiranComments = [
-            ['id' => $lampiran->lampiran_id, 'catatan_reviewer' => 'Revisi File']
+            ['id' => $lampiran->lampiran_id, 'catatan_reviewer' => 'Revisi File'],
         ];
 
         $this->service->revise($kegiatan, $anggaranComments, $lampiranComments, $this->bendahara);

@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\User;
 use App\Models\Panduan;
-use App\Models\SpkConfig;
+use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminApiExtendedTest extends TestCase
@@ -14,6 +15,7 @@ class AdminApiExtendedTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $pengusul;
 
     protected function setUp(): void
@@ -108,7 +110,7 @@ class AdminApiExtendedTest extends TestCase
         $response->assertJsonStructure([
             'spk_config',
             'kegiatans',
-            'statistics'
+            'statistics',
         ]);
     }
 
@@ -344,9 +346,9 @@ class AdminApiExtendedTest extends TestCase
 
     public function test_api_admin_can_create_document_panduan()
     {
-        \Illuminate\Support\Facades\Storage::fake('supabase');
+        Storage::fake('supabase');
         $token = $this->admin->createToken('test-token')->plainTextToken;
-        $file = \Illuminate\Http\UploadedFile::fake()->create('guide.pdf', 100, 'application/pdf');
+        $file = UploadedFile::fake()->create('guide.pdf', 100, 'application/pdf');
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
@@ -362,7 +364,7 @@ class AdminApiExtendedTest extends TestCase
             'judul_panduan' => 'Panduan PDF API',
             'tipe_media' => 'document',
         ]);
-        $files = \Illuminate\Support\Facades\Storage::disk('supabase')->files('panduan');
+        $files = Storage::disk('supabase')->files('panduan');
         $this->assertNotEmpty($files);
     }
 
@@ -390,9 +392,9 @@ class AdminApiExtendedTest extends TestCase
 
     public function test_api_admin_can_delete_panduan()
     {
-        \Illuminate\Support\Facades\Storage::fake('supabase');
+        Storage::fake('supabase');
         $token = $this->admin->createToken('test-token')->plainTextToken;
-        $file = \Illuminate\Http\UploadedFile::fake()->create('delete.pdf', 100);
+        $file = UploadedFile::fake()->create('delete.pdf', 100);
         $path = $file->store('panduan', 'supabase');
 
         $guide = Panduan::create([
@@ -408,7 +410,7 @@ class AdminApiExtendedTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('m_panduan', ['panduan_id' => $guide->panduan_id]);
-        $this->assertFalse(\Illuminate\Support\Facades\Storage::disk('supabase')->exists($path));
+        $this->assertFalse(Storage::disk('supabase')->exists($path));
     }
 
     public function test_api_panduan_validation()
@@ -462,7 +464,7 @@ class AdminApiExtendedTest extends TestCase
 
     public function test_api_admin_switches_from_video_to_document_deletes_no_file()
     {
-        \Illuminate\Support\Facades\Storage::fake('supabase');
+        Storage::fake('supabase');
         $token = $this->admin->createToken('test-token')->plainTextToken;
         $guide = Panduan::create([
             'judul_panduan' => 'Video Guide',
@@ -470,7 +472,7 @@ class AdminApiExtendedTest extends TestCase
             'path_media' => 'https://youtube.com/watch?v=123',
         ]);
 
-        $file = \Illuminate\Http\UploadedFile::fake()->create('new.pdf', 100);
+        $file = UploadedFile::fake()->create('new.pdf', 100);
 
         $response = $this->withHeaders([
             'Authorization' => 'Bearer '.$token,
@@ -486,15 +488,15 @@ class AdminApiExtendedTest extends TestCase
             'panduan_id' => $guide->panduan_id,
             'tipe_media' => 'document',
         ]);
-        $files = \Illuminate\Support\Facades\Storage::disk('supabase')->files('panduan');
+        $files = Storage::disk('supabase')->files('panduan');
         $this->assertNotEmpty($files);
     }
 
     public function test_api_admin_switches_from_document_to_video_deletes_old_file()
     {
-        \Illuminate\Support\Facades\Storage::fake('supabase');
+        Storage::fake('supabase');
         $token = $this->admin->createToken('test-token')->plainTextToken;
-        $oldFile = \Illuminate\Http\UploadedFile::fake()->create('old.pdf', 100);
+        $oldFile = UploadedFile::fake()->create('old.pdf', 100);
         $oldPath = $oldFile->store('panduan', 'supabase');
 
         $guide = Panduan::create([
@@ -520,6 +522,6 @@ class AdminApiExtendedTest extends TestCase
             'tipe_media' => 'video',
             'path_media' => $videoUrl,
         ]);
-        $this->assertFalse(\Illuminate\Support\Facades\Storage::disk('supabase')->exists($oldPath));
+        $this->assertFalse(Storage::disk('supabase')->exists($oldPath));
     }
 }

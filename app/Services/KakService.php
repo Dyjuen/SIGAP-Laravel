@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\KAKIku;
 use App\Models\KAKManfaat;
 use App\Models\KAKTahapan;
 use App\Models\KAKTarget;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -73,7 +73,7 @@ class KakService
         $fields = [
             'nama_kegiatan', 'deskripsi_kegiatan', 'metode_pelaksanaan',
             'tanggal_mulai', 'tanggal_selesai', 'lokasi',
-            'tipe_kegiatan_id', 'sasaran_utama'
+            'tipe_kegiatan_id', 'sasaran_utama',
         ];
 
         $extracted = [];
@@ -82,6 +82,7 @@ class KakService
                 $extracted[$field] = $raw[$field];
             }
         }
+
         return $extracted;
     }
 

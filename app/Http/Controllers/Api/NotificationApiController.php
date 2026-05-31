@@ -33,7 +33,7 @@ class NotificationApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notifikasi ditandai telah dibaca.'
+            'message' => 'Notifikasi ditandai telah dibaca.',
         ]);
     }
 
@@ -48,7 +48,7 @@ class NotificationApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Semua notifikasi ditandai telah dibaca.'
+            'message' => 'Semua notifikasi ditandai telah dibaca.',
         ]);
     }
 }

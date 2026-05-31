@@ -48,7 +48,7 @@ class ProfileApiTest extends TestCase
             'user' => [
                 'nama_lengkap' => 'New Full Name',
                 'email' => 'newemail@example.com',
-            ]
+            ],
         ]);
 
         $user->refresh();

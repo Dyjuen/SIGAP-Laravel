@@ -6,23 +6,15 @@ use App\Http\Requests\StoreKakRequest;
 use App\Http\Requests\UpdateKakRequest;
 use App\Models\Iku;
 use App\Models\KAK;
-use App\Models\KAKAnggaran;
-use App\Models\KAKIku;
-use App\Models\KAKManfaat;
-use App\Models\KAKTahapan;
-use App\Models\KAKTarget;
 use App\Models\KategoriBelanja;
 use App\Models\MataAnggaran;
 use App\Models\Satuan;
 use App\Models\TipeKegiatan;
+use App\Services\KakService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-
-use App\Services\KakService;
 
 class KakController extends Controller
 {
@@ -179,9 +171,6 @@ class KakController extends Controller
 
         return redirect()->route('kak.index')->with('success', 'KAK berhasil dihapus.');
     }
-
-
-
 
     private function authorizeAccess(KAK $kak, $requireEdit = false)
     {

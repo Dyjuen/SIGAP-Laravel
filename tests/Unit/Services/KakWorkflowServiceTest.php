@@ -2,15 +2,14 @@
 
 namespace Tests\Unit\Services;
 
-use App\Exceptions\KakWorkflowException;
-use App\Events\KakSubmitted;
 use App\Events\KakApproved;
 use App\Events\KakRejected;
 use App\Events\KakRevised;
+use App\Events\KakSubmitted;
+use App\Exceptions\KakWorkflowException;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\KAKManfaat;
-use App\Models\MataAnggaran;
 use App\Models\User;
 use App\Services\KakWorkflowService;
 use Database\Seeders\MasterDataSeeder;
@@ -28,7 +27,7 @@ class KakWorkflowServiceTest extends TestCase
     {
         parent::setUp();
         $this->seed(MasterDataSeeder::class);
-        $this->service = new KakWorkflowService();
+        $this->service = new KakWorkflowService;
     }
 
     public function test_it_submits_kak_and_dispatches_event(): void

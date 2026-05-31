@@ -17,7 +17,7 @@ class KegiatanService
 {
     /** Approval level → role name map used for both validation and next-step logic. */
     private const APPROVAL_ROLE_MAP = [
-        'PPK'    => 'PPK',
+        'PPK' => 'PPK',
         'Wadir2' => 'Wadir',
     ];
 
@@ -32,13 +32,13 @@ class KegiatanService
 
     /** KAK status IDs for each approval level. */
     private const NEXT_STATUS = [
-        'PPK'    => 7, // Review Wadir 2
+        'PPK' => 7, // Review Wadir 2
         'Wadir2' => 8, // Proses Pencairan
     ];
 
     /** Level that becomes active after the given one is approved. */
     private const NEXT_STEP = [
-        'PPK'    => 'Wadir2',
+        'PPK' => 'Wadir2',
         'Wadir2' => 'Bendahara-Cair',
     ];
 
@@ -63,7 +63,7 @@ class KegiatanService
             return DB::transaction(function () use ($kak, $data, $suratPengantar, $actor, &$uploadedPath) {
                 // 1. Upload surat pengantar
                 if ($suratPengantar) {
-                    $filename     = time() . '_' . $suratPengantar->getClientOriginalName();
+                    $filename = time().'_'.$suratPengantar->getClientOriginalName();
                     $uploadedPath = $suratPengantar->storeAs('surat-pengantar', $filename, 'supabase');
 
                     if (! $uploadedPath) {
@@ -73,18 +73,18 @@ class KegiatanService
 
                 // 2. Create Kegiatan
                 $kegiatan = Kegiatan::create([
-                    'kak_id'                  => $kak->kak_id,
-                    'penanggung_jawab_manual'  => $data['penanggung_jawab_manual'] ?? null,
-                    'pelaksana_manual'         => $data['pelaksana_manual'] ?? null,
-                    'surat_pengantar_path'     => $uploadedPath,
+                    'kak_id' => $kak->kak_id,
+                    'penanggung_jawab_manual' => $data['penanggung_jawab_manual'] ?? null,
+                    'pelaksana_manual' => $data['pelaksana_manual'] ?? null,
+                    'surat_pengantar_path' => $uploadedPath,
                 ]);
 
                 // 3. Seed approval steps
                 foreach (self::APPROVAL_STEPS as $step) {
                     KegiatanApproval::create([
-                        'kegiatan_id'    => $kegiatan->kegiatan_id,
+                        'kegiatan_id' => $kegiatan->kegiatan_id,
                         'approval_level' => $step,
-                        'status'         => $step === 'PPK' ? 'Aktif' : 'Menunggu',
+                        'status' => $step === 'PPK' ? 'Aktif' : 'Menunggu',
                     ]);
                 }
 
@@ -95,11 +95,11 @@ class KegiatanService
 
                 // 5. Log
                 KegiatanLogStatus::create([
-                    'kegiatan_id'    => $kegiatan->kegiatan_id,
+                    'kegiatan_id' => $kegiatan->kegiatan_id,
                     'status_id_lama' => $oldStatus,
                     'status_id_baru' => $newStatus,
-                    'actor_user_id'  => $actor->user_id,
-                    'catatan'        => 'Mengajukan Kegiatan',
+                    'actor_user_id' => $actor->user_id,
+                    'catatan' => 'Mengajukan Kegiatan',
                 ]);
 
                 return $kegiatan;
@@ -144,13 +144,13 @@ class KegiatanService
 
             // Mark current step approved
             $activeApproval->update([
-                'status'           => 'Disetujui',
+                'status' => 'Disetujui',
                 'approver_user_id' => $actor->user_id,
-                'catatan'          => $catatan,
+                'catatan' => $catatan,
             ]);
 
-            $level  = $activeApproval->approval_level;
-            $kak    = $kegiatan->kak;
+            $level = $activeApproval->approval_level;
+            $kak = $kegiatan->kak;
             $oldKakStatus = $kak->status_id;
 
             // Activate next step and advance KAK status
@@ -166,11 +166,11 @@ class KegiatanService
                 $kak->update(['status_id' => $newStatus]);
 
                 KegiatanLogStatus::create([
-                    'kegiatan_id'    => $kegiatan->kegiatan_id,
+                    'kegiatan_id' => $kegiatan->kegiatan_id,
                     'status_id_lama' => $oldKakStatus,
                     'status_id_baru' => $newStatus,
-                    'actor_user_id'  => $actor->user_id,
-                    'catatan'        => $catatan ?: 'Disetujui oleh ' . $actorRole,
+                    'actor_user_id' => $actor->user_id,
+                    'catatan' => $catatan ?: 'Disetujui oleh '.$actorRole,
                 ]);
 
                 event(new KegiatanApproved($kegiatan, $actorRole, $catatan));

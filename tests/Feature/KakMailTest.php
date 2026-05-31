@@ -29,7 +29,7 @@ class KakMailTest extends TestCase
 
         $this->actingAs($pengusul)->post(route('kak.submit', $kak->kak_id));
 
-        Mail::assertQueued(KAKWorkflowMail::class, function ($mail) use ($verif) {
+        Mail::assertQueued(KAKWorkflowMail::class, function ($mail) {
             return $mail->hasTo('verif@pnj.ac.id') &&
                    $mail->mailData['status_color'] === '#1ABDD4';
         });
@@ -87,7 +87,7 @@ class KakMailTest extends TestCase
     {
         // We need to bypass Mail::fake() to simulate a real exception in the workflow
         // But since we use DB::transaction, any exception inside will rollback.
-        
+
         $pengusul = User::factory()->create(['role_id' => 3]);
         $verif = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1', 'email' => 'verif@pnj.ac.id']);
         $kak = KAK::factory()->create(['pengusul_user_id' => $pengusul->user_id, 'status_id' => 1, 'tipe_kegiatan_id' => 1]);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\PencairanException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePencairanRequest;
 use App\Models\Kegiatan;
@@ -23,8 +24,6 @@ class PencairanApiController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
-
 
         $kegiatans = Kegiatan::with([
             'kak.pengusul',
@@ -102,12 +101,12 @@ class PencairanApiController extends Controller
             return response()->json([
                 'message' => 'Pencairan dana berhasil dicatat.',
             ]);
-        } catch (\App\Exceptions\PencairanException $e) {
+        } catch (PencairanException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
                 'errors' => [
-                    'nominal_pencairan' => [$e->getMessage()]
-                ]
+                    'nominal_pencairan' => [$e->getMessage()],
+                ],
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
@@ -122,8 +121,6 @@ class PencairanApiController extends Controller
     public function selesai(Request $request, Kegiatan $kegiatan)
     {
         $user = $request->user();
-
-
 
         try {
             $this->pencairanService->selesai($kegiatan, $user);
@@ -151,6 +148,7 @@ class PencairanApiController extends Controller
 
         if ($role === 'Pengusul') {
             $kak = $kegiatan->kak;
+
             return $kak && $kak->pengusul_user_id === $user->user_id;
         }
 

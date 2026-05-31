@@ -22,6 +22,7 @@ class DashboardApiController extends Controller
     public function verifikator(Request $request)
     {
         $data = $this->dashboardService->getVerifikatorStatsAndRecent($request->user());
+
         return response()->json($data);
     }
 
@@ -32,6 +33,7 @@ class DashboardApiController extends Controller
     public function ppk(Request $request)
     {
         $data = $this->dashboardService->getPpkStatsAndRecent();
+
         return response()->json($data);
     }
 
@@ -42,6 +44,7 @@ class DashboardApiController extends Controller
     public function wadir(Request $request)
     {
         $data = $this->dashboardService->getWadirStatsAndRecent();
+
         return response()->json($data);
     }
 
@@ -52,6 +55,7 @@ class DashboardApiController extends Controller
     public function bendahara(Request $request)
     {
         $data = $this->dashboardService->getBendaharaStatsAndKegiatans();
+
         return response()->json($data);
     }
 
@@ -62,6 +66,7 @@ class DashboardApiController extends Controller
     public function direktur(Request $request)
     {
         $stats = $this->dashboardService->getDirekturStats();
+
         return response()->json([
             'stats' => $stats,
         ]);

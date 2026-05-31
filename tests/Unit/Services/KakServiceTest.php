@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use App\Models\User;
 use App\Models\KAK;
+use App\Models\User;
 use App\Services\KakService;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,13 +14,14 @@ class KakServiceTest extends TestCase
     use RefreshDatabase;
 
     private KakService $service;
+
     private User $pengusul;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(MasterDataSeeder::class);
-        $this->service = new KakService();
+        $this->service = new KakService;
         $this->pengusul = User::factory()->create(['role_id' => 3]);
     }
 

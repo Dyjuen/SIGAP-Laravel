@@ -4,7 +4,6 @@ namespace App\Listeners;
 
 use App\Events\PencairanSelesai;
 use App\Mail\FundsReleasedMail;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 
@@ -27,7 +26,7 @@ class SendPencairanEmail
                 'recipient_name' => $pengusul->nama_lengkap,
                 'nama_kegiatan' => $kak->nama_kegiatan,
                 'jumlah' => $event->jumlah,
-                'action_link' => config('app.url') . "/kegiatan/{$kegiatan->kegiatan_id}",
+                'action_link' => config('app.url')."/kegiatan/{$kegiatan->kegiatan_id}",
             ];
 
             Mail::to($pengusul->email)->send(new FundsReleasedMail($data));

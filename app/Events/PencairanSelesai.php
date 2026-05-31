@@ -10,7 +10,5 @@ class PencairanSelesai
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Kegiatan $kegiatan, public float $jumlah)
-    {
-    }
+    public function __construct(public Kegiatan $kegiatan, public float $jumlah) {}
 }

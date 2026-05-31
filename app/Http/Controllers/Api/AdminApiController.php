@@ -3,24 +3,28 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ChangePasswordRequest;
+use App\Http\Requests\Admin\StorePanduanRequest;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdatePanduanRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\Kegiatan;
 use App\Models\LogAktivitas;
 use App\Models\Panduan;
-use App\Models\User;
 use App\Models\SpkConfig;
-use App\Models\Kegiatan;
+use App\Models\User;
+use App\Services\DashboardService;
+use App\Services\PanduanService;
+use App\Services\UserService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Services\UserService;
-use App\Services\PanduanService;
-use App\Services\DashboardService;
-use App\Http\Requests\Admin\UpdateUserRequest;
-use App\Http\Requests\Admin\ChangePasswordRequest;
-use App\Http\Requests\Admin\UpdatePanduanRequest;
 
 class AdminApiController extends Controller
 {
     protected UserService $userService;
+
     protected PanduanService $panduanService;
+
     protected DashboardService $dashboardService;
 
     public function __construct(
@@ -32,7 +36,6 @@ class AdminApiController extends Controller
         $this->panduanService = $panduanService;
         $this->dashboardService = $dashboardService;
     }
-
 
     /**
      * Get real stats for the admin dashboard.
@@ -51,7 +54,6 @@ class AdminApiController extends Controller
      */
     public function getUsers(Request $request)
     {
-
 
         $search = $request->input('search');
 
@@ -82,9 +84,8 @@ class AdminApiController extends Controller
         return response()->json($users);
     }
 
-    public function createUser(\App\Http\Requests\Admin\StoreUserRequest $request)
+    public function createUser(StoreUserRequest $request)
     {
-
 
         $user = $this->userService->create($request->validated());
 
@@ -107,7 +108,6 @@ class AdminApiController extends Controller
     public function deleteUser(Request $request, $id)
     {
 
-
         $user = User::findOrFail($id);
 
         if ($request->user()->user_id === $user->user_id) {
@@ -128,7 +128,6 @@ class AdminApiController extends Controller
      */
     public function getLogs(Request $request)
     {
-
 
         $logs = LogAktivitas::with(['user.role'])
             ->orderBy('created_at', 'desc')
@@ -166,9 +165,8 @@ class AdminApiController extends Controller
         return response()->json($guides);
     }
 
-    public function createPanduan(\App\Http\Requests\Admin\StorePanduanRequest $request)
+    public function createPanduan(StorePanduanRequest $request)
     {
-
 
         $p = $this->panduanService->store($request->validated(), $request->file('file'));
 
@@ -188,7 +186,6 @@ class AdminApiController extends Controller
      */
     public function deletePanduan(Request $request, $id)
     {
-
 
         $p = Panduan::findOrFail($id);
         $this->panduanService->delete($p);
@@ -211,7 +208,7 @@ class AdminApiController extends Controller
                 'nama_lengkap' => $user->nama_lengkap,
                 'email' => $user->email,
                 'role_id' => $user->role_id,
-            ]
+            ],
         ]);
     }
 
@@ -220,7 +217,6 @@ class AdminApiController extends Controller
      */
     public function changePasswordUser(ChangePasswordRequest $request, User $user)
     {
-
 
         $this->userService->changePassword($user, $request->new_password);
 
@@ -235,7 +231,6 @@ class AdminApiController extends Controller
     public function updatePanduan(UpdatePanduanRequest $request, Panduan $panduan)
     {
 
-
         $this->panduanService->update($panduan, $request->validated(), $request->file('file'));
 
         return response()->json([
@@ -245,7 +240,7 @@ class AdminApiController extends Controller
                 'title' => $panduan->judul_panduan,
                 'type' => $panduan->tipe_media,
                 'path' => $panduan->path_media,
-            ]
+            ],
         ]);
     }
 
@@ -254,7 +249,6 @@ class AdminApiController extends Controller
      */
     public function getSpk(Request $request)
     {
-
 
         $config = SpkConfig::getActive();
 
@@ -401,8 +395,8 @@ class AdminApiController extends Controller
             return response()->json([
                 'message' => 'Jumlah seluruh bobot kriteria harus tepat bernilai 100% (saat ini '.$sum.'%).',
                 'errors' => [
-                    'weights_sum' => ['Jumlah seluruh bobot kriteria harus tepat bernilai 100% (saat ini '.$sum.'%).']
-                ]
+                    'weights_sum' => ['Jumlah seluruh bobot kriteria harus tepat bernilai 100% (saat ini '.$sum.'%).'],
+                ],
             ], 422);
         }
 

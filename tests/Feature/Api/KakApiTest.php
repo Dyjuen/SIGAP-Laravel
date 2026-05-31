@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\User;
+use App\Mail\KAKWorkflowMail;
 use App\Models\KAK;
+use App\Models\KAKAnggaran;
+use App\Models\KAKManfaat;
+use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class KakApiTest extends TestCase
@@ -13,13 +17,14 @@ class KakApiTest extends TestCase
     use RefreshDatabase;
 
     protected User $pengusul;
+
     protected User $admin;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
 
         // Create Users with exact seeded role_ids
         $this->pengusul = User::factory()->create([
@@ -423,12 +428,12 @@ class KakApiTest extends TestCase
             'status_id' => 2,
         ]);
 
-        $anggaran = \App\Models\KAKAnggaran::create([
+        $anggaran = KAKAnggaran::create([
             'kak_id' => $kak->kak_id,
             'kategori_belanja_id' => 1,
             'uraian' => 'Test Uraian',
         ]);
-        $manfaat = \App\Models\KAKManfaat::create([
+        $manfaat = KAKManfaat::create([
             'kak_id' => $kak->kak_id,
             'manfaat' => 'Test Manfaat',
         ]);
@@ -680,9 +685,9 @@ class KakApiTest extends TestCase
 
     public function test_api_workflow_triggers_notifications_and_emails()
     {
-        \Illuminate\Support\Facades\Mail::fake();
+        Mail::fake();
         $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1', 'email' => 'verif@pnj.ac.id']);
-        
+
         $kak = KAK::create([
             'nama_kegiatan' => 'Notify KAK',
             'deskripsi_kegiatan' => 'Deskripsi.',
@@ -702,7 +707,7 @@ class KakApiTest extends TestCase
             ->postJson("/api/kak/{$kak->kak_id}/submit");
 
         $response->assertStatus(200);
-        \Illuminate\Support\Facades\Mail::assertQueued(\App\Mail\KAKWorkflowMail::class);
+        Mail::assertQueued(KAKWorkflowMail::class);
         $this->assertDatabaseHas('t_notifikasi', [
             'penerima_user_id' => $verifikator->user_id,
             'is_read' => 0,
@@ -789,5 +794,3 @@ class KakApiTest extends TestCase
         $response->assertJsonValidationErrors(['catatan']);
     }
 }
-
-

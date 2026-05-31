@@ -31,7 +31,7 @@ class KakPdfTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
         $response->assertHeader('Content-Disposition', 'attachment; filename=KAK_Test_PDF_Export.pdf');
-        
+
         // Check if content is actually a PDF (starts with %PDF)
         $this->assertStringStartsWith('%PDF', $response->getContent());
     }
@@ -52,7 +52,7 @@ class KakPdfTest extends TestCase
             'mimeType',
             'base64',
         ]);
-        
+
         $data = $response->json();
         $this->assertEquals('application/pdf', $data['mimeType']);
         $this->assertTrue(base64_decode($data['base64'], true) !== false);

@@ -15,14 +15,11 @@ class MasterDataApiController extends Controller
         $this->masterDataService = $masterDataService;
     }
 
-
-
     /**
      * Get all master data types.
      */
     public function index(Request $request)
     {
-
 
         $types = collect($this->masterDataService->getAllTypes())->map(fn ($item, $key) => [
             'key' => $key,
@@ -38,7 +35,6 @@ class MasterDataApiController extends Controller
      */
     public function indexResource(Request $request, string $type)
     {
-
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);
@@ -62,7 +58,6 @@ class MasterDataApiController extends Controller
      */
     public function store(Request $request, string $type)
     {
-
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);
@@ -97,7 +92,6 @@ class MasterDataApiController extends Controller
     public function update(Request $request, string $type, string $id)
     {
 
-
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);
         }
@@ -130,7 +124,6 @@ class MasterDataApiController extends Controller
      */
     public function destroy(Request $request, string $type, string $id)
     {
-
 
         if (! $this->masterDataService->hasType($type)) {
             return response()->json(['message' => 'Master data type not found.'], 404);

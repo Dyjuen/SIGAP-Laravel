@@ -10,7 +10,5 @@ class LpjSubmitted
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Kegiatan $kegiatan, public string $type)
-    {
-    }
+    public function __construct(public Kegiatan $kegiatan, public string $type) {}
 }

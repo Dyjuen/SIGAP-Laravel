@@ -18,7 +18,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
     const [editingUser, setEditingUser] = useState(null);
 
     // Form Hooks
-    const { data: addData, setData: setAddData, post: postAdd, processing: processingAdd, errors: errorsAdd, reset: resetAdd, clearErrors: clearErrorsAdd } = useForm({
+    const { data: addData, setData: setAddData, post: postAdd, transform: transformAdd, processing: processingAdd, errors: errorsAdd, reset: resetAdd, clearErrors: clearErrorsAdd } = useForm({
         nama_lengkap: '',
         username: '',
         email: '',
@@ -27,13 +27,24 @@ export default function UserManagementIndex({ auth, users, roles }) {
         password_confirmation: '',
     });
 
-    const { data: editData, setData: setEditData, put: putEdit, processing: processingEdit, errors: errorsEdit, reset: resetEdit, clearErrors: clearErrorsEdit } = useForm({
+    const { data: editData, setData: setEditData, put: putEdit, transform: transformEdit, processing: processingEdit, errors: errorsEdit, reset: resetEdit, clearErrors: clearErrorsEdit } = useForm({
         nama_lengkap: '',
         email: '',
         role_id: '',
         new_password: '',
         new_password_confirmation: '',
     });
+
+    // Register transformers at mount/render time
+    transformAdd((data) => ({
+        ...data,
+        role_ids: data.role_id ? [data.role_id] : []
+    }));
+
+    transformEdit((data) => ({
+        ...data,
+        role_ids: data.role_id ? [data.role_id] : []
+    }));
 
     // Effect for Search
     useEffect(() => {
@@ -57,14 +68,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
     // Handlers
     const handleAddSubmit = (e) => {
         e.preventDefault();
-        // satisfaction for backend StoreUserRequest which expects role_ids array
-        const submitData = {
-            ...addData,
-            role_ids: addData.role_id ? [addData.role_id] : []
-        };
         
         postAdd(route('admin.users.store'), {
-            data: submitData,
             onSuccess: () => {
                 setShowAddModal(false);
                 resetAdd();
@@ -94,14 +99,8 @@ export default function UserManagementIndex({ auth, users, roles }) {
 
     const handleEditSubmit = (e) => {
         e.preventDefault();
-        // satisfaction for backend UpdateUserRequest which expects role_ids array
-        const submitData = {
-            ...editData,
-            role_ids: editData.role_id ? [editData.role_id] : []
-        };
         
         putEdit(route('admin.users.update', editingUser.user_id), {
-            data: submitData,
             onSuccess: () => {
                 if (editData.new_password) {
                     router.put(route('admin.users.change-password', editingUser.user_id), {
@@ -158,6 +157,13 @@ export default function UserManagementIndex({ auth, users, roles }) {
                             'Terhapus!',
                             'Data pengguna berhasil dihapus.',
                             'success'
+                        )
+                    },
+                    onError: (errors) => {
+                        Swal.fire(
+                            'Gagal!',
+                            errors.error || 'Gagal menghapus pengguna karena memiliki relasi data.',
+                            'error'
                         )
                     }
                 });
@@ -472,6 +478,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                     <input
                                         type="text"
                                         className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
+                                        placeholder="Masukkan nama lengkap"
                                         value={editData.nama_lengkap}
                                         onChange={e => setEditData('nama_lengkap', e.target.value)}
                                         required={is_production}
@@ -486,6 +493,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                     <input
                                         type="email"
                                         className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
+                                        placeholder="contoh@email.com"
                                         value={editData.email}
                                         onChange={e => setEditData('email', e.target.value)}
                                         required={is_production}

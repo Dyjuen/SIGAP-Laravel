@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\KAK;
+
 class UpdateKakRequest extends StoreKakRequest
 {
     /**
@@ -13,7 +15,7 @@ class UpdateKakRequest extends StoreKakRequest
         $kak = $this->route('kak') ?? $this->route('id');
 
         if (is_scalar($kak)) {
-            $kak = \App\Models\KAK::find($kak);
+            $kak = KAK::find($kak);
         }
 
         // 1. Must be Pengusul

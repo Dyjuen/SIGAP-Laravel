@@ -5,10 +5,10 @@ namespace App\Services;
 use App\Models\KAKAnggaran;
 use App\Models\KegiatanLampiran;
 use App\Models\User;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use Exception;
 
 class LampiranService
 {
@@ -25,21 +25,21 @@ class LampiranService
 
         if ($count >= 10) {
             throw ValidationException::withMessages([
-                'file' => 'Maksimal 10 file per item anggaran. Hapus file lama terlebih dahulu.'
+                'file' => 'Maksimal 10 file per item anggaran. Hapus file lama terlebih dahulu.',
             ]);
         }
 
         return DB::transaction(function () use ($anggaran, $file, $catatan, $actor) {
             $storedPath = null;
             try {
-                $filename = time() . '_' . $file->getClientOriginalName();
+                $filename = time().'_'.$file->getClientOriginalName();
                 $storedPath = $file->storeAs(
-                    'lampiran/' . $anggaran->anggaran_id,
+                    'lampiran/'.$anggaran->anggaran_id,
                     $filename,
                     'supabase'
                 );
 
-                if (!$storedPath) {
+                if (! $storedPath) {
                     throw new Exception('Gagal menulis file ke disk.');
                 }
 
@@ -111,21 +111,21 @@ class LampiranService
     {
         if ($lampiran->status_lampiran !== 'revision_requested') {
             throw ValidationException::withMessages([
-                'file' => 'Lampiran ini tidak memerlukan revisi.'
+                'file' => 'Lampiran ini tidak memerlukan revisi.',
             ]);
         }
 
         return DB::transaction(function () use ($lampiran, $file, $catatan, $actor) {
             $storedPath = null;
             try {
-                $filename = time() . '_rev_' . $file->getClientOriginalName();
+                $filename = time().'_rev_'.$file->getClientOriginalName();
                 $storedPath = $file->storeAs(
-                    'lampiran/' . $lampiran->anggaran_id,
+                    'lampiran/'.$lampiran->anggaran_id,
                     $filename,
                     'supabase'
                 );
 
-                if (!$storedPath) {
+                if (! $storedPath) {
                     throw new Exception('Gagal menulis file ke disk.');
                 }
 

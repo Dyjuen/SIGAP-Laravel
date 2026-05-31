@@ -39,34 +39,39 @@ test.describe('AK-F-005: Pencarian Nama', () => {
     
     // Gunakan keyword yang kemungkinan ada di data
     const searchKeyword = 'Workshop';
+    
+    // Capture table text before search to compare later
+    const beforeText = await page.locator('table tbody').textContent();
+    
     await searchInput.fill(searchKeyword);
 
-    // 5. Tunggu debounce (300ms) + response
-    await page.waitForTimeout(1000);
+    // 5. Tunggu debounce (300ms) + response + UI update
+    await page.waitForTimeout(1500); 
     await page.waitForLoadState('networkidle');
 
     // 6. Verifikasi hasil: semua baris yang tampil harus mengandung keyword
     //    ATAU tabel kosong (jika tidak ada data yang cocok)
-    const tableRows = page.locator('table tbody tr, [class*="card"]');
+    const tableRows = page.locator('table tbody tr');
     const rowCount = await tableRows.count();
 
-    if (rowCount > 0) {
-      // Cek jika ini baris "Belum Ada Kegiatan" (empty state)
-      const emptyState = page.locator('text=Belum Ada Kegiatan');
-      if (await emptyState.isVisible().catch(() => false)) {
+    const emptyState = page.locator('text=Belum Ada Kegiatan');
+    if (await emptyState.isVisible().catch(() => false)) {
         // Tidak ada data yang match - ini valid
         expect(true).toBeTruthy();
-      } else {
+    } else {
+        // Verifikasi setidaknya satu baris ada jika tidak empty state
+        expect(rowCount).toBeGreaterThan(0);
+        
         // Verifikasi setiap baris mengandung keyword pencarian
         for (let i = 0; i < rowCount; i++) {
           const rowText = await tableRows.nth(i).textContent();
-          // Baris data harus mengandung keyword (case-insensitive)
           if (rowText && !rowText.includes('No.') && !rowText.includes('Detail')) {
-            // Ini adalah baris data, bukan header
+            if (rowText.toLowerCase().includes('belum ada kegiatan') || rowText.toLowerCase().includes('sepertinya anda belum memiliki')) {
+              continue;
+            }
             expect(rowText.toLowerCase()).toContain(searchKeyword.toLowerCase());
           }
         }
-      }
     }
 
     // 7. Screenshot sebagai bukti

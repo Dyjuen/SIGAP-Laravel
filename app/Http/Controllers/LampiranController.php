@@ -9,9 +9,8 @@ use App\Models\KAKAnggaran;
 use App\Models\KegiatanLampiran;
 use App\Services\LampiranService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Validation\ValidationException;
 
 class LampiranController extends Controller
 {
@@ -74,7 +73,7 @@ class LampiranController extends Controller
                 'data' => $lampiran,
                 'message' => 'File berhasil diunggah.',
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->validator->errors()->first('file'),
@@ -178,7 +177,7 @@ class LampiranController extends Controller
                 'data' => $newLampiran,
                 'message' => 'Revisi lampiran berhasil diunggah.',
             ], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->validator->errors()->first('file'),

@@ -51,7 +51,7 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
     await expect(draftOption).toBeVisible();
     await draftOption.click();
 
-    await sharedPage.waitForLoadState('networkidle');
+    await sharedPage.waitForURL(/.*status_id=1/, { timeout: 10000 });
     expect(sharedPage.url()).toContain('status_id=1');
   });
 
@@ -175,7 +175,7 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
     const emailInput = sharedPage.locator('input[type="email"], #email').first();
     if (await emailInput.isVisible().catch(() => false)) {
       await emailInput.fill('invalidemail');
-      const saveBtn = sharedPage.locator('button:has-text("Simpan"), button[type="submit"]').first();
+      const saveBtn = sharedPage.locator('button:has-text("Save"), button:has-text("Simpan"), button[type="submit"]').first();
       await saveBtn.click();
       
       const isInvalid = await emailInput.evaluate(el => !el.checkValidity() || el.classList.contains('invalid'));
@@ -301,7 +301,8 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
           mimeType: 'application/pdf',
           buffer: Buffer.from('%PDF-1.4 test'),
         }
-      }
+      },
+      maxRedirects: 0
     });
     expect([302, 403, 419, 422]).toContain(response.status());
   });
@@ -318,7 +319,8 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
           mimeType: 'application/pdf',
           buffer: Buffer.from('%PDF-1.4 test'),
         }
-      }
+      },
+      maxRedirects: 0
     });
     expect([302, 419, 422, 403]).toContain(response.status());
   });
@@ -327,9 +329,12 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
   test('AK-I-004: Atomic Transaction - Database rollback jika kegagalan proses', async () => {
     const response = await sharedPage.request.post('/kegiatan', {
       multipart: {
-        kak_id: 'invalid-kak-id',
+        kak_id: '999999',
         penanggung_jawab_manual: '',
         pelaksana_manual: ''
+      },
+      headers: {
+        'Accept': 'application/json'
       }
     });
     expect(response.status()).toBe(422);
@@ -372,7 +377,8 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
         kak_id: '999999',
         penanggung_jawab_manual: 'Valid Pj',
         pelaksana_manual: 'Valid Pelaksana'
-      }
+      },
+      maxRedirects: 0
     });
     expect([302, 422, 403]).toContain(response.status());
   });
@@ -395,7 +401,8 @@ test.describe('Ajukan Kegiatan — Comprehensive Automated Suite', () => {
     const badContext = await browser.newContext();
     // Buka page request tanpa session / cookie CSRF
     const response = await badContext.request.post('/kegiatan', {
-      data: { kak_id: 1 }
+      data: { kak_id: 1 },
+      maxRedirects: 0
     });
     // Request tanpa CSRF token dialihkan ke login atau memicu 419 Page Expired
     expect([302, 419]).toContain(response.status());

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notifikasi;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class NotificationController extends Controller

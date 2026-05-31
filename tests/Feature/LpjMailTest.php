@@ -19,7 +19,9 @@ class LpjMailTest extends TestCase
     use RefreshDatabase;
 
     private User $pengusul;
+
     private User $bendahara;
+
     private Satuan $satuan;
 
     protected function setUp(): void
@@ -85,7 +87,7 @@ class LpjMailTest extends TestCase
                     'volume3' => '',
                     'satuan3_id' => '',
                     'harga_satuan' => 1000,
-                ]
+                ],
             ],
             'spk_kesesuaian_waktu' => 100,
             'spk_kesesuaian_output' => 100,
@@ -107,8 +109,8 @@ class LpjMailTest extends TestCase
 
         $response = $this->actingAs($this->bendahara)->post(route('lpj.revise', $kegiatan), [
             'anggaran_comments' => [
-                ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => 'Please revise this LPJ']
-            ]
+                ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => 'Please revise this LPJ'],
+            ],
         ]);
 
         $response->assertStatus(302);
@@ -140,12 +142,12 @@ class LpjMailTest extends TestCase
     {
         $kegiatan = $this->createKegiatanAtLpjStage();
         $kegiatan->kak->update(['status_id' => 13]);
-        
+
         // Ensure only Bendahara-Setor is Aktif
         KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
             ->where('approval_level', 'Bendahara-LPJ')
             ->update(['status' => 'Disetujui']);
-            
+
         KegiatanApproval::where('kegiatan_id', $kegiatan->kegiatan_id)
             ->where('approval_level', 'Bendahara-Setor')
             ->update(['status' => 'Aktif']);

@@ -10,7 +10,5 @@ class LpjRevised
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public Kegiatan $kegiatan, public string $message)
-    {
-    }
+    public function __construct(public Kegiatan $kegiatan, public string $message) {}
 }

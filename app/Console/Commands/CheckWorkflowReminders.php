@@ -49,7 +49,7 @@ class CheckWorkflowReminders extends Command
             ->get();
 
         foreach ($staleKaks as $kak) {
-            $verifUsername = 'verifikator' . $kak->tipe_kegiatan_id;
+            $verifUsername = 'verifikator'.$kak->tipe_kegiatan_id;
             $verifikator = User::where('username', $verifUsername)->first();
 
             if ($verifikator) {
@@ -57,7 +57,7 @@ class CheckWorkflowReminders extends Command
                     $verifikator,
                     "KAK '{$kak->nama_kegiatan}' telah menunggu verifikasi selama lebih dari 3 hari.",
                     "/kak/{$kak->kak_id}",
-                    "Pengingat Verifikasi KAK"
+                    'Pengingat Verifikasi KAK'
                 );
             }
         }
@@ -73,7 +73,9 @@ class CheckWorkflowReminders extends Command
 
         foreach ($staleApprovals as $approval) {
             $kegiatan = $approval->kegiatan;
-            if (!$kegiatan) continue;
+            if (! $kegiatan) {
+                continue;
+            }
 
             $recipient = null;
 
@@ -84,7 +86,7 @@ class CheckWorkflowReminders extends Command
             } elseif (str_contains($approval->approval_level, 'Bendahara')) {
                 // If Bendahara-LPJ but LPJ NOT submitted yet, it's Pengusul's responsibility (handled in checkLpjDeadlines)
                 // If LPJ IS submitted, then it's Bendahara's responsibility
-                if ($approval->approval_level === 'Bendahara-LPJ' && !$kegiatan->lpj_submitted_at) {
+                if ($approval->approval_level === 'Bendahara-LPJ' && ! $kegiatan->lpj_submitted_at) {
                     continue; // Skip, handled by checkLpjDeadlines
                 }
                 $recipient = User::where('role_id', Role::BENDAHARA)->first();
@@ -95,7 +97,7 @@ class CheckWorkflowReminders extends Command
                     $recipient,
                     "Kegiatan/LPJ '{$kegiatan->kak->nama_kegiatan}' ({$approval->approval_level}) telah menunggu tindakan Anda selama lebih dari 3 hari.",
                     $this->getLink($kegiatan, $approval),
-                    "Pengingat Persetujuan"
+                    'Pengingat Persetujuan'
                 );
             }
         }
@@ -111,7 +113,9 @@ class CheckWorkflowReminders extends Command
 
         foreach ($staleLpjs as $approval) {
             $kegiatan = $approval->kegiatan;
-            if (!$kegiatan || $kegiatan->lpj_submitted_at) continue;
+            if (! $kegiatan || $kegiatan->lpj_submitted_at) {
+                continue;
+            }
 
             $pengusul = $kegiatan->kak->pengusul;
 
@@ -119,8 +123,8 @@ class CheckWorkflowReminders extends Command
                 $this->notify(
                     $pengusul,
                     "Kegiatan '{$kegiatan->kak->nama_kegiatan}' hampir melewati tenggat waktu LPJ (14 hari). Silakan segera submit LPJ.",
-                    "/lpj",
-                    "⚠️ Peringatan Tenggat Waktu LPJ"
+                    '/lpj',
+                    '⚠️ Peringatan Tenggat Waktu LPJ'
                 );
             }
         }
@@ -133,7 +137,7 @@ class CheckWorkflowReminders extends Command
             'penerima_user_id' => $user->user_id,
             'pesan' => $message,
             'link_tujuan' => $link,
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         // 2. Email
@@ -142,8 +146,8 @@ class CheckWorkflowReminders extends Command
                 'subject' => $subject,
                 'title' => $subject,
                 'body' => $message,
-                'action_link' => config('app.url') . $link,
-                'action_text' => 'Lihat Sekarang'
+                'action_link' => config('app.url').$link,
+                'action_text' => 'Lihat Sekarang',
             ]));
         }
     }
@@ -153,6 +157,7 @@ class CheckWorkflowReminders extends Command
         if (str_contains($approval->approval_level, 'Bendahara-LPJ')) {
             return "/lpj/review/{$kegiatan->kegiatan_id}";
         }
+
         return "/kegiatan/{$kegiatan->kegiatan_id}";
     }
 }

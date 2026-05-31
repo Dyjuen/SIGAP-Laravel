@@ -17,11 +17,17 @@ class LampiranApiTest extends TestCase
     use RefreshDatabase;
 
     private User $pengusul;
+
     private User $pengusulLain;
+
     private User $verifikator;
+
     private User $bendahara;
+
     private User $admin;
+
     private User $ppk;
+
     private KAKAnggaran $anggaran;
 
     protected function setUp(): void

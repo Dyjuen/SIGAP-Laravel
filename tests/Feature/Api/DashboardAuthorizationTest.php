@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Api;
 
+use App\Models\Role;
 use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,7 +15,7 @@ class DashboardAuthorizationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
     }
 
     public function test_dashboard_routes_require_authentication()
@@ -82,7 +84,7 @@ class DashboardAuthorizationTest extends TestCase
     {
         // Mock the getRoleName relationship if needed, or create a role model.
         // Let's seed the database roles.
-        $role = \App\Models\Role::firstOrCreate(
+        $role = Role::firstOrCreate(
             ['nama_role' => $roleName],
             ['nama_role' => $roleName]
         );

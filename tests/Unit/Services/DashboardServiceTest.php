@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Services;
 
-use App\Models\User;
 use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
+use App\Models\User;
 use App\Services\DashboardService;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,7 +21,7 @@ class DashboardServiceTest extends TestCase
     {
         parent::setUp();
         $this->seed(MasterDataSeeder::class);
-        $this->service = new DashboardService();
+        $this->service = new DashboardService;
     }
 
     public function test_get_pengusul_stats(): void

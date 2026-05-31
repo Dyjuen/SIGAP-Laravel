@@ -162,7 +162,7 @@ test.describe('User Management Module', () => {
     await sharedPage.fill('input[placeholder="Cari akun..."]', '');
     await sharedPage.waitForTimeout(1000);
     await sharedPage.click('table tbody tr:first-child button[title="Edit"]');
-    await expect(sharedPage.locator('text="Edit Profil"')).toBeVisible();
+    await expect(sharedPage.locator('h3:has-text("Edit Profil")')).toBeVisible();
   });
 
   test('USR-F-017: Ubah Nama User', async () => {
@@ -204,7 +204,7 @@ test.describe('User Management Module', () => {
 
   test('USR-F-022: Tombol Batal di Modal Edit', async () => {
     await sharedPage.click('button:has-text("Batal")');
-    await expect(sharedPage.locator('text="Edit Profil"')).not.toBeVisible();
+    await expect(sharedPage.locator('h3:has-text("Edit Profil")')).not.toBeVisible();
   });
 
   // ─── Hapus User ────────────────────────────────────────────────────────────
@@ -230,7 +230,7 @@ test.describe('User Management Module', () => {
   });
 
   test('USR-F-026: Pencegahan Hapus Diri Sendiri', async () => {
-    await sharedPage.fill('input[placeholder="Cari akun..."]', 'admin');
+    await sharedPage.fill('input[placeholder="Cari akun..."]', 'admin@pnj.ac.id');
     await sharedPage.waitForTimeout(1000);
     const deleteBtn = sharedPage.locator('table tbody tr:first-child button[title="Hapus"]');
     expect(await deleteBtn.isDisabled()).toBeTruthy();

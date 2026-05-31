@@ -17,12 +17,12 @@ class NotificationApiTest extends TestCase
         Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Test Notification 1',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
         Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Test Notification 2',
-            'is_read' => 1
+            'is_read' => 1,
         ]);
 
         $token = $user->createToken('test-token')->plainTextToken;
@@ -43,7 +43,7 @@ class NotificationApiTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Test Unread',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $token = $user->createToken('test-token')->plainTextToken;
@@ -56,7 +56,7 @@ class NotificationApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'success' => true,
-            'message' => 'Notifikasi ditandai telah dibaca.'
+            'message' => 'Notifikasi ditandai telah dibaca.',
         ]);
 
         $this->assertEquals(1, $notif->fresh()->is_read);
@@ -78,7 +78,7 @@ class NotificationApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson([
             'success' => true,
-            'message' => 'Semua notifikasi ditandai telah dibaca.'
+            'message' => 'Semua notifikasi ditandai telah dibaca.',
         ]);
 
         $this->assertEquals(0, Notifikasi::where('penerima_user_id', $user->user_id)->where('is_read', 0)->count());
@@ -91,7 +91,7 @@ class NotificationApiTest extends TestCase
         Notifikasi::create([
             'penerima_user_id' => $userB->user_id,
             'pesan' => 'For B',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $token = $userA->createToken('test-token')->plainTextToken;
@@ -112,7 +112,7 @@ class NotificationApiTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $userB->user_id,
             'pesan' => 'For B',
-            'is_read' => 0
+            'is_read' => 0,
         ]);
 
         $token = $userA->createToken('test-token')->plainTextToken;
@@ -132,7 +132,7 @@ class NotificationApiTest extends TestCase
         $notif = Notifikasi::create([
             'penerima_user_id' => $user->user_id,
             'pesan' => 'Read',
-            'is_read' => 1
+            'is_read' => 1,
         ]);
 
         $token = $user->createToken('test-token')->plainTextToken;

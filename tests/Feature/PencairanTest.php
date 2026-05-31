@@ -6,6 +6,7 @@ use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
+use App\Models\PencairanDana;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -398,7 +399,7 @@ class PencairanTest extends TestCase
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
 
         // Force exception during creation by mocking model
-        \App\Models\PencairanDana::creating(function() {
+        PencairanDana::creating(function () {
             throw new \Exception('Simulated DB Failure');
         });
 
@@ -410,8 +411,8 @@ class PencairanTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHasErrors(['message']);
         $this->assertDatabaseCount('t_pencairan_dana', 0);
-        
-        \App\Models\PencairanDana::flushEventListeners();
+
+        PencairanDana::flushEventListeners();
     }
 
     /**
@@ -437,9 +438,9 @@ class PencairanTest extends TestCase
     public function test_bendahara_can_filter_pencairan_by_date_range(): void
     {
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
-        
+
         // 1. Create a transaction today
-        \App\Models\PencairanDana::create([
+        PencairanDana::create([
             'kegiatan_id' => $kegiatan->kegiatan_id,
             'jumlah_dicairkan' => 1000,
             'created_by' => $this->bendahara->user_id,
@@ -452,7 +453,7 @@ class PencairanTest extends TestCase
             'start_date' => now()->addDay()->toDateString(),
             'end_date' => now()->addDay()->toDateString(),
         ]));
-        
+
         $response->assertInertia(fn ($page) => $page->has('kegiatans', 0));
 
         // 3. Filter for today (should have 1)
@@ -460,13 +461,13 @@ class PencairanTest extends TestCase
             'start_date' => now()->toDateString(),
             'end_date' => now()->toDateString(),
         ]));
-        
+
         $response->assertInertia(fn ($page) => $page->has('kegiatans', 1));
     }
 
     /**
      * Test Case: PD-I-005 - Pencairan Dana: Race Condition Limit
-     * Note: In a unit/feature test, we can't easily do concurrent requests, 
+     * Note: In a unit/feature test, we can't easily do concurrent requests,
      * but we can verify the use of lockForUpdate in the controller if we check implementation or use a partial mock.
      * Here we just ensure that two sequential requests that would exceed the limit fail correctly.
      */

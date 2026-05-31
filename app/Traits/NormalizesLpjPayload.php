@@ -13,7 +13,7 @@ trait NormalizesLpjPayload
     {
         if ($this->has('realisasi') && is_array($this->realisasi)) {
             $realisasi = $this->realisasi;
-            
+
             // Mobile API clients send 'realisasi' as a flat sequential list of objects:
             // [
             //   {"anggaran_id": 45, "volume1": 2, "satuan1_id": 1, "harga_satuan": 10000},
@@ -27,7 +27,7 @@ trait NormalizesLpjPayload
             // }
             //
             // If it is a sequential list (mobile format), transform it to the associative web shape.
-            if (array_is_list($realisasi) && !empty($realisasi) && isset($realisasi[0]['anggaran_id'])) {
+            if (array_is_list($realisasi) && ! empty($realisasi) && isset($realisasi[0]['anggaran_id'])) {
                 $formattedRealisasi = [];
                 foreach ($realisasi as $item) {
                     if (isset($item['anggaran_id'])) {
@@ -47,7 +47,7 @@ trait NormalizesLpjPayload
         }
 
         // Normalize flat bukti_files array to keyed bukti array for mobile API uploads
-        if ($this->hasFile('bukti_files') && !$this->has('bukti')) {
+        if ($this->hasFile('bukti_files') && ! $this->has('bukti')) {
             $files = $this->file('bukti_files');
             if (is_array($files)) {
                 // Find first anggaran_id from realisasi

@@ -2,12 +2,13 @@
 
 namespace Tests\Unit\Services;
 
+use App\Events\UserPasswordReset;
 use App\Models\User;
 use App\Services\UserService;
-use App\Events\UserPasswordReset;
+use Database\Seeders\MasterDataSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UserServiceTest extends TestCase
@@ -19,8 +20,8 @@ class UserServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
-        $this->service = new UserService();
+        $this->seed(MasterDataSeeder::class);
+        $this->service = new UserService;
     }
 
     public function test_it_creates_a_user_successfully(): void

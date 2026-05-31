@@ -9,6 +9,7 @@ use App\Models\MataAnggaran;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class KakWorkflowTest extends TestCase
@@ -283,7 +284,7 @@ class KakWorkflowTest extends TestCase
         $tipeId = 1;
         $verif1 = $this->createVerifikator($tipeId);
         $verif2 = User::factory()->create(['role_id' => 2, 'username' => 'verifikatorX']); // Another verif
-        
+
         $pengusul = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->review()->create([
             'pengusul_user_id' => $pengusul->user_id,
@@ -374,7 +375,7 @@ class KakWorkflowTest extends TestCase
     public function test_workflow_transaction_rolls_back_on_mail_failure(): void
     {
         // Simulate Mail exception
-        \Illuminate\Support\Facades\Mail::shouldReceive('send')
+        Mail::shouldReceive('send')
             ->andThrow(new \Exception('SMTP Failure'));
 
         $tipeId = 1;

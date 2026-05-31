@@ -2,31 +2,23 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\KAK;
-use App\Models\KAKAnggaran;
-use App\Models\KAKApproval;
-use App\Models\KAKLogStatus;
-use App\Models\KAKManfaat;
-use App\Models\KAKTahapan;
-use App\Models\KAKTarget;
-use App\Models\KAKIku;
-use App\Services\KakService;
-use App\Services\KakWorkflowService;
 use App\Exceptions\KakWorkflowException;
-use App\Http\Requests\StoreKakRequest;
-use App\Http\Requests\UpdateKakRequest;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\KakWorkflow\ApproveKakRequest;
 use App\Http\Requests\KakWorkflow\RejectKakRequest;
 use App\Http\Requests\KakWorkflow\ReviseKakRequest;
-use Carbon\Carbon;
+use App\Http\Requests\StoreKakRequest;
+use App\Http\Requests\UpdateKakRequest;
+use App\Models\KAK;
+use App\Models\User;
+use App\Services\KakService;
+use App\Services\KakWorkflowService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class KakApiController extends Controller
 {
     protected KakWorkflowService $kakWorkflowService;
+
     protected KakService $kakService;
 
     public function __construct(KakWorkflowService $kakWorkflowService, KakService $kakService)
@@ -236,6 +228,7 @@ class KakApiController extends Controller
 
         try {
             $this->kakWorkflowService->submit($kak, $user);
+
             return response()->json(['message' => 'KAK berhasil diajukan untuk verifikasi.']);
         } catch (KakWorkflowException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -275,6 +268,7 @@ class KakApiController extends Controller
 
         try {
             $this->kakWorkflowService->approve($kak, $request->validated(), $user);
+
             return response()->json(['message' => 'KAK berhasil disetujui.']);
         } catch (KakWorkflowException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -293,6 +287,7 @@ class KakApiController extends Controller
 
         try {
             $this->kakWorkflowService->reject($kak, $request->validated('catatan'), $user);
+
             return response()->json(['message' => 'KAK telah ditolak.']);
         } catch (KakWorkflowException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -311,6 +306,7 @@ class KakApiController extends Controller
 
         try {
             $this->kakWorkflowService->revise($kak, $request->validated(), $user);
+
             return response()->json(['message' => 'Pengusul diminta untuk merevisi KAK.']);
         } catch (KakWorkflowException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -339,6 +335,7 @@ class KakApiController extends Controller
 
         try {
             $this->kakWorkflowService->submit($kak, $user);
+
             return response()->json(['message' => 'KAK berhasil diajukan kembali.']);
         } catch (KakWorkflowException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
@@ -357,7 +354,7 @@ class KakApiController extends Controller
         $allowedTipeId = $user->getVerifikatorTipeId();
         if ($allowedTipeId !== null) {
             if ($kak->tipe_kegiatan_id !== $allowedTipeId) {
-                abort(403, 'Anda hanya dapat memverifikasi KAK dengan Tipe Kegiatan ' . $allowedTipeId);
+                abort(403, 'Anda hanya dapat memverifikasi KAK dengan Tipe Kegiatan '.$allowedTipeId);
             }
         } else {
             abort(403, 'Username verifikator tidak valid untuk pemetaan tipe kegiatan.');

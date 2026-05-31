@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Notifikasi;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -39,7 +40,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     'role_id' => $request->user()->role_id, // Expose role_id for frontend logic
                     'role' => $request->user()->getRoleName(),
-                    'unread_notifications' => \App\Models\Notifikasi::where('penerima_user_id', $request->user()->user_id)
+                    'unread_notifications' => Notifikasi::where('penerima_user_id', $request->user()->user_id)
                         ->where('is_read', 0)
                         ->latest('notifikasi_id')
                         ->limit(10)

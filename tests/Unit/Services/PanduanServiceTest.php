@@ -4,9 +4,10 @@ namespace Tests\Unit\Services;
 
 use App\Models\Panduan;
 use App\Services\PanduanService;
+use Database\Seeders\MasterDataSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PanduanServiceTest extends TestCase
@@ -18,9 +19,9 @@ class PanduanServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
         Storage::fake('supabase');
-        $this->service = new PanduanService();
+        $this->service = new PanduanService;
     }
 
     public function test_it_stores_video_panduan(): void

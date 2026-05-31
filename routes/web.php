@@ -14,6 +14,7 @@ use App\Http\Controllers\KegiatanController;
 use App\Http\Controllers\LampiranController;
 use App\Http\Controllers\LandingPageController;
 use App\Http\Controllers\LpjController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PencairanController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -91,8 +92,8 @@ Route::middleware('auth')->group(function () {
     });
 
     // Notifications
-    Route::post('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
-    Route::post('/notifications/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 });
 
 require __DIR__.'/auth.php';

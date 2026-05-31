@@ -7,8 +7,8 @@ use App\Http\Requests\ApproveKegiatanRequest;
 use App\Http\Requests\StoreKegiatanRequest;
 use App\Models\KAK;
 use App\Models\Kegiatan;
-use App\Services\KegiatanService;
 use App\Services\KegiatanMonitoringService;
+use App\Services\KegiatanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -25,7 +25,7 @@ class KegiatanController extends Controller
         $user = $request->user();
         $role = $user->getRoleName();
 
-        $approvedKaks    = [];
+        $approvedKaks = [];
         $pendingKegiatan = [];
 
         if ($role === 'Pengusul') {
@@ -63,7 +63,7 @@ class KegiatanController extends Controller
         }
 
         return Inertia::render('Kegiatan/Index', [
-            'approvedKaks'    => $approvedKaks,
+            'approvedKaks' => $approvedKaks,
             'pendingKegiatan' => $pendingKegiatan,
         ]);
     }
@@ -85,7 +85,7 @@ class KegiatanController extends Controller
         } catch (KegiatanException $e) {
             return back()->with('error', $e->getMessage());
         } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat menyimpan data: '.$e->getMessage());
         }
 
         return redirect()->route('kegiatan.index')->with('success', 'Kegiatan berhasil diajukan.');
@@ -125,16 +125,16 @@ class KegiatanController extends Controller
     public function update(StoreKegiatanRequest $request, Kegiatan $kegiatan)
     {
         // Sanitize for XSS prevention
-        $namaKegiatan      = strip_tags($request->nama_kegiatan);
+        $namaKegiatan = strip_tags($request->nama_kegiatan);
         $deskripsiKegiatan = strip_tags($request->deskripsi_kegiatan);
 
         $kegiatan->kak->update([
-            'nama_kegiatan'      => $namaKegiatan,
+            'nama_kegiatan' => $namaKegiatan,
             'deskripsi_kegiatan' => $deskripsiKegiatan,
-            'tanggal_mulai'      => $request->tanggal_mulai,
-            'tanggal_selesai'    => $request->tanggal_selesai,
-            'lokasi'             => $request->lokasi,
-            'mata_anggaran_id'   => $request->mata_anggaran_id,
+            'tanggal_mulai' => $request->tanggal_mulai,
+            'tanggal_selesai' => $request->tanggal_selesai,
+            'lokasi' => $request->lokasi,
+            'mata_anggaran_id' => $request->mata_anggaran_id,
         ]);
 
         if ($request->has('penanggung_jawab_manual')) {
@@ -188,8 +188,8 @@ class KegiatanController extends Controller
 
         return Inertia::render('Kegiatan/Monitoring', [
             'kegiatans' => $kegiatans,
-            'stats'     => $monitoringStats,
-            'filters'   => $request->only(['search']),
+            'stats' => $monitoringStats,
+            'filters' => $request->only(['search']),
         ]);
     }
 }

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Exceptions\KegiatanException;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ApproveKegiatanRequest;
 use App\Http\Requests\StoreKegiatanRequest;
 use App\Models\KAK;
 use App\Models\Kegiatan;
-use App\Services\KegiatanService;
 use App\Services\KegiatanMonitoringService;
+use App\Services\KegiatanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,7 +25,7 @@ class KegiatanApiController extends Controller
         $user = $request->user();
         $role = $user->getRoleName();
 
-        $approvedKaks    = [];
+        $approvedKaks = [];
         $pendingKegiatan = [];
 
         if ($role === 'Pengusul') {
@@ -61,7 +61,7 @@ class KegiatanApiController extends Controller
         }
 
         return response()->json([
-            'approvedKaks'    => $approvedKaks,
+            'approvedKaks' => $approvedKaks,
             'pendingKegiatan' => $pendingKegiatan,
         ]);
     }
@@ -88,7 +88,7 @@ class KegiatanApiController extends Controller
         } catch (KegiatanException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage()], 500);
+            return response()->json(['message' => 'Terjadi kesalahan saat menyimpan data: '.$e->getMessage()], 500);
         }
     }
 
@@ -136,16 +136,16 @@ class KegiatanApiController extends Controller
         }
 
         // Sanitize for XSS prevention
-        $namaKegiatan      = strip_tags($request->nama_kegiatan);
+        $namaKegiatan = strip_tags($request->nama_kegiatan);
         $deskripsiKegiatan = strip_tags($request->deskripsi_kegiatan);
 
         $kegiatan->kak->update([
-            'nama_kegiatan'      => $namaKegiatan,
+            'nama_kegiatan' => $namaKegiatan,
             'deskripsi_kegiatan' => $deskripsiKegiatan,
-            'tanggal_mulai'      => $request->tanggal_mulai,
-            'tanggal_selesai'    => $request->tanggal_selesai,
-            'lokasi'             => $request->lokasi,
-            'mata_anggaran_id'   => $request->mata_anggaran_id,
+            'tanggal_mulai' => $request->tanggal_mulai,
+            'tanggal_selesai' => $request->tanggal_selesai,
+            'lokasi' => $request->lokasi,
+            'mata_anggaran_id' => $request->mata_anggaran_id,
         ]);
 
         if ($request->has('penanggung_jawab_manual')) {
@@ -172,6 +172,7 @@ class KegiatanApiController extends Controller
 
         try {
             $this->kegiatanService->approve($kegiatan, $role, $request->catatan, $user);
+
             return response()->json([
                 'message' => 'Kegiatan berhasil disetujui.',
             ]);

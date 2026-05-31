@@ -6,10 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ChangePasswordRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\KAK;
+use App\Models\KAKApproval;
+use App\Models\KAKLogStatus;
+use App\Models\KegiatanApproval;
+use App\Models\KegiatanLampiran;
+use App\Models\KegiatanLogStatus;
+use App\Models\PencairanDana;
 use App\Models\Role;
 use App\Models\User;
-use Illuminate\Http\Request;
 use App\Services\UserService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -98,6 +107,22 @@ class AccountController extends Controller
     {
         if ($request->user()->user_id === $user->user_id) {
             abort(403, 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        // Manual check for any related records to prevent deletion and satisfy E2E tests
+        $hasRelations = KAK::where('pengusul_user_id', $user->user_id)->exists() ||
+            KAKApproval::where('approver_user_id', $user->user_id)->exists() ||
+            KAKLogStatus::where('actor_user_id', $user->user_id)->exists() ||
+            KegiatanApproval::where('approver_user_id', $user->user_id)->exists() ||
+            KegiatanLogStatus::where('actor_user_id', $user->user_id)->exists() ||
+            KegiatanLampiran::where('uploader_user_id', $user->user_id)->orWhere('reviewer_user_id', $user->user_id)->exists() ||
+            PencairanDana::where('created_by', $user->user_id)->exists() ||
+            DB::table('t_notifikasi')->where('penerima_user_id', $user->user_id)->exists();
+
+        if ($hasRelations) {
+            throw ValidationException::withMessages([
+                'error' => 'Gagal menghapus pengguna karena memiliki relasi data.',
+            ]);
         }
 
         $this->userService->delete($user);

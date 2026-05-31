@@ -2,13 +2,12 @@
 
 namespace App\Listeners;
 
-use App\Events\KakSubmitted;
-use App\Events\KakApproved;
 use App\Events\KakRejected;
 use App\Events\KakRevised;
+use App\Events\KakSubmitted;
 use App\Mail\KAKWorkflowMail;
+use App\Models\Notifikasi;
 use App\Models\User;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 
@@ -49,9 +48,9 @@ class SendKakWorkflowEmail
                 Mail::to($verifikator->email)->send(new KAKWorkflowMail($data));
 
                 // Create database notification for Verifikator
-                \App\Models\Notifikasi::create([
+                Notifikasi::create([
                     'penerima_user_id' => $verifikator->user_id,
-                    'pesan' => "KAK '{$kak->nama_kegiatan}' oleh {$kak->pengusul->nama_lengkap} " . ($isResubmit ? 'telah direvisi.' : 'menunggu verifikasi.'),
+                    'pesan' => "KAK '{$kak->nama_kegiatan}' oleh {$kak->pengusul->nama_lengkap} ".($isResubmit ? 'telah direvisi.' : 'menunggu verifikasi.'),
                     'link_tujuan' => "/kak/{$kak->kak_id}",
                     'is_read' => 0,
                 ]);
@@ -63,7 +62,7 @@ class SendKakWorkflowEmail
 
             if ($pengusul && $pengusul->email) {
                 $type = $event->type;
-                
+
                 // Fetch catatan safely based on event type
                 $catatan = null;
                 if ($event instanceof KakRejected || $event instanceof KakRevised) {
@@ -112,7 +111,7 @@ class SendKakWorkflowEmail
                     Mail::to($pengusul->email)->send(new KAKWorkflowMail($data));
 
                     // Create database notification for Pengusul
-                    \App\Models\Notifikasi::create([
+                    Notifikasi::create([
                         'penerima_user_id' => $pengusul->user_id,
                         'pesan' => "KAK '{$kak->nama_kegiatan}' Anda telah {$c['notif_verb']}.",
                         'link_tujuan' => "/kak/{$kak->kak_id}",

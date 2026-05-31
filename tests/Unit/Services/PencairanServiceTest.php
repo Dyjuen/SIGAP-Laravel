@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Services;
 
-use App\Exceptions\PencairanException;
 use App\Events\PencairanSelesai;
+use App\Exceptions\PencairanException;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
@@ -21,14 +21,16 @@ class PencairanServiceTest extends TestCase
     use RefreshDatabase;
 
     private PencairanService $service;
+
     private User $pengusul;
+
     private User $bendahara;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(MasterDataSeeder::class);
-        $this->service = new PencairanService();
+        $this->service = new PencairanService;
 
         $this->pengusul = User::factory()->create(['role_id' => 3]);
         $this->bendahara = User::factory()->create(['role_id' => 6]);

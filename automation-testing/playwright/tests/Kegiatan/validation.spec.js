@@ -293,16 +293,27 @@ test.describe('AK-F-011: Validasi Tanggal', () => {
       await expect(errorMessage.first()).toBeVisible({ timeout: 10_000 });
     } else {
       // Jika form tanggal tidak ditemukan di KAK create, coba lewat API
-      // Submit via API langsung
-      const response = await page.request.put('/kegiatan/1', {
+      // Submit via API langsung ke KAK store dengan payload nested
+      const response = await page.request.post('/kak', {
         data: {
-          nama_kegiatan: 'Test Validasi Tanggal Update',
-          deskripsi_kegiatan: 'Deskripsi test yang cukup panjang untuk memenuhi minimum karakter validasi deskripsi kegiatan.',
-          tanggal_mulai: '2026-06-01',
-          tanggal_selesai: '2026-05-01', // Sebelum tanggal mulai
-          lokasi: 'Jakarta Selatan',
-          mata_anggaran_id: 1,
+          kak: {
+            nama_kegiatan: 'Test Validasi Tanggal',
+            deskripsi_kegiatan: 'Deskripsi test yang cukup panjang untuk memenuhi minimum karakter.',
+            metode_pelaksanaan: 'Metode pelaksanaan test.',
+            kurun_waktu_pelaksanaan: '1 Hari',
+            tanggal_mulai: '2026-06-10',
+            tanggal_selesai: '2026-06-01', // Sebelum tanggal mulai
+            lokasi: 'Jakarta Selatan',
+            tipe_kegiatan_id: 1,
+            sasaran_utama: 'Penerima sasaran utama.',
+            manfaat: [{ value: 'Manfaat 1' }],
+            tahapan_pelaksanaan: [{ nama_tahapan: 'Tahapan 1', urutan: 1 }],
+            indikator_kinerja: [],
+          },
+          target_iku: [],
+          rab: [],
         },
+        headers: { 'Accept': 'application/json' }
       });
       
       // Expect validation error (422)

@@ -21,8 +21,11 @@ class LpjApiTest extends TestCase
     use RefreshDatabase;
 
     private User $pengusul;
+
     private User $pengusulLain;
+
     private User $bendahara;
+
     private User $ppk;
 
     protected function setUp(): void

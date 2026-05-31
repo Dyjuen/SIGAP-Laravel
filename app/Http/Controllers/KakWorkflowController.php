@@ -32,6 +32,7 @@ class KakWorkflowController extends Controller
 
         try {
             $this->kakWorkflowService->submit($kak, Auth::user());
+
             return back()->with('success', 'KAK berhasil diajukan untuk verifikasi.');
         } catch (KakWorkflowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
@@ -51,7 +52,7 @@ class KakWorkflowController extends Controller
 
         try {
             $this->kakWorkflowService->approve($kak, $request->validated(), Auth::user());
-            return redirect()->route('kak.index')->with('success', 'KAK berhasil disetujui.');
+            return back()->with('success', 'KAK berhasil disetujui.');
         } catch (KakWorkflowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -70,7 +71,7 @@ class KakWorkflowController extends Controller
 
         try {
             $this->kakWorkflowService->reject($kak, $request->validated('catatan'), Auth::user());
-            return redirect()->route('kak.index')->with('success', 'KAK telah ditolak.');
+            return back()->with('success', 'KAK telah ditolak.');
         } catch (KakWorkflowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -89,7 +90,7 @@ class KakWorkflowController extends Controller
 
         try {
             $this->kakWorkflowService->revise($kak, $request->validated(), Auth::user());
-            return redirect()->route('kak.index')->with('success', 'Permintaan revisi dikirim.');
+            return back()->with('success', 'Permintaan revisi dikirim.');
         } catch (KakWorkflowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -108,6 +109,7 @@ class KakWorkflowController extends Controller
 
         try {
             $this->kakWorkflowService->submit($kak, Auth::user());
+
             return back()->with('success', 'KAK berhasil diajukan kembali.');
         } catch (KakWorkflowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);

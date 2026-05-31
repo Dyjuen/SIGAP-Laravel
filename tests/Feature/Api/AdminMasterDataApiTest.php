@@ -2,8 +2,9 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\User;
 use App\Models\Iku;
+use App\Models\User;
+use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,12 +13,13 @@ class AdminMasterDataApiTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $pengusul;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\MasterDataSeeder::class);
+        $this->seed(MasterDataSeeder::class);
         $this->admin = User::factory()->create(['role_id' => 1]); // Admin
         $this->pengusul = User::factory()->create(['role_id' => 3]); // Pengusul
     }
@@ -34,8 +36,8 @@ class AdminMasterDataApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonStructure([
             'types' => [
-                '*' => ['key', 'title', 'readonly']
-            ]
+                '*' => ['key', 'title', 'readonly'],
+            ],
         ]);
     }
 
@@ -56,9 +58,9 @@ class AdminMasterDataApiTest extends TestCase
             'readonly',
             'items' => [
                 'data' => [
-                    '*' => ['iku_id', 'kode_iku', 'nama_iku']
-                ]
-            ]
+                    '*' => ['iku_id', 'kode_iku', 'nama_iku'],
+                ],
+            ],
         ]);
     }
 
@@ -76,7 +78,7 @@ class AdminMasterDataApiTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Data berhasil ditambahkan.'
+            'message' => 'Data berhasil ditambahkan.',
         ]);
 
         $this->assertDatabaseHas('m_iku', [
@@ -89,7 +91,7 @@ class AdminMasterDataApiTest extends TestCase
     {
         $iku = Iku::factory()->create([
             'kode_iku' => 'Old IKU',
-            'nama_iku' => 'Old Nama'
+            'nama_iku' => 'Old Nama',
         ]);
         $token = $this->admin->createToken('test-token')->plainTextToken;
 
@@ -103,7 +105,7 @@ class AdminMasterDataApiTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Data berhasil diperbarui.'
+            'message' => 'Data berhasil diperbarui.',
         ]);
 
         $iku->refresh();
@@ -123,11 +125,11 @@ class AdminMasterDataApiTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Data berhasil dihapus.'
+            'message' => 'Data berhasil dihapus.',
         ]);
 
         $this->assertSoftDeleted('m_iku', [
-            'iku_id' => $iku->iku_id
+            'iku_id' => $iku->iku_id,
         ]);
     }
 
@@ -156,7 +158,7 @@ class AdminMasterDataApiTest extends TestCase
 
         $response->assertStatus(403);
         $response->assertJson([
-            'message' => 'This master data type is read-only.'
+            'message' => 'This master data type is read-only.',
         ]);
     }
 

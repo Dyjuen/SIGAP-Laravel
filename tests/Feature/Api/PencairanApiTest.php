@@ -6,6 +6,7 @@ use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
+use App\Models\PencairanDana;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,6 +17,7 @@ class PencairanApiTest extends TestCase
     use RefreshDatabase;
 
     private User $pengusul;
+
     private User $bendahara;
 
     protected function setUp(): void
@@ -282,7 +284,7 @@ class PencairanApiTest extends TestCase
         $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul, 5000000);
         $token = $this->bendahara->createToken('test-token')->plainTextToken;
 
-        \App\Models\PencairanDana::creating(function() {
+        PencairanDana::creating(function () {
             throw new \Exception('Simulated DB Failure');
         });
 
@@ -295,8 +297,8 @@ class PencairanApiTest extends TestCase
 
         $response->assertStatus(500);
         $this->assertDatabaseCount('t_pencairan_dana', 0);
-        
-        \App\Models\PencairanDana::flushEventListeners();
+
+        PencairanDana::flushEventListeners();
     }
 
     public function test_api_store_pencairan_at_max_limit()

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\KakWorkflow;
 
+use App\Models\KAK;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ApproveKakRequest extends FormRequest
@@ -15,7 +16,7 @@ class ApproveKakRequest extends FormRequest
 
         $kak = $this->route('kak');
         if (is_scalar($kak)) {
-            $kak = \App\Models\KAK::find($kak);
+            $kak = KAK::find($kak);
         }
 
         if ($kak) {

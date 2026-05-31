@@ -10,7 +10,5 @@ class KakApproved
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public KAK $kak, public string $type = 'approved')
-    {
-    }
+    public function __construct(public KAK $kak, public string $type = 'approved') {}
 }

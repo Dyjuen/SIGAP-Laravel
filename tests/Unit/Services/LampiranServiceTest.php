@@ -2,32 +2,35 @@
 
 namespace Tests\Unit\Services;
 
-use App\Models\User;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\KegiatanLampiran;
+use App\Models\User;
 use App\Services\LampiranService;
 use Database\Seeders\MasterDataSeeder;
+use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
-use Exception;
 
 class LampiranServiceTest extends TestCase
 {
     use RefreshDatabase;
 
     private LampiranService $service;
+
     private User $pengusul;
+
     private User $bendahara;
+
     private KAKAnggaran $anggaran;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(MasterDataSeeder::class);
-        $this->service = new LampiranService();
+        $this->service = new LampiranService;
 
         $this->pengusul = User::factory()->create(['role_id' => 3]);
         $this->bendahara = User::factory()->create(['role_id' => 6]);

@@ -2,22 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PencairanException;
 use App\Http\Requests\StorePencairanRequest;
-use App\Mail\FundsReleasedMail;
-use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
-use App\Models\KegiatanApproval;
-use App\Models\KegiatanLogStatus;
-use App\Models\PencairanDana;
 use App\Services\PencairanService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Inertia\Response;
-
 
 class PencairanController extends Controller
 {
@@ -132,13 +125,14 @@ class PencairanController extends Controller
             );
 
             return redirect()->back()->with('success', 'Pencairan dana berhasil dicatat.');
-        } catch (\App\Exceptions\PencairanException $e) {
+        } catch (PencairanException $e) {
             // Handle error response specifically for nominal validation
             if ($e->getMessage() === 'Nominal pencairan melebihi sisa dana yang tersedia.') {
                 return redirect()->back()->withErrors([
                     'nominal_pencairan' => $e->getMessage(),
                 ]);
             }
+
             return redirect()->back()->withErrors([
                 'message' => $e->getMessage(),
             ]);

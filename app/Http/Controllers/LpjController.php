@@ -7,27 +7,17 @@ use App\Http\Requests\CompleteLpjRequest;
 use App\Http\Requests\ResubmitLpjRequest;
 use App\Http\Requests\ReviseLpjRequest;
 use App\Http\Requests\SubmitLpjRequest;
-use App\Mail\LPJWorkflowMail;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
-use App\Models\KegiatanApproval;
-use App\Models\KegiatanLampiran;
-use App\Models\KegiatanLogStatus;
 use App\Models\Satuan;
 use App\Models\SpkConfig;
-use App\Models\User;
 use App\Services\LpjService;
-use Carbon\Carbon;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-
 
 class LpjController extends Controller
 {
@@ -214,8 +204,6 @@ class LpjController extends Controller
         }
     }
 
-
-
     private function canAccessLpj($user, Kegiatan $kegiatan): bool
     {
         $role = $user->getRoleName();
@@ -226,4 +214,3 @@ class LpjController extends Controller
         return $kegiatan->kak && $kegiatan->kak->pengusul_user_id === $user->user_id;
     }
 }
-

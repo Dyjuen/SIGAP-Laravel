@@ -23,6 +23,8 @@ class StoreUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        \Log::info('StoreUserRequest payload: '.json_encode($this->all()));
+
         return [
             'username' => ['required', 'string', 'alpha_num', 'min:3', 'max:50', 'unique:'.User::class.',username'],
             'password' => ['required', 'confirmed', 'string', 'min:8', 'max:100'],

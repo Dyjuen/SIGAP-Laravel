@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\MasterDataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Services\MasterDataService;
 
 class MasterDataController extends Controller
 {
@@ -31,7 +31,7 @@ class MasterDataController extends Controller
 
     public function indexResource(Request $request, string $type): Response
     {
-        abort_if(!$this->masterDataService->hasType($type), 404);
+        abort_if(! $this->masterDataService->hasType($type), 404);
 
         $config = $this->masterDataService->getConfig($type);
         $items = $this->masterDataService->list($type, $request->search)->withQueryString();
@@ -49,7 +49,7 @@ class MasterDataController extends Controller
 
     public function store(Request $request, string $type): RedirectResponse
     {
-        abort_if(!$this->masterDataService->hasType($type), 404);
+        abort_if(! $this->masterDataService->hasType($type), 404);
         $config = $this->masterDataService->getConfig($type);
 
         if ($config['readonly']) {
@@ -75,7 +75,7 @@ class MasterDataController extends Controller
 
     public function update(Request $request, string $type, string $id): RedirectResponse
     {
-        abort_if(!$this->masterDataService->hasType($type), 404);
+        abort_if(! $this->masterDataService->hasType($type), 404);
         $config = $this->masterDataService->getConfig($type);
 
         if ($config['readonly']) {
@@ -101,7 +101,7 @@ class MasterDataController extends Controller
 
     public function destroy(string $type, string $id): RedirectResponse
     {
-        abort_if(!$this->masterDataService->hasType($type), 404);
+        abort_if(! $this->masterDataService->hasType($type), 404);
         $config = $this->masterDataService->getConfig($type);
 
         if ($config['readonly']) {

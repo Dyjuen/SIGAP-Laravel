@@ -2,13 +2,12 @@
 
 namespace App\Listeners;
 
-use App\Events\LpjSubmitted;
-use App\Events\LpjRevised;
 use App\Events\LpjApproved;
 use App\Events\LpjCompleted;
+use App\Events\LpjRevised;
+use App\Events\LpjSubmitted;
 use App\Mail\LPJWorkflowMail;
 use App\Models\User;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 
@@ -68,14 +67,14 @@ class SendLpjEmail
                 }
 
                 $data = [
-                    'subject' => 'Status LPJ: ' . strtoupper($statusType) . ' - SIGAP PNJ',
+                    'subject' => 'Status LPJ: '.strtoupper($statusType).' - SIGAP PNJ',
                     'title' => 'Update Status LPJ',
                     'recipient_name' => $pengusul->nama_lengkap,
                     'body' => $event->message,
                     'details' => [
                         'Nama Kegiatan' => $kegiatan->kak->nama_kegiatan,
                     ],
-                    'action_link' => config('app.url') . '/lpj',
+                    'action_link' => config('app.url').'/lpj',
                     'status_color' => $statusColor,
                 ];
 

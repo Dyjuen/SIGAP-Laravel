@@ -2,11 +2,11 @@
 
 namespace App\Services;
 
-use App\Exceptions\LpjException;
-use App\Events\LpjSubmitted;
-use App\Events\LpjRevised;
 use App\Events\LpjApproved;
 use App\Events\LpjCompleted;
+use App\Events\LpjRevised;
+use App\Events\LpjSubmitted;
+use App\Exceptions\LpjException;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
@@ -15,9 +15,11 @@ use App\Models\KegiatanLogStatus;
 use App\Models\SpkConfig;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Exception;
 
 class LpjService
 {
@@ -60,9 +62,9 @@ class LpjService
                 if (is_array($buktiFiles)) {
                     foreach ($buktiFiles as $anggaranId => $files) {
                         foreach ($files as $file) {
-                            $filename = time() . '_' . $file->getClientOriginalName();
-                            $path = $file->storeAs('lampiran/' . $anggaranId, $filename, 'supabase');
-                            if (!$path) {
+                            $filename = time().'_'.$file->getClientOriginalName();
+                            $path = $file->storeAs('lampiran/'.$anggaranId, $filename, 'supabase');
+                            if (! $path) {
                                 throw new Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
                             }
 
@@ -144,18 +146,18 @@ class LpjService
                     ->where('approval_level', 'Bendahara-LPJ')
                     ->first();
 
-                if (!$approval || $approval->status !== 'Revisi') {
+                if (! $approval || $approval->status !== 'Revisi') {
                     throw new LpjException('LPJ tidak dalam status revisi.');
                 }
 
                 // 1. Handle file deletions (archiving)
-                if (!empty($filesToDelete)) {
+                if (! empty($filesToDelete)) {
                     KegiatanLampiran::whereIn('lampiran_id', $filesToDelete)
                         ->update(['status_lampiran' => 'archived']);
                 }
 
                 // 2. Handle realization updates
-                if (!empty($realisasi)) {
+                if (! empty($realisasi)) {
                     foreach ($realisasi as $anggaranId => $data) {
                         $anggaran = KAKAnggaran::find($anggaranId);
                         if ($anggaran && $anggaran->kak_id === $kegiatan->kak_id) {
@@ -177,9 +179,9 @@ class LpjService
                 if (is_array($buktiFiles)) {
                     foreach ($buktiFiles as $anggaranId => $files) {
                         foreach ($files as $file) {
-                            $filename = time() . '_' . $file->getClientOriginalName();
-                            $path = $file->storeAs('lampiran/' . $anggaranId, $filename, 'supabase');
-                            if (!$path) {
+                            $filename = time().'_'.$file->getClientOriginalName();
+                            $path = $file->storeAs('lampiran/'.$anggaranId, $filename, 'supabase');
+                            if (! $path) {
                                 throw new Exception("Gagal menyimpan file {$file->getClientOriginalName()}");
                             }
 
@@ -263,7 +265,7 @@ class LpjService
             ]);
 
             // 2. Process lampiran comments from request
-            if (!empty($lampiranComments)) {
+            if (! empty($lampiranComments)) {
                 foreach ($lampiranComments as $comment) {
                     $lampiran = KegiatanLampiran::find($comment['id']);
                     if ($lampiran) {
@@ -277,7 +279,7 @@ class LpjService
             }
 
             // Process anggaran comments from request
-            if (!empty($anggaranComments)) {
+            if (! empty($anggaranComments)) {
                 foreach ($anggaranComments as $comment) {
                     $anggaran = KAKAnggaran::find($comment['id']);
                     if ($anggaran) {
@@ -293,7 +295,7 @@ class LpjService
                 ->where('approval_level', 'Bendahara-LPJ')
                 ->first();
 
-            if (!$approval) {
+            if (! $approval) {
                 throw new LpjException('Alur persetujuan LPJ tidak ditemukan.');
             }
 
@@ -336,7 +338,7 @@ class LpjService
                 ->where('approval_level', 'Bendahara-LPJ')
                 ->first();
 
-            if (!$approval || !in_array($approval->status, ['Aktif', 'Revisi'])) {
+            if (! $approval || ! in_array($approval->status, ['Aktif', 'Revisi'])) {
                 throw new LpjException('LPJ tidak dalam status yang dapat disetujui.');
             }
 
@@ -387,7 +389,7 @@ class LpjService
                 ->where('status', 'Aktif')
                 ->first();
 
-            if (!$approval || $approval->approval_level !== 'Bendahara-Setor') {
+            if (! $approval || $approval->approval_level !== 'Bendahara-Setor') {
                 throw new LpjException('Hanya bisa diselesaikan jika alur persetujuan berada di level "Bendahara-Setor".');
             }
 
@@ -484,20 +486,22 @@ class LpjService
     /**
      * Get LPJ list eligible for the user (role-aware).
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
-    public function getEligibleLpjs(User $user): \Illuminate\Support\Collection
+    public function getEligibleLpjs(User $user): Collection
     {
         $role = $user->getRoleName();
 
-        if (!in_array($role, ['Admin', 'Bendahara', 'Pengusul'])) {
-            throw new \Illuminate\Auth\Access\AuthorizationException('Anda tidak memiliki akses ke LPJ.');
+        if (! in_array($role, ['Admin', 'Bendahara', 'Pengusul'])) {
+            throw new AuthorizationException('Anda tidak memiliki akses ke LPJ.');
         }
 
         $query = Kegiatan::select([
             'kegiatan_id',
             'kak_id',
-            'lpj_submitted_at'
+            'lpj_submitted_at',
+            'lpj_approved_at',
+            'lpj_completed_at',
         ])->with([
             'kak' => fn ($q) => $q->select([
                 'kak_id',
@@ -505,7 +509,7 @@ class LpjService
                 'status_id',
                 'pengusul_user_id',
                 'mata_anggaran_id',
-                'tipe_kegiatan_id'
+                'tipe_kegiatan_id',
             ]),
             'kak.pengusul' => fn ($q) => $q->select(['user_id', 'nama_lengkap']),
             'kak.mataAnggaran' => fn ($q) => $q->select(['mata_anggaran_id', 'nama_mata_anggaran']),
@@ -530,7 +534,7 @@ class LpjService
             'status_id',
             'pengusul_user_id',
             'mata_anggaran_id',
-            'tipe_kegiatan_id'
+            'tipe_kegiatan_id',
         ])->withSum('anggaran', 'jumlah_diusulkan')]);
 
         return $kegiatans->map(function (Kegiatan $kegiatan) {
@@ -568,8 +572,10 @@ class LpjService
             if ($approval && $approval->status === 'Revisi') {
                 return 'Revision Requested';
             }
+
             return 'Submitted';
         }
+
         return 'Draft';
     }
 }
