@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import '../../services/api_service.dart';
+import 'kak_detail_page.dart';
 
 class KegiatanPage extends StatefulWidget {
   const KegiatanPage({super.key});
@@ -309,15 +310,36 @@ class _KegiatanPageState extends State<KegiatanPage> {
                   child: ListTile(
                     title: Text(kak['nama_kegiatan'] ?? '-'),
                     subtitle: Text(kak['tipe'] ?? ''),
-                    trailing: ElevatedButton(
-                      onPressed: () => _openSubmitModal(kak),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
-                      ),
-                      child: const Text(
-                        'Ajukan',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        OutlinedButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => KakDetailPage(kakId: kak['kak_id'] as int),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFF00BCD4)),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          child: const Text('Detail', style: TextStyle(color: Color(0xFF00BCD4), fontSize: 13)),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () => _openSubmitModal(kak),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00BCD4),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                          child: const Text(
+                            'Ajukan',
+                            style: TextStyle(color: Colors.white, fontSize: 13),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );

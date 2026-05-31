@@ -7,25 +7,26 @@ import '../../services/kak_service.dart';
 import '../../services/master_data_service.dart';
 import 'kak_create_edit_form.dart';
 
-class KakEditPage extends StatefulWidget {
-  final int kakId;
+class KakFormPage extends StatefulWidget {
+  final int? kakId;
 
-  const KakEditPage({super.key, required this.kakId});
+  const KakFormPage({super.key, this.kakId});
 
   @override
-  State<KakEditPage> createState() => _KakEditPageState();
+  State<KakFormPage> createState() => _KakFormPageState();
 }
 
-class _KakEditPageState extends State<KakEditPage> {
+class _KakFormPageState extends State<KakFormPage> {
   List<dynamic> tipeKegiatanOptions = [];
   List<dynamic> ikuOptions = [];
   List<dynamic> satuanOptions = [];
   bool isLoading = false;
-  bool isLoadingMaster = true;
   bool isLoadingData = true;
   String? errorMessage;
   Map<String, dynamic> currentFormData = {};
   KakDetail? kakDetail;
+
+  bool get isEdit => widget.kakId != null;
 
   @override
   void initState() {
@@ -34,6 +35,10 @@ class _KakEditPageState extends State<KakEditPage> {
   }
 
   Future<void> _loadData() async {
+    setState(() {
+      isLoadingData = true;
+      errorMessage = null;
+    });
     try {
       // Load master data
       final masterDataService = context.read<MasterDataService>();
@@ -45,21 +50,23 @@ class _KakEditPageState extends State<KakEditPage> {
         tipeKegiatanOptions = tipeKegiatanData;
         ikuOptions = ikuData;
         satuanOptions = satuanData;
-        isLoadingMaster = false;
       });
 
-      // Load KAK detail
-      final kakService = context.read<KakService>();
-      final detail = await kakService.getKakDetail(widget.kakId.toString());
+      // Load KAK detail if edit mode
+      if (isEdit) {
+        final kakService = context.read<KakService>();
+        final detail = await kakService.getKakDetail(widget.kakId.toString());
+        setState(() {
+          kakDetail = detail;
+        });
+      }
 
       setState(() {
-        kakDetail = detail;
         isLoadingData = false;
       });
     } catch (e) {
       setState(() {
         errorMessage = 'Gagal memuat data: $e';
-        isLoadingMaster = false;
         isLoadingData = false;
       });
     }
@@ -73,13 +80,17 @@ class _KakEditPageState extends State<KakEditPage> {
 
     try {
       final kakService = context.read<KakService>();
-      await kakService.updateKak(widget.kakId.toString(), formData);
+      if (isEdit) {
+        await kakService.updateKak(widget.kakId.toString(), formData);
+      } else {
+        await kakService.createKak(formData);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('KAK berhasil diperbarui'),
-            backgroundColor: Color(0xFF2E7D32),
+          SnackBar(
+            content: Text(isEdit ? 'KAK berhasil diperbarui' : 'KAK berhasil dibuat'),
+            backgroundColor: const Color(0xFF2E7D32),
           ),
         );
 
@@ -93,7 +104,7 @@ class _KakEditPageState extends State<KakEditPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage ?? 'Gagal memperbarui KAK'),
+            content: Text(errorMessage ?? (isEdit ? 'Gagal memperbarui KAK' : 'Gagal membuat KAK')),
             backgroundColor: Colors.red,
           ),
         );
@@ -109,16 +120,19 @@ class _KakEditPageState extends State<KakEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoadingMaster || isLoadingData) {
+    final title = isEdit ? 'Edit KAK' : 'Buat KAK Baru';
+
+    if (isLoadingData) {
       return Scaffold(
-        appBar: AppBar(title: Text('Edit KAK', style: GoogleFonts.figtree())),
+        appBar: AppBar(title: Text(title, style: GoogleFonts.figtree())),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (errorMessage != null) {
+    if (errorMessage != null && isEdit && kakDetail == null) {
+      // Show error only if it's an initial load error
       return Scaffold(
-        appBar: AppBar(title: Text('Edit KAK', style: GoogleFonts.figtree())),
+        appBar: AppBar(title: Text(title, style: GoogleFonts.figtree())),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -126,12 +140,7 @@ class _KakEditPageState extends State<KakEditPage> {
               Text(errorMessage!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isLoadingData = true;
-                  });
-                  _loadData();
-                },
+                onPressed: _loadData,
                 child: const Text('Coba Lagi'),
               ),
             ],
@@ -141,7 +150,7 @@ class _KakEditPageState extends State<KakEditPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Edit KAK', style: GoogleFonts.figtree())),
+      appBar: AppBar(title: Text(title, style: GoogleFonts.figtree())),
       body: KakCreateEditForm(
         initialData: kakDetail,
         tipeKegiatanOptions: tipeKegiatanOptions,

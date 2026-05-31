@@ -4,8 +4,15 @@ import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/auth_provider.dart';
 import '../screens/landing_page.dart';
-import '../screens/pengusul/kak_create_page.dart';
 import '../screens/pengusul/kak_list_page.dart';
+import '../screens/pengusul/kegiatan_page.dart';
+import '../screens/kegiatan_monitoring_page.dart';
+import '../screens/pengusul/lpj_list_page.dart';
+import '../screens/verifikator/verifikator_kak_list_page.dart';
+import '../screens/bendahara/pencairan_page.dart';
+import '../screens/admin/user_management_page.dart';
+import '../screens/placeholder_page.dart';
+import '../screens/ppk/ppk_kegiatan_list_page.dart';
 
 class DashboardDrawer extends StatelessWidget {
   final int roleId;
@@ -90,127 +97,161 @@ class DashboardDrawer extends StatelessWidget {
   }
 
   List<Widget> _getRoleMenu(BuildContext context, int role) {
+    // Helper function untuk membuat item menu yang sering dipakai ulang
+    Widget kakItem() => _drawerItem(
+          context,
+          Icons.file_copy_rounded,
+          'Kegiatan (KAK)',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const KakListPage()),
+            );
+          },
+        );
+
+    Widget verifikatorKakItem() => _drawerItem(
+          context,
+          Icons.file_copy_rounded,
+          'Kegiatan (KAK)',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const VerifikatorKakListPage()),
+            );
+          },
+        );
+
+    Widget ppkKegiatanItem() => _drawerItem(
+          context,
+          Icons.fact_check_rounded,
+          'Persetujuan Kegiatan',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PpkKegiatanListPage()),
+            );
+          },
+        );
+
+    Widget kegiatanItem() => _drawerItem(
+          context,
+          Icons.task_alt_rounded,
+          'Kegiatan',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const KegiatanPage()),
+            );
+          },
+        );
+
+    Widget pemantauanItem() => _drawerItem(
+          context,
+          Icons.visibility_rounded,
+          'Pemantauan Kegiatan',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const KegiatanMonitoringPage()),
+            );
+          },
+        );
+
+    Widget pencairanItem() => _drawerItem(
+          context,
+          Icons.payments_rounded,
+          'Pencairan Dana',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PencairanPage()),
+            );
+          },
+        );
+
+    Widget lpjItem() => _drawerItem(
+          context,
+          Icons.receipt_long_rounded,
+          'LPJ',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LpjListPage()),
+            );
+          },
+        );
+
+    Widget manajemenAkunItem() => _drawerItem(
+          context,
+          Icons.group_rounded,
+          'Manajemen Akun',
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const UserManagementPage()),
+            );
+          },
+        );
+
+    Widget placeholderItem(IconData icon, String title) => _drawerItem(
+          context,
+          icon,
+          title,
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => PlaceholderPage(title: title)),
+            );
+          },
+        );
+
     switch (role) {
-      case 2: // Pengusul
+      case 1: // Admin
         return [
-          _drawerItem(
-            context,
-            Icons.add_box_rounded,
-            'Buat KAK',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const KakCreatePage()),
-              );
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.list_alt_rounded,
-            'Daftar KAK',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const KakListPage()),
-              );
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.task_rounded,
-            'LPJ Saya',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate to LPJ Saya
-            },
-          ),
+          kakItem(),
+          kegiatanItem(),
+          pemantauanItem(),
+          pencairanItem(),
+          lpjItem(),
+          manajemenAkunItem(),
+          placeholderItem(Icons.menu_book_rounded, 'Manajemen Panduan'),
+          placeholderItem(Icons.history_rounded, 'Riwayat Aktivitas'),
+          placeholderItem(Icons.database_rounded, 'Master Data'),
         ];
-      case 3: // Verifikator
+      case 2: // Verifikator
+      case 7: // Rektorat
         return [
-          _drawerItem(
-            context,
-            Icons.rule_rounded,
-            'Antrian Verifikasi',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.history_rounded,
-            'Riwayat',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
+          verifikatorKakItem(),
+        ];
+      case 3: // Pengusul
+        return [
+          kakItem(),
+          kegiatanItem(),
+          pemantauanItem(),
+          lpjItem(),
         ];
       case 4: // PPK
-      case 7: // Wadir 2
+      case 5: // Wadir
         return [
-          _drawerItem(
-            context,
-            Icons.assignment_rounded,
-            'Daftar Kegiatan',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.fact_check_rounded,
-            'Persetujuan',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
+          kegiatanItem(),
+          ppkKegiatanItem(),
+          pemantauanItem(),
         ];
-      case 5: // Bendahara
+      case 6: // Bendahara
         return [
-          _drawerItem(
-            context,
-            Icons.payments_rounded,
-            'Pencairan Dana',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.receipt_long_rounded,
-            'LPJ',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-        ];
-      case 6: // Direktur/Admin
-        return [
-          _drawerItem(
-            context,
-            Icons.group_rounded,
-            'Manajemen User',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.analytics_rounded,
-            'Monitoring',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
+          kakItem(),
+          pencairanItem(),
+          lpjItem(),
         ];
       default:
         return [];
