@@ -27,6 +27,9 @@ class LogTest extends TestCase
         }
     }
 
+        /**
+     * Test Case: LGN-I-003, USR-I-004, MK-F-006
+     */
     public function test_admin_can_view_logs_page()
     {
         $admin = User::find(1) ?? User::factory()->create(['role_id' => 1]); // Ensure admin exists

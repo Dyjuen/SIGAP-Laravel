@@ -17,13 +17,28 @@ function scanDir(dir) {
             scanDir(fullPath);
         } else if (file.endsWith('.php')) {
             const content = fs.readFileSync(fullPath, 'utf8');
-            // Match JSDoc style comments containing Test Case IDs and the following function name
-            const regex = /\/\*\*[\s\S]*?Test Case:\s*([A-Z0-9-]+)[\s\S]*?\*\/[\s\S]*?public function\s+(\w+)/g;
-            let match;
-            while ((match = regex.exec(content)) !== null) {
-                const id = match[1].toUpperCase();
-                const method = match[2];
-                mapping[method] = id;
+            // Match JSDoc blocks and the following public function name
+            const blockRegex = /\/\*\*([\s\S]*?)\*\/[\s\S]*?public function\s+(\w+)/g;
+            let blockMatch;
+            while ((blockMatch = blockRegex.exec(content)) !== null) {
+                const docBlock = blockMatch[1];
+                const methodName = blockMatch[2];
+                
+                // Find all patterns like "KAK-FT-001" or "TC-K-F03" inside this docBlock
+                const idRegex = /([A-Z]{1,5}-?[A-Z]{0,2}-?\d{1,4})/gi;
+                let idMatch;
+                const ids = [];
+                const seenIds = new Set();
+                while ((idMatch = idRegex.exec(docBlock)) !== null) {
+                    const id = idMatch[1].toUpperCase().trim();
+                    if (!seenIds.has(id)) {
+                        ids.push(id);
+                        seenIds.add(id);
+                    }
+                }
+                if (ids.length > 0) {
+                    mapping[methodName] = ids;
+                }
             }
         }
     }

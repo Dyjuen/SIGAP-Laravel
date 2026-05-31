@@ -21,6 +21,9 @@ class KakMailTest extends TestCase
         Mail::fake();
     }
 
+    /**
+     * Test Case: KAK-IT-002, KAK-IT-036
+     */
     public function test_submit_sends_email_to_verifikator(): void
     {
         $pengusul = User::factory()->create(['role_id' => 3, 'nama_lengkap' => 'Budi Pengusul']);
@@ -35,6 +38,9 @@ class KakMailTest extends TestCase
         });
     }
 
+    /**
+     * Test Case: KAK-IT-005, KAK-IT-037
+     */
     public function test_approve_sends_email_to_pengusul(): void
     {
         $pengusul = User::factory()->create(['role_id' => 3, 'email' => 'pengusul@pnj.ac.id']);
@@ -54,6 +60,9 @@ class KakMailTest extends TestCase
         });
     }
 
+    /**
+     * Test Case: KAK-IT-038
+     */
     public function test_reject_sends_email_to_pengusul(): void
     {
         $pengusul = User::factory()->create(['role_id' => 3, 'email' => 'pengusul@pnj.ac.id']);
@@ -83,6 +92,9 @@ class KakMailTest extends TestCase
         });
     }
 
+    /**
+     * Test Case: KAK-IT-023
+     */
     public function test_transaction_rolls_back_if_mail_fails(): void
     {
         // We need to bypass Mail::fake() to simulate a real exception in the workflow

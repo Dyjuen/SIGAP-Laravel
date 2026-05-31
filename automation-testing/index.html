@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIGAP — Automation Testing Dashboard</title>
   <meta name="description" content="Dashboard pengujian otomatis untuk fitur Ajukan Kegiatan SIGAP-Laravel">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <style>
     /* ─── Reset & Base ─────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     :root {
       --bg-primary: #0a0e1a;
@@ -39,11 +48,13 @@
       --radius: 16px;
       --radius-sm: 10px;
       --radius-xs: 6px;
-      --shadow: 0 8px 32px rgba(0,0,0,0.3);
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -76,7 +87,11 @@
       padding: 32px 24px 64px;
     }
 
-    @media (min-width: 768px) { .app { padding: 48px 40px 80px; } }
+    @media (min-width: 768px) {
+      .app {
+        padding: 48px 40px 80px;
+      }
+    }
 
     /* ─── Header ──────────────────────────────────────────────────── */
     .header {
@@ -172,11 +187,25 @@
       margin-top: 4px;
     }
 
-    .stat-card--total .stat-card__value { color: var(--accent); }
-    .stat-card--pass .stat-card__value { color: var(--pass); }
-    .stat-card--fail .stat-card__value { color: var(--fail); }
-    .stat-card--skip .stat-card__value { color: var(--skip); }
-    .stat-card--pending .stat-card__value { color: var(--text-muted); }
+    .stat-card--total .stat-card__value {
+      color: var(--accent);
+    }
+
+    .stat-card--pass .stat-card__value {
+      color: var(--pass);
+    }
+
+    .stat-card--fail .stat-card__value {
+      color: var(--fail);
+    }
+
+    .stat-card--skip .stat-card__value {
+      color: var(--skip);
+    }
+
+    .stat-card--pending .stat-card__value {
+      color: var(--text-muted);
+    }
 
     /* ─── Progress Bar ────────────────────────────────────────────── */
     .progress-container {
@@ -197,9 +226,17 @@
       transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .progress-bar__segment--pass { background: var(--pass); }
-    .progress-bar__segment--fail { background: var(--fail); }
-    .progress-bar__segment--skip { background: var(--skip); }
+    .progress-bar__segment--pass {
+      background: var(--pass);
+    }
+
+    .progress-bar__segment--fail {
+      background: var(--fail);
+    }
+
+    .progress-bar__segment--skip {
+      background: var(--skip);
+    }
 
     .progress-label {
       display: flex;
@@ -252,7 +289,9 @@
       transition: var(--transition);
     }
 
-    .toolbar__search input::placeholder { color: var(--text-muted); }
+    .toolbar__search input::placeholder {
+      color: var(--text-muted);
+    }
 
     .toolbar__search input:focus {
       border-color: var(--border-focus);
@@ -404,7 +443,10 @@
       user-select: none;
     }
 
-    .btn svg { width: 16px; height: 16px; }
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
 
     .btn--primary {
       background: linear-gradient(135deg, var(--accent), #06b6d4);
@@ -416,7 +458,7 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 16px var(--accent-glow);
     }
-    
+
     .btn--primary:disabled {
       opacity: 0.6;
       cursor: not-allowed;
@@ -476,7 +518,8 @@
       overflow: hidden;
     }
 
-    .import-area:hover, .import-area.drag-over {
+    .import-area:hover,
+    .import-area.drag-over {
       border-color: var(--accent);
       background: var(--accent-dim);
     }
@@ -527,7 +570,9 @@
       flex-wrap: wrap;
     }
 
-    .import-area input[type="file"] { display: none; }
+    .import-area input[type="file"] {
+      display: none;
+    }
 
     /* ─── Paste / Modals ──────────────────────────────────────────── */
     .modal-overlay {
@@ -543,7 +588,9 @@
       animation: fadeIn 0.2s ease-out;
     }
 
-    .modal-overlay.active { display: flex; }
+    .modal-overlay.active {
+      display: flex;
+    }
 
     .modal {
       background: var(--bg-secondary);
@@ -581,7 +628,10 @@
       transition: var(--transition);
     }
 
-    .modal__close:hover { color: var(--fail); background: var(--fail-bg); }
+    .modal__close:hover {
+      color: var(--fail);
+      background: var(--fail-bg);
+    }
 
     .modal__body {
       padding: 24px;
@@ -605,8 +655,14 @@
       transition: var(--transition);
     }
 
-    .modal__body textarea::placeholder { color: var(--text-muted); }
-    .modal__body textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-dim); }
+    .modal__body textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .modal__body textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
 
     .modal__body .hint {
       font-size: 12px;
@@ -671,7 +727,9 @@
       background: rgba(34, 211, 238, 0.02);
     }
 
-    tbody tr:last-child { border-bottom: none; }
+    tbody tr:last-child {
+      border-bottom: none;
+    }
 
     tbody td {
       padding: 12px 16px;
@@ -680,12 +738,13 @@
     }
 
     /* Checkbox Styles */
-    th.chk-cell, td.chk-cell {
+    th.chk-cell,
+    td.chk-cell {
       width: 44px;
       text-align: center;
       vertical-align: middle;
     }
-    
+
     .chk-cell-input {
       width: 16px;
       height: 16px;
@@ -715,13 +774,15 @@
       min-width: 160px;
     }
 
-    td.input-cell, td.expected-cell {
+    td.input-cell,
+    td.expected-cell {
       min-width: 200px;
       font-size: 12px;
       line-height: 1.6;
     }
 
-    td.input-cell code, td.expected-cell code {
+    td.input-cell code,
+    td.expected-cell code {
       background: rgba(34, 211, 238, 0.08);
       padding: 2px 6px;
       border-radius: 4px;
@@ -739,10 +800,12 @@
       transition: var(--transition);
       cursor: text;
     }
+
     [contenteditable="true"]:hover {
       border-color: var(--border);
       background: rgba(30, 41, 59, 0.2);
     }
+
     [contenteditable="true"]:focus {
       border-color: var(--border-focus);
       background: var(--bg-input);
@@ -775,7 +838,9 @@
     }
 
     /* ─── Status Badge ────────────────────────────────────────────── */
-    td.status-cell { white-space: nowrap; }
+    td.status-cell {
+      white-space: nowrap;
+    }
 
     td.status-cell select {
       padding: 6px 28px 6px 10px;
@@ -833,9 +898,20 @@
       transition: var(--transition);
     }
 
-    .row-action:hover { color: var(--accent); background: var(--accent-dim); }
-    .row-action--delete:hover { color: var(--fail); background: var(--fail-bg); }
-    .row-action svg { width: 16px; height: 16px; }
+    .row-action:hover {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .row-action--delete:hover {
+      color: var(--fail);
+      background: var(--fail-bg);
+    }
+
+    .row-action svg {
+      width: 16px;
+      height: 16px;
+    }
 
     /* ─── Proof Media Buttons ───────────────────────────────────────── */
     td.proof-cell {
@@ -873,7 +949,7 @@
       border-color: rgba(34, 211, 238, 0.15);
       color: var(--accent);
     }
-    
+
     .proof-btn--img:hover {
       background: var(--accent-dim);
       border-color: var(--accent);
@@ -991,7 +1067,7 @@
       border-radius: var(--radius-sm);
       font-size: 13px;
       font-weight: 600;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
       display: flex;
       align-items: center;
@@ -999,9 +1075,20 @@
       max-width: 380px;
     }
 
-    .toast--success { border-left: 3px solid var(--pass); color: var(--pass); }
-    .toast--error { border-left: 3px solid var(--fail); color: var(--fail); }
-    .toast--info { border-left: 3px solid var(--accent); color: var(--accent); }
+    .toast--success {
+      border-left: 3px solid var(--pass);
+      color: var(--pass);
+    }
+
+    .toast--error {
+      border-left: 3px solid var(--fail);
+      color: var(--fail);
+    }
+
+    .toast--info {
+      border-left: 3px solid var(--accent);
+      color: var(--accent);
+    }
 
     /* ─── Floating Bulk Actions Bar ───────────────────────────────── */
     .bulk-bar {
@@ -1021,7 +1108,7 @@
       z-index: 1500;
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    
+
     .bulk-bar.active {
       transform: translateX(-50%) translateY(0);
     }
@@ -1043,10 +1130,15 @@
 
     /* ─── Newly Added Row Glow Effect ─────────────────────────────── */
     @keyframes rowGlow {
-      0% { background: rgba(34, 211, 238, 0.15); }
-      100% { background: transparent; }
+      0% {
+        background: rgba(34, 211, 238, 0.15);
+      }
+
+      100% {
+        background: transparent;
+      }
     }
-    
+
     .row-newly-added {
       animation: rowGlow 2.5s ease-out forwards;
     }
@@ -1060,32 +1152,122 @@
       font-weight: 500;
     }
 
-    .footer a { color: var(--accent); text-decoration: none; }
-    .footer a:hover { text-decoration: underline; }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
 
     /* ─── Animations ──────────────────────────────────────────────── */
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
 
     /* ─── Scrollbar ───────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--text-muted);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
 
     /* ─── Responsive ──────────────────────────────────────────────── */
     @media (max-width: 768px) {
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .toolbar { flex-direction: column; }
-      .toolbar__search { min-width: 100%; }
+      .stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .toolbar {
+        flex-direction: column;
+      }
+
+      .toolbar__search {
+        min-width: 100%;
+      }
     }
 
     @media (max-width: 1024px) {
-      .stats-grid { grid-template-columns: 1fr !important; }
+      .stats-grid {
+        grid-template-columns: 1fr !important;
+      }
     }
 
     /* ─── Row Number ──────────────────────────────────────────────── */
@@ -1137,13 +1319,15 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <div class="app" id="app">
     <!-- Header -->
     <header class="header">
       <div class="header__badge">Automation Testing Dashboard</div>
       <h1>SIGAP Test Runner</h1>
-      <div id="server-status" style="margin-top: 12px; display: flex; gap: 16px; justify-content: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+      <div id="server-status"
+        style="margin-top: 12px; display: flex; gap: 16px; justify-content: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
         <span id="status-laravel" style="color: var(--fail); display: flex; align-items: center; gap: 4px;">
           <span style="width: 8px; height: 8px; border-radius: 50%; background: currentColor;"></span> Laravel: Down
         </span>
@@ -1155,23 +1339,41 @@
         </span>
       </div>
       <p style="margin-top: 16px;">Import spreadsheet test case, kelola hasil, dan ekspor laporan.</p>
-      <div class="header__actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <div class="header__actions"
+        style="margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <button class="btn btn--primary" onclick="runFullSuite()" style="box-shadow: 0 0 20px var(--accent-glow);">
           Jalankan Seluruh Suite
         </button>
         <button class="btn btn--secondary" onclick="runAutomatedTests()">
           Playwright UI
         </button>
-        <button class="btn btn--secondary" onclick="runPhpUnitTests()" style="background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.3); color: #818cf8;">
+        <button class="btn btn--secondary" onclick="runPhpUnitTests()"
+          style="background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.3); color: #818cf8;">
           PHPUnit Logic
         </button>
-        <button class="btn btn--secondary" onclick="runPostmanTests()" style="background: rgba(239, 91, 37, 0.1); border-color: rgba(239, 91, 37, 0.3); color: #ef5b25;">
+        <button class="btn btn--secondary" onclick="runPostmanTests()"
+          style="background: rgba(239, 91, 37, 0.1); border-color: rgba(239, 91, 37, 0.3); color: #ef5b25;">
           Postman API
         </button>
-        <button class="btn btn--secondary" onclick="runK6Tests()" style="background: rgba(125, 100, 233, 0.1); border-color: rgba(125, 100, 233, 0.3); color: #7d64e9;">
+        <button class="btn btn--secondary" onclick="runK6Tests()"
+          style="background: rgba(125, 100, 233, 0.1); border-color: rgba(125, 100, 233, 0.3); color: #7d64e9;">
           k6 Load
         </button>
-        <button class="btn btn--danger" onclick="shutdownServer()" style="background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.3); color: #f87171;">
+        <button class="btn btn--danger" onclick="resetAllStatus()"
+          style="background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.3); color: #f87171; border-width: 2px;">
+          Reset Status
+        </button>
+        <button class="btn btn--danger" onclick="clearPhysicalArtifacts()"
+          style="background: #ef4444; color: #fff; border: none; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+          Hapus File Video/Image
+        </button>
+        <button class="btn btn--danger" id="btn-stop-service" onclick="stopRunningTests()" disabled
+          style="background: #ef4444; color: #fff; border: none; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); opacity: 0.5; cursor: not-allowed;">
+          <svg style="width:16px;height:16px" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+          Stop Service
+        </button>
+        <button class="btn btn--danger" onclick="shutdownServer()"
+          style="background: rgba(248, 113, 113, 0.05); border-color: rgba(248, 113, 113, 0.2); color: #fca5a5; font-size: 11px;">
           Shutdown Server
         </button>
       </div>
@@ -1179,21 +1381,29 @@
 
     <!-- Console Section -->
     <div id="console-wrapper" style="display:none; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out;">
-      <div style="background: #1e1e1e; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow);">
-        <div style="background: #2d2d2d; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333;">
-          <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Terminal Output</span>
-          <button class="btn btn--secondary btn--sm" onclick="clearConsole()" style="padding: 2px 8px; font-size: 10px;">Clear</button>
+      <div
+        style="background: #1e1e1e; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow);">
+        <div
+          style="background: #2d2d2d; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333;">
+          <span
+            style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em;">Terminal
+            Output</span>
+          <button class="btn btn--secondary btn--sm" onclick="clearConsole()"
+            style="padding: 2px 8px; font-size: 10px;">Clear</button>
         </div>
-        <div id="console-output" style="height: 200px; overflow-y: auto; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5; color: #d4d4d4; background: #000;">
+        <div id="console-output"
+          style="height: 200px; overflow-y: auto; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.5; color: #d4d4d4; background: #000;">
           <div style="color: #6a9955;">> Siap menjalankan pengujian...</div>
         </div>
       </div>
     </div>
 
     <!-- Stats & Analytics Grid -->
-    <div class="stats-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out 0.1s both;">
+    <div class="stats-grid"
+      style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 32px; animation: fadeInUp 0.8s ease-out 0.1s both;">
       <!-- Stats -->
-      <div class="stats" id="stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 0;">
+      <div class="stats" id="stats"
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 0;">
         <div class="stat-card stat-card--total">
           <div class="stat-card__value" id="stat-total">0</div>
           <div class="stat-card__label">Total Skenario</div>
@@ -1217,13 +1427,18 @@
       </div>
 
       <!-- Premium Analytics Chart Card -->
-      <div class="chart-card" style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow); transition: var(--transition);">
+      <div class="chart-card"
+        style="background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 20px; box-shadow: var(--shadow); transition: var(--transition);">
         <div style="width: 100px; height: 100px; position: relative; flex-shrink: 0;">
           <canvas id="statusChart"></canvas>
         </div>
         <div style="flex: 1;">
-          <h4 style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-primary); margin-bottom: 4px;">Status Eksekusi</h4>
-          <p id="chart-summary" style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-top: 4px;">Belum ada data pengujian yang dijalankan.</p>
+          <h4
+            style="font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-primary); margin-bottom: 4px;">
+            Status Eksekusi</h4>
+          <p id="chart-summary"
+            style="font-size: 12px; color: var(--text-secondary); line-height: 1.4; margin-top: 4px;">Belum ada data
+            pengujian yang dijalankan.</p>
         </div>
       </div>
     </div>
@@ -1231,17 +1446,25 @@
     <!-- Empty State / Import Area -->
     <div class="import-area" id="import-area">
       <div class="import-area__icon">
-        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path
+            d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+        </svg>
       </div>
       <h3>Belum ada data pengujian</h3>
       <p>Drag & drop file CSV atau Excel di sini, atau gunakan tombol di bawah.</p>
       <div class="import-area__actions">
         <button class="btn btn--primary" onclick="document.getElementById('file-input').click()">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
           Pilih File
         </button>
         <button class="btn btn--secondary" onclick="openPasteModal()">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z" />
+          </svg>
           Paste Spreadsheet
         </button>
       </div>
@@ -1264,27 +1487,32 @@
     <!-- Toolbar -->
     <div class="toolbar" id="toolbar" style="display:none;">
       <div class="toolbar__search">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
         <input type="text" id="search-input" placeholder="Cari test case (ID, skenario, input...)">
       </div>
-      
+
       <!-- Custom Unified Filter -->
       <div class="custom-dropdown" id="filter-dropdown-container">
         <button class="custom-dropdown__trigger" id="dropdown-trigger">
           <span id="selected-filter-label">Semua Pengujian</span>
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
         </button>
         <div class="custom-dropdown__menu" id="dropdown-menu">
           <div class="custom-dropdown__item active" data-value="all">Semua Pengujian</div>
-          
+
           <div class="custom-dropdown__group">🚀 Automation Testing</div>
           <div class="custom-dropdown__item" data-value="type:playwright">Playwright UI</div>
           <div class="custom-dropdown__item" data-value="type:postman">Postman API</div>
           <div class="custom-dropdown__item" data-value="type:k6">k6 Performance</div>
-          
+
           <div class="custom-dropdown__group">🧪 Logic Coverage</div>
           <div class="custom-dropdown__item" data-value="type:phpunit">PHPUnit Feature Logic</div>
-          
+
           <div class="custom-dropdown__group">📂 Modul Fitur</div>
           <div class="custom-dropdown__item" data-value="module:KAK">KAK</div>
           <div class="custom-dropdown__item" data-value="module:LPJ">LPJ</div>
@@ -1301,7 +1529,9 @@
       <div class="custom-dropdown" id="status-dropdown-container">
         <button class="custom-dropdown__trigger" id="status-dropdown-trigger">
           <span id="selected-status-label">Semua Status</span>
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
         </button>
         <div class="custom-dropdown__menu" id="status-dropdown-menu">
           <div class="custom-dropdown__item active" data-value="all">Semua Status</div>
@@ -1311,32 +1541,86 @@
           <div class="custom-dropdown__item" data-value="">Pending</div>
         </div>
       </div>
-      
+
+      <!-- Excel Tab Filter -->
+      <div class="custom-dropdown" id="tab-dropdown-container">
+        <button class="custom-dropdown__trigger" id="tab-dropdown-trigger">
+          <span id="selected-tab-label">Semua Tim (Excel)</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+        <div class="custom-dropdown__menu" id="tab-dropdown-menu">
+          <div class="custom-dropdown__item active" data-value="all">Semua Tim (Excel)</div>
+          <div class="custom-dropdown__group">👨‍💻 Berdasarkan Tab Excel</div>
+          <div class="custom-dropdown__item" data-value="tab:Orang A (Juen)">Orang A (Juen)</div>
+          <div class="custom-dropdown__item" data-value="tab:Orang B (Rafif Dwiarka)">Orang B (Rafif Dwiarka)</div>
+          <div class="custom-dropdown__item" data-value="tab:Orang C (Falih Elmanda)">Orang C (Falih Elmanda)</div>
+          <div class="custom-dropdown__item" data-value="tab:Orang D (Raihan)">Orang D (Raihan)</div>
+          <div class="custom-dropdown__item" data-value="tab:Orang E (Dika)">Orang E (Dika)</div>
+        </div>
+      </div>
+
+      <!-- Worker Speed Selector -->
+      <div class="worker-selector"
+        style="display: flex; align-items: center; gap: 8px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 12px;">
+        <span
+          style="font-size: 11px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em;">Speed:</span>
+        <select id="worker-count"
+          style="background: transparent; border: none; color: var(--text-primary); font-size: 13px; font-weight: 600; outline: none; cursor: pointer; padding: 4px 0;">
+          <option value="1" style="background: #0f172a;">1 Worker (Slow/Safe)</option>
+          <option value="2" style="background: #0f172a;">2 Workers (Balanced)</option>
+          <option value="4" style="background: #0f172a;">4 Workers (Fast)</option>
+          <option value="8" style="background: #0f172a;">8 Workers (Hyper)</option>
+        </select>
+      </div>
+
       <!-- Core Action Buttons -->
-      <button class="btn btn--primary btn--sm" id="btn-auto-test" onclick="runAutomatedTests()" title="Jalankan seluruh test suite otomatis via Playwright">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      <button class="btn btn--primary btn--sm" id="btn-auto-test" onclick="runAutomatedTests()"
+        title="Jalankan seluruh test suite otomatis via Playwright">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+        </svg>
         Jalankan Auto Test
       </button>
-      
-      <button class="btn btn--secondary btn--sm" onclick="addNewRow()" title="Tambahkan baris test case baru secara manual">
-        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+
+      <button class="btn btn--secondary btn--sm" onclick="addNewRow()"
+        title="Tambahkan baris test case baru secara manual">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
         + Tambah Baris
       </button>
 
       <button class="btn btn--secondary btn--sm" onclick="exportCSV()" title="Ekspor ke CSV">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
         Ekspor CSV
       </button>
       <button class="btn btn--secondary btn--sm" onclick="copyToClipboard()" title="Copy ke clipboard">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
         Copy
       </button>
-      <button class="btn btn--secondary btn--sm" onclick="resetAllStatus()" title="Reset status dan hasil pengujian menjadi kosong/pending">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      <button class="btn btn--secondary btn--sm" onclick="resetAllStatus()"
+        title="Reset status dan hasil pengujian menjadi kosong/pending">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
         Reset Hasil
       </button>
       <button class="btn btn--danger btn--sm" onclick="clearAll()" title="Hapus semua baris data dari memori">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
         Clear
       </button>
     </div>
@@ -1347,7 +1631,8 @@
         <table>
           <thead>
             <tr>
-              <th class="chk-cell"><input type="checkbox" id="select-all" class="chk-cell-input" onchange="toggleSelectAll(this.checked)"></th>
+              <th class="chk-cell"><input type="checkbox" id="select-all" class="chk-cell-input"
+                  onchange="toggleSelectAll(this.checked)"></th>
               <th style="width:40px">#</th>
               <th>ID</th>
               <th>Nama Fitur</th>
@@ -1368,7 +1653,9 @@
 
     <!-- Footer -->
     <div class="footer">
-      <p>SIGAP Automation Testing Dashboard &bull; Powered by <a href="https://playwright.dev/" target="_blank">Playwright</a>, <a href="https://www.postman.com/newman/" target="_blank">Newman</a> & <a href="https://k6.io/" target="_blank">k6</a></p>
+      <p>SIGAP Automation Testing Dashboard &bull; Powered by <a href="https://playwright.dev/"
+          target="_blank">Playwright</a>, <a href="https://www.postman.com/newman/" target="_blank">Newman</a> & <a
+          href="https://k6.io/" target="_blank">k6</a></p>
     </div>
   </div>
 
@@ -1378,11 +1665,15 @@
       <div class="modal__header">
         <h3>Paste Test Case dari Spreadsheet</h3>
         <button class="modal__close" onclick="closePasteModal()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
-        <textarea id="paste-textarea" placeholder="Paste data tab-separated dari spreadsheet di sini...
+        <textarea id="paste-textarea"
+          placeholder="Paste data tab-separated dari spreadsheet di sini...
 
 Format kolom (dipisahkan TAB):
 ID    Nama Fitur    Skenario    Test Input    Expected Result    Actual Result    Status
@@ -1390,13 +1681,17 @@ ID    Nama Fitur    Skenario    Test Input    Expected Result    Actual Result  
 Contoh:
 AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;&quot;    Muncul pesan: &quot;Penanggung Jawab wajib diisi&quot;."></textarea>
         <div class="hint">
-          <strong>Tips:</strong> Copy langsung dari Excel/Google Sheets, lalu paste di sini. Format otomatis terdeteksi (tab-separated). Kolom minimal: <code>ID, Nama Fitur, Skenario, Test Input, Expected Result</code>. Kolom <code>Actual Result</code> dan <code>Status</code> opsional.
+          <strong>Tips:</strong> Copy langsung dari Excel/Google Sheets, lalu paste di sini. Format otomatis terdeteksi
+          (tab-separated). Kolom minimal: <code>ID, Nama Fitur, Skenario, Test Input, Expected Result</code>. Kolom
+          <code>Actual Result</code> dan <code>Status</code> opsional.
         </div>
       </div>
       <div class="modal__footer">
         <button class="btn btn--secondary" onclick="closePasteModal()">Batal</button>
         <button class="btn btn--primary" onclick="importPastedData()">
-          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
           Import Data
         </button>
       </div>
@@ -1409,7 +1704,10 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3>Opsi Import Data</h3>
         <button class="modal__close" onclick="closeImportOptionsModal()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
@@ -1418,29 +1716,37 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
         </p>
         <div style="display: flex; flex-direction: column; gap: 12px;">
           <!-- Option 1: Replace -->
-          <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(248, 113, 113, 0.05); border: 1px solid rgba(248, 113, 113, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--fail)">
-            <input type="radio" name="import-mode" value="replace" checked style="margin-top: 4px; accent-color: var(--fail);">
+          <label
+            style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(248, 113, 113, 0.05); border: 1px solid rgba(248, 113, 113, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--fail)">
+            <input type="radio" name="import-mode" value="replace" checked
+              style="margin-top: 4px; accent-color: var(--fail);">
             <div>
               <strong style="color: var(--fail); font-size: 14px; display: block;">Timpa Semua Data (Replace)</strong>
-              <span style="font-size: 12px; color: var(--text-secondary);">Hapus semua data yang ada di tabel saat ini dan ganti dengan data baru.</span>
+              <span style="font-size: 12px; color: var(--text-secondary);">Hapus semua data yang ada di tabel saat ini
+                dan ganti dengan data baru.</span>
             </div>
           </label>
-          
+
           <!-- Option 2: Append -->
-          <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--pass)">
+          <label
+            style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--pass)">
             <input type="radio" name="import-mode" value="append" style="margin-top: 4px; accent-color: var(--pass);">
             <div>
               <strong style="color: var(--pass); font-size: 14px; display: block;">Tambahkan Data (Append)</strong>
-              <span style="font-size: 12px; color: var(--text-secondary);">Gabungkan data baru di baris terbawah tanpa menghapus data yang sudah ada.</span>
+              <span style="font-size: 12px; color: var(--text-secondary);">Gabungkan data baru di baris terbawah tanpa
+                menghapus data yang sudah ada.</span>
             </div>
           </label>
 
           <!-- Option 3: Merge/Update -->
-          <label style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--accent)">
+          <label
+            style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: rgba(34, 211, 238, 0.05); border: 1px solid rgba(34, 211, 238, 0.15); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); border-left: 4px solid var(--accent)">
             <input type="radio" name="import-mode" value="merge" style="margin-top: 4px; accent-color: var(--accent);">
             <div>
-              <strong style="color: var(--accent); font-size: 14px; display: block;">Gabungkan & Update ID (Merge)</strong>
-              <span style="font-size: 12px; color: var(--text-secondary);">Update kolom jika ID sudah ada di tabel saat ini, jika ID baru akan ditambahkan ke bawah.</span>
+              <strong style="color: var(--accent); font-size: 14px; display: block;">Gabungkan & Update ID
+                (Merge)</strong>
+              <span style="font-size: 12px; color: var(--text-secondary);">Update kolom jika ID sudah ada di tabel saat
+                ini, jika ID baru akan ditambahkan ke bawah.</span>
             </div>
           </label>
         </div>
@@ -1460,21 +1766,28 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3>Server Pendamping Belum Aktif</h3>
         <button class="modal__close" onclick="closeCompanionModal()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
         <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
-          Untuk menjalankan automated testing (Playwright) langsung dari tombol dashboard, Anda perlu menyalakan **server pendamping lokal** terlebih dahulu.
+          Untuk menjalankan automated testing (Playwright) langsung dari tombol dashboard, Anda perlu menyalakan
+          **server pendamping lokal** terlebih dahulu.
         </p>
-        <div style="background: var(--bg-input); border: 1px solid var(--border); padding: 12px 16px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div
+          style="background: var(--bg-input); border: 1px solid var(--border); padding: 12px 16px; border-radius: var(--radius-sm); font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
           <span id="cmd-text">node server.js</span>
-          <button class="btn btn--secondary btn--sm" onclick="copyCompanionCmd()" style="padding: 4px 8px; font-size: 11px;">
+          <button class="btn btn--secondary btn--sm" onclick="copyCompanionCmd()"
+            style="padding: 4px 8px; font-size: 11px;">
             Salin
           </button>
         </div>
         <div class="hint" style="margin-top: 0; line-height: 1.5;">
-          <strong>Cara menjalankan:</strong> Buka terminal baru di folder <code>automation-testing/</code>, lalu jalankan perintah di atas. Setelah itu, silakan klik ulang tombol "Jalankan Auto Test".
+          <strong>Cara menjalankan:</strong> Buka terminal baru di folder <code>automation-testing/</code>, lalu
+          jalankan perintah di atas. Setelah itu, silakan klik ulang tombol "Jalankan Auto Test".
         </div>
       </div>
       <div class="modal__footer">
@@ -1491,9 +1804,13 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <button class="btn btn--danger btn--sm" onclick="bulkMarkStatus('Fail')">Set Fail</button>
       <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('Skip')">Set Skip</button>
       <button class="btn btn--secondary btn--sm" onclick="bulkMarkStatus('')">Set Pending</button>
-      <button class="btn btn--danger btn--sm" onclick="bulkDelete()" style="background: rgba(248, 113, 113, 0.15); border-color: rgba(248, 113, 113, 0.25);">Hapus</button>
+      <button class="btn btn--danger btn--sm" onclick="bulkDelete()"
+        style="background: rgba(248, 113, 113, 0.15); border-color: rgba(248, 113, 113, 0.25);">Hapus</button>
       <button class="row-action" onclick="clearSelection()" title="Batalkan Pilihan" style="margin-left: 8px;">
-        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
       </button>
     </div>
   </div>
@@ -1504,7 +1821,10 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3 id="lightbox-title">Bukti Screenshot</h3>
         <button class="modal__close" onclick="closeLightbox()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
@@ -1524,7 +1844,10 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3 id="video-title">Rekaman Eksekusi</h3>
         <button class="modal__close" onclick="closeVideoPlayer()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
@@ -1544,18 +1867,27 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3 id="editor-title">Edit Logika Playwright</h3>
         <button class="modal__close" onclick="closeEditor()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
-        <div id="editor-info" style="margin-bottom: 16px; padding: 12px; background: var(--accent-dim); border: 1px solid var(--border); border-radius: var(--radius-sm);">
-          <p style="font-size: 13px; color: var(--accent);"><strong id="editor-id-label">ID: ---</strong> | <span id="editor-scenario-label">Scenario: ---</span></p>
+        <div id="editor-info"
+          style="margin-bottom: 16px; padding: 12px; background: var(--accent-dim); border: 1px solid var(--border); border-radius: var(--radius-sm);">
+          <p style="font-size: 13px; color: var(--accent);"><strong id="editor-id-label">ID: ---</strong> | <span
+              id="editor-scenario-label">Scenario: ---</span></p>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
           <div class="input-group">
-            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Role Login</label>
-            <select id="editor-role" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" onchange="updateBoilerplate()">
+            <label
+              style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Role
+              Login</label>
+            <select id="editor-role"
+              style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);"
+              onchange="updateBoilerplate()">
               <option value="admin">Admin</option>
               <option value="pengusul">Pengusul (jurusantik)</option>
               <option value="verifikator">Verifikator</option>
@@ -1564,14 +1896,21 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
             </select>
           </div>
           <div class="input-group">
-            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">URL Tujuan</label>
-            <input type="text" id="editor-url" style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);" placeholder="/kegiatan/create" value="/kegiatan" oninput="updateBoilerplate()">
+            <label
+              style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">URL
+              Tujuan</label>
+            <input type="text" id="editor-url"
+              style="width: 100%; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary);"
+              placeholder="/kegiatan/create" value="/kegiatan" oninput="updateBoilerplate()">
           </div>
         </div>
 
-        <div style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px; line-height: 1.5; border: 1px solid var(--border);">
+        <div
+          style="background: #1e1e1e; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; color: #d4d4d4; font-size: 13px; line-height: 1.5; border: 1px solid var(--border);">
           <div id="boilerplate-top" style="color: #6a9955; margin-bottom: 4px; white-space: pre-wrap;"></div>
-          <textarea id="manual-code-input" spellcheck="false" style="width: 100%; height: 150px; background: rgba(255,255,255,0.05); border: 1px dashed #444; color: #d4d4d4; font-family: inherit; font-size: inherit; padding: 12px; margin: 8px 0; outline: none; resize: vertical;" placeholder="// Masukkan logika Playwright Anda di sini...
+          <textarea id="manual-code-input" spellcheck="false"
+            style="width: 100%; height: 150px; background: rgba(255,255,255,0.05); border: 1px dashed #444; color: #d4d4d4; font-family: inherit; font-size: inherit; padding: 12px; margin: 8px 0; outline: none; resize: vertical;"
+            placeholder="// Masukkan logika Playwright Anda di sini...
   await page.fill('#name', 'Seminar');
   await page.click('button[type=submit]');"></textarea>
           <div id="boilerplate-bottom" style="color: #6a9955; margin-top: 4px; white-space: pre-wrap;"></div>
@@ -1590,19 +1929,28 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3>Pengaturan Gemini AI</h3>
         <button class="modal__close" onclick="closeAISettingsModal()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
         <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-secondary); line-height: 1.6;">
-          Masukkan API Key Gemini untuk mengaktifkan fitur **AI Test Generator**. Kunci ini akan disimpan secara lokal di browser Anda.
+          Masukkan API Key Gemini untuk mengaktifkan fitur **AI Test Generator**. Kunci ini akan disimpan secara lokal
+          di browser Anda.
         </p>
         <div class="input-group" style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Gemini API Key</label>
-          <input type="password" id="gemini-api-key" style="width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace;" placeholder="AIzaSy...">
+          <label
+            style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">Gemini
+            API Key</label>
+          <input type="password" id="gemini-api-key"
+            style="width: 100%; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace;"
+            placeholder="AIzaSy...">
         </div>
         <div class="hint" style="margin-top: 0; line-height: 1.5;">
-          Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--accent)">Google AI Studio</a>.
+          Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank"
+            style="color: var(--accent)">Google AI Studio</a>.
         </div>
       </div>
       <div class="modal__footer">
@@ -1618,12 +1966,18 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       <div class="modal__header">
         <h3>Bulk Import from Sheets / CSV</h3>
         <button class="modal__close" onclick="closeImport()">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
         </button>
       </div>
       <div class="modal__body">
-        <p class="text-secondary" style="margin-bottom: 12px; font-size: 14px;">Salin kolom dari Google Sheets (ID, Feature, Scenario, Input, Expected) lalu tempel di bawah ini.</p>
-        <textarea id="import-area-manual" style="width: 100%; height: 200px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 12px;" placeholder="ID	Feature	Scenario	Input	Expected..."></textarea>
+        <p class="text-secondary" style="margin-bottom: 12px; font-size: 14px;">Salin kolom dari Google Sheets (ID,
+          Feature, Scenario, Input, Expected) lalu tempel di bawah ini.</p>
+        <textarea id="import-area-manual"
+          style="width: 100%; height: 200px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 12px;"
+          placeholder="ID	Feature	Scenario	Input	Expected..."></textarea>
       </div>
       <div class="modal__footer">
         <button class="btn btn--secondary" onclick="closeImport()">Batal</button>
@@ -1680,17 +2034,17 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
 
       menu.querySelectorAll('.custom-dropdown__item').forEach(item => {
         if (item.classList.contains('custom-dropdown__group')) return;
-        
+
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           const val = item.getAttribute('data-value');
           label.textContent = item.textContent;
-          
+
           // UI visual sync
           menu.querySelectorAll('.custom-dropdown__item').forEach(i => i.classList.remove('active'));
           item.classList.add('active');
           menu.classList.remove('active');
-          
+
           onSelect(val);
         });
       });
@@ -1709,6 +2063,13 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       renderTable();
     });
 
+    let currentTabFilter = 'all';
+    setupDropdown('tab-dropdown-trigger', 'tab-dropdown-menu', 'selected-tab-label', (val) => {
+      currentTabFilter = val;
+      renderTable();
+      updateStats();
+    });
+
     // Close on outside click
     document.addEventListener('click', () => {
       document.querySelectorAll('.custom-dropdown__menu').forEach(m => m.classList.remove('active'));
@@ -1718,11 +2079,11 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     // Live Server Output Streaming
     // ═══════════════════════════════════════════════════════════════════
     let logEventSource = null;
-    
+
     function connectToLogStream() {
       if (logEventSource) return;
       logEventSource = new EventSource('http://localhost:3001/logs');
-      
+
       logEventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -1733,14 +2094,14 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           // ignore parsing error
         }
       };
-      
+
       logEventSource.onerror = () => {
         logEventSource.close();
         logEventSource = null;
         setTimeout(connectToLogStream, 5000); // Retry connection
       };
     }
-    
+
     // Start listening for logs
     connectToLogStream();
 
@@ -1750,7 +2111,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     function saveState() {
       try {
         localStorage.setItem('sigap-test-cases', JSON.stringify(testCases));
-      } catch(e) {}
+      } catch (e) { }
     }
 
     async function restoreState() {
@@ -1759,18 +2120,23 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
         const response = await fetch('test-cases.json?v=' + Date.now()); // Anti-cache
         if (response.ok) {
           testCases = await response.json();
+          // Force reset memory to blank slate on load (as requested by user)
+          testCases.forEach(tc => { tc.status = ''; tc.actual = ''; tc.screenshot = ''; tc.video = ''; });
           saveState(); // Update local storage with fresh data
         } else {
           // 2. Fallback to local storage only if server fails
           const saved = localStorage.getItem('sigap-test-cases');
-          if (saved) testCases = JSON.parse(saved);
+          if (saved) {
+            testCases = JSON.parse(saved);
+            testCases.forEach(tc => { tc.status = ''; tc.actual = ''; tc.screenshot = ''; tc.video = ''; });
+          }
         }
-        
+
         if (testCases.length > 0) {
           showTable();
           renderTable(); // This will also call updateStats()
         }
-      } catch(e) {
+      } catch (e) {
         console.error('Gagal sinkronisasi data:', e);
       }
     }
@@ -1824,7 +2190,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           } else if (char === '\n') {
             currentRow.push(currentCell.trim());
             currentCell = '';
-            
+
             if (currentRow.some(cell => cell.length > 0)) {
               rows.push(currentRow);
             }
@@ -1890,21 +2256,21 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
 
       // 1. PRIMARY AUTOMATION (The Trio)
       // Playwright UI: Catch -FT-, -F-, -U-, -UAT-, -F\d, -U\d (Common SIGAP UI/UAT patterns)
-      if (actual.includes('playwright') || actual.includes('[automation]') || 
-          id.includes('-FT-') || id.includes('-F-') || id.includes('-U-') || 
-          id.includes('-UAT-') || /-F\d/.test(id) || /-U\d/.test(id)) return 'playwright';
-      
+      if (actual.includes('playwright') || actual.includes('[automation]') ||
+        id.includes('-FT-') || id.includes('-F-') || id.includes('-U-') ||
+        id.includes('-UAT-') || /-F\d/.test(id) || /-U\d/.test(id)) return 'playwright';
+
       // Postman API: Catch -API-
       if (actual.includes('postman') || id.includes('-API-')) return 'postman';
-      
+
       // k6 Performance
       if (actual.includes('k6') || actual.includes('load test')) return 'k6';
-      
+
       // 2. LOGIC BACKUP (PHPUnit)
       // PHPUnit Integration: Catch -IT-, -I-, -I\d
-      if (actual.includes('phpunit') || actual.includes('[logic backup]') || 
-          id.includes('-IT-') || id.includes('-I-') || /-I\d/.test(id)) return 'phpunit';
-      
+      if (actual.includes('phpunit') || actual.includes('[logic backup]') ||
+        id.includes('-IT-') || id.includes('-I-') || /-I\d/.test(id)) return 'phpunit';
+
       return 'manual';
     }
 
@@ -1912,7 +2278,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       const type = getTestType(tc);
       const isImplemented = implementedIds.has(String(tc.id).toUpperCase().trim());
 
-      switch(type) {
+      switch (type) {
         case 'playwright':
           return `<span class="badge--automated" style="background: rgba(52, 211, 153, 0.1); color: #34d399; border-color: rgba(52, 211, 153, 0.3);" title="Playwright UI Test">Playwright UI</span>`;
         case 'postman':
@@ -2068,7 +2434,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       const consoleWrapper = document.getElementById('console-wrapper');
       const consoleOutput = document.getElementById('console-output');
       consoleWrapper.style.display = 'block';
-      
+
       const entry = document.createElement('div');
       let color = '#d4d4d4';
       if (type === 'error') color = '#f87171';
@@ -2087,21 +2453,41 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     }
 
     async function runFullSuite() {
+      const btn = event?.target || document.querySelector('.btn--primary');
+      const originalHtml = btn.innerHTML;
+
       logToConsole('--- MEMULAI EKSEKUSI SELURUH SUITE ---', 'cmd');
-      
+
       const isConnected = await checkServerConnection();
       if (!isConnected) {
         openCompanionModal();
         return;
       }
 
-      await runPhpUnitTests();
-      await runPostmanTests();
-      await runAutomatedTests();
-      await runK6Tests();
-      
-      logToConsole('--- SELURUH SUITE SELESAI DIJALANKAN ---', 'success');
-      showToast('Seluruh suite pengujian telah dipicu!', 'success');
+      try {
+        btn.disabled = true;
+        btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Running Suite...`;
+
+        logToConsole('Step 1/4: Menjalankan PHPUnit...', 'info');
+        await runPhpUnitTests();
+
+        logToConsole('Step 2/4: Menjalankan Postman API...', 'info');
+        await runPostmanTests();
+
+        logToConsole('Step 3/4: Menjalankan Playwright UI...', 'info');
+        await runAutomatedTests();
+
+        logToConsole('Step 4/4: Menjalankan k6 Load Test...', 'info');
+        await runK6Tests();
+
+        logToConsole('--- SELURUH SUITE SELESAI DIJALANKAN ---', 'success');
+        showToast('Seluruh suite pengujian selesai!', 'success');
+      } catch (err) {
+        logToConsole(`Suite gagal di tengah jalan: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
     }
 
     async function loadSampleData() {
@@ -2153,7 +2539,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     }
 
     function getStatusClass(status) {
-      switch(status) {
+      switch (status) {
         case 'Pass': return 'status--pass';
         case 'Fail': return 'status--fail';
         case 'Skip': return 'status--skip';
@@ -2173,7 +2559,13 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           tc.scenario.toLowerCase().includes(query);
 
         const matchStatus = statusVal === 'all' || tc.status === statusVal;
-        
+
+        let matchTab = true;
+        if (currentTabFilter !== 'all' && currentTabFilter.startsWith('tab:')) {
+          const targetTab = currentTabFilter.substring(4);
+          matchTab = tc.tab === targetTab;
+        }
+
         let matchFilter = true;
         if (filterVal !== 'all') {
           if (filterVal.startsWith('type:')) {
@@ -2188,12 +2580,12 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
             }
           } else if (filterVal.startsWith('module:')) {
             const moduleName = filterVal.substring(7);
-            matchFilter = tc.feature.toLowerCase().includes(moduleName.toLowerCase()) || 
-                          tc.id.startsWith(moduleName.substring(0, 3));
+            matchFilter = tc.feature.toLowerCase().includes(moduleName.toLowerCase()) ||
+              tc.id.startsWith(moduleName.substring(0, 3));
           }
         }
 
-        return matchSearch && matchStatus && matchFilter;
+        return matchSearch && matchStatus && matchFilter && matchTab;
       });
 
       if (filteredCases.length === 0 && testCases.length > 0) {
@@ -2282,10 +2674,10 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
             </td>
           </tr>`;
       }).join('');
-      
+
       // Remove temporary isNew flags after rendering
       testCases.forEach(tc => { delete tc.isNew; });
-      
+
       updateBulkBar();
       updateStats();
     }
@@ -2320,7 +2712,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     function deleteRow(index) {
       testCases.splice(index, 1);
       selectedCases.delete(index);
-      
+
       // Recalculate selected cases set based on shifted indices
       const newSelected = new Set();
       selectedCases.forEach(idx => {
@@ -2347,7 +2739,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     // ═══════════════════════════════════════════════════════════════════
     function calculateNextId() {
       if (testCases.length === 0) return 'AK-F-001';
-      
+
       // Sort to find the last item's numeric ID safely
       const lastId = testCases[testCases.length - 1].id;
       const match = lastId.match(/(.*?)-?(\d+)$/);
@@ -2374,7 +2766,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       };
 
       testCases.push(newRow);
-      
+
       showTable();
       renderTable();
       updateStats();
@@ -2422,7 +2814,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           selectedCases.delete(globalIdx);
         }
       });
-      
+
       // Update checkbox elements visually
       const checkboxes = document.querySelectorAll('.row-checkbox');
       checkboxes.forEach(chk => {
@@ -2436,7 +2828,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     function updateBulkBar() {
       const count = selectedCases.size;
       bulkCount.textContent = `${count} terpilih`;
-      
+
       if (count > 0) {
         bulkActionsBar.classList.add('active');
       } else {
@@ -2495,7 +2887,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       renderTable();
       updateStats();
       saveState();
-      
+
       showToast('Test case terpilih berhasil dihapus.', 'info');
       clearSelection();
 
@@ -2566,7 +2958,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       logToConsole(`Menjalankan Postman API Tests (Modul: ${moduleVal})...`, 'info');
 
       try {
-        const response = await fetch('http://localhost:3001/run-postman', { 
+        const response = await fetch('http://localhost:3001/run-postman', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ module: moduleVal })
@@ -2588,12 +2980,16 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
     }
 
     async function runK6Tests() {
+      const stopBtn = document.getElementById('btn-stop-service');
+      stopBtn.disabled = false;
+      stopBtn.style.opacity = '1';
+      stopBtn.style.cursor = 'pointer';
       const moduleVal = currentFilter.startsWith('module:') ? currentFilter.substring(7) : 'all';
       showToast(`Menjalankan k6 Load tests... (Modul: ${moduleVal})`, 'info');
       logToConsole(`Menjalankan k6 Load Tests (Modul: ${moduleVal})...`, 'info');
 
       try {
-        const response = await fetch('http://localhost:3001/run-k6', { 
+        const response = await fetch('http://localhost:3001/run-k6', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ module: moduleVal })
@@ -2609,8 +3005,13 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       } catch (err) {
         logToConsole('Koneksi terputus saat menjalankan k6.', 'error');
         showToast('Koneksi terputus saat menjalankan k6.', 'error');
+      } finally {
+        const stopBtn = document.getElementById('btn-stop-service');
+        stopBtn.disabled = true;
+        stopBtn.style.opacity = '0.5';
+        stopBtn.style.cursor = 'not-allowed';
       }
-    }
+      }
 
     function updateResultsFromData(results) {
       if (!results) return;
@@ -2628,7 +3029,28 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       saveState();
     }
 
+    async function stopRunningTests() {
+      try {
+        const response = await fetch('http://localhost:3001/stop-tests', { method: 'POST' });
+        const data = await response.json();
+        if (data.success) {
+          showToast('Proses pengujian dihentikan paksa.', 'info');
+          logToConsole('⚠️ Pengujian dihentikan oleh pengguna.', 'warn');
+          const btn = document.getElementById('btn-stop-service');
+          btn.disabled = true;
+          btn.style.opacity = '0.5';
+          btn.style.cursor = 'not-allowed';
+        }
+      } catch(e) {
+        showToast('Gagal menghubungi server.', 'error');
+      }
+    }
+
     async function runPhpUnitTests() {
+      const stopBtn = document.getElementById('btn-stop-service');
+      stopBtn.disabled = false;
+      stopBtn.style.opacity = '1';
+      stopBtn.style.cursor = 'pointer';
       showToast('Menjalankan PHPUnit feature tests...', 'info');
 
       try {
@@ -2654,14 +3076,23 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       } catch (err) {
         logToConsole('Koneksi terputus saat menunggu hasil PHPUnit.', 'error');
         showToast('Koneksi terputus saat menjalankan PHPUnit.', 'error');
+      } finally {
+        const stopBtn = document.getElementById('btn-stop-service');
+        stopBtn.disabled = true;
+        stopBtn.style.opacity = '0.5';
+        stopBtn.style.cursor = 'not-allowed';
       }
-    }
+      }
 
     async function runAutomatedTests() {
+      const stopBtn = document.getElementById('btn-stop-service');
+      stopBtn.disabled = false;
+      stopBtn.style.opacity = '1';
+      stopBtn.style.cursor = 'pointer';
       const btn = document.getElementById('btn-auto-test');
       const moduleVal = currentFilter.startsWith('module:') ? currentFilter.substring(7) : 'all';
       const originalHtml = btn.innerHTML;
-      
+
       showToast(`Memeriksa koneksi server... (Modul: ${moduleVal})`, 'info');
       logToConsole(`Menjalankan Playwright UI Tests (Modul: ${moduleVal})...`, 'info');
 
@@ -2676,33 +3107,98 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       btn.disabled = true;
       btn.innerHTML = `<svg style="animation: spin 1s linear infinite" fill="none" viewBox="0 0 24 24"><circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Running ${moduleVal === 'all' ? 'All' : moduleVal}...`;
 
-      try {
-        const response = await fetch('http://localhost:3001/run-tests', { 
+      const workersVal = document.getElementById('worker-count').value;
+
+      return new Promise((resolve) => {
+        // Use fetch with ReadableStream to consume SSE from /run-tests-stream
+        fetch('http://localhost:3001/run-tests-stream', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ module: moduleVal })
+          body: JSON.stringify({
+            module: moduleVal,
+            workers: parseInt(workersVal, 10)
+          })
+        }).then(response => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          function parseSseChunk(chunk) {
+            buffer += chunk;
+            // SSE events are separated by double newline
+            const parts = buffer.split(/\n\n/);
+            buffer = parts.pop(); // Keep incomplete trailing part
+            for (const part of parts) {
+              let eventType = 'message';
+              let dataStr = '';
+              for (const line of part.split(/\n/)) {
+                if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+                if (line.startsWith('data: ')) dataStr = line.slice(6).trim();
+              }
+              if (!dataStr) continue;
+              try {
+                const payload = JSON.parse(dataStr);
+                if (eventType === 'test-progress') {
+                  // Optimistic: mark the test as Pass while running
+                  const key = payload.testId;
+                  const tc = testCases.find(t => t.id.toUpperCase().trim() === key);
+                  if (tc && !tc.status) {
+                    tc.status = 'Pass';
+                    tc.actual = 'Sedang diverifikasi oleh Playwright...';
+                  }
+                  // Live update progress bar & stats & table
+                  renderTable();
+                  updateStats();
+                  // Log progress line
+                  if (payload.current && payload.total) {
+                    logToConsole(`[${payload.current}/${payload.total}] ${key} ✓`, 'info');
+                  }
+                } else if (eventType === 'test-complete') {
+                  // Apply accurate final results (corrects any optimistic mismatches)
+                  if (payload.results) {
+                    updateResultsFromData(payload.results);
+                    const count = Object.keys(payload.results).length;
+                    logToConsole(`Playwright selesai! ${count} hasil diperbarui.`, 'success');
+                    showToast(`Sukses! Playwright telah memperbarui ${count} status test case.`, 'success');
+                  }
+                }
+              } catch (e) { /* ignore JSON parse errors */ }
+            }
+          }
+
+          function readChunk() {
+            reader.read().then(({ done, value }) => {
+              if (done) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                const stopBtn = document.getElementById('btn-stop-service');
+        stopBtn.disabled = true;
+        stopBtn.style.opacity = '0.5';
+        stopBtn.style.cursor = 'not-allowed';
+                fetchImplementedIds().then(() => renderTable());
+                resolve();
+                return;
+              }
+              parseSseChunk(decoder.decode(value, { stream: true }));
+              readChunk();
+            }).catch(err => {
+              logToConsole(`Stream error: ${err.message}`, 'error');
+              btn.disabled = false;
+              btn.innerHTML = originalHtml;
+              resolve();
+            });
+          }
+
+          readChunk();
+        }).catch(err => {
+          logToConsole(`Koneksi terputus saat menjalankan Playwright: ${err.message}`, 'error');
+          showToast('Koneksi terputus saat menjalankan automated testing.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+          resolve();
         });
-        
-        const data = await response.json();
-        
-        if (data.success && data.results) {
-          updateResultsFromData(data.results);
-          await fetchImplementedIds();
-          const count = Object.keys(data.results).length;
-          logToConsole(`Playwright selesai! ${count} hasil diperbarui.`, 'success');
-          showToast(`Sukses! Playwright telah memperbarui status test case.`, 'success');
-        } else {
-          logToConsole(`Error Playwright: ${data.error || 'Terjadi kegagalan.'}`, 'error');
-          showToast(`Gagal: ${data.error || 'Server error'}`, 'error');
-        }
-      } catch (err) {
-        logToConsole('Koneksi terputus saat menjalankan Playwright.', 'error');
-        showToast('Koneksi terputus saat menjalankan automated testing.', 'error');
-      } finally {
-        // Restore state
-        btn.disabled = false;
-        btn.innerHTML = originalHtml;
-      }
+      });
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -2716,12 +3212,48 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       showToast(`Semua ${testCases.length} test case diset ke ${status}`, 'success');
     }
 
-    function resetAllStatus() {
-      testCases.forEach(tc => { tc.status = ''; tc.actual = ''; });
-      renderTable();
-      updateStats();
-      saveState();
-      showToast('Semua status dan actual result direset', 'info');
+    async function resetAllStatus() {
+      if (!confirm('Reset semua status hasil pengujian ke Pending?')) return;
+
+      try {
+        // Reset local UI
+        testCases.forEach(tc => {
+          tc.status = '';
+          tc.actual = '';
+          tc.screenshot = '';
+          tc.video = '';
+        });
+        renderTable();
+        updateStats();
+        saveState();
+
+        // Reset on server
+        const response = await fetch('http://localhost:3001/reset-results', { method: 'POST' });
+        if (response.ok) {
+          showToast('Semua status direset (Local & Server)', 'success');
+        } else {
+          showToast('Status direset secara lokal, tapi gagal update server.', 'warn');
+        }
+      } catch (e) {
+        showToast('Status direset secara lokal.', 'info');
+      }
+    }
+
+    async function clearPhysicalArtifacts() {
+      if (!confirm('Hapus seluruh file video, screenshot, dan laporan test secara permanen dari disk?')) return;
+
+      showToast('Sedang menghapus file artifacts...', 'info');
+      try {
+        const response = await fetch('http://localhost:3001/clear-artifacts', { method: 'POST' });
+        const data = await response.json();
+        if (data.success) {
+          showToast(data.message, 'success');
+        } else {
+          showToast('Gagal menghapus file: ' + data.error, 'error');
+        }
+      } catch (e) {
+        showToast('Gagal menghubungi server.', 'error');
+      }
     }
 
     function clearAll() {
@@ -2748,9 +3280,9 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       if (!filteredCases || (filteredCases.length === 0 && currentFilter === 'all' && !searchInput.value)) {
         filteredCases = [...testCases];
       }
-      
+
       const targetList = filteredCases;
-      
+
       const total = targetList.length;
       const pass = targetList.filter(t => t.status === 'Pass').length;
       const fail = targetList.filter(t => t.status === 'Fail').length;
@@ -2791,7 +3323,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       const ctx = document.getElementById('statusChart').getContext('2d');
       const summaryEl = document.getElementById('chart-summary');
       const total = pass + fail + skip + pending;
-      
+
       if (total === 0) {
         summaryEl.innerHTML = 'Belum ada data pengujian yang di-import.';
       } else {
@@ -2841,7 +3373,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
               padding: 8,
               cornerRadius: 8,
               callbacks: {
-                label: function(context) {
+                label: function (context) {
                   const value = context.raw || 0;
                   const totalVal = pass + fail + skip + pending;
                   const pctVal = totalVal > 0 ? ((value / totalVal) * 100).toFixed(1) : 0;
@@ -2871,7 +3403,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SIGAP_TestResults_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `SIGAP_TestResults_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
       showToast('File CSV berhasil diunduh', 'success');
@@ -2914,7 +3446,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
 
     async function shutdownServer() {
       if (!confirm('Matikan server pendamping? Dashboard tidak akan bisa menjalankan test otomatis setelah ini.')) return;
-      
+
       logToConsole('⚠️ Mengirim perintah shutdown ke server...', 'error');
       try {
         await fetch('http://localhost:3001/shutdown', { method: 'POST' });
@@ -3009,7 +3541,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           // Use no-cors for other local servers to just check if they are up
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 1500);
-          
+
           await fetch(`http://localhost:${p.port}`, { mode: 'no-cors', signal: controller.signal });
           clearTimeout(timeoutId);
           el.style.color = 'var(--pass)';
@@ -3051,15 +3583,42 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       return true;
     }
 
+    // ═══════════════════════════════════════════════════════════════════
+    // Reset all test results on page load so dashboard always starts clean
+    // ═══════════════════════════════════════════════════════════════════
+    async function resetResultsOnLoad() {
+      try {
+        // Clear stale localStorage first so restoreState() doesn't restore old statuses
+        localStorage.removeItem('sigap-test-cases');
+        // Tell the server to reset test-cases.json to all-pending (retry if server booting)
+        let retries = 5;
+        while (retries > 0) {
+          try {
+            const res = await fetch('http://localhost:3001/reset-results', { method: 'POST' });
+            if (res.ok) break;
+          } catch (err) {
+            retries--;
+            if (retries === 0) throw err;
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+      } catch (e) {
+        // Non-fatal: if server is not ready yet, restoreState() still loads fresh JSON
+        console.warn('[SIGAP] reset-results gagal (mungkin server belum siap):', e.message);
+      }
+    }
+
     // Final Init
     // ═══════════════════════════════════════════════════════════════════
     (async () => {
       if (!checkProtocol()) return;
       await fetchImplementedIds();
+      await resetResultsOnLoad();  // Reset semua status ke Pending saat halaman dibuka
       restoreState();
       updateServerStatus();
       setInterval(updateServerStatus, 5000);
     })();
   </script>
 </body>
+
 </html>
