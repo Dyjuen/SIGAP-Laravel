@@ -7,7 +7,6 @@ import '../../providers/dashboard_provider.dart';
 import '../../widgets/activity_item.dart';
 import '../../widgets/blue_stat_card.dart';
 import '../help_guide_page.dart';
-import '../profile_page.dart';
 import '../pengusul/kak_form_page.dart';
 import '../pengusul/kak_list_page.dart';
 import '../../widgets/dashboard_drawer.dart';
@@ -124,7 +123,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: const DashboardAppBar(),
-        drawer: const DashboardDrawer(roleId: 2), // Pengusul
+        drawer: const DashboardDrawer(roleId: 3), // Pengusul
         body: Consumer2<AuthProvider, PengusulDashboardProvider>(
           builder: (context, authProvider, dashboardProvider, _) {
             if (dashboardProvider.isLoading) {

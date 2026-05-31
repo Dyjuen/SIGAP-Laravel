@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
@@ -23,10 +24,13 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: const DashboardDrawer(roleId: 6), // Direktur/Admin
+      drawer: DashboardDrawer(roleId: user?.roleId ?? 7), // Rektorat
       body: Consumer<DirektorDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {

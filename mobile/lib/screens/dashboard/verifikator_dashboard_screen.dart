@@ -42,7 +42,7 @@ class _VerifikatorDashboardScreenState
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: const DashboardDrawer(roleId: 3), // Verifikator
+      drawer: const DashboardDrawer(roleId: 2), // Verifikator
       body: Consumer<VerifikatorDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {

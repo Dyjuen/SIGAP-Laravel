@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
+import '../../widgets/dashboard_drawer.dart';
 import '../landing_page.dart';
 import '../help_guide_page.dart';
 import 'user_management_page.dart';
@@ -66,13 +67,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      drawer: DashboardDrawer(roleId: user?.roleId ?? 1),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
+          children: [
+            const Text(
               'SIGAP PNJ',
               style: TextStyle(
                 color: Color(0xFF0F172A),
@@ -82,8 +84,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ),
             Text(
-              'Panel Kontrol Super Admin',
-              style: TextStyle(
+              'Panel Kontrol ${user?.roleName ?? "Admin"}',
+              style: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 11,
                 fontFamily: 'Figtree',
@@ -136,7 +138,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Selamat Datang,\n${user?.namaLengkap ?? "Super Admin"}',
+                      'Selamat Datang,\n${user?.namaLengkap ?? "Pengguna"}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,

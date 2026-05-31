@@ -27,7 +27,7 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: const DashboardDrawer(roleId: 5), // Bendahara
+      drawer: const DashboardDrawer(roleId: 6), // Bendahara
       body: Consumer<BendaharaDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {

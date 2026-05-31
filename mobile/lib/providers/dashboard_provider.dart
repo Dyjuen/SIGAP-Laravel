@@ -67,7 +67,6 @@ class BaseDashboardProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
 }
 
 /// Pengusul Dashboard Provider
