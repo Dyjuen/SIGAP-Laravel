@@ -1359,6 +1359,9 @@
           style="background: rgba(125, 100, 233, 0.1); border-color: rgba(125, 100, 233, 0.3); color: #7d64e9;">
           k6 Load
         </button>
+        <button class="btn btn--secondary" onclick="openHelpModal()" style="border-style: dashed;">
+          Bantuan?
+        </button>
         <button class="btn btn--danger" onclick="resetAllStatus()"
           style="background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.3); color: #f87171; border-width: 2px;">
           Reset Status
@@ -1584,6 +1587,15 @@
         Jalankan Auto Test
       </button>
 
+      <button class="btn btn--danger btn--sm" onclick="forceKillAll()"
+        title="Hentikan paksa semua proses Node/PHP yang nyangkut (Gunakan jika port error)">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+          <line x1="12" y1="2" x2="12" y2="12"></line>
+        </svg>
+        Force Kill All
+      </button>
+
       <button class="btn btn--secondary btn--sm" onclick="addNewRow()"
         title="Tambahkan baris test case baru secara manual">
         <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -1635,6 +1647,7 @@
                   onchange="toggleSelectAll(this.checked)"></th>
               <th style="width:40px">#</th>
               <th>ID</th>
+              <th>Kategori</th>
               <th>Nama Fitur</th>
               <th>Skenario</th>
               <th>Test Input</th>
@@ -1985,6 +1998,38 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       </div>
     </div>
   </div>
+  <!-- Help Modal -->
+  <div class="modal-overlay" id="help-modal">
+    <div class="modal" style="max-width: 650px;">
+      <div class="modal__header">
+        <h3>Panduan Pengujian SIGAP</h3>
+        <button class="modal__close" onclick="closeHelpModal()">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal__body" style="font-size: 14px; line-height: 1.6;">
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #818cf8; margin-bottom: 8px;">🧪 LOGIC (PHPUnit Logic)</h4>
+          <p>Memverifikasi aturan bisnis dan integritas data di level backend. Hasil diverifikasi menggunakan <strong>PHPUnit</strong>.</p>
+        </div>
+        <div style="margin-bottom: 20px;">
+          <h4 style="color: #22d3ee; margin-bottom: 8px;">🚀 AUTO (Automation Trio)</h4>
+          <p>Memverifikasi alur UI, API, dan performa secara otomatis. Menghasilkan <strong>screenshot</strong> dan <strong>video</strong> sebagai bukti.</p>
+        </div>
+        <div style="padding: 12px; background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 8px;">
+          <p style="font-weight: 700; color: var(--accent);">💡 Tips:</p>
+          <p>Test case dipisahkan menjadi 2 kategori untuk memastikan legitimasi sistem secara full-stack (Total 960+ test cases).</p>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn--primary" onclick="closeHelpModal()">Mengerti</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -2119,16 +2164,27 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
         // 1. Prioritize Server-side JSON to ensure real-time updates from model
         const response = await fetch('test-cases.json?v=' + Date.now()); // Anti-cache
         if (response.ok) {
-          testCases = await response.json();
-          // Force reset memory to blank slate on load (as requested by user)
-          testCases.forEach(tc => { tc.status = ''; tc.actual = ''; tc.screenshot = ''; tc.video = ''; });
+          const rawCases = await response.json();
+          
+          // Duplicate cases: one for PHPUnit Logic, one for Automation Trio
+          const logicCases = rawCases.map(tc => ({ 
+            ...tc, 
+            testCategory: 'Logic',
+            status: '', actual: '', screenshot: '', video: '' 
+          }));
+          const automationCases = rawCases.map(tc => ({ 
+            ...tc, 
+            testCategory: 'Automation',
+            status: '', actual: '', screenshot: '', video: '' 
+          }));
+
+          testCases = [...logicCases, ...automationCases];
           saveState(); // Update local storage with fresh data
         } else {
           // 2. Fallback to local storage only if server fails
           const saved = localStorage.getItem('sigap-test-cases');
           if (saved) {
             testCases = JSON.parse(saved);
-            testCases.forEach(tc => { tc.status = ''; tc.actual = ''; tc.screenshot = ''; tc.video = ''; });
           }
         }
 
@@ -2570,14 +2626,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
         if (filterVal !== 'all') {
           if (filterVal.startsWith('type:')) {
             const targetType = filterVal.substring(5);
-            // If checking for Playwright/Automation, show ALL (since we mapped all 491)
-            if (targetType === 'playwright') {
-              matchFilter = true; // All 491 are now automation-enabled
-            } else if (targetType === 'phpunit') {
-              matchFilter = true; // All 491 are now logic-backed
-            } else {
-              matchFilter = getTestType(tc) === targetType;
-            }
+            matchFilter = getTestType(tc) === targetType;
           } else if (filterVal.startsWith('module:')) {
             const moduleName = filterVal.substring(7);
             matchFilter = tc.feature.toLowerCase().includes(moduleName.toLowerCase()) ||
@@ -2613,6 +2662,12 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
             </td>
             <td class="row-num">${i + 1}</td>
             <td class="id-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'id', this)">${escapeHtml(tc.id)}</td>
+            <td class="category-cell">
+              ${tc.testCategory === 'Logic' 
+                ? `<span class="badge" style="background: rgba(79, 70, 229, 0.1); color: #818cf8; border: 1px solid rgba(79, 70, 229, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">LOGIC</span>` 
+                : `<span class="badge" style="background: rgba(34, 211, 238, 0.1); color: #22d3ee; border: 1px solid rgba(34, 211, 238, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700;">AUTO</span>`
+              }
+            </td>
             <td class="feature-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'feature', this)">${escapeHtml(tc.feature)}</td>
             <td class="scenario-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'scenario', this)">${escapeHtml(tc.scenario)}</td>
             <td class="input-cell" contenteditable="true" onblur="updateEditableField(${globalIdx}, 'input', this)">${escapeHtml(tc.input)}</td>
@@ -2909,6 +2964,14 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       document.getElementById('ai-settings-modal').classList.remove('active');
     }
 
+    function openHelpModal() {
+      document.getElementById('help-modal').classList.add('active');
+    }
+
+    function closeHelpModal() {
+      document.getElementById('help-modal').classList.remove('active');
+    }
+
     function saveAISettings() {
       const key = document.getElementById('gemini-api-key').value.trim();
       if (key) {
@@ -2968,7 +3031,7 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           const count = Object.keys(data.results || {}).length;
           logToConsole(`Postman selesai! ${count} test case diperbarui.`, 'success');
           showToast(`Postman selesai! ${count} test cases diperbarui.`, 'success');
-          updateResultsFromData(data.results);
+          updateResultsFromData(data.results, 'Automation');
         } else {
           logToConsole(`Error Postman: ${data.error || 'Newman gagal.'}`, 'error');
           showToast(`Gagal: ${data.error || 'Newman tidak ditemukan.'}`, 'error');
@@ -2997,7 +3060,8 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
         const data = await response.json();
         if (data.success) {
           logToConsole('k6 Load test selesai!', 'success');
-          showToast('k6 Load test selesai! Lihat terminal untuk detail metrik.', 'success');
+          showToast('k6 Load test selesai!', 'success');
+          if (data.results) updateResultsFromData(data.results);
         } else {
           logToConsole(`Error k6: ${data.error || 'k6 gagal.'}`, 'error');
           showToast(`Gagal: ${data.error || 'k6 tidak ditemukan.'}`, 'error');
@@ -3013,14 +3077,19 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
       }
       }
 
-    function updateResultsFromData(results) {
+    function updateResultsFromData(results, category) {
       if (!results) return;
       let updatedCount = 0;
       testCases.forEach(tc => {
+        // Only update if it belongs to the target category (Logic vs Automation)
+        if (category && tc.testCategory !== category) return;
+        
         const key = tc.id.toUpperCase().trim();
         if (results[key]) {
           tc.status = results[key].status;
           tc.actual = results[key].actual;
+          if (results[key].screenshot) tc.screenshot = results[key].screenshot;
+          if (results[key].video) tc.video = results[key].video;
           updatedCount++;
         }
       });
@@ -3043,6 +3112,21 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
         }
       } catch(e) {
         showToast('Gagal menghubungi server.', 'error');
+      }
+    }
+
+    async function forceKillAll() {
+      if (!confirm('Hentikan paksa semua proses Node/PHP? Gunakan ini jika Anda mendapat error port sedang digunakan.')) return;
+      showToast('Menghentikan semua proses...', 'info');
+      try {
+        const res = await fetch('http://localhost:3001/force-kill', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Proses berhasil dibersihkan! Segera refresh halaman.', 'success');
+          logToConsole('Semua proses Node/PHP telah dihentikan.', 'success');
+        }
+      } catch (e) {
+        showToast('Gagal mengirim perintah kill.', 'error');
       }
     }
 
@@ -3109,6 +3193,13 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
 
       const workersVal = document.getElementById('worker-count').value;
 
+      if (filteredCases.length === 0) {
+        showToast('Tidak ada test case untuk dijalankan.', 'warn');
+        return;
+      }
+      const testIds = filteredCases.map(tc => tc.id);
+      logToConsole(`Mengirim ${testIds.length} test ID ke runner...`, 'info');
+
       return new Promise((resolve) => {
         // Use fetch with ReadableStream to consume SSE from /run-tests-stream
         fetch('http://localhost:3001/run-tests-stream', {
@@ -3116,7 +3207,8 @@ AK-F-001    Ajukan Kegiatan    Validasi Field Wajib    penanggung_jawab = &quot;
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             module: moduleVal,
-            workers: parseInt(workersVal, 10)
+            workers: parseInt(workersVal, 10),
+            testIds: testIds
           })
         }).then(response => {
           if (!response.ok) throw new Error(`HTTP ${response.status}`);

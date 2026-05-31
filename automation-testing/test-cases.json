@@ -1,5 +1,53 @@
 [
   {
+    "id": "API-LGN-001",
+    "feature": "Auth API",
+    "scenario": "Login API Valid",
+    "input": "POST /api/login { username, password }",
+    "expected": "Status 200, Return token sanctum & user data",
+    "actual": "",
+    "status": "",
+    "screenshot": "",
+    "video": "",
+    "tab": "Orang D (Raihan)"
+  },
+  {
+    "id": "API-ADM-001",
+    "feature": "Admin API",
+    "scenario": "Get Admin Stats",
+    "input": "GET /api/admin/stats (with token)",
+    "expected": "Status 200, Return summary statistics",
+    "actual": "",
+    "status": "",
+    "screenshot": "",
+    "video": "",
+    "tab": "Orang D (Raihan)"
+  },
+  {
+    "id": "API-KAK-001",
+    "feature": "KAK API",
+    "scenario": "List KAK API",
+    "input": "GET /api/kak (with token)",
+    "expected": "Status 200, Return list of KAKs with pagination",
+    "actual": "",
+    "status": "",
+    "screenshot": "",
+    "video": "",
+    "tab": "Orang D (Raihan)"
+  },
+  {
+    "id": "API-PERF-001",
+    "feature": "Performance",
+    "scenario": "Load Test Dashboard",
+    "input": "k6 load test: 50 virtual users for 1m",
+    "expected": "95th percentile response time < 500ms",
+    "actual": "",
+    "status": "",
+    "screenshot": "",
+    "video": "",
+    "tab": "Orang D (Raihan)"
+  },
+  {
     "id": "KAK-FT-001",
     "feature": "Create KAK",
     "scenario": "Simpan KAK data valid (Role Pengusul)",
