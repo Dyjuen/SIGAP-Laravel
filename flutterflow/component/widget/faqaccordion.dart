@@ -15,12 +15,11 @@ class FaqAccordionWidget extends StatefulWidget {
     String? answer,
     String? question,
     bool? isOpen,
-  }) : this.answer =
-           answer ??
-           'Anda dapat melakukan revisi jika status usulan dikembalikan oleh verifikator. Klik tombol \'Revisi\' pada detail kegiatan Anda.',
-       this.question =
-           question ?? 'Bagaimana cara merubah RAB yang sudah dikirim?',
-       this.isOpen = isOpen ?? true;
+  })  : this.answer = answer ??
+            'Anda dapat melakukan revisi jika status usulan dikembalikan oleh verifikator. Klik tombol \'Revisi\' pada detail kegiatan Anda.',
+        this.question =
+            question ?? 'Bagaimana cara merubah RAB yang sudah dikirim?',
+        this.isOpen = isOpen ?? true;
 
   final String answer;
   final String question;
@@ -85,11 +84,12 @@ class _FaqAccordionWidgetState extends State<FaqAccordionWidget> {
                           flex: 1,
                           child: Text(
                             valueOrDefault<String>(
-                              widget!.question,
+                              widget.question,
                               'Bagaimana cara merubah RAB yang sudah dikirim?',
                             ),
                             maxLines: 2,
-                            style: FlutterFlowTheme.of(context).titleSmall
+                            style: FlutterFlowTheme.of(context)
+                                .titleSmall
                                 .override(
                                   font: GoogleFonts.figtree(
                                     fontWeight: FontWeight.w600,
@@ -116,7 +116,7 @@ class _FaqAccordionWidgetState extends State<FaqAccordionWidget> {
                           child: Stack(
                             alignment: AlignmentDirectional(0, 0),
                             children: [
-                              if (widget!.isOpen ? true : false)
+                              if (widget.isOpen ? true : false)
                                 Icon(
                                   Icons.expand_less_rounded,
                                   color: FlutterFlowTheme.of(
@@ -124,7 +124,7 @@ class _FaqAccordionWidgetState extends State<FaqAccordionWidget> {
                                   ).secondaryText,
                                   size: 24,
                                 ),
-                              if (widget!.isOpen ? false : true)
+                              if (widget.isOpen ? false : true)
                                 Icon(
                                   Icons.expand_more_rounded,
                                   color: FlutterFlowTheme.of(
@@ -140,35 +140,35 @@ class _FaqAccordionWidgetState extends State<FaqAccordionWidget> {
                   ),
                 ),
               ),
-              if (valueOrDefault<bool>(widget!.isOpen, true))
+              if (valueOrDefault<bool>(widget.isOpen, true))
                 Container(
                   child: Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(24, 0, 24, 24),
                     child: Container(
                       child: Text(
                         valueOrDefault<String>(
-                          widget!.answer,
+                          widget.answer,
                           'Anda dapat melakukan revisi jika status usulan dikembalikan oleh verifikator. Klik tombol \'Revisi\' pada detail kegiatan Anda.',
                         ),
                         style: FlutterFlowTheme.of(context).bodyMedium.override(
-                          font: GoogleFonts.figtree(
-                            fontWeight: FlutterFlowTheme.of(
-                              context,
-                            ).bodyMedium.fontWeight,
-                            fontStyle: FlutterFlowTheme.of(
-                              context,
-                            ).bodyMedium.fontStyle,
-                          ),
-                          color: FlutterFlowTheme.of(context).secondaryText,
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).bodyMedium.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).bodyMedium.fontStyle,
-                          lineHeight: 1.5,
-                        ),
+                              font: GoogleFonts.figtree(
+                                fontWeight: FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.fontWeight,
+                                fontStyle: FlutterFlowTheme.of(
+                                  context,
+                                ).bodyMedium.fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).bodyMedium.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).bodyMedium.fontStyle,
+                              lineHeight: 1.5,
+                            ),
                       ),
                     ),
                   ),

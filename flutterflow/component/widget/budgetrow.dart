@@ -17,10 +17,10 @@ class BudgetRowWidget extends StatefulWidget {
     String? qty,
     String? total,
     String? unit,
-  }) : this.name = name ?? 'Honorarium Narasumber',
-       this.qty = qty ?? '2',
-       this.total = total ?? 'Rp 1.500.000',
-       this.unit = unit ?? 'Jam';
+  })  : this.name = name ?? 'Honorarium Narasumber',
+        this.qty = qty ?? '2',
+        this.total = total ?? 'Rp 1.500.000',
+        this.unit = unit ?? 'Jam';
 
   final Widget? icon;
   final String name;
@@ -86,7 +86,7 @@ class _BudgetRowWidgetState extends State<BudgetRowWidget> {
                       shape: BoxShape.rectangle,
                     ),
                     alignment: AlignmentDirectional(0, 0),
-                    child: widget!.icon!,
+                    child: widget.icon!,
                   ),
                   Expanded(
                     flex: 1,
@@ -97,72 +97,72 @@ class _BudgetRowWidgetState extends State<BudgetRowWidget> {
                       children: [
                         Text(
                           valueOrDefault<String>(
-                            widget!.name,
+                            widget.name,
                             'Honorarium Narasumber',
                           ),
                           maxLines: 1,
-                          style: FlutterFlowTheme.of(context).bodyMedium
-                              .override(
-                                font: GoogleFonts.figtree(
-                                  fontWeight: FontWeight.w600,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodyMedium.fontStyle,
-                                ),
-                                letterSpacing: 0.0,
-                                fontWeight: FontWeight.w600,
-                                fontStyle: FlutterFlowTheme.of(
-                                  context,
-                                ).bodyMedium.fontStyle,
-                                lineHeight: 1.5,
-                              ),
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.figtree(
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontStyle,
+                                    ),
+                                    letterSpacing: 0.0,
+                                    fontWeight: FontWeight.w600,
+                                    fontStyle: FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontStyle,
+                                    lineHeight: 1.5,
+                                  ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '${widget!.qty} x ${widget!.unit}',
-                          style: FlutterFlowTheme.of(context).bodySmall
-                              .override(
-                                font: GoogleFonts.figtree(
-                                  fontWeight: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodySmall.fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodySmall.fontStyle,
-                                ),
-                                color: FlutterFlowTheme.of(
-                                  context,
-                                ).secondaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(
-                                  context,
-                                ).bodySmall.fontWeight,
-                                fontStyle: FlutterFlowTheme.of(
-                                  context,
-                                ).bodySmall.fontStyle,
-                                lineHeight: 1.4,
-                              ),
+                          '${widget.qty} x ${widget.unit}',
+                          style:
+                              FlutterFlowTheme.of(context).bodySmall.override(
+                                    font: GoogleFonts.figtree(
+                                      fontWeight: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodySmall.fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodySmall.fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(
+                                      context,
+                                    ).secondaryText,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(
+                                      context,
+                                    ).bodySmall.fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(
+                                      context,
+                                    ).bodySmall.fontStyle,
+                                    lineHeight: 1.4,
+                                  ),
                         ),
                       ].divide(SizedBox(height: 4)),
                     ),
                   ),
                   Text(
-                    valueOrDefault<String>(widget!.total, 'Rp 1.500.000'),
+                    valueOrDefault<String>(widget.total, 'Rp 1.500.000'),
                     style: FlutterFlowTheme.of(context).bodyMedium.override(
-                      font: GoogleFonts.figtree(
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).bodyMedium.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primary,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FlutterFlowTheme.of(
-                        context,
-                      ).bodyMedium.fontStyle,
-                      lineHeight: 1.5,
-                    ),
+                          font: GoogleFonts.figtree(
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).bodyMedium.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primary,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.bold,
+                          fontStyle: FlutterFlowTheme.of(
+                            context,
+                          ).bodyMedium.fontStyle,
+                          lineHeight: 1.5,
+                        ),
                   ),
                 ].divide(SizedBox(width: 16)),
               ),

@@ -16,9 +16,9 @@ class ActivityItemWidget extends StatefulWidget {
     String? status,
     String? time,
     String? title,
-  }) : this.status = status ?? 'DISETUJUI',
-       this.time = time ?? '2 jam yang lalu',
-       this.title = title ?? 'Pengajuan KAK - Workshop AI';
+  })  : this.status = status ?? 'DISETUJUI',
+        this.time = time ?? '2 jam yang lalu',
+        this.title = title ?? 'Pengajuan KAK - Workshop AI';
 
   final Widget? icon;
   final String status;
@@ -80,7 +80,7 @@ class _ActivityItemWidgetState extends State<ActivityItemWidget> {
                   shape: BoxShape.rectangle,
                 ),
                 alignment: AlignmentDirectional(0, 0),
-                child: widget!.icon!,
+                child: widget.icon!,
               ),
               Expanded(
                 flex: 1,
@@ -91,52 +91,52 @@ class _ActivityItemWidgetState extends State<ActivityItemWidget> {
                   children: [
                     Text(
                       valueOrDefault<String>(
-                        widget!.title,
+                        widget.title,
                         'Pengajuan KAK - Workshop AI',
                       ),
                       maxLines: 1,
                       style: FlutterFlowTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).titleSmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).titleSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).titleSmall.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).titleSmall.fontStyle,
-                        lineHeight: 1.4,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).primaryText,
+                            letterSpacing: 0.0,
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).titleSmall.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).titleSmall.fontStyle,
+                            lineHeight: 1.4,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      valueOrDefault<String>(widget!.time, '2 jam yang lalu'),
+                      valueOrDefault<String>(widget.time, '2 jam yang lalu'),
                       style: FlutterFlowTheme.of(context).bodySmall.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).bodySmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).bodySmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).secondaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).bodySmall.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).bodySmall.fontStyle,
-                        lineHeight: 1.4,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).bodySmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).bodySmall.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).secondaryText,
+                            letterSpacing: 0.0,
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).bodySmall.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).bodySmall.fontStyle,
+                            lineHeight: 1.4,
+                          ),
                     ),
                   ].divide(SizedBox(height: 4)),
                 ),
@@ -151,26 +151,26 @@ class _ActivityItemWidgetState extends State<ActivityItemWidget> {
                   padding: EdgeInsetsDirectional.fromSTEB(8, 4, 8, 4),
                   child: Container(
                     child: Text(
-                      valueOrDefault<String>(widget!.status, 'DISETUJUI'),
+                      valueOrDefault<String>(widget.status, 'DISETUJUI'),
                       style: FlutterFlowTheme.of(context).labelSmall.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).labelSmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).labelSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primary,
-                        letterSpacing: 0.0,
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).labelSmall.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).labelSmall.fontStyle,
-                        lineHeight: 1.2,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).labelSmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).labelSmall.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).primary,
+                            letterSpacing: 0.0,
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).labelSmall.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).labelSmall.fontStyle,
+                            lineHeight: 1.2,
+                          ),
                     ),
                   ),
                 ),

@@ -20,13 +20,13 @@ class MonitoringCardWidget extends StatefulWidget {
     Color? statusBg,
     Color? statusColor,
     String? title,
-  }) : this.date = date ?? '24 Okt 2023',
-       this.idText = idText ?? 'KAK/2023/X/001',
-       this.pic = pic ?? 'Dr. Aris Budiman',
-       this.status = status ?? 'DISETUJUI',
-       this.statusBg = statusBg ?? const Color(0x00000000),
-       this.statusColor = statusColor ?? const Color(0x00000000),
-       this.title = title ?? 'Workshop AI & Machine Learning';
+  })  : this.date = date ?? '24 Okt 2023',
+        this.idText = idText ?? 'KAK/2023/X/001',
+        this.pic = pic ?? 'Dr. Aris Budiman',
+        this.status = status ?? 'DISETUJUI',
+        this.statusBg = statusBg ?? const Color(0x00000000),
+        this.statusColor = statusColor ?? const Color(0x00000000),
+        this.title = title ?? 'Workshop AI & Machine Learning';
 
   final String date;
   final String idText;
@@ -99,11 +99,12 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                           children: [
                             Text(
                               valueOrDefault<String>(
-                                widget!.title,
+                                widget.title,
                                 'Workshop AI & Machine Learning',
                               ),
                               maxLines: 1,
-                              style: FlutterFlowTheme.of(context).titleMedium
+                              style: FlutterFlowTheme.of(context)
+                                  .titleMedium
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FontWeight.bold,
@@ -122,10 +123,11 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                             ),
                             Text(
                               valueOrDefault<String>(
-                                widget!.idText,
+                                widget.idText,
                                 'KAK/2023/X/001',
                               ),
-                              style: FlutterFlowTheme.of(context).labelSmall
+                              style: FlutterFlowTheme.of(context)
+                                  .labelSmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FlutterFlowTheme.of(
@@ -154,7 +156,7 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                       Container(
                         decoration: BoxDecoration(
                           color: valueOrDefault<Color>(
-                            widget!.statusBg,
+                            widget.statusBg,
                             FlutterFlowTheme.of(context).success10,
                           ),
                           borderRadius: BorderRadius.circular(12),
@@ -165,10 +167,11 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                           child: Container(
                             child: Text(
                               valueOrDefault<String>(
-                                widget!.status,
+                                widget.status,
                                 'DISETUJUI',
                               ),
-                              style: FlutterFlowTheme.of(context).labelSmall
+                              style: FlutterFlowTheme.of(context)
+                                  .labelSmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FontWeight.bold,
@@ -177,7 +180,7 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                                       ).labelSmall.fontStyle,
                                     ),
                                     color: valueOrDefault<Color>(
-                                      widget!.statusColor,
+                                      widget.statusColor,
                                       FlutterFlowTheme.of(context).success,
                                     ),
                                     letterSpacing: 0.0,
@@ -212,7 +215,8 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                         children: [
                           Text(
                             'Tanggal Pengajuan',
-                            style: FlutterFlowTheme.of(context).labelSmall
+                            style: FlutterFlowTheme.of(context)
+                                .labelSmall
                                 .override(
                                   font: GoogleFonts.figtree(
                                     fontWeight: FlutterFlowTheme.of(
@@ -234,22 +238,22 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                                 ),
                           ),
                           Text(
-                            valueOrDefault<String>(widget!.date, '24 Okt 2023'),
-                            style: FlutterFlowTheme.of(context).bodySmall
-                                .override(
-                                  font: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w500,
-                                    fontStyle: FlutterFlowTheme.of(
-                                      context,
-                                    ).bodySmall.fontStyle,
-                                  ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w500,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodySmall.fontStyle,
-                                  lineHeight: 1.4,
-                                ),
+                            valueOrDefault<String>(widget.date, '24 Okt 2023'),
+                            style:
+                                FlutterFlowTheme.of(context).bodySmall.override(
+                                      font: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.w500,
+                                        fontStyle: FlutterFlowTheme.of(
+                                          context,
+                                        ).bodySmall.fontStyle,
+                                      ),
+                                      letterSpacing: 0.0,
+                                      fontWeight: FontWeight.w500,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodySmall.fontStyle,
+                                      lineHeight: 1.4,
+                                    ),
                           ),
                         ].divide(SizedBox(height: 4)),
                       ),
@@ -260,7 +264,8 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                         children: [
                           Text(
                             'Penanggung Jawab',
-                            style: FlutterFlowTheme.of(context).labelSmall
+                            style: FlutterFlowTheme.of(context)
+                                .labelSmall
                                 .override(
                                   font: GoogleFonts.figtree(
                                     fontWeight: FlutterFlowTheme.of(
@@ -283,24 +288,24 @@ class _MonitoringCardWidgetState extends State<MonitoringCardWidget> {
                           ),
                           Text(
                             valueOrDefault<String>(
-                              widget!.pic,
+                              widget.pic,
                               'Dr. Aris Budiman',
                             ),
-                            style: FlutterFlowTheme.of(context).bodySmall
-                                .override(
-                                  font: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w500,
-                                    fontStyle: FlutterFlowTheme.of(
-                                      context,
-                                    ).bodySmall.fontStyle,
-                                  ),
-                                  letterSpacing: 0.0,
-                                  fontWeight: FontWeight.w500,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodySmall.fontStyle,
-                                  lineHeight: 1.4,
-                                ),
+                            style:
+                                FlutterFlowTheme.of(context).bodySmall.override(
+                                      font: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.w500,
+                                        fontStyle: FlutterFlowTheme.of(
+                                          context,
+                                        ).bodySmall.fontStyle,
+                                      ),
+                                      letterSpacing: 0.0,
+                                      fontWeight: FontWeight.w500,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodySmall.fontStyle,
+                                      lineHeight: 1.4,
+                                    ),
                           ),
                         ].divide(SizedBox(height: 4)),
                       ),

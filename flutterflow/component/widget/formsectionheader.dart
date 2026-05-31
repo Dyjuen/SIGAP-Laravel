@@ -11,9 +11,9 @@ export 'form_section_header_model.dart';
 
 class FormSectionHeaderWidget extends StatefulWidget {
   const FormSectionHeaderWidget({super.key, String? description, String? title})
-    : this.description =
-          description ?? 'Informasi dasar mengenai pengajuan kegiatan.',
-      this.title = title ?? 'Gambaran Umum';
+      : this.description =
+            description ?? 'Informasi dasar mengenai pengajuan kegiatan.',
+        this.title = title ?? 'Gambaran Umum';
 
   final String description;
   final String title;
@@ -56,35 +56,40 @@ class _FormSectionHeaderWidgetState extends State<FormSectionHeaderWidget> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              valueOrDefault<String>(widget!.title, 'Gambaran Umum'),
+              valueOrDefault<String>(widget.title, 'Gambaran Umum'),
               style: FlutterFlowTheme.of(context).titleMedium.override(
-                font: GoogleFonts.figtree(
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FlutterFlowTheme.of(context).titleMedium.fontStyle,
-                ),
-                color: FlutterFlowTheme.of(context).primaryText,
-                letterSpacing: 0.0,
-                fontWeight: FontWeight.bold,
-                fontStyle: FlutterFlowTheme.of(context).titleMedium.fontStyle,
-                lineHeight: 1.35,
-              ),
+                    font: GoogleFonts.figtree(
+                      fontWeight: FontWeight.bold,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).titleMedium.fontStyle,
+                    ),
+                    color: FlutterFlowTheme.of(context).primaryText,
+                    letterSpacing: 0.0,
+                    fontWeight: FontWeight.bold,
+                    fontStyle:
+                        FlutterFlowTheme.of(context).titleMedium.fontStyle,
+                    lineHeight: 1.35,
+                  ),
             ),
             Text(
               valueOrDefault<String>(
-                widget!.description,
+                widget.description,
                 'Informasi dasar mengenai pengajuan kegiatan.',
               ),
               style: FlutterFlowTheme.of(context).bodySmall.override(
-                font: GoogleFonts.figtree(
-                  fontWeight: FlutterFlowTheme.of(context).bodySmall.fontWeight,
-                  fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                ),
-                color: FlutterFlowTheme.of(context).secondaryText,
-                letterSpacing: 0.0,
-                fontWeight: FlutterFlowTheme.of(context).bodySmall.fontWeight,
-                fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
-                lineHeight: 1.4,
-              ),
+                    font: GoogleFonts.figtree(
+                      fontWeight:
+                          FlutterFlowTheme.of(context).bodySmall.fontWeight,
+                      fontStyle:
+                          FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                    ),
+                    color: FlutterFlowTheme.of(context).secondaryText,
+                    letterSpacing: 0.0,
+                    fontWeight:
+                        FlutterFlowTheme.of(context).bodySmall.fontWeight,
+                    fontStyle: FlutterFlowTheme.of(context).bodySmall.fontStyle,
+                    lineHeight: 1.4,
+                  ),
             ),
           ].divide(SizedBox(height: 4)),
         ),

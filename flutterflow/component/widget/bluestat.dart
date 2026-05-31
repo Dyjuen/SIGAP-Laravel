@@ -16,10 +16,10 @@ class BlueStatCardWidget extends StatefulWidget {
     String? label,
     Color? textColor,
     String? value,
-  }) : this.bg = bg ?? const Color(0x00000000),
-       this.label = label ?? 'PENCAIRAN',
-       this.textColor = textColor ?? const Color(0x00000000),
-       this.value = value ?? '12';
+  })  : this.bg = bg ?? const Color(0x00000000),
+        this.label = label ?? 'PENCAIRAN',
+        this.textColor = textColor ?? const Color(0x00000000),
+        this.value = value ?? '12';
 
   final Color bg;
   final String label;
@@ -58,7 +58,7 @@ class _BlueStatCardWidgetState extends State<BlueStatCardWidget> {
       constraints: BoxConstraints(minHeight: 180),
       decoration: BoxDecoration(
         color: valueOrDefault<Color>(
-          widget!.bg,
+          widget.bg,
           FlutterFlowTheme.of(context).primary,
         ),
         borderRadius: BorderRadius.circular(32),
@@ -75,26 +75,26 @@ class _BlueStatCardWidgetState extends State<BlueStatCardWidget> {
                 child: Align(
                   alignment: AlignmentDirectional(1, 1),
                   child: Text(
-                    valueOrDefault<String>(widget!.value, '12'),
+                    valueOrDefault<String>(widget.value, '12'),
                     style: FlutterFlowTheme.of(context).displayLarge.override(
-                      font: GoogleFonts.figtree(
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).displayLarge.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).displayLarge.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primaryText,
-                      letterSpacing: 0.0,
-                      fontWeight: FlutterFlowTheme.of(
-                        context,
-                      ).displayLarge.fontWeight,
-                      fontStyle: FlutterFlowTheme.of(
-                        context,
-                      ).displayLarge.fontStyle,
-                      lineHeight: 1.1,
-                    ),
+                          font: GoogleFonts.figtree(
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).displayLarge.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).displayLarge.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primaryText,
+                          letterSpacing: 0.0,
+                          fontWeight: FlutterFlowTheme.of(
+                            context,
+                          ).displayLarge.fontWeight,
+                          fontStyle: FlutterFlowTheme.of(
+                            context,
+                          ).displayLarge.fontStyle,
+                          lineHeight: 1.1,
+                        ),
                   ),
                 ),
               ),
@@ -106,75 +106,75 @@ class _BlueStatCardWidgetState extends State<BlueStatCardWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      valueOrDefault<String>(widget!.label, 'PENCAIRAN'),
+                      valueOrDefault<String>(widget.label, 'PENCAIRAN'),
                       style: FlutterFlowTheme.of(context).titleMedium.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w900,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).titleMedium.fontStyle,
-                        ),
-                        color: valueOrDefault<Color>(
-                          widget!.textColor,
-                          FlutterFlowTheme.of(context).onPrimary,
-                        ),
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w900,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).titleMedium.fontStyle,
-                        lineHeight: 1.35,
-                      ),
-                    ),
-                    Opacity(
-                      opacity: 0.7,
-                      child: Text(
-                        'USULAN',
-                        style: FlutterFlowTheme.of(context).labelSmall.override(
-                          font: GoogleFonts.figtree(
-                            fontWeight: FlutterFlowTheme.of(
-                              context,
-                            ).labelSmall.fontWeight,
-                            fontStyle: FlutterFlowTheme.of(
-                              context,
-                            ).labelSmall.fontStyle,
-                          ),
-                          color: valueOrDefault<Color>(
-                            widget!.textColor,
-                            FlutterFlowTheme.of(context).onPrimary,
-                          ),
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).labelSmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).labelSmall.fontStyle,
-                          lineHeight: 1.2,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      valueOrDefault<String>(widget!.value, '12'),
-                      style: FlutterFlowTheme.of(context).displayMedium
-                          .override(
                             font: GoogleFonts.figtree(
                               fontWeight: FontWeight.w900,
                               fontStyle: FlutterFlowTheme.of(
                                 context,
-                              ).displayMedium.fontStyle,
+                              ).titleMedium.fontStyle,
                             ),
                             color: valueOrDefault<Color>(
-                              widget!.textColor,
+                              widget.textColor,
                               FlutterFlowTheme.of(context).onPrimary,
                             ),
                             letterSpacing: 0.0,
                             fontWeight: FontWeight.w900,
                             fontStyle: FlutterFlowTheme.of(
                               context,
-                            ).displayMedium.fontStyle,
-                            lineHeight: 1.15,
+                            ).titleMedium.fontStyle,
+                            lineHeight: 1.35,
                           ),
+                    ),
+                    Opacity(
+                      opacity: 0.7,
+                      child: Text(
+                        'USULAN',
+                        style: FlutterFlowTheme.of(context).labelSmall.override(
+                              font: GoogleFonts.figtree(
+                                fontWeight: FlutterFlowTheme.of(
+                                  context,
+                                ).labelSmall.fontWeight,
+                                fontStyle: FlutterFlowTheme.of(
+                                  context,
+                                ).labelSmall.fontStyle,
+                              ),
+                              color: valueOrDefault<Color>(
+                                widget.textColor,
+                                FlutterFlowTheme.of(context).onPrimary,
+                              ),
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).labelSmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).labelSmall.fontStyle,
+                              lineHeight: 1.2,
+                            ),
+                      ),
+                    ),
+                    Text(
+                      valueOrDefault<String>(widget.value, '12'),
+                      style:
+                          FlutterFlowTheme.of(context).displayMedium.override(
+                                font: GoogleFonts.figtree(
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FlutterFlowTheme.of(
+                                    context,
+                                  ).displayMedium.fontStyle,
+                                ),
+                                color: valueOrDefault<Color>(
+                                  widget.textColor,
+                                  FlutterFlowTheme.of(context).onPrimary,
+                                ),
+                                letterSpacing: 0.0,
+                                fontWeight: FontWeight.w900,
+                                fontStyle: FlutterFlowTheme.of(
+                                  context,
+                                ).displayMedium.fontStyle,
+                                lineHeight: 1.15,
+                              ),
                     ),
                   ].divide(SizedBox(height: 4)),
                 ),

@@ -11,7 +11,7 @@ export 'faq_item_model.dart';
 
 class FaqItemWidget extends StatefulWidget {
   const FaqItemWidget({super.key, String? question})
-    : this.question = question ?? 'Bagaimana cara membuat akun?';
+      : this.question = question ?? 'Bagaimana cara membuat akun?';
 
   final String question;
 
@@ -68,24 +68,24 @@ class _FaqItemWidgetState extends State<FaqItemWidget> {
                     flex: 1,
                     child: Text(
                       valueOrDefault<String>(
-                        widget!.question,
+                        widget.question,
                         'Bagaimana cara membuat akun?',
                       ),
                       style: FlutterFlowTheme.of(context).labelLarge.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w600,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).labelLarge.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w600,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).labelLarge.fontStyle,
-                        lineHeight: 1.3,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FontWeight.w600,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).labelLarge.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).primaryText,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.w600,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).labelLarge.fontStyle,
+                            lineHeight: 1.3,
+                          ),
                     ),
                   ),
                   Icon(

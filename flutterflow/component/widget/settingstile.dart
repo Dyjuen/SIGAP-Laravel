@@ -15,8 +15,8 @@ class SettingsTileWidget extends StatefulWidget {
     this.icon,
     String? subtitle,
     String? title,
-  }) : this.subtitle = subtitle ?? 'Ganti kata sandi & otentikasi',
-       this.title = title ?? 'Keamanan';
+  })  : this.subtitle = subtitle ?? 'Ganti kata sandi & otentikasi',
+        this.title = title ?? 'Keamanan';
 
   final Widget? icon;
   final String subtitle;
@@ -79,7 +79,7 @@ class _SettingsTileWidgetState extends State<SettingsTileWidget> {
                     shape: BoxShape.rectangle,
                   ),
                   alignment: AlignmentDirectional(0, 0),
-                  child: widget!.icon!,
+                  child: widget.icon!,
                 ),
                 Expanded(
                   flex: 1,
@@ -89,51 +89,51 @@ class _SettingsTileWidgetState extends State<SettingsTileWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        valueOrDefault<String>(widget!.title, 'Keamanan'),
+                        valueOrDefault<String>(widget.title, 'Keamanan'),
                         style: FlutterFlowTheme.of(context).titleSmall.override(
-                          font: GoogleFonts.figtree(
-                            fontWeight: FlutterFlowTheme.of(
-                              context,
-                            ).titleSmall.fontWeight,
-                            fontStyle: FlutterFlowTheme.of(
-                              context,
-                            ).titleSmall.fontStyle,
-                          ),
-                          color: FlutterFlowTheme.of(context).primaryText,
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).titleSmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).titleSmall.fontStyle,
-                          lineHeight: 1.4,
-                        ),
+                              font: GoogleFonts.figtree(
+                                fontWeight: FlutterFlowTheme.of(
+                                  context,
+                                ).titleSmall.fontWeight,
+                                fontStyle: FlutterFlowTheme.of(
+                                  context,
+                                ).titleSmall.fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).primaryText,
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontStyle,
+                              lineHeight: 1.4,
+                            ),
                       ),
                       Text(
                         valueOrDefault<String>(
-                          widget!.subtitle,
+                          widget.subtitle,
                           'Ganti kata sandi & otentikasi',
                         ),
                         style: FlutterFlowTheme.of(context).bodySmall.override(
-                          font: GoogleFonts.figtree(
-                            fontWeight: FlutterFlowTheme.of(
-                              context,
-                            ).bodySmall.fontWeight,
-                            fontStyle: FlutterFlowTheme.of(
-                              context,
-                            ).bodySmall.fontStyle,
-                          ),
-                          color: FlutterFlowTheme.of(context).secondaryText,
-                          letterSpacing: 0.0,
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).bodySmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).bodySmall.fontStyle,
-                          lineHeight: 1.4,
-                        ),
+                              font: GoogleFonts.figtree(
+                                fontWeight: FlutterFlowTheme.of(
+                                  context,
+                                ).bodySmall.fontWeight,
+                                fontStyle: FlutterFlowTheme.of(
+                                  context,
+                                ).bodySmall.fontStyle,
+                              ),
+                              color: FlutterFlowTheme.of(context).secondaryText,
+                              letterSpacing: 0.0,
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).bodySmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).bodySmall.fontStyle,
+                              lineHeight: 1.4,
+                            ),
                       ),
                     ],
                   ),

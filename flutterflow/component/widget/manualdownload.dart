@@ -16,9 +16,9 @@ class ManualDownloadCardWidget extends StatefulWidget {
     String? description,
     this.icon,
     String? title,
-  }) : this.description =
-           description ?? 'Panduan lengkap pembuatan KAK & RAB â¢ 4.2 MB',
-       this.title = title ?? 'User Manual Pengusul';
+  })  : this.description =
+            description ?? 'Panduan lengkap pembuatan KAK & RAB â¢ 4.2 MB',
+        this.title = title ?? 'User Manual Pengusul';
 
   final String description;
   final Widget? icon;
@@ -80,7 +80,7 @@ class _ManualDownloadCardWidgetState extends State<ManualDownloadCardWidget> {
                   shape: BoxShape.rectangle,
                 ),
                 alignment: AlignmentDirectional(0, 0),
-                child: widget!.icon!,
+                child: widget.icon!,
               ),
               Expanded(
                 flex: 1,
@@ -91,49 +91,49 @@ class _ManualDownloadCardWidgetState extends State<ManualDownloadCardWidget> {
                   children: [
                     Text(
                       valueOrDefault<String>(
-                        widget!.title,
+                        widget.title,
                         'User Manual Pengusul',
                       ),
                       style: FlutterFlowTheme.of(context).titleMedium.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FontWeight.bold,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).titleMedium.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.bold,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).titleMedium.fontStyle,
-                        lineHeight: 1.35,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).titleMedium.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).primaryText,
+                            letterSpacing: 0.0,
+                            fontWeight: FontWeight.bold,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).titleMedium.fontStyle,
+                            lineHeight: 1.35,
+                          ),
                     ),
                     Text(
                       valueOrDefault<String>(
-                        widget!.description,
+                        widget.description,
                         'Panduan lengkap pembuatan KAK & RAB â¢ 4.2 MB',
                       ),
                       style: FlutterFlowTheme.of(context).bodySmall.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).bodySmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).bodySmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).secondaryText,
-                        letterSpacing: 0.0,
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).bodySmall.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).bodySmall.fontStyle,
-                        lineHeight: 1.4,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).bodySmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).bodySmall.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).secondaryText,
+                            letterSpacing: 0.0,
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).bodySmall.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).bodySmall.fontStyle,
+                            lineHeight: 1.4,
+                          ),
                     ),
                   ].divide(SizedBox(height: 4)),
                 ),

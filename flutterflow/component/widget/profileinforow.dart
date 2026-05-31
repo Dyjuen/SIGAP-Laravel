@@ -15,8 +15,8 @@ class ProfileInfoRowWidget extends StatefulWidget {
     this.icon,
     String? label,
     String? value,
-  }) : this.label = label ?? 'Email Instansi',
-       this.value = value ?? 'admin.utama@pnj.ac.id';
+  })  : this.label = label ?? 'Email Instansi',
+        this.value = value ?? 'admin.utama@pnj.ac.id';
 
   final Widget? icon;
   final String label;
@@ -64,7 +64,7 @@ class _ProfileInfoRowWidgetState extends State<ProfileInfoRowWidget> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  widget!.icon!,
+                  widget.icon!,
                   Expanded(
                     flex: 1,
                     child: Column(
@@ -74,38 +74,39 @@ class _ProfileInfoRowWidgetState extends State<ProfileInfoRowWidget> {
                       children: [
                         Text(
                           valueOrDefault<String>(
-                            widget!.label,
+                            widget.label,
                             'Email Instansi',
                           ),
-                          style: FlutterFlowTheme.of(context).labelSmall
-                              .override(
-                                font: GoogleFonts.figtree(
-                                  fontWeight: FlutterFlowTheme.of(
-                                    context,
-                                  ).labelSmall.fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).labelSmall.fontStyle,
-                                ),
-                                color: FlutterFlowTheme.of(
-                                  context,
-                                ).secondaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(
-                                  context,
-                                ).labelSmall.fontWeight,
-                                fontStyle: FlutterFlowTheme.of(
-                                  context,
-                                ).labelSmall.fontStyle,
-                                lineHeight: 1.2,
-                              ),
+                          style:
+                              FlutterFlowTheme.of(context).labelSmall.override(
+                                    font: GoogleFonts.figtree(
+                                      fontWeight: FlutterFlowTheme.of(
+                                        context,
+                                      ).labelSmall.fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).labelSmall.fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(
+                                      context,
+                                    ).secondaryText,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(
+                                      context,
+                                    ).labelSmall.fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(
+                                      context,
+                                    ).labelSmall.fontStyle,
+                                    lineHeight: 1.2,
+                                  ),
                         ),
                         Text(
                           valueOrDefault<String>(
-                            widget!.value,
+                            widget.value,
                             'admin.utama@pnj.ac.id',
                           ),
-                          style: FlutterFlowTheme.of(context).bodyMedium
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
                               .override(
                                 font: GoogleFonts.figtree(
                                   fontWeight: FontWeight.w600,

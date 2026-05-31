@@ -99,121 +99,121 @@ class DashboardDrawer extends StatelessWidget {
   List<Widget> _getRoleMenu(BuildContext context, int role) {
     // Helper function untuk membuat item menu yang sering dipakai ulang
     Widget kakItem() => _drawerItem(
+      context,
+      Icons.file_copy_rounded,
+      'Kegiatan (KAK)',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.file_copy_rounded,
-          'Kegiatan (KAK)',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const KakListPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const KakListPage()),
         );
+      },
+    );
 
     Widget verifikatorKakItem() => _drawerItem(
+      context,
+      Icons.file_copy_rounded,
+      'Kegiatan (KAK)',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.file_copy_rounded,
-          'Kegiatan (KAK)',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const VerifikatorKakListPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const VerifikatorKakListPage()),
         );
+      },
+    );
 
     Widget ppkKegiatanItem() => _drawerItem(
+      context,
+      Icons.fact_check_rounded,
+      'Persetujuan Kegiatan',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.fact_check_rounded,
-          'Persetujuan Kegiatan',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PpkKegiatanListPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const PpkKegiatanListPage()),
         );
+      },
+    );
 
     Widget kegiatanItem() => _drawerItem(
+      context,
+      Icons.task_alt_rounded,
+      'Kegiatan',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.task_alt_rounded,
-          'Kegiatan',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const KegiatanPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const KegiatanPage()),
         );
+      },
+    );
 
     Widget pemantauanItem() => _drawerItem(
+      context,
+      Icons.visibility_rounded,
+      'Pemantauan Kegiatan',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.visibility_rounded,
-          'Pemantauan Kegiatan',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const KegiatanMonitoringPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const KegiatanMonitoringPage()),
         );
+      },
+    );
 
     Widget pencairanItem() => _drawerItem(
+      context,
+      Icons.payments_rounded,
+      'Pencairan Dana',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.payments_rounded,
-          'Pencairan Dana',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PencairanPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const PencairanPage()),
         );
+      },
+    );
 
     Widget lpjItem() => _drawerItem(
+      context,
+      Icons.receipt_long_rounded,
+      'LPJ',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.receipt_long_rounded,
-          'LPJ',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LpjListPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const LpjListPage()),
         );
+      },
+    );
 
     Widget manajemenAkunItem() => _drawerItem(
+      context,
+      Icons.group_rounded,
+      'Manajemen Akun',
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          Icons.group_rounded,
-          'Manajemen Akun',
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const UserManagementPage()),
-            );
-          },
+          MaterialPageRoute(builder: (_) => const UserManagementPage()),
         );
+      },
+    );
 
     Widget placeholderItem(IconData icon, String title) => _drawerItem(
+      context,
+      icon,
+      title,
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.push(
           context,
-          icon,
-          title,
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => PlaceholderPage(title: title)),
-            );
-          },
+          MaterialPageRoute(builder: (_) => PlaceholderPage(title: title)),
         );
+      },
+    );
 
     switch (role) {
       case 1: // Admin
@@ -226,33 +226,18 @@ class DashboardDrawer extends StatelessWidget {
           manajemenAkunItem(),
           placeholderItem(Icons.menu_book_rounded, 'Manajemen Panduan'),
           placeholderItem(Icons.history_rounded, 'Riwayat Aktivitas'),
-          placeholderItem(Icons.database_rounded, 'Master Data'),
+          placeholderItem(Icons.storage_rounded, 'Master Data'),
         ];
       case 2: // Verifikator
       case 7: // Rektorat
-        return [
-          verifikatorKakItem(),
-        ];
+        return [verifikatorKakItem()];
       case 3: // Pengusul
-        return [
-          kakItem(),
-          kegiatanItem(),
-          pemantauanItem(),
-          lpjItem(),
-        ];
+        return [kakItem(), kegiatanItem(), pemantauanItem(), lpjItem()];
       case 4: // PPK
       case 5: // Wadir
-        return [
-          kegiatanItem(),
-          ppkKegiatanItem(),
-          pemantauanItem(),
-        ];
+        return [kegiatanItem(), ppkKegiatanItem(), pemantauanItem()];
       case 6: // Bendahara
-        return [
-          kakItem(),
-          pencairanItem(),
-          lpjItem(),
-        ];
+        return [kakItem(), pencairanItem(), lpjItem()];
       default:
         return [];
     }
@@ -282,12 +267,21 @@ class DashboardDrawer extends StatelessWidget {
     );
   }
 
-  Future<void> _handleLogout(BuildContext context, AuthProvider provider) async {
+  Future<void> _handleLogout(
+    BuildContext context,
+    AuthProvider provider,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Keluar?', style: GoogleFonts.figtree(fontWeight: FontWeight.bold)),
-        content: Text('Anda yakin ingin keluar dari akun?', style: GoogleFonts.figtree()),
+        title: Text(
+          'Keluar?',
+          style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Anda yakin ingin keluar dari akun?',
+          style: GoogleFonts.figtree(),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -335,17 +329,28 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             final confirm = await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: Text('Keluar?', style: GoogleFonts.figtree(fontWeight: FontWeight.bold)),
-                content: Text('Anda yakin ingin keluar dari akun?', style: GoogleFonts.figtree()),
+                title: Text(
+                  'Keluar?',
+                  style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                ),
+                content: Text(
+                  'Anda yakin ingin keluar dari akun?',
+                  style: GoogleFonts.figtree(),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
                     child: const Text('Batal'),
                   ),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Keluar', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'Keluar',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),

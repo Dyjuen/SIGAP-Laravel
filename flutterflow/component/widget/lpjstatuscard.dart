@@ -16,10 +16,10 @@ class LpjStatusCardWidget extends StatefulWidget {
     String? label,
     Color? textColor,
     String? value,
-  }) : this.bg = bg ?? const Color(0x00000000),
-       this.label = label ?? 'TOTAL LPJ',
-       this.textColor = textColor ?? const Color(0x00000000),
-       this.value = value ?? '24';
+  })  : this.bg = bg ?? const Color(0x00000000),
+        this.label = label ?? 'TOTAL LPJ',
+        this.textColor = textColor ?? const Color(0x00000000),
+        this.value = value ?? '24';
 
   final Color bg;
   final String label;
@@ -57,7 +57,7 @@ class _LpjStatusCardWidgetState extends State<LpjStatusCardWidget> {
     return Container(
       decoration: BoxDecoration(
         color: valueOrDefault<Color>(
-          widget!.bg,
+          widget.bg,
           FlutterFlowTheme.of(context).secondaryBackground,
         ),
         borderRadius: BorderRadius.circular(32),
@@ -74,29 +74,29 @@ class _LpjStatusCardWidgetState extends State<LpjStatusCardWidget> {
                 child: Align(
                   alignment: AlignmentDirectional(1, 1),
                   child: Text(
-                    valueOrDefault<String>(widget!.value, '24'),
+                    valueOrDefault<String>(widget.value, '24'),
                     style: FlutterFlowTheme.of(context).displayLarge.override(
-                      font: GoogleFonts.figtree(
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).displayLarge.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).displayLarge.fontStyle,
-                      ),
-                      color: valueOrDefault<Color>(
-                        widget!.textColor,
-                        FlutterFlowTheme.of(context).primary,
-                      ),
-                      letterSpacing: 0.0,
-                      fontWeight: FlutterFlowTheme.of(
-                        context,
-                      ).displayLarge.fontWeight,
-                      fontStyle: FlutterFlowTheme.of(
-                        context,
-                      ).displayLarge.fontStyle,
-                      lineHeight: 1.1,
-                    ),
+                          font: GoogleFonts.figtree(
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).displayLarge.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).displayLarge.fontStyle,
+                          ),
+                          color: valueOrDefault<Color>(
+                            widget.textColor,
+                            FlutterFlowTheme.of(context).primary,
+                          ),
+                          letterSpacing: 0.0,
+                          fontWeight: FlutterFlowTheme.of(
+                            context,
+                          ).displayLarge.fontWeight,
+                          fontStyle: FlutterFlowTheme.of(
+                            context,
+                          ).displayLarge.fontStyle,
+                          lineHeight: 1.1,
+                        ),
                   ),
                 ),
               ),
@@ -108,47 +108,47 @@ class _LpjStatusCardWidgetState extends State<LpjStatusCardWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      valueOrDefault<String>(widget!.label, 'TOTAL LPJ'),
+                      valueOrDefault<String>(widget.label, 'TOTAL LPJ'),
                       style: FlutterFlowTheme.of(context).titleMedium.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w900,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).titleMedium.fontStyle,
-                        ),
-                        color: valueOrDefault<Color>(
-                          widget!.textColor,
-                          FlutterFlowTheme.of(context).primary,
-                        ),
-                        letterSpacing: 0.0,
-                        fontWeight: FontWeight.w900,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).titleMedium.fontStyle,
-                        lineHeight: 1.35,
-                      ),
-                    ),
-                    Text(
-                      valueOrDefault<String>(widget!.value, '24'),
-                      style: FlutterFlowTheme.of(context).displayMedium
-                          .override(
                             font: GoogleFonts.figtree(
                               fontWeight: FontWeight.w900,
                               fontStyle: FlutterFlowTheme.of(
                                 context,
-                              ).displayMedium.fontStyle,
+                              ).titleMedium.fontStyle,
                             ),
                             color: valueOrDefault<Color>(
-                              widget!.textColor,
+                              widget.textColor,
                               FlutterFlowTheme.of(context).primary,
                             ),
                             letterSpacing: 0.0,
                             fontWeight: FontWeight.w900,
                             fontStyle: FlutterFlowTheme.of(
                               context,
-                            ).displayMedium.fontStyle,
-                            lineHeight: 1.15,
+                            ).titleMedium.fontStyle,
+                            lineHeight: 1.35,
                           ),
+                    ),
+                    Text(
+                      valueOrDefault<String>(widget.value, '24'),
+                      style:
+                          FlutterFlowTheme.of(context).displayMedium.override(
+                                font: GoogleFonts.figtree(
+                                  fontWeight: FontWeight.w900,
+                                  fontStyle: FlutterFlowTheme.of(
+                                    context,
+                                  ).displayMedium.fontStyle,
+                                ),
+                                color: valueOrDefault<Color>(
+                                  widget.textColor,
+                                  FlutterFlowTheme.of(context).primary,
+                                ),
+                                letterSpacing: 0.0,
+                                fontWeight: FontWeight.w900,
+                                fontStyle: FlutterFlowTheme.of(
+                                  context,
+                                ).displayMedium.fontStyle,
+                                lineHeight: 1.15,
+                              ),
                     ),
                   ].divide(SizedBox(height: 4)),
                 ),

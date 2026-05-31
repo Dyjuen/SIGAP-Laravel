@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models/kak_model.dart';
 import '../providers/kak_detail_provider.dart';
-import 'pengusul/kak_edit_page.dart';
+import 'pengusul/kak_form_page.dart';
 import 'pengusul/pengajuan_create_page.dart';
 
 class KakDetailPage extends StatefulWidget {
@@ -1133,7 +1133,7 @@ class _ActionsSection extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          KakEditPage(kakId: int.parse(kak.kakId)),
+                          KakFormPage(kakId: int.parse(kak.kakId)),
                     ),
                   ).then((result) {
                     if (result == true) {
