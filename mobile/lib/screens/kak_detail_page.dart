@@ -49,11 +49,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: colorScheme.error,
-                ),
+                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
                 Text(
                   'Terjadi Kesalahan',
@@ -125,18 +121,13 @@ class _KakDetailPageState extends State<KakDetailPage> {
 
               // Indikator Kinerja
               if (kak.indikatorKinerja.isNotEmpty)
-                _IndikatorKinerjaSection(
-                  kak: kak,
-                  colorScheme: colorScheme,
-                ),
+                _IndikatorKinerjaSection(kak: kak, colorScheme: colorScheme),
 
               // RAB (Rencana Anggaran Biaya)
               if (kak.rab.isNotEmpty)
                 _RabSection(kak: kak, colorScheme: colorScheme),
 
               // Approvals
-              if (kak.approvals.isNotEmpty)
-                _ApprovalsSection(kak: kak, colorScheme: colorScheme),
 
               // Action Buttons
               if (!widget.embedMode)
@@ -875,138 +866,7 @@ class _RabSection extends StatelessWidget {
   }
 }
 
-// Approvals Section
-class _ApprovalsSection extends StatelessWidget {
-  final KakDetail kak;
-  final ColorScheme colorScheme;
-
-  const _ApprovalsSection({required this.kak, required this.colorScheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Alur Persetujuan',
-            style: GoogleFonts.figtree(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...kak.approvals.asMap().entries.map((e) {
-            final approval = e.value;
-            final isLast = e.key == kak.approvals.length - 1;
-            final isApproved = approval.status.toLowerCase() == 'approved';
-
-            return Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Timeline Circle
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: isApproved
-                            ? Color(0xFF2E7D32)
-                            : colorScheme.surfaceVariant,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        isApproved ? Icons.check_rounded : Icons.schedule,
-                        color: isApproved
-                            ? Colors.white
-                            : colorScheme.onSurfaceVariant,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            approval.approverNama,
-                            style: GoogleFonts.figtree(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            approval.status,
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              color: isApproved
-                                  ? Color(0xFF2E7D32)
-                                  : colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (approval.tanggal != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                approval.tanggal ?? '',
-                                style: GoogleFonts.figtree(
-                                  fontSize: 11,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          if (approval.catatan != null &&
-                              approval.catatan!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceVariant.withOpacity(
-                                    0.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  approval.catatan ?? '',
-                                  style: GoogleFonts.figtree(
-                                    fontSize: 12,
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (!isLast)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, top: 8, bottom: 8),
-                    child: Container(
-                      width: 2,
-                      height: 24,
-                      color: colorScheme.outline,
-                    ),
-                  ),
-              ],
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-}
+// Approvals UI removed: approvals are no longer displayed in mobile KAK detail
 
 // Actions Section
 class _ActionsSection extends StatelessWidget {
