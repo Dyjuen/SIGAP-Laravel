@@ -167,11 +167,15 @@ class KakService {
     String kakId,
     String? catatan,
     Map<String, String>? catatanFields,
+    Map<String, dynamic>? anak,
   ) async {
     try {
       final data = <String, dynamic>{'catatan': catatan};
       if (catatanFields != null) {
         data['catatan_kak'] = catatanFields;
+      }
+      if (anak != null) {
+        data['anak'] = anak;
       }
 
       final response = await dio.post(

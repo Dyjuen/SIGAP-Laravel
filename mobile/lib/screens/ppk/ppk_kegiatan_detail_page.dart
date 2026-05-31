@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
@@ -498,16 +497,16 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     final namaKegiatan = kak['nama_kegiatan'] ?? 'Tanpa Nama Kegiatan';
     final tipe = kak['tipe_kegiatan']?['nama_tipe'] ?? 'Akademik';
     final sumberDana = kak['mata_anggaran']?['nama_sumber_dana'] ?? 'PNBP';
-    final pengusul = kak['pengusul']?['nama_lengkap'] ?? '-';
     final tglMulai = kak['tanggal_mulai'];
     final tglSelesai = kak['tanggal_selesai'];
     final lokasi = kak['lokasi'] ?? '-';
     final ikus = kak['ikus'] as List? ?? [];
     final ikusStr = ikus.map((i) => i['iku']?['nama_iku']).where((n) => n != null).join(', ');
 
-    final penanggungJawab = _kegiatan['penanggung_jawab_manual'] ?? '-';
-    final pelaksana = _kegiatan['pelaksana_manual'] ?? '-';
-    final suratPengantarUrl = _kegiatan['surat_pengantar_url'];
+    final String deskripsiKegiatan = kak['deskripsi_kegiatan'] ?? '-';
+    final String metodePelaksanaan = kak['metode_pelaksanaan'] ?? '-';
+    final String sasaranUtama = kak['sasaran_utama'] ?? '-';
+    final String kurunWaktu = kak['kurun_waktu_pelaksanaan'] ?? '-';
 
     // Grouping anggaran by kategori belanja
     final List<dynamic> anggaran = kak['anggaran'] as List? ?? [];
@@ -524,6 +523,11 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
       0.0,
       (sum, item) => sum + (double.tryParse(item['jumlah_diusulkan'].toString()) ?? 0.0),
     );
+
+    final List<dynamic> manfaat = kak['manfaat'] as List? ?? [];
+    final List<dynamic> tahapan = kak['tahapan'] as List? ?? [];
+    final List<dynamic> targets = kak['indikator_kinerja'] as List? ?? [];
+    final List<dynamic> targetIku = kak['target_iku'] as List? ?? [];
 
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
@@ -616,27 +620,25 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                 title: 'INFORMASI KAK',
                 icon: Icons.assignment_outlined,
                 children: [
-                  _buildInfoTile(Icons.person_outline, 'Pengusul', pengusul),
+                  _buildInfoTile(Icons.description_outlined, 'Gambaran Umum / Deskripsi Kegiatan', deskripsiKegiatan),
+                  _buildInfoTile(Icons.edit_note_outlined, 'Metode Pelaksanaan', metodePelaksanaan),
                   _buildInfoTile(
                     Icons.calendar_today_outlined,
                     'Waktu Pelaksanaan',
                     '${_formatDate(tglMulai)} s/d ${_formatDate(tglSelesai)}',
                   ),
+                  _buildInfoTile(Icons.hourglass_bottom_outlined, 'Kurun Waktu Pelaksanaan', kurunWaktu),
                   _buildInfoTile(Icons.location_on_outlined, 'Lokasi', lokasi),
+                  _buildInfoTile(Icons.people_outline, 'Sasaran Utama', sasaranUtama),
                   _buildInfoTile(Icons.track_changes_outlined, 'IKU Sasaran', ikusStr.isEmpty ? '-' : ikusStr),
                 ],
               ),
               const SizedBox(height: 16),
 
-              // Informasi Pelaksanaan
               _buildSectionCard(
-                title: 'INFORMASI PELAKSANAAN',
-                icon: Icons.check_circle_outline,
-                isCyanTint: true,
+                title: 'MANFAAT DAN TAHAPAN',
+                icon: Icons.timeline_outlined,
                 children: [
-                  _buildInfoTile(Icons.manage_accounts_outlined, 'Penanggung Jawab', penanggungJawab),
-                  _buildInfoTile(Icons.group_outlined, 'Pelaksana', pelaksana),
-                  const SizedBox(height: 12),
                   const Text(
                     'Surat Pengantar',
                     style: TextStyle(
@@ -660,16 +662,41 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       ),
-                    )
+                    )),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Target IKU',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0E7490)),
+                  ),
+                  const SizedBox(height: 8),
+                  if (targetIku.isEmpty)
+                    const Text('Tidak ada target IKU.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontStyle: FontStyle.italic))
                   else
-                    const Text(
-                      'Tidak ada dokumen surat pengantar.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontStyle: FontStyle.italic,
-                        color: Color(0xFF64748B),
+                    ...targetIku.map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: _buildInfoTile(
+                        Icons.track_changes_outlined,
+                        '${item['kode_iku'] ?? '-'} - ${item['nama_iku'] ?? '-'}',
+                        'Target: ${item['target'] ?? '-'} ${item['nama_satuan'] ?? ''}\nCatatan: ${item['catatan_verifikator'] ?? '-'}',
                       ),
-                    ),
+                    )),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Approval KAK',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0E7490)),
+                  ),
+                  const SizedBox(height: 8),
+                  if (approvals.isEmpty)
+                    const Text('Belum ada approval KAK.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontStyle: FontStyle.italic))
+                  else
+                    ...approvals.map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: _buildInfoTile(
+                        Icons.verified_user_outlined,
+                        '${item['approver_nama'] ?? '-'} - ${item['status'] ?? '-'}',
+                        'Tanggal: ${item['tanggal'] ?? '-'}\nCatatan: ${item['catatan'] ?? '-'}',
+                      ),
+                    )),
                 ],
               ),
               const SizedBox(height: 16),

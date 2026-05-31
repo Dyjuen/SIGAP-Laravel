@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import '../../services/api_service.dart';
 import 'kak_edit_page.dart';
-import 'kegiatan_form_page.dart';
+import 'kak_create_page.dart';
 
 class KakListPage extends StatefulWidget {
   final int? initialStatusId;
@@ -69,12 +74,15 @@ class _KakListPageState extends State<KakListPage> {
   void _applyFilter() {
     List<dynamic> result = List.from(_kaks);
     if (_activeStatusFilter != null) {
-      result = result.where((k) => k['status_id'] == _activeStatusFilter).toList();
+      result = result
+          .where((k) => k['status_id'] == _activeStatusFilter)
+          .toList();
     }
     final q = _searchController.text.trim().toLowerCase();
     if (q.isNotEmpty) {
-      result = result.where((k) =>
-          (k['nama_kegiatan'] ?? '').toLowerCase().contains(q)).toList();
+      result = result
+          .where((k) => (k['nama_kegiatan'] ?? '').toLowerCase().contains(q))
+          .toList();
     }
     setState(() => _filtered = result);
   }
@@ -84,7 +92,9 @@ class _KakListPageState extends State<KakListPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus KAK?'),
-        content: Text('Yakin ingin menghapus "$nama"? Tindakan ini tidak dapat dibatalkan.'),
+        content: Text(
+          'Yakin ingin menghapus "$nama"? Tindakan ini tidak dapat dibatalkan.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -104,13 +114,19 @@ class _KakListPageState extends State<KakListPage> {
     if (!mounted) return;
     if (res.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('KAK berhasil dihapus.'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('KAK berhasil dihapus.'),
+          backgroundColor: Colors.green,
+        ),
       );
       _loadKaks();
     } else {
       final data = jsonDecode(res.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['message'] ?? 'Gagal menghapus KAK.'), backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text(data['message'] ?? 'Gagal menghapus KAK.'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }
@@ -128,7 +144,9 @@ class _KakListPageState extends State<KakListPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF33C8DA)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF33C8DA),
+            ),
             child: const Text('Ajukan', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -140,15 +158,238 @@ class _KakListPageState extends State<KakListPage> {
     if (!mounted) return;
     if (res.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('KAK berhasil diajukan!'), backgroundColor: Colors.green),
+        const SnackBar(
+          content: Text('KAK berhasil diajukan!'),
+          backgroundColor: Colors.green,
+        ),
       );
       _loadKaks();
     } else {
       final data = jsonDecode(res.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['message'] ?? 'Gagal mengajukan KAK.'), backgroundColor: Colors.redAccent),
+        SnackBar(
+          content: Text(data['message'] ?? 'Gagal mengajukan KAK.'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
+  }
+
+  Future<void> _openKegiatanSubmitModal(Map<String, dynamic> kak) async {
+    final penanggungCtrl = TextEditingController();
+    final pelaksanaCtrl = TextEditingController();
+    PlatformFile? pickedFile;
+    bool isSubmitting = false;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return AlertDialog(
+            title: const Text('Ajukan Menjadi Kegiatan'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(kak['nama_kegiatan'] ?? '-'),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: penanggungCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Penanggung Jawab',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: pelaksanaCtrl,
+                    decoration: const InputDecoration(labelText: 'Pelaksana'),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final res = await FilePicker.platform.pickFiles(
+                        type: FileType.custom,
+                        allowedExtensions: ['pdf', 'doc', 'docx'],
+                        withData: true,
+                      );
+                      if (res != null && res.files.isNotEmpty) {
+                        setState(() => pickedFile = res.files.first);
+                      }
+                    },
+                    icon: const Icon(Icons.upload_file),
+                    label: Text(
+                      pickedFile == null
+                          ? 'Pilih Surat Pengantar'
+                          : pickedFile!.name,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.of(ctx).pop(),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        if (penanggungCtrl.text.trim().isEmpty ||
+                            pelaksanaCtrl.text.trim().isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Isi penanggung jawab dan pelaksana.',
+                              ),
+                              backgroundColor: Colors.redAccent,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() => isSubmitting = true);
+                        try {
+                          final dio = Provider.of<Dio>(context, listen: false);
+                          final map = <String, dynamic>{
+                            'kak_id': kak['kak_id'].toString(),
+                            'penanggung_jawab_manual': penanggungCtrl.text
+                                .trim(),
+                            'pelaksana_manual': pelaksanaCtrl.text.trim(),
+                          };
+
+                          if (pickedFile != null) {
+                            map['surat_pengantar'] = await _toMultipartFile(
+                              pickedFile!,
+                            );
+                          }
+
+                          final formData = FormData.fromMap(map);
+
+                          final resp = await dio.post(
+                            '/kegiatan',
+                            data: formData,
+                            options: Options(
+                              headers: {'Accept': 'application/json'},
+                            ),
+                          );
+
+                          if (resp.statusCode == 201 ||
+                              resp.statusCode == 200) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Kegiatan berhasil diajukan.'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                            Navigator.of(ctx).pop();
+                            _loadKaks();
+                          } else {
+                            final msg = resp.data is Map
+                                ? resp.data['message'] ??
+                                      'Gagal mengajukan kegiatan.'
+                                : 'Gagal mengajukan kegiatan.';
+                            if (context.mounted)
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(msg),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                          }
+                        } on DioException catch (e) {
+                          final responseMessage = e.response?.data is Map
+                              ? (e.response?.data['message'] ??
+                                    e.response?.data['errors'] ??
+                                    e.message)
+                              : e.message;
+                          if (context.mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Gagal mengajukan kegiatan: $responseMessage',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                        } catch (e) {
+                          if (context.mounted)
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Gagal mengajukan kegiatan: $e'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                        } finally {
+                          if (mounted) setState(() => isSubmitting = false);
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00BCD4),
+                ),
+                child: isSubmitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Ajukan Kegiatan'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<MultipartFile> _toMultipartFile(PlatformFile file) async {
+    final mimeType = lookupMimeType(file.name, headerBytes: file.bytes);
+    final mediaType = _toMediaType(mimeType, file.name);
+
+    if (file.bytes != null) {
+      return MultipartFile.fromBytes(
+        file.bytes!,
+        filename: file.name,
+        contentType: mediaType,
+      );
+    }
+    if (file.path != null) {
+      return MultipartFile.fromFile(
+        file.path!,
+        filename: file.name,
+        contentType: mediaType,
+      );
+    }
+    throw StateError('File tidak memiliki bytes atau path.');
+  }
+
+  MediaType _toMediaType(String? mimeType, String fileName) {
+    if (mimeType != null && mimeType.contains('/')) {
+      final parts = mimeType.split('/');
+      if (parts.length == 2) {
+        return MediaType(parts[0], parts[1]);
+      }
+    }
+
+    final ext = fileName.split('.').last.toLowerCase();
+    return switch (ext) {
+      'pdf' => MediaType('application', 'pdf'),
+      'doc' => MediaType('application', 'msword'),
+      'docx' => MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ),
+      'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
+      'png' => MediaType('image', 'png'),
+      'webp' => MediaType('image', 'webp'),
+      _ => MediaType('application', 'octet-stream'),
+    };
   }
 
   @override
@@ -165,15 +406,23 @@ class _KakListPageState extends State<KakListPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('SIGAP PNJ',
-                style: TextStyle(
-                  color: Color(0xFF0F172A),
-                  fontWeight: FontWeight.w900,
-                  fontSize: 20,
-                  fontFamily: 'Figtree',
-                )),
-            Text('Daftar KAK Saya',
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontFamily: 'Figtree')),
+            Text(
+              'SIGAP PNJ',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+                fontFamily: 'Figtree',
+              ),
+            ),
+            Text(
+              'Daftar KAK Saya',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 12,
+                fontFamily: 'Figtree',
+              ),
+            ),
           ],
         ),
         actions: [
@@ -185,12 +434,15 @@ class _KakListPageState extends State<KakListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Navigator.of(context)
-            .push(MaterialPageRoute(builder: (_) => KegiatanFormPage(onSuccess: _loadKaks)))
+            .push(MaterialPageRoute(builder: (_) => const KakCreatePage()))
             .then((_) => _loadKaks()),
         backgroundColor: const Color(0xFF33C8DA),
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('Buat KAK', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text(
+          'Buat KAK',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: Column(
         children: [
@@ -201,19 +453,32 @@ class _KakListPageState extends State<KakListPage> {
               onChanged: (_) => _applyFilter(),
               decoration: InputDecoration(
                 hintText: 'Cari nama kegiatan...',
-                hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                hintStyle: const TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 14,
+                ),
                 filled: true,
                 fillColor: Colors.white,
                 prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
                 enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
                 focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5)),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF33C8DA),
+                    width: 1.5,
+                  ),
+                ),
               ),
             ),
           ),
@@ -231,17 +496,27 @@ class _KakListPageState extends State<KakListPage> {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF33C8DA) : Colors.white,
+                      color: isSelected
+                          ? const Color(0xFF33C8DA)
+                          : Colors.white,
                       border: Border.all(
-                          color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0)),
+                        color: isSelected
+                            ? Colors.transparent
+                            : const Color(0xFFE2E8F0),
+                      ),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       f['label'] as String,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF475569),
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF475569),
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -255,25 +530,36 @@ class _KakListPageState extends State<KakListPage> {
 
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF33C8DA)))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF33C8DA)),
+                  )
                 : _filtered.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.inbox_outlined,
-                                color: Color(0xFFCBD5E1), size: 60),
-                            const SizedBox(height: 12),
-                            const Text('Tidak ada KAK ditemukan.',
-                                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14)),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.inbox_outlined,
+                          color: Color(0xFFCBD5E1),
+                          size: 60,
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _filtered.length,
-                        itemBuilder: (context, idx) => _buildKakCard(_filtered[idx]),
-                      ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Tidak ada KAK ditemukan.',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _filtered.length,
+                    itemBuilder: (context, idx) =>
+                        _buildKakCard(_filtered[idx]),
+                  ),
           ),
         ],
       ),
@@ -321,7 +607,10 @@ class _KakListPageState extends State<KakListPage> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4)),
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -346,27 +635,41 @@ class _KakListPageState extends State<KakListPage> {
                     const SizedBox(height: 4),
                     Text(
                       kak['tipe'] ?? 'Tipe tidak tersedia',
-                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Diperbarui: ${kak['updated_at'] ?? '-'}',
-                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration:
-                    BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(8)),
-                child: Text(statusNama,
-                    style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                        fontFamily: 'Figtree')),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  statusNama,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontFamily: 'Figtree',
+                  ),
+                ),
               ),
             ],
           ),
@@ -379,21 +682,56 @@ class _KakListPageState extends State<KakListPage> {
                 child: SizedBox(
                   height: 38,
                   child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => KakEditPage(kakId: kakId)),
-                    ).then((_) => _loadKaks()),
+                    onPressed: () => Navigator.of(context)
+                        .push(
+                          MaterialPageRoute(
+                            builder: (_) => KakEditPage(kakId: kakId),
+                          ),
+                        )
+                        .then((_) => _loadKaks()),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('Detail / Edit',
-                        style: TextStyle(
-                            color: Color(0xFF475569), fontWeight: FontWeight.bold, fontSize: 13)),
+                    child: const Text(
+                      'Detail / Edit',
+                      style: TextStyle(
+                        color: Color(0xFF475569),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              if (canSubmit) ...[
+              if (statusId == 3) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SizedBox(
+                    height: 38,
+                    child: ElevatedButton(
+                      onPressed: () => _openKegiatanSubmitModal(kak),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00BCD4),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Ajukan Menjadi Kegiatan',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ] else if (canSubmit) ...[
                 const SizedBox(width: 8),
                 Expanded(
                   child: SizedBox(
@@ -404,10 +742,17 @@ class _KakListPageState extends State<KakListPage> {
                         backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      child: Text(statusId == 5 ? 'Ajukan Ulang' : 'Ajukan',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      child: Text(
+                        statusId == 5 ? 'Ajukan Ulang' : 'Ajukan',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -422,9 +767,15 @@ class _KakListPageState extends State<KakListPage> {
                     style: OutlinedButton.styleFrom(
                       padding: EdgeInsets.zero,
                       side: const BorderSide(color: Color(0xFFFDA4AF)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.redAccent,
+                      size: 18,
+                    ),
                   ),
                 ),
               ],

@@ -1,16 +1,13 @@
 import 'package:dio/dio.dart';
-import '../models/dashboard_model.dart';
+import '../models/monitoring_model.dart';
 
 class MonitoringService {
   final Dio dio;
 
   MonitoringService(this.dio);
 
-  /// Fetch all KAKs for monitoring
-  Future<List<DashboardItem>> getAllKaks({
-    String? search,
-    String? statusFilter,
-  }) async {
+  /// Fetch monitoring data from the same endpoint used by web.
+  Future<MonitoringResponse> getMonitoring({String? search}) async {
     try {
       final params = <String, dynamic>{};
       if (search != null && search.isNotEmpty) {
@@ -18,58 +15,43 @@ class MonitoringService {
       }
 
       final response = await dio.get(
-        '/kak',
+        '/kegiatan/monitoring',
         queryParameters: params,
         options: Options(headers: {'Accept': 'application/json'}),
       );
 
       if (response.statusCode == 200) {
         final dynamic rawData = response.data;
-        final List<dynamic> data;
-        if (rawData is Map && rawData.containsKey('data')) {
-          data = rawData['data'] as List<dynamic>;
-        } else if (rawData is List) {
-          data = rawData;
-        } else {
-          data = [];
+        if (rawData is Map<String, dynamic>) {
+          return MonitoringResponse.fromJson(rawData);
         }
-        return data.map((item) {
-          return DashboardItem(
-            id: item['kak_id']?.toString() ?? '',
-            nama: item['nama_kegiatan'] ?? '',
-            pengusulNama: item['pengusul_nama'],
-            tipe: item['tipe'],
-            status: item['status_nama'] ?? 'Draft',
-            tanggalMulai: item['tanggal_mulai'],
-            tanggalSelesai: item['tanggal_selesai'],
-            createdAt: item['updated_at'],
-          );
-        }).toList();
+        return const MonitoringResponse(
+          items: [],
+          stats: MonitoringStats(total: 0, running: 0, completed: 0),
+        );
       }
-      throw Exception('Failed to load KAKs');
+      throw Exception('Failed to load monitoring data');
     } on DioException catch (e) {
       throw _handleDioException(e);
     }
   }
 
   /// Filter items by status
-  List<DashboardItem> filterByStatus(
-    List<DashboardItem> items,
+  List<MonitoringItem> filterByStatus(
+    List<MonitoringItem> items,
     String? statusFilter,
   ) {
     if (statusFilter == null || statusFilter == 'Semua') {
       return items;
     }
 
-    final statusMap = {
-      'Menunggu': ['Draft', 'Review'],
-      'Disetujui': ['Approved'],
-      'Ditolak': ['Rejected'],
-      'Proses': ['Processing'],
-    };
-
-    final statuses = statusMap[statusFilter] ?? [];
-    return items.where((item) => statuses.contains(item.status)).toList();
+    if (statusFilter == 'Sedang Berjalan') {
+      return items.where((item) => item.status < 6).toList();
+    }
+    if (statusFilter == 'Telah Selesai') {
+      return items.where((item) => item.status >= 6).toList();
+    }
+    return items;
   }
 
   /// Get status background color (Dart hex format)

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
+import '../../providers/auth_provider.dart';
+import '../landing_page.dart';
 import '../verifikator/verifikator_approval_page.dart';
 import '../verifikator/verifikator_kak_list_page.dart';
 import '../../widgets/dashboard_drawer.dart';
@@ -23,6 +25,16 @@ class _VerifikatorDashboardScreenState
     super.initState();
     Future.microtask(
       () => context.read<VerifikatorDashboardProvider>().loadDashboard(),
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.logout();
+    if (!context.mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LandingPage()),
+      (route) => false,
     );
   }
 
@@ -107,17 +119,23 @@ class _VerifikatorDashboardScreenState
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const VerifikatorKakListPage(),
+                                        builder: (context) =>
+                                            const VerifikatorKakListPage(),
                                       ),
                                     ).then((_) {
                                       if (context.mounted) {
-                                        context.read<VerifikatorDashboardProvider>().loadDashboard();
+                                        context
+                                            .read<
+                                              VerifikatorDashboardProvider
+                                            >()
+                                            .loadDashboard();
                                       }
                                     });
                                   },
                                   child: BlueStatCard(
                                     label: 'PENDING',
-                                    value: stats.pendingCount?.toString() ?? '0',
+                                    value:
+                                        stats.pendingCount?.toString() ?? '0',
                                   ),
                                 ),
                               ),
@@ -158,19 +176,21 @@ class _VerifikatorDashboardScreenState
                       children: [
                         Text(
                           'KAK Menunggu Verifikasi',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const VerifikatorKakListPage(),
+                                builder: (context) =>
+                                    const VerifikatorKakListPage(),
                               ),
                             ).then((_) {
-                              context.read<VerifikatorDashboardProvider>().loadDashboard();
+                              context
+                                  .read<VerifikatorDashboardProvider>()
+                                  .loadDashboard();
                             });
                           },
                           child: const Text('Lihat Semua'),

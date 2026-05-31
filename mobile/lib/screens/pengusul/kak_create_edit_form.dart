@@ -7,6 +7,7 @@ import '../../models/kak_model.dart';
 class ManfaatItem {
   String id;
   String value;
+  String? note;
 
   ManfaatItem({required this.id, required this.value});
 }
@@ -15,6 +16,7 @@ class TahapanItem {
   String id;
   String nama;
   int urutan;
+  String? note;
 
   TahapanItem({required this.id, required this.nama, required this.urutan});
 }
@@ -24,12 +26,14 @@ class IndikatorKinerjaItem {
   String bulanIndikator;
   String deskripsiTarget;
   double? persentaseTarget;
+  String? note;
 
   IndikatorKinerjaItem({
     required this.id,
     required this.bulanIndikator,
     required this.deskripsiTarget,
     this.persentaseTarget,
+    this.note,
   });
 }
 
@@ -39,6 +43,7 @@ class TargetIkuItem {
   String ikuNama;
   String target;
   int? satuanId;
+  String? note;
 
   TargetIkuItem({
     required this.id,
@@ -46,6 +51,7 @@ class TargetIkuItem {
     required this.ikuNama,
     required this.target,
     this.satuanId,
+    this.note,
   });
 }
 
@@ -57,6 +63,7 @@ class RabItem {
   double? volume3;
   double hargaSatuan;
   int kategoriBelanjaId;
+  String? note;
 
   RabItem({
     required this.id,
@@ -66,6 +73,7 @@ class RabItem {
     this.volume3,
     required this.hargaSatuan,
     required this.kategoriBelanjaId,
+    this.note,
   });
 
   double getTotal() {
@@ -113,6 +121,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
   List<ManfaatItem> manfaatList = [];
   List<TahapanItem> tahapanList = [];
   List<IndikatorKinerjaItem> indikatorKinerjaList = [];
+  List<TargetIkuItem> targetIkuList = [];
   List<RabItem> rabList = [];
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -132,58 +141,89 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
   }
 
   void _initializeFromData(KakDetail data) {
-    namaController.text = data.namaKegiatan ?? '';
-    deskripsiController.text = data.deskripsiKegiatan ?? '';
-    metodeController.text = data.metodePelaksanaan ?? '';
-    lokasiController.text = data.lokasi ?? '';
-    sasaranController.text = data.sasaranUtama ?? '';
+    namaController.text = data.namaKegiatan;
+    deskripsiController.text = data.deskripsiKegiatan;
+    metodeController.text = data.metodePelaksanaan;
+    lokasiController.text = data.lokasi;
+    sasaranController.text = data.sasaranUtama;
 
-    tanggalMulai = data.tanggalMulai != null ? DateTime.tryParse(data.tanggalMulai!) : null;
-    tanggalSelesai = data.tanggalSelesai != null ? DateTime.tryParse(data.tanggalSelesai!) : null;
+    tanggalMulai = DateTime.tryParse(data.tanggalMulai);
+    tanggalSelesai = DateTime.tryParse(data.tanggalSelesai);
     selectedTipeKegiatan = data.tipeKegiatanId;
 
-    manfaatList = (data.manfaat ?? [])
-        .map(
-          (m) =>
-              ManfaatItem(id: m.manfaatId.toString(), value: m.manfaat ?? ''),
-        )
+    manfaatList = data.manfaat
+        .map((m) => ManfaatItem(id: m.manfaatId.toString(), value: m.manfaat))
         .toList();
+    // carry over verifier notes
+    for (int i = 0; i < manfaatList.length; i++) {
+      if (i < data.manfaat.length) {
+        manfaatList[i].note = data.manfaat[i].catatan;
+      }
+    }
 
-    tahapanList = (data.tahapan ?? [])
+    tahapanList = data.tahapan
         .map(
           (t) => TahapanItem(
             id: t.tahapanId.toString(),
-            nama: t.namaTahapan ?? '',
-            urutan: t.urutan ?? 0,
+            nama: t.namaTahapan,
+            urutan: t.urutan,
           ),
         )
         .toList();
+    for (int i = 0; i < tahapanList.length; i++) {
+      if (i < data.tahapan.length) {
+        tahapanList[i].note = data.tahapan[i].catatanVerifikator;
+      }
+    }
 
-    rabList = (data.rab ?? [])
+    rabList = data.rab
         .map(
           (r) => RabItem(
             id: r.anggaranId.toString(),
-            uraian: r.uraian ?? '',
-            volume1: (r.volume1 ?? 0).toDouble(),
+            uraian: r.uraian,
+            volume1: r.volume1?.toDouble() ?? 0,
             volume2: r.volume2?.toDouble(),
             volume3: r.volume3?.toDouble(),
-            hargaSatuan: (r.hargaSatuan ?? 0).toDouble(),
-            kategoriBelanjaId: 1, // Default, should come from data
+            hargaSatuan: r.hargaSatuan?.toDouble() ?? 0,
+            kategoriBelanjaId: 1,
           ),
         )
         .toList();
+    for (int i = 0; i < rabList.length; i++) {
+      if (i < data.rab.length) {
+        rabList[i].note = data.rab[i].catatanVerifikator;
+      }
+    }
 
-    indikatorKinerjaList = (data.indikatorKinerja ?? [])
+    indikatorKinerjaList = data.indikatorKinerja
         .map(
           (i) => IndikatorKinerjaItem(
             id: i.targetId.toString(),
-            bulanIndikator: i.bulanIndikator ?? '',
-            deskripsiTarget: i.deskripsiTarget ?? '',
+            bulanIndikator: i.bulanIndikator,
+            deskripsiTarget: i.deskripsiTarget,
             persentaseTarget: i.persentaseTarget,
+            note: i.catatanVerifikator,
           ),
         )
         .toList();
-
+    for (int i = 0; i < indikatorKinerjaList.length; i++) {
+      // already set note via mapping above
+    }
+    // targetIku mapping
+    targetIkuList = data.targetIku
+        .map(
+          (t) => TargetIkuItem(
+            id: t.ikuId.toString(),
+            ikuId: int.tryParse(t.ikuId.toString()) ?? 0,
+            ikuNama: t.ikuNama,
+            target: t.target.toString(),
+            satuanId: t.satuanId != null
+                ? int.tryParse(t.satuanId.toString())
+                : null,
+            note: t.catatanVerifikator,
+          ),
+        )
+        .toList();
   }
 
   Map<String, dynamic> getFormData() {
@@ -340,104 +380,268 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
           // Nama Kegiatan
-          TextFormField(
-            controller: namaController,
-            decoration: InputDecoration(
-              labelText: 'Nama Kegiatan',
-              hintText: 'Contoh: Workshop Digital Marketing',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Nama kegiatan harus diisi';
-              }
-              if (value.length < 5) {
-                return 'Minimal 5 karakter';
-              }
-              return null;
+          Builder(
+            builder: (_) {
+              final note = widget.initialData?.catatanNamaKegiatan;
+              final hasNote = note != null && note.trim().isNotEmpty;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: namaController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama Kegiatan',
+                      hintText: 'Contoh: Workshop Digital Marketing',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : const Color(0xFFE2E8F0),
+                          width: hasNote ? 1.2 : 0.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : colorScheme.primary,
+                          width: hasNote ? 1.4 : 1.2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.redAccent,
+                          width: 1.2,
+                        ),
+                      ),
+
+                      filled: hasNote,
+                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Nama kegiatan harus diisi';
+                      }
+                      if (value.length < 5) {
+                        return 'Minimal 5 karakter';
+                      }
+                      return null;
+                    },
+                    onChanged: (_) => widget.onFormChange(getFormData()),
+                  ),
+                  if (hasNote) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Catatan Verifikator: ${note}',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              );
             },
-            onChanged: (_) => widget.onFormChange(getFormData()),
           ),
           const SizedBox(height: 16),
 
           // Tipe Kegiatan
-          DropdownButtonFormField<int>(
-            value: selectedTipeKegiatan,
-            decoration: InputDecoration(
-              labelText: 'Tipe Kegiatan',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            items: widget.tipeKegiatanOptions.map<DropdownMenuItem<int>>((
-              tipe,
-            ) {
-              return DropdownMenuItem<int>(
-                value: tipe['tipe_kegiatan_id'] ?? tipe['id'],
-                child: Text(tipe['nama_tipe'] ?? tipe['name'] ?? ''),
+          Builder(
+            builder: (_) {
+              final note = widget.initialData?.catatanTipeKegiatan;
+              final hasNote = note != null && note.trim().isNotEmpty;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<int>(
+                    value: selectedTipeKegiatan,
+                    decoration: InputDecoration(
+                      labelText: 'Tipe Kegiatan',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : const Color(0xFFE2E8F0),
+                          width: hasNote ? 1.2 : 0.5,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : colorScheme.primary,
+                          width: hasNote ? 1.4 : 1.2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: Colors.redAccent,
+                          width: 1.2,
+                        ),
+                      ),
+                      filled: hasNote,
+                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
+                    ),
+                    items: widget.tipeKegiatanOptions
+                        .map<DropdownMenuItem<int>>(
+                          (tipe) => DropdownMenuItem<int>(
+                            value: tipe['tipe_kegiatan_id'] ?? tipe['id'],
+                            child: Text(
+                              tipe['nama_tipe'] ?? tipe['name'] ?? '',
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedTipeKegiatan = value;
+                      });
+                      widget.onFormChange(getFormData());
+                    },
+                    validator: (value) {
+                      if (value == null) return 'Tipe kegiatan harus dipilih';
+                      return null;
+                    },
+                  ),
+                  if (hasNote) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Catatan Verifikator: $note',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
               );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedTipeKegiatan = value;
-              });
-              widget.onFormChange(getFormData());
-            },
-            validator: (value) {
-              if (value == null) {
-                return 'Tipe kegiatan harus dipilih';
-              }
-              return null;
             },
           ),
-          const SizedBox(height: 24),
 
           // Deskripsi
-          TextFormField(
-            controller: deskripsiController,
-            decoration: InputDecoration(
-              labelText: 'Gambaran Umum Kegiatan',
-              hintText: 'Jelaskan kegiatan ini...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            maxLines: 4,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Deskripsi harus diisi';
-              }
-              if (value.length < 5) {
-                return 'Minimal 5 karakter';
-              }
-              return null;
+          Builder(
+            builder: (_) {
+              final note = widget.initialData?.catatanDeskripsiKegiatan;
+              final hasNote = note != null && note.trim().isNotEmpty;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: deskripsiController,
+                    decoration: InputDecoration(
+                      labelText: 'Gambaran Umum Kegiatan',
+                      hintText: 'Jelaskan kegiatan ini...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : const Color(0xFFE2E8F0),
+                          width: hasNote ? 1.2 : 0.5,
+                        ),
+                      ),
+                      filled: hasNote,
+                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
+                    ),
+                    maxLines: 4,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Deskripsi harus diisi';
+                      }
+                      if (value.length < 5) {
+                        return 'Minimal 5 karakter';
+                      }
+                      return null;
+                    },
+                    onChanged: (_) => widget.onFormChange(getFormData()),
+                  ),
+                  if (hasNote) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Catatan Verifikator: ${note}',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              );
             },
-            onChanged: (_) => widget.onFormChange(getFormData()),
           ),
           const SizedBox(height: 16),
 
           // Sasaran Utama
-          TextFormField(
-            controller: sasaranController,
-            decoration: InputDecoration(
-              labelText: 'Sasaran Utama',
-              hintText: 'Siapa target peserta?',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Sasaran utama harus diisi';
-              }
-              return null;
+          Builder(
+            builder: (_) {
+              final note = widget.initialData?.catatanSasaranUtama;
+              final hasNote = note != null && note.trim().isNotEmpty;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: sasaranController,
+                    decoration: InputDecoration(
+                      labelText: 'Sasaran Utama',
+                      hintText: 'Siapa target peserta?',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : const Color(0xFFE2E8F0),
+                          width: hasNote ? 1.2 : 0.5,
+                        ),
+                      ),
+                      filled: hasNote,
+                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Sasaran utama harus diisi';
+                      }
+                      return null;
+                    },
+                    onChanged: (_) => widget.onFormChange(getFormData()),
+                  ),
+                  if (hasNote) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Catatan Verifikator: ${note}',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              );
             },
-            onChanged: (_) => widget.onFormChange(getFormData()),
           ),
           const SizedBox(height: 16),
 
@@ -468,25 +672,65 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               child: Row(
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      initialValue: item.value,
-                      decoration: InputDecoration(
-                        labelText: 'Manfaat ${index + 1}',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          initialValue: item.value,
+                          decoration: InputDecoration(
+                            labelText: 'Manfaat ${index + 1}',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color:
+                                    (item.note != null &&
+                                        item.note!.trim().isNotEmpty)
+                                    ? Colors.redAccent
+                                    : const Color(0xFFE2E8F0),
+                                width:
+                                    (item.note != null &&
+                                        item.note!.trim().isNotEmpty)
+                                    ? 1.2
+                                    : 0.5,
+                              ),
+                            ),
+                            filled:
+                                (item.note != null &&
+                                item.note!.trim().isNotEmpty),
+                            fillColor:
+                                (item.note != null &&
+                                    item.note!.trim().isNotEmpty)
+                                ? const Color(0xFFFFF1F0)
+                                : null,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Manfaat tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              item.value = value;
+                            });
+                          },
                         ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Manfaat tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          item.value = value;
-                        });
-                      },
+                        if (item.note != null &&
+                            item.note!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Catatan Verifikator: ${item.note}',
+                            style: GoogleFonts.figtree(
+                              fontSize: 12,
+                              color: Colors.redAccent,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -512,26 +756,59 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           const SizedBox(height: 24),
 
           // Metode Pelaksanaan
-          TextFormField(
-            controller: metodeController,
-            decoration: InputDecoration(
-              labelText: 'Metode Pelaksanaan',
-              hintText: 'Jelaskan cara pelaksanaannya...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            maxLines: 3,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Metode harus diisi';
-              }
-              if (value.length < 5) {
-                return 'Minimal 5 karakter';
-              }
-              return null;
+          Builder(
+            builder: (_) {
+              final note = widget.initialData?.catatanMetodePelaksanaan;
+              final hasNote = note != null && note.trim().isNotEmpty;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: metodeController,
+                    decoration: InputDecoration(
+                      labelText: 'Metode Pelaksanaan',
+                      hintText: 'Jelaskan cara pelaksanaannya...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                          color: hasNote
+                              ? Colors.redAccent
+                              : const Color(0xFFE2E8F0),
+                          width: hasNote ? 1.2 : 0.5,
+                        ),
+                      ),
+                      filled: hasNote,
+                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
+                    ),
+                    maxLines: 3,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Metode harus diisi';
+                      }
+                      if (value.length < 5) {
+                        return 'Minimal 5 karakter';
+                      }
+                      return null;
+                    },
+                    onChanged: (_) => widget.onFormChange(getFormData()),
+                  ),
+                  if (hasNote) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Catatan Verifikator: ${note}',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: Colors.redAccent,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              );
             },
-            onChanged: (_) => widget.onFormChange(getFormData()),
           ),
           const SizedBox(height: 16),
 
@@ -580,25 +857,65 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextFormField(
-                      initialValue: item.nama,
-                      decoration: InputDecoration(
-                        labelText: 'Tahapan ${index + 1}',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          initialValue: item.nama,
+                          decoration: InputDecoration(
+                            labelText: 'Tahapan ${index + 1}',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                color:
+                                    (item.note != null &&
+                                        item.note!.trim().isNotEmpty)
+                                    ? Colors.redAccent
+                                    : const Color(0xFFE2E8F0),
+                                width:
+                                    (item.note != null &&
+                                        item.note!.trim().isNotEmpty)
+                                    ? 1.2
+                                    : 0.5,
+                              ),
+                            ),
+                            filled:
+                                (item.note != null &&
+                                item.note!.trim().isNotEmpty),
+                            fillColor:
+                                (item.note != null &&
+                                    item.note!.trim().isNotEmpty)
+                                ? const Color(0xFFFFF1F0)
+                                : null,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Tahapan tidak boleh kosong';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            setState(() {
+                              item.nama = value;
+                            });
+                          },
                         ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Tahapan tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        setState(() {
-                          item.nama = value;
-                        });
-                      },
+                        if (item.note != null &&
+                            item.note!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            'Catatan Verifikator: ${item.note}',
+                            style: GoogleFonts.figtree(
+                              fontSize: 12,
+                              color: Colors.redAccent,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -650,8 +967,15 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: colorScheme.outline),
+                  border: Border.all(
+                    color: (item.note != null && item.note!.trim().isNotEmpty)
+                        ? Colors.redAccent
+                        : colorScheme.outline,
+                  ),
                   borderRadius: BorderRadius.circular(8),
+                  color: (item.note != null && item.note!.trim().isNotEmpty)
+                      ? const Color(0xFFFFF1F0)
+                      : null,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -696,6 +1020,27 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color:
+                                (item.note != null &&
+                                    item.note!.trim().isNotEmpty)
+                                ? Colors.redAccent
+                                : const Color(0xFFE2E8F0),
+                            width:
+                                (item.note != null &&
+                                    item.note!.trim().isNotEmpty)
+                                ? 1.2
+                                : 0.5,
+                          ),
+                        ),
+                        filled:
+                            (item.note != null && item.note!.trim().isNotEmpty),
+                        fillColor:
+                            (item.note != null && item.note!.trim().isNotEmpty)
+                            ? const Color(0xFFFFF1F0)
+                            : null,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -709,6 +1054,17 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         });
                       },
                     ),
+                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Catatan Verifikator: ${item.note}',
+                        style: GoogleFonts.figtree(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     TextFormField(
                       initialValue: item.persentaseTarget?.toString() ?? '',
@@ -840,6 +1196,29 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color:
+                      (widget.initialData?.catatanLokasi != null &&
+                          widget.initialData!.catatanLokasi!.trim().isNotEmpty)
+                      ? Colors.redAccent
+                      : const Color(0xFFE2E8F0),
+                  width:
+                      (widget.initialData?.catatanLokasi != null &&
+                          widget.initialData!.catatanLokasi!.trim().isNotEmpty)
+                      ? 1.2
+                      : 0.5,
+                ),
+              ),
+              filled:
+                  (widget.initialData?.catatanLokasi != null &&
+                  widget.initialData!.catatanLokasi!.trim().isNotEmpty),
+              fillColor:
+                  (widget.initialData?.catatanLokasi != null &&
+                      widget.initialData!.catatanLokasi!.trim().isNotEmpty)
+                  ? const Color(0xFFFFF1F0)
+                  : null,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -849,6 +1228,18 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             },
             onChanged: (_) => widget.onFormChange(getFormData()),
           ),
+          if (widget.initialData?.catatanLokasi != null &&
+              widget.initialData!.catatanLokasi!.trim().isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Catatan Verifikator: ${widget.initialData!.catatanLokasi!}',
+              style: GoogleFonts.figtree(
+                fontSize: 12,
+                color: Colors.redAccent,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
 
           // RAB
@@ -908,6 +1299,27 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color:
+                                (item.note != null &&
+                                    item.note!.trim().isNotEmpty)
+                                ? Colors.redAccent
+                                : const Color(0xFFE2E8F0),
+                            width:
+                                (item.note != null &&
+                                    item.note!.trim().isNotEmpty)
+                                ? 1.2
+                                : 0.5,
+                          ),
+                        ),
+                        filled:
+                            (item.note != null && item.note!.trim().isNotEmpty),
+                        fillColor:
+                            (item.note != null && item.note!.trim().isNotEmpty)
+                            ? const Color(0xFFFFF1F0)
+                            : null,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -921,6 +1333,17 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         });
                       },
                     ),
+                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Catatan Verifikator: ${item.note!}',
+                        style: GoogleFonts.figtree(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -1110,6 +1533,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         );
                         return;
                       }
+                      widget.onFormChange(getFormData());
                       widget.onSubmit();
                     }
                   },

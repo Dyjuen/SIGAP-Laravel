@@ -1,13 +1,12 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:dio/dio.dart';
-import 'package:intl/intl.dart';
 
 import '../providers/monitoring_provider.dart';
-import '../models/dashboard_model.dart';
+import '../models/monitoring_model.dart';
 import '../widgets/monitoring_card.dart';
 import 'kak_detail_page.dart';
 
@@ -23,6 +22,7 @@ class KegiatanMonitoringPage extends StatefulWidget {
 
 class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
   late TextEditingController _searchController;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -36,6 +36,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -91,7 +92,8 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                           color: colorScheme.onSurface,
                                           size: 24,
                                         ),
-                                        onPressed: () => Navigator.of(context).pop(),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
                                       ),
                                       const SizedBox(width: 8),
                                       Column(
@@ -127,7 +129,8 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                             style: GoogleFonts.figtree(
                                               fontWeight: FontWeight.w400,
                                               fontSize: 13,
-                                              color: colorScheme.onSurfaceVariant,
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                               height: 1.4,
                                             ),
                                           ),
@@ -200,7 +203,13 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                   ),
                                 ),
                                 onChanged: (value) {
-                                  monitoringProvider.setSearchQuery(value);
+                                  _searchDebounce?.cancel();
+                                  _searchDebounce = Timer(
+                                    const Duration(milliseconds: 300),
+                                    () {
+                                      monitoringProvider.setSearchQuery(value);
+                                    },
+                                  );
                                 },
                               ),
                             ),
@@ -243,37 +252,25 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                               ),
                               const SizedBox(width: 8),
                               _FilterChip(
-                                label: 'Menunggu',
+                                label: 'Sedang Berjalan',
                                 isSelected:
                                     monitoringProvider.selectedFilter ==
-                                    'Menunggu',
+                                    'Sedang Berjalan',
                                 onTap: () {
                                   monitoringProvider.setSelectedFilter(
-                                    'Menunggu',
+                                    'Sedang Berjalan',
                                   );
                                 },
                               ),
                               const SizedBox(width: 8),
                               _FilterChip(
-                                label: 'Disetujui',
+                                label: 'Telah Selesai',
                                 isSelected:
                                     monitoringProvider.selectedFilter ==
-                                    'Disetujui',
+                                    'Telah Selesai',
                                 onTap: () {
                                   monitoringProvider.setSelectedFilter(
-                                    'Disetujui',
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 8),
-                              _FilterChip(
-                                label: 'Ditolak',
-                                isSelected:
-                                    monitoringProvider.selectedFilter ==
-                                    'Ditolak',
-                                onTap: () {
-                                  monitoringProvider.setSelectedFilter(
-                                    'Ditolak',
+                                    'Telah Selesai',
                                   );
                                 },
                               ),
@@ -385,26 +382,26 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                         children: [
                           ...monitoringProvider.items.map((item) {
                             // Map status to display status and colors
-                            String displayStatus = item.status ?? 'Draft';
+                            final displayStatus = _statusLabel(item.status);
                             Color statusBg = _getStatusBgColor(displayStatus);
                             Color statusColor = _getStatusTextColor(
                               displayStatus,
                             );
 
                             return MonitoringCardWidget(
-                              date: item.createdAt ?? '-',
-                              idText: item.id,
-                              pic: item.pengusulNama ?? 'Unknown',
+                              date: item.dates['accPPK'] ?? '-',
+                              idText: 'KAK #${item.kakId}',
+                              pic: _statusDetail(item.status),
                               status: displayStatus.toUpperCase(),
                               statusBg: statusBg,
                               statusColor: statusColor,
-                              title: item.nama,
+                              title: item.namaKegiatan,
                               onDetailTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
-                                        KakDetailPage(kakId: item.id),
+                                        KakDetailPage(kakId: item.kakId),
                                   ),
                                 );
                               },
@@ -458,20 +455,10 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
   /// Helper method to get status background color
   Color _getStatusBgColor(String status) {
     switch (status.toLowerCase()) {
-      case 'approved':
-      case 'disetujui':
+      case 'selesai':
         return const Color(0xFFE8F5E9);
-      case 'review':
-      case 'pending':
-      case 'menunggu':
-      case 'draft':
-        return const Color(0xFFFFF3E0);
-      case 'rejected':
-      case 'ditolak':
-        return const Color(0xFFFFEBEE);
-      case 'processing':
       case 'proses':
-        return const Color(0xFFE3F2FD);
+        return const Color(0xFFFFF3E0);
       default:
         return const Color(0xFFF5F5F5);
     }
@@ -480,117 +467,90 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
   /// Helper method to get status text color
   Color _getStatusTextColor(String status) {
     switch (status.toLowerCase()) {
-      case 'approved':
-      case 'disetujui':
+      case 'selesai':
         return const Color(0xFF2E7D32);
-      case 'review':
-      case 'pending':
-      case 'menunggu':
-      case 'draft':
-        return const Color(0xFFE65100);
-      case 'rejected':
-      case 'ditolak':
-        return const Color(0xFFC62828);
-      case 'processing':
       case 'proses':
-        return const Color(0xFF1565C0);
+        return const Color(0xFFE65100);
       default:
         return const Color(0xFF666666);
     }
   }
 
-  void _showTrackingStepperBottomSheet(BuildContext context, DashboardItem item) {
-    final colorScheme = Theme.of(context).colorScheme;
+  String _statusLabel(int status) {
+    return status >= 6 ? 'Selesai' : 'Proses';
+  }
 
-    // Define steps based on item.status
-    final status = item.status?.toLowerCase() ?? 'draft';
-    
-    // Determine state of each step: 'completed', 'active', 'pending', 'rejected', 'revise'
-    String step1Status = 'pending';
-    String step2Status = 'pending';
-    String step3Status = 'pending';
-    String step4Status = 'pending';
-    String step5Status = 'pending';
-
-    String? step1Date;
-    String? step2Date;
-    String? step3Date;
-    String? step4Date;
-    String? step5Date;
-
-    if (status == 'disetujui' || status == 'approved') {
-      step1Status = 'completed';
-      step2Status = 'completed';
-      step3Status = 'completed';
-      step4Status = 'completed';
-      step5Status = 'completed';
-      step1Date = item.createdAt;
-      step2Date = item.createdAt;
-      step3Date = item.createdAt;
-      step4Date = item.createdAt;
-      step5Date = item.createdAt;
-    } else if (status == 'processing' || status == 'proses' || status == 'review' || status == 'menunggu' || status == 'pending') {
-      step1Status = 'active';
-      step2Status = 'pending';
-      step3Status = 'pending';
-      step4Status = 'pending';
-      step5Status = 'pending';
-      step1Date = item.createdAt;
-    } else if (status == 'ditolak' || status == 'rejected') {
-      step1Status = 'rejected';
-      step2Status = 'pending';
-      step3Status = 'pending';
-      step4Status = 'pending';
-      step5Status = 'pending';
-      step1Date = item.createdAt;
-    } else if (status == 'revisi' || status == 'revise') {
-      step1Status = 'revise';
-      step2Status = 'pending';
-      step3Status = 'pending';
-      step4Status = 'pending';
-      step5Status = 'pending';
-      step1Date = item.createdAt;
-    } else {
-      // Draft
-      step1Status = 'pending';
-      step2Status = 'pending';
-      step3Status = 'pending';
-      step4Status = 'pending';
-      step5Status = 'pending';
+  String _statusDetail(int status) {
+    if (status >= 6) {
+      return 'Semua Tahap Selesai';
     }
 
-    final steps = [
-      _StepItem(
+    const labels = {
+      1: 'Tahap PPK',
+      2: 'Tahap Wadir 2',
+      3: 'Tahap Pencairan',
+      4: 'Tahap LPJ',
+      5: 'Tahap Setor Fisik',
+    };
+
+    return labels[status] ?? 'Tahap Berjalan';
+  }
+
+  void _showTrackingStepperBottomSheet(
+    BuildContext context,
+    MonitoringItem item,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final definitions = const [
+      _StepDefinition(
+        id: 1,
         title: 'Verifikasi PPK',
-        description: 'Pemeriksaan kelengkapan dokumen dan keselarasan anggaran oleh Pejabat Pembuat Komitmen.',
-        status: step1Status,
-        date: step1Date,
+        description:
+            'Pemeriksaan kelengkapan dokumen dan keselarasan anggaran oleh Pejabat Pembuat Komitmen.',
+        dateKey: 'accPPK',
       ),
-      _StepItem(
+      _StepDefinition(
+        id: 2,
         title: 'Persetujuan Wadir II',
-        description: 'Validasi dan persetujuan akhir oleh Wakil Direktur II Bidang Administrasi Umum.',
-        status: step2Status,
-        date: step2Date,
+        description:
+            'Validasi dan persetujuan akhir oleh Wakil Direktur II Bidang Administrasi Umum.',
+        dateKey: 'accWD2',
       ),
-      _StepItem(
+      _StepDefinition(
+        id: 3,
         title: 'Pencairan Dana',
-        description: 'Proses pencairan dana belanja oleh Bendahara Pengeluaran.',
-        status: step3Status,
-        date: step3Date,
+        description:
+            'Proses pencairan dana belanja oleh Bendahara Pengeluaran.',
+        dateKey: 'uangMuka',
       ),
-      _StepItem(
+      _StepDefinition(
+        id: 4,
         title: 'Pelaporan LPJ',
-        description: 'Penyusunan dan penyerahan Laporan Pertanggungjawaban (LPJ) kegiatan.',
-        status: step4Status,
-        date: step4Date,
+        description:
+            'Penyusunan dan penyerahan Laporan Pertanggungjawaban (LPJ) kegiatan.',
+        dateKey: 'lpj',
       ),
-      _StepItem(
+      _StepDefinition(
+        id: 5,
         title: 'Selesai',
-        description: 'Seluruh tahapan kegiatan telah selesai dan berkas diarsipkan.',
-        status: step5Status,
-        date: step5Date,
+        description:
+            'Seluruh tahapan kegiatan telah selesai dan berkas diarsipkan.',
+        dateKey: 'setorFisik',
       ),
     ];
+
+    final steps = definitions.map((definition) {
+      final isCompleted = definition.id < item.status;
+      final isActive = definition.id == item.status;
+
+      return _StepItem(
+        title: definition.title,
+        description: definition.description,
+        status: isCompleted ? 'completed' : (isActive ? 'active' : 'pending'),
+        date: item.dates[definition.dateKey],
+      );
+    }).toList();
 
     showModalBottomSheet(
       context: context,
@@ -659,7 +619,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            item.nama,
+                            item.namaKegiatan,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.figtree(
@@ -713,16 +673,17 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
 
     // Get color & icon based on status
     Color iconBg;
-    Color iconColor;
     Widget iconWidget;
 
     if (step.status == 'completed') {
       iconBg = const Color(0xFFE8F5E9);
-      iconColor = const Color(0xFF2E7D32);
-      iconWidget = const Icon(Icons.check_rounded, size: 16, color: Color(0xFF2E7D32));
+      iconWidget = const Icon(
+        Icons.check_rounded,
+        size: 16,
+        color: Color(0xFF2E7D32),
+      );
     } else if (step.status == 'active') {
       iconBg = const Color(0xFFE0F7FA);
-      iconColor = const Color(0xFF33C8DA);
       iconWidget = const SizedBox(
         width: 14,
         height: 14,
@@ -733,16 +694,21 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
       );
     } else if (step.status == 'rejected') {
       iconBg = const Color(0xFFFFEBEE);
-      iconColor = const Color(0xFFC62828);
-      iconWidget = const Icon(Icons.close_rounded, size: 16, color: Color(0xFFC62828));
+      iconWidget = const Icon(
+        Icons.close_rounded,
+        size: 16,
+        color: Color(0xFFC62828),
+      );
     } else if (step.status == 'revise') {
       iconBg = const Color(0xFFFFF3E0);
-      iconColor = const Color(0xFFE65100);
-      iconWidget = const Icon(Icons.warning_rounded, size: 16, color: Color(0xFFE65100));
+      iconWidget = const Icon(
+        Icons.warning_rounded,
+        size: 16,
+        color: Color(0xFFE65100),
+      );
     } else {
       // Pending
       iconBg = colorScheme.outline.withOpacity(0.08);
-      iconColor = colorScheme.outline;
       iconWidget = Container(
         width: 8,
         height: 8,
@@ -859,6 +825,20 @@ class _StepItem {
     required this.description,
     required this.status,
     this.date,
+  });
+}
+
+class _StepDefinition {
+  final int id;
+  final String title;
+  final String description;
+  final String dateKey;
+
+  const _StepDefinition({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.dateKey,
   });
 }
 

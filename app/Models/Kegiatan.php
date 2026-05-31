@@ -33,7 +33,16 @@ class Kegiatan extends Model
 
     public function approvals()
     {
-        return $this->hasMany(KegiatanApproval::class, 'kegiatan_id');
+        return $this->hasMany(KegiatanApproval::class, 'kegiatan_id')
+            ->orderByRaw("CASE approval_level
+                WHEN 'PPK' THEN 1
+                WHEN 'Wadir2' THEN 2
+                WHEN 'Bendahara-Cair' THEN 3
+                WHEN 'Bendahara-LPJ' THEN 4
+                WHEN 'Bendahara-Setor' THEN 5
+                ELSE 99
+            END")
+            ->orderBy('approval_kegiatan_id');
     }
 
     public function logs()

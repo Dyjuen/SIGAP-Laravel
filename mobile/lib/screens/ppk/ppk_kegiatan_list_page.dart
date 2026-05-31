@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
+import '../../providers/auth_provider.dart';
 import 'ppk_kegiatan_detail_page.dart';
 
 class PpkKegiatanListPage extends StatefulWidget {
@@ -146,6 +147,8 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
   }
 
   Widget _buildContent() {
+    final isWadir = context.read<AuthProvider>().user?.roleId == 5;
+
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -247,6 +250,12 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
           final tipe = kak['tipe_kegiatan']?['nama_tipe'] ?? 'Akademik';
           final String dateStr = item['created_at'] ?? kak['tanggal_mulai'] ?? '-';
           final int kegiatanId = item['kegiatan_id'] ?? 0;
+          final List<dynamic> approvals = item['approvals'] as List? ?? [];
+          final ppkApproval = approvals.firstWhere(
+            (a) => a['approval_level'] == 'PPK',
+            orElse: () => null,
+          );
+          final String? ppkCatatan = ppkApproval != null ? ppkApproval['catatan']?.toString() : null;
 
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
@@ -312,6 +321,48 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
                         ),
                       ],
                     ),
+                    if (isWadir && ppkCatatan != null && ppkCatatan.trim().isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFDCFCE7)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: const [
+                                Icon(Icons.feedback_outlined, size: 14, color: Color(0xFF16A34A)),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Catatan PPK',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF166534),
+                                    fontFamily: 'Figtree',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              ppkCatatan,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF14532D),
+                                fontStyle: FontStyle.italic,
+                                fontFamily: 'Figtree',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     const Divider(height: 1, color: Color(0xFFF1F5F9)),
                     const SizedBox(height: 12),

@@ -114,6 +114,57 @@ class KegiatanService
     }
 
     /**
+     * Store surat pengantar using a safe content type that works with Supabase S3.
+     */
+    private function storeSuratPengantar(UploadedFile $file, string $filename): string|false
+    {
+        $contentType = $this->resolveContentType($file);
+        $path = 'surat-pengantar/' . $filename;
+
+        $stream = fopen($file->getRealPath(), 'r');
+        if ($stream === false) {
+            return false;
+        }
+
+        try {
+            $ok = Storage::disk('supabase')->put($path, $stream, [
+                'visibility' => 'public',
+                'ContentType' => $contentType,
+            ]);
+
+            return $ok ? $path : false;
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+        }
+    }
+
+    /**
+     * Resolve a storage-safe content type for the incoming upload.
+     */
+    private function resolveContentType(UploadedFile $file): string
+    {
+        $clientMime = $file->getClientMimeType();
+
+        if (is_string($clientMime) && $clientMime !== '') {
+            return $clientMime;
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        return match ($extension) {
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            default => $file->getMimeType() ?: 'application/octet-stream',
+        };
+    }
+
+    /**
      * Approve the active approval step for a Kegiatan.
      *
      * @throws KegiatanException

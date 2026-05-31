@@ -101,6 +101,9 @@ class KegiatanController extends Controller
             'kak.mataAnggaran',
             'kak.tipeKegiatan',
             'kak.ikus.iku',
+            'kak.manfaat',
+            'kak.tahapan',
+            'kak.targets',
             'kak.anggaran.kategoriBelanja',
             'kak.anggaran.satuan1',
             'kak.anggaran.satuan2',
@@ -111,7 +114,9 @@ class KegiatanController extends Controller
         ]);
 
         if ($kegiatan->surat_pengantar_path && ! str_starts_with($kegiatan->surat_pengantar_path, 'http')) {
-            $kegiatan->surat_pengantar_url = Storage::disk('supabase')->url($kegiatan->surat_pengantar_path);
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $kegiatan->surat_pengantar_url = $supabaseDisk->url($kegiatan->surat_pengantar_path);
         }
 
         return Inertia::render('Kegiatan/Show', [

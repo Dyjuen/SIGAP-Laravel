@@ -12,6 +12,7 @@ use App\Services\KegiatanMonitoringService;
 use App\Services\KegiatanService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class KegiatanApiController extends Controller
 {
@@ -73,6 +74,25 @@ class KegiatanApiController extends Controller
     {
         $kak = KAK::findOrFail($request->kak_id);
 
+        // Diagnostic logging: record request headers and uploaded file metadata
+        try {
+            Log::info('Kegiatan upload headers', $request->headers->all());
+            $uploaded = $request->file('surat_pengantar');
+            if ($uploaded) {
+                Log::info('Kegiatan upload file info', [
+                    'originalName' => $uploaded->getClientOriginalName(),
+                    'clientMime' => $uploaded->getClientMimeType(),
+                    'phpMime' => $uploaded->getMimeType(),
+                    'size' => $uploaded->getSize(),
+                    'path' => $uploaded->getRealPath(),
+                ]);
+            } else {
+                Log::info('Kegiatan upload file info', ['file' => 'none']);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to log kegiatan upload diagnostic: ' . $e->getMessage());
+        }
+
         try {
             $kegiatan = $this->kegiatanService->store(
                 $kak,
@@ -107,6 +127,9 @@ class KegiatanApiController extends Controller
             'kak.mataAnggaran',
             'kak.tipeKegiatan',
             'kak.ikus.iku',
+            'kak.manfaat',
+            'kak.tahapan',
+            'kak.targets',
             'kak.anggaran.kategoriBelanja',
             'kak.anggaran.satuan1',
             'kak.anggaran.satuan2',
@@ -117,7 +140,9 @@ class KegiatanApiController extends Controller
         ]);
 
         if ($kegiatan->surat_pengantar_path && ! str_starts_with($kegiatan->surat_pengantar_path, 'http')) {
-            $kegiatan->surat_pengantar_url = Storage::disk('supabase')->url($kegiatan->surat_pengantar_path);
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            $supabaseDisk = Storage::disk('supabase');
+            $kegiatan->surat_pengantar_url = $supabaseDisk->url($kegiatan->surat_pengantar_path);
         }
 
         return response()->json([

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/kak_model.dart';
 import '../providers/kak_detail_provider.dart';
 import 'pengusul/kak_edit_page.dart';
+import 'pengusul/pengajuan_create_page.dart';
 
 class KakDetailPage extends StatefulWidget {
   final String kakId;
@@ -105,36 +106,146 @@ class _KakDetailPageState extends State<KakDetailPage> {
               // Header dengan Status
               _HeaderSection(kak: kak, colorScheme: colorScheme),
 
-              // Informasi Umum
+              // Debug banner for catatan
+              Builder(
+                builder: (ctx) {
+                  final parentNotes = {
+                    'Nama Kegiatan': kak.catatanNamaKegiatan,
+                    'Deskripsi': kak.catatanDeskripsiKegiatan,
+                    'Tipe': kak.catatanTipeKegiatan,
+                    'Sasaran': kak.catatanSasaranUtama,
+                    'Metode': kak.catatanMetodePelaksanaan,
+                    'Lokasi': kak.catatanLokasi,
+                    'Tanggal': kak.catatanTanggal,
+                  }..removeWhere((k, v) => v == null || v.trim().isEmpty);
+
+                  final childNotesCount =
+                      kak.manfaat
+                          .where(
+                            (m) =>
+                                m.catatan != null &&
+                                m.catatan!.trim().isNotEmpty,
+                          )
+                          .length +
+                      kak.tahapan
+                          .where(
+                            (t) =>
+                                t.catatanVerifikator != null &&
+                                t.catatanVerifikator!.trim().isNotEmpty,
+                          )
+                          .length +
+                      kak.indikatorKinerja
+                          .where(
+                            (i) =>
+                                i.catatanVerifikator != null &&
+                                i.catatanVerifikator!.trim().isNotEmpty,
+                          )
+                          .length +
+                      kak.targetIku
+                          .where(
+                            (t) =>
+                                t.catatanVerifikator != null &&
+                                t.catatanVerifikator!.trim().isNotEmpty,
+                          )
+                          .length +
+                      kak.rab
+                          .where(
+                            (r) =>
+                                r.catatanVerifikator != null &&
+                                r.catatanVerifikator!.trim().isNotEmpty,
+                          )
+                          .length;
+
+                  if (parentNotes.isEmpty && childNotesCount == 0)
+                    return const SizedBox.shrink();
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7F6),
+                        border: Border.all(
+                          color: Colors.redAccent.withOpacity(0.6),
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Catatan Verifikator terdeteksi',
+                            style: GoogleFonts.figtree(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.redAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          if (parentNotes.isNotEmpty)
+                            Wrap(
+                              spacing: 8,
+                              children: parentNotes.keys
+                                  .map((k) => Chip(label: Text(k)))
+                                  .toList(),
+                            ),
+                          if (childNotesCount > 0) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              '$childNotesCount catatan pada item (manfaat/tahapan/indikator/target/rab)',
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+
               _InfoUmumSection(kak: kak, colorScheme: colorScheme),
-
-              // Sasaran & Target
               _SasaranTargetSection(kak: kak, colorScheme: colorScheme),
-
-              // Manfaat
               if (kak.manfaat.isNotEmpty)
                 _ManfaatSection(kak: kak, colorScheme: colorScheme),
-
-              // Tahapan
               if (kak.tahapan.isNotEmpty)
                 _TahapanSection(kak: kak, colorScheme: colorScheme),
-
-              // Indikator Kinerja
               if (kak.indikatorKinerja.isNotEmpty)
                 _IndikatorKinerjaSection(kak: kak, colorScheme: colorScheme),
-
-              // RAB (Rencana Anggaran Biaya)
               if (kak.rab.isNotEmpty)
                 _RabSection(kak: kak, colorScheme: colorScheme),
+              if (kak.approvals.isNotEmpty)
+                _ApprovalsSection(kak: kak, colorScheme: colorScheme),
 
-              // Approvals
-
-              // Action Buttons
               if (!widget.embedMode)
                 _ActionsSection(
                   kak: kak,
                   provider: provider,
                   colorScheme: colorScheme,
+                ),
+
+              if (!widget.embedMode && kak.statusId == 3)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                  child: FilledButton(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PengajuanCreatePage(kak: kak),
+                        ),
+                      );
+                      if (result == true) provider.loadKakDetail(kak.kakId);
+                    },
+                    child: Text(
+                      'Ajukan Kegiatan',
+                      style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                    ),
+                  ),
                 ),
 
               const SizedBox(height: 24),
@@ -144,9 +255,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
       },
     );
 
-    if (widget.embedMode) {
-      return bodyContent;
-    }
+    if (widget.embedMode) return bodyContent;
 
     return GestureDetector(
       onTap: () {
@@ -253,32 +362,10 @@ class _HeaderSection extends StatelessWidget {
           const SizedBox(height: 16),
           // Meta Info Row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Tipe Kegiatan',
-                      style: GoogleFonts.figtree(
-                        fontSize: 11,
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      kak.tipe ?? 'N/A',
-                      style: GoogleFonts.figtree(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
+                flex: 2,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -298,15 +385,17 @@ class _HeaderSection extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      softWrap: true,
                     ),
                   ],
                 ),
               ),
-              Expanded(
+              const SizedBox(width: 12),
+              Flexible(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
                       'Diperbarui',
@@ -324,6 +413,7 @@ class _HeaderSection extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: colorScheme.onSurface,
                       ),
+                      textAlign: TextAlign.right,
                     ),
                   ],
                 ),
@@ -392,15 +482,31 @@ class _InfoUmumSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _InfoField(
+            label: 'Nama Kegiatan',
+            value: kak.namaKegiatan,
+            colorScheme: colorScheme,
+            note: kak.catatanNamaKegiatan,
+          ),
+          const SizedBox(height: 16),
+          _InfoField(
+            label: 'Tipe Kegiatan',
+            value: kak.tipe ?? 'N/A',
+            colorScheme: colorScheme,
+            note: kak.catatanTipeKegiatan,
+          ),
+          const SizedBox(height: 16),
+          _InfoField(
             label: 'Deskripsi Kegiatan',
             value: kak.deskripsiKegiatan,
             colorScheme: colorScheme,
+            note: kak.catatanDeskripsiKegiatan,
           ),
           const SizedBox(height: 16),
           _InfoField(
             label: 'Metode Pelaksanaan',
             value: kak.metodePelaksanaan,
             colorScheme: colorScheme,
+            note: kak.catatanMetodePelaksanaan,
           ),
           const SizedBox(height: 16),
           Row(
@@ -410,6 +516,7 @@ class _InfoUmumSection extends StatelessWidget {
                   label: 'Tanggal Mulai',
                   value: kak.tanggalMulai,
                   colorScheme: colorScheme,
+                  note: kak.catatanTanggal,
                 ),
               ),
               const SizedBox(width: 12),
@@ -418,6 +525,7 @@ class _InfoUmumSection extends StatelessWidget {
                   label: 'Tanggal Selesai',
                   value: kak.tanggalSelesai,
                   colorScheme: colorScheme,
+                  note: kak.catatanTanggal,
                 ),
               ),
             ],
@@ -427,12 +535,14 @@ class _InfoUmumSection extends StatelessWidget {
             label: 'Lokasi',
             value: kak.lokasi,
             colorScheme: colorScheme,
+            note: kak.catatanLokasi,
           ),
           const SizedBox(height: 16),
           _CompactInfoField(
             label: 'Kurun Waktu Pelaksanaan',
             value: kak.kurunWaktuPelaksanaan,
             colorScheme: colorScheme,
+            note: null,
           ),
         ],
       ),
@@ -467,6 +577,7 @@ class _SasaranTargetSection extends StatelessWidget {
             label: 'Sasaran Utama',
             value: kak.sasaranUtama,
             colorScheme: colorScheme,
+            note: kak.catatanSasaranUtama,
           ),
         ],
       ),
@@ -522,12 +633,48 @@ class _ManfaatSection extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      e.value.manfaat,
-                      style: GoogleFonts.figtree(
-                        fontSize: 13,
-                        color: colorScheme.onSurface,
-                        height: 1.5,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color:
+                            (e.value.catatan != null &&
+                                e.value.catatan!.trim().isNotEmpty)
+                            ? const Color(0xFFFFF1F0)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color:
+                              (e.value.catatan != null &&
+                                  e.value.catatan!.trim().isNotEmpty)
+                              ? Colors.redAccent
+                              : Colors.transparent,
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            e.value.manfaat,
+                            style: GoogleFonts.figtree(
+                              fontSize: 13,
+                              color: colorScheme.onSurface,
+                              height: 1.5,
+                            ),
+                          ),
+                          if (e.value.catatan != null &&
+                              e.value.catatan!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Catatan Verifikator: ${e.value.catatan!}',
+                              style: GoogleFonts.figtree(
+                                fontSize: 12,
+                                color: Colors.redAccent,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
@@ -594,12 +741,50 @@ class _TahapanSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        tahap.namaTahapan,
-                        style: GoogleFonts.figtree(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color:
+                              (tahap.catatanVerifikator != null &&
+                                  tahap.catatanVerifikator!.trim().isNotEmpty)
+                              ? const Color(0xFFFFF1F0)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color:
+                                (tahap.catatanVerifikator != null &&
+                                    tahap.catatanVerifikator!.trim().isNotEmpty)
+                                ? Colors.redAccent
+                                : Colors.transparent,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tahap.namaTahapan,
+                              style: GoogleFonts.figtree(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            if (tahap.catatanVerifikator != null &&
+                                tahap.catatanVerifikator!
+                                    .trim()
+                                    .isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'Catatan Verifikator: ${tahap.catatanVerifikator!}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  color: Colors.redAccent,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ),
@@ -640,65 +825,97 @@ class _IndikatorKinerjaSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(
-                colorScheme.primary.withOpacity(0.1),
-              ),
-              columns: [
-                DataColumn(
-                  label: Text(
-                    'Bulan',
-                    style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    'Deskripsi',
-                    style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    '%',
-                    style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                  ),
-                  numeric: true,
-                ),
-              ],
-              rows: kak.indikatorKinerja
-                  .map(
-                    (ind) => DataRow(
-                      cells: [
-                        DataCell(
-                          Text(
-                            ind.bulanIndikator,
-                            style: GoogleFonts.figtree(fontSize: 12),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            ind.deskripsiTarget,
-                            style: GoogleFonts.figtree(fontSize: 12),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            '${ind.persentaseTarget.toStringAsFixed(1)}%',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                  child: DataTable(
+                    headingRowColor: WidgetStatePropertyAll(
+                      colorScheme.primary.withOpacity(0.1),
                     ),
-                  )
-                  .toList(),
-            ),
+                    columns: [
+                      DataColumn(
+                        label: Text(
+                          'Bulan',
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'Deskripsi',
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          '%',
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        numeric: true,
+                      ),
+                    ],
+                    rows: kak.indikatorKinerja
+                        .map(
+                          (ind) => DataRow(
+                            cells: [
+                              DataCell(
+                                Text(
+                                  ind.bulanIndikator,
+                                  style: GoogleFonts.figtree(fontSize: 12),
+                                ),
+                              ),
+                              DataCell(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      ind.deskripsiTarget,
+                                      style: GoogleFonts.figtree(fontSize: 12),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (ind.catatanVerifikator != null &&
+                                        ind.catatanVerifikator!
+                                            .trim()
+                                            .isNotEmpty) ...[
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'Catatan Verifikator: ${ind.catatanVerifikator!}',
+                                        style: GoogleFonts.figtree(
+                                          fontSize: 11,
+                                          color: Colors.redAccent,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  '${ind.persentaseTarget.toStringAsFixed(1)}%',
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -739,8 +956,20 @@ class _RabSection extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 16),
               child: Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: colorScheme.outline, width: 1),
+                  border: Border.all(
+                    color:
+                        (item.catatanVerifikator != null &&
+                            item.catatanVerifikator!.trim().isNotEmpty)
+                        ? Colors.redAccent
+                        : colorScheme.outline,
+                    width: 1,
+                  ),
                   borderRadius: BorderRadius.circular(12),
+                  color:
+                      (item.catatanVerifikator != null &&
+                          item.catatanVerifikator!.trim().isNotEmpty)
+                      ? const Color(0xFFFFF1F0)
+                      : null,
                 ),
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -754,6 +983,18 @@ class _RabSection extends StatelessWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
+                    if (item.catatanVerifikator != null &&
+                        item.catatanVerifikator!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Catatan Verifikator: ${item.catatanVerifikator!}',
+                        style: GoogleFonts.figtree(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     if (item.volume1 != null)
                       _RabDetailRow('Volume 1', '${item.volume1}', colorScheme),
@@ -894,12 +1135,12 @@ class _ActionsSection extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          KakEditPage(kakId: int.parse(kak.kakId ?? '0')),
+                          KakEditPage(kakId: int.parse(kak.kakId)),
                     ),
                   ).then((result) {
                     if (result == true) {
                       // Reload KAK detail after edit
-                      provider.loadKakDetail(kak.kakId!);
+                      provider.loadKakDetail(kak.kakId);
                     }
                   });
                 },
@@ -984,15 +1225,18 @@ class _InfoField extends StatelessWidget {
   final String label;
   final String value;
   final ColorScheme colorScheme;
+  final String? note;
 
   const _InfoField({
     required this.label,
     required this.value,
     required this.colorScheme,
+    this.note,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasNote = note != null && note!.trim().isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1009,17 +1253,38 @@ class _InfoField extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceVariant.withOpacity(0.3),
+            color: hasNote
+                ? const Color(0xFFFFF1F0)
+                : colorScheme.surfaceVariant.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colorScheme.outline, width: 0.5),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.figtree(
-              fontSize: 13,
-              color: colorScheme.onSurface,
-              height: 1.5,
+            border: Border.all(
+              color: hasNote ? Colors.redAccent : colorScheme.outline,
+              width: 1,
             ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.figtree(
+                  fontSize: 13,
+                  color: colorScheme.onSurface,
+                  height: 1.5,
+                ),
+              ),
+              if (hasNote) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Catatan Verifikator: ${note!}',
+                  style: GoogleFonts.figtree(
+                    fontSize: 12,
+                    color: Colors.redAccent,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ],
@@ -1032,15 +1297,18 @@ class _CompactInfoField extends StatelessWidget {
   final String label;
   final String value;
   final ColorScheme colorScheme;
+  final String? note;
 
   const _CompactInfoField({
     required this.label,
     required this.value,
     required this.colorScheme,
+    this.note,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasNote = note != null && note!.trim().isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1057,18 +1325,39 @@ class _CompactInfoField extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceVariant.withOpacity(0.3),
+            color: hasNote
+                ? const Color(0xFFFFF1F0)
+                : colorScheme.surfaceVariant.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: colorScheme.outline, width: 0.5),
-          ),
-          child: Text(
-            value,
-            style: GoogleFonts.figtree(
-              fontSize: 12,
-              color: colorScheme.onSurface,
+            border: Border.all(
+              color: hasNote ? Colors.redAccent : colorScheme.outline,
+              width: 1,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.figtree(
+                  fontSize: 12,
+                  color: colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (hasNote) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Catatan Verifikator: ${note!}',
+                  style: GoogleFonts.figtree(
+                    fontSize: 11,
+                    color: Colors.redAccent,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
       ],
