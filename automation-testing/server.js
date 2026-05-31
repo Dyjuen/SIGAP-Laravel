@@ -232,12 +232,13 @@ const server = http.createServer((req, res) => {
       const cmd = fs.existsSync(playwrightBin) ? `"${playwrightBin}"` : 'npx playwright';
 
       let grepFlag = '';
-      // Only use grep if we have specific IDs and we're not running "everything"
-      // (roughly checking if testIds length is significantly less than total cases,
-      // but here we just check if it's provided to honor the UI filter)
-      if (testIds.length > 0) {
+      // Only use grep if we have a reasonable number of specific IDs
+      // PowerShell/CMD have character limits for command length (~8192 chars)
+      if (testIds.length > 0 && testIds.length < 100) {
           const regex = testIds.map(id => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
           grepFlag = `--grep "${regex}"`;
+      } else if (testIds.length >= 100) {
+          broadcastLog(`⚠️ Terlalu banyak filter (${testIds.length}), menjalankan seluruh suite tanpa grep untuk menghindari limit command line.`, 'warn');
       }
 
       const fullCmd = `${cmd} test ${target} ${grepFlag} --reporter=line,json --workers=${workers}`;
@@ -360,8 +361,10 @@ const server = http.createServer((req, res) => {
       currentProcess = exec(`k6 run "${script}"`, (err, stdout) => {
         currentProcess = null;
         if (err) { 
+          broadcastLog(`Error k6: ${err.message}`, 'error');
+          broadcastLog('💡 Pastikan k6 sudah terinstal dan tersedia di PATH. (Unduh: https://k6.io/)', 'warn');
           res.writeHead(200, { 'Content-Type': 'application/json' }); 
-          res.end(JSON.stringify({ success: false, error: 'k6 not found or execution failed.' })); 
+          res.end(JSON.stringify({ success: false, error: 'k6 not found. Pastikan k6 terinstal.' })); 
           return; 
         }
         broadcastLog(stdout);

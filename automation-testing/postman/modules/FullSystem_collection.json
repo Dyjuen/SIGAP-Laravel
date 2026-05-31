@@ -16,14 +16,11 @@
               "script": {
                 "exec": [
                   "pm.test('Login berhasil', function() {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
-                  "});",
-                  "",
-                  "const html = pm.response.text();",
-                  "const csrfMatch = html.match(/meta\\s+name=\"csrf-token\"\\s+content=\"([^\"]+)\"/);",
-                  "if (csrfMatch) {",
-                  "    pm.collectionVariables.set('csrf_token', csrfMatch[1]);",
-                  "}"
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.token).to.not.be.undefined;",
+                  "    pm.collectionVariables.set('auth_token', jsonData.token);",
+                  "});"
                 ]
               }
             }
@@ -31,17 +28,17 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
             ],
             "body": {
-              "mode": "urlencoded",
-              "urlencoded": [
-                { "key": "username", "value": "{{pengusul_username}}" },
-                { "key": "password", "value": "{{pengusul_password}}" },
-                { "key": "_token", "value": "{{csrf_token}}" }
-              ]
+              "mode": "raw",
+              "raw": JSON.stringify({
+                "username": "{{pengusul_username}}",
+                "password": "{{pengusul_password}}"
+              })
             },
-            "url": "{{base_url}}/login"
+            "url": "{{base_url}}/api/login"
           }
         }
       ]
@@ -59,7 +56,7 @@
                   "pm.test('Status code 200', function() { pm.response.to.have.status(200); });",
                   "pm.test('Response mengandung data KAK', function() {",
                   "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.props.kaks.data).to.be.an('array');",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
                   "});"
                 ]
               }
@@ -68,12 +65,13 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "X-Requested-With", "value": "XMLHttpRequest" }
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Accept", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{base_url}}/kak?status=2",
+              "raw": "{{base_url}}/api/kak?status=2",
               "host": ["{{base_url}}"],
-              "path": ["kak"],
+              "path": ["api", "kak"],
               "query": [{ "key": "status", "value": "2" }]
             }
           }
@@ -93,7 +91,7 @@
                   "pm.test('Status code 200', function() { pm.response.to.have.status(200); });",
                   "pm.test('Filter search bekerja', function() {",
                   "    const jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.props.kegiatans).to.be.an('array');",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
                   "});"
                 ]
               }
@@ -102,12 +100,13 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "X-Requested-With", "value": "XMLHttpRequest" }
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Accept", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{base_url}}/lpj?search=Workshop",
+              "raw": "{{base_url}}/api/lpj?search=Workshop",
               "host": ["{{base_url}}"],
-              "path": ["lpj"],
+              "path": ["api", "lpj"],
               "query": [{ "key": "search", "value": "Workshop" }]
             }
           }

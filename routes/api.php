@@ -83,8 +83,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Kegiatan API Routes
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Verifikator')->group(function () {
         Route::get('/kegiatan/monitoring', [KegiatanApiController::class, 'monitoring']);
+    });
+
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
         Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
         Route::post('/kegiatan', [KegiatanApiController::class, 'store']);
         Route::put('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'update']);
