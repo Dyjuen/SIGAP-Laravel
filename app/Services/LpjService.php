@@ -500,6 +500,7 @@ class LpjService
             'kegiatan_id',
             'kak_id',
             'lpj_submitted_at',
+            'tgl_batas_lpj',
         ])->with([
             'kak' => fn ($q) => $q->select([
                 'kak_id',
@@ -550,6 +551,7 @@ class LpjService
                 'sisa_dana' => $totalAnggaran - $totalDicairkan,
                 'lpj_submitted_at' => $kegiatan->lpj_submitted_at,
                 'lpj_status' => $this->getLpjStatus($kegiatan),
+                'tgl_batas_lpj' => $kegiatan->tgl_batas_lpj,
             ];
         });
     }

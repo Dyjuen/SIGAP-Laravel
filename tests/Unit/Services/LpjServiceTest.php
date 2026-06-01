@@ -331,4 +331,17 @@ class LpjServiceTest extends TestCase
 
         Event::assertDispatched(LpjCompleted::class);
     }
+
+    public function test_get_eligible_lpjs_includes_tgl_batas_lpj(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage();
+        $kegiatan->update(['tgl_batas_lpj' => '2026-06-15 12:00:00']);
+
+        $lpjs = $this->service->getEligibleLpjs($this->pengusul);
+
+        $this->assertNotEmpty($lpjs);
+        $matched = $lpjs->firstWhere('kegiatan_id', $kegiatan->kegiatan_id);
+        $this->assertNotNull($matched);
+        $this->assertEquals('2026-06-15 12:00:00', $matched['tgl_batas_lpj']);
+    }
 }

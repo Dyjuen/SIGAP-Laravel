@@ -23,9 +23,79 @@ import clsx from 'clsx';
 
 import Swal from 'sweetalert2';
 
+const getTimerInfo = (deadlineStr, statusId) => {
+    if (!deadlineStr) {
+        return {
+            text: '-',
+            badgeClass: 'bg-slate-50 text-slate-500 border-slate-200',
+            dotClass: 'bg-slate-400'
+        };
+    }
+
+    const deadline = new Date(deadlineStr);
+    const now = new Date();
+
+    if (statusId >= 13) {
+        return {
+            text: 'Selesai',
+            badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            dotClass: 'bg-emerald-500'
+        };
+    }
+
+    const diffTime = deadline - now;
+    if (diffTime > 0) {
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        
+        if (diffDays > 0) {
+            return {
+                text: `${diffDays} hari ${diffHours} jam`,
+                badgeClass: diffDays <= 3 
+                    ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                    : 'bg-blue-50 text-blue-700 border-blue-200',
+                dotClass: diffDays <= 3 ? 'bg-amber-500' : 'bg-blue-500'
+            };
+        } else {
+            const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+            return {
+                text: `${diffHours} jam ${diffMinutes} menit`,
+                badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+                dotClass: 'bg-amber-500'
+            };
+        }
+    } else {
+        const overdueTime = now - deadline;
+        const overdueDays = Math.floor(overdueTime / (1000 * 60 * 60 * 24));
+        
+        if (overdueDays > 0) {
+            return {
+                text: `Terlambat ${overdueDays} hari`,
+                badgeClass: 'bg-red-50 text-red-700 border-red-200',
+                dotClass: 'bg-red-500'
+            };
+        } else {
+            const overdueHours = Math.floor((overdueTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            return {
+                text: overdueHours > 0 ? `Terlambat ${overdueHours} jam` : 'Terlambat',
+                badgeClass: 'bg-red-50 text-red-700 border-red-200',
+                dotClass: 'bg-red-500'
+            };
+        }
+    }
+};
+
 export default function Index({ auth, kegiatans, flash }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [processing, setProcessing] = useState(null);
+    const [tick, setTick] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTick(prev => prev + 1);
+        }, 60000);
+        return () => clearInterval(interval);
+    }, []);
 
     useEffect(() => {
         if (flash?.success) {
@@ -241,6 +311,7 @@ export default function Index({ auth, kegiatans, flash }) {
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-center w-16">No.</th>
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Detail Kegiatan</th>
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Anggaran & Pencairan</th>
+                                            <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Deadline LPJ</th>
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status LPJ</th>
                                             <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Aksi</th>
                                         </tr>
@@ -272,6 +343,27 @@ export default function Index({ auth, kegiatans, flash }) {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-5">
+                                                        <div className="flex flex-col gap-1">
+                                                            <span className="text-xs font-semibold text-slate-700">
+                                                                {item.tgl_batas_lpj 
+                                                                    ? new Date(item.tgl_batas_lpj).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) 
+                                                                    : '-'}
+                                                            </span>
+                                                            {item.tgl_batas_lpj && (() => {
+                                                                const timer = getTimerInfo(item.tgl_batas_lpj, item.status_id);
+                                                                return (
+                                                                    <span className={clsx(
+                                                                        "inline-flex items-center w-fit gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider",
+                                                                        timer.badgeClass
+                                                                    )}>
+                                                                        <div className={clsx("w-1.5 h-1.5 rounded-full", timer.dotClass)}></div>
+                                                                        {timer.text}
+                                                                    </span>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-5">
                                                         <span className={clsx(
                                                             "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider",
                                                             item.status_id === 10 ? "bg-amber-50 text-amber-700 border-amber-200" :
@@ -300,7 +392,7 @@ export default function Index({ auth, kegiatans, flash }) {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan="5" className="px-6 py-20 text-center">
+                                                <td colSpan="6" className="px-6 py-20 text-center">
                                                     <div className="flex flex-col items-center gap-3 text-slate-400">
                                                         <FileCheck size={48} className="opacity-20" />
                                                         <p className="font-medium">Tidak ada kegiatan dalam tahap LPJ.</p>
@@ -354,6 +446,28 @@ export default function Index({ auth, kegiatans, flash }) {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {item.tgl_batas_lpj && (
+                                            <div className="py-2.5 border-t border-slate-50 flex items-center justify-between text-xs">
+                                                <span className="text-slate-500 font-medium">Deadline LPJ:</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-semibold text-slate-700">
+                                                        {new Date(item.tgl_batas_lpj).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                    </span>
+                                                    {(() => {
+                                                        const timer = getTimerInfo(item.tgl_batas_lpj, item.status_id);
+                                                        return (
+                                                            <span className={clsx(
+                                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider",
+                                                                timer.badgeClass
+                                                            )}>
+                                                                {timer.text}
+                                                            </span>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between text-[10px] text-slate-400">
                                             <div className="flex items-center gap-1.5">
