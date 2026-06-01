@@ -236,7 +236,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     },
                                     child: BlueStatCard(
                                       bg: const Color(0xFF33C8DA),
-                                      label: 'PENCAIRAN',
+                                      label: 'SEMUA KAK',
                                       textColor: Colors.white,
                                       value: dashboardProvider.stats!.totalKak
                                           .toString(),
@@ -262,8 +262,8 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     },
                                     child: BlueStatCard(
                                       bg: Colors.white,
-                                      label: 'KEGIATAN',
-                                      textColor: const Color(0xFF33C8DA),
+                                      label: 'DRAFT',
+                                      textColor: const Color(0xFF64748B),
                                       value: dashboardProvider.stats!.draftKak
                                           .toString(),
                                     ),
@@ -292,8 +292,8 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                   },
                                   child: BlueStatCard(
                                     bg: Colors.white,
-                                    label: 'LPJ',
-                                    textColor: const Color(0xFF33C8DA),
+                                    label: 'REVIEW',
+                                    textColor: const Color(0xFFF59E0B),
                                     value: dashboardProvider.stats!.reviewKak
                                         .toString(),
                                   ),
@@ -307,7 +307,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => const KakListPage(
-                                          initialStatusId: 5,
+                                          initialStatusId: 3,
                                         ),
                                       ),
                                     ).then(
@@ -316,8 +316,8 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                   },
                                   child: BlueStatCard(
                                     bg: const Color(0xFFE0F7FA),
-                                    label: 'REVISI',
-                                    textColor: const Color(0xFF33C8DA),
+                                    label: 'DISETUJUI',
+                                    textColor: const Color(0xFF10B981),
                                     value: dashboardProvider.stats!.approvedKak
                                         .toString(),
                                   ),

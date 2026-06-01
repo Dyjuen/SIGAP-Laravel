@@ -112,6 +112,7 @@ class LpjApiController extends Controller
                         'realisasi_satuan3_id' => $item->realisasi_satuan3_id,
                         'realisasi_harga_satuan' => (float) $item->realisasi_harga_satuan,
                         'realisasi_jumlah' => (float) $item->realisasi_jumlah,
+                        'catatan_reviewer' => $item->catatan_verifikator,
                     ];
                 })->toArray() ?? [],
                 'approval_status' => $kegiatan->approvals->where('approval_level', 'Bendahara-LPJ')->first()?->status ?? 'Pending',

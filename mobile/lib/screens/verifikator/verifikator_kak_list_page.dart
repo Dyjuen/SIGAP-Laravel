@@ -338,7 +338,13 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                          ? const Color(0xFFECFDF5)
+                          : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                              ? const Color(0xFFFEF2F2)
+                              : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
+                                  ? const Color(0xFFFFFBEB)
+                                  : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -346,7 +352,13 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                       style: GoogleFonts.figtree(
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
-                        color: Colors.orange.shade700,
+                        color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                            ? const Color(0xFF10B981)
+                            : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                                ? const Color(0xFFEF4444)
+                                : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFF64748B),
                       ),
                     ),
                   ),

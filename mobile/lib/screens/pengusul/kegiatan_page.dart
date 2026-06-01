@@ -27,21 +27,18 @@ class _KegiatanPageState extends State<KegiatanPage> {
   Future<void> _loadApprovedKaks() async {
     setState(() => _isLoading = true);
     try {
-      final res = await ApiService.get('/kak');
+      final res = await ApiService.get('/kegiatan');
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         List<dynamic> data = [];
-        if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
-          data = decoded['data'] as List<dynamic>;
+        if (decoded is Map<String, dynamic> && decoded.containsKey('approvedKaks')) {
+          data = decoded['approvedKaks'] as List<dynamic>;
         } else if (decoded is List<dynamic>) {
           data = decoded;
         }
-        // filter to status_id == 3 (Disetujui)
-        final approved = data
-            .where((d) => (d['status_id'] as int?) == 3)
-            .toList();
+        
         setState(() {
-          _items = approved;
+          _items = data;
           _isLoading = false;
         });
       } else {

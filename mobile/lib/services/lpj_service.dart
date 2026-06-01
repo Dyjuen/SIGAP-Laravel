@@ -59,7 +59,9 @@ class LpjService {
   Future<void> submitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    List<String>? buktiFilePaths,
+    Map<String, List<String>>? buktiFiles,
+    int? spkWaktu,
+    int? spkOutput,
   }) async {
     try {
       final formData = FormData();
@@ -69,53 +71,68 @@ class LpjService {
         final item = realizasiData[i];
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][anggaran_id]',
-            item['anggaran_id'].toString(),
+            'realisasi[${item['anggaran_id']}][volume1]',
+            item['volume1']?.toString() ?? '',
           ),
         );
         formData.fields.add(
-          MapEntry('realisasi[$i][volume1]', item['volume1']?.toString() ?? ''),
-        );
-        formData.fields.add(
           MapEntry(
-            'realisasi[$i][satuan1_id]',
+            'realisasi[${item['anggaran_id']}][satuan1_id]',
             item['satuan1_id']?.toString() ?? '',
           ),
         );
         formData.fields.add(
-          MapEntry('realisasi[$i][volume2]', item['volume2']?.toString() ?? ''),
+          MapEntry(
+            'realisasi[${item['anggaran_id']}][volume2]',
+            item['volume2']?.toString() ?? '',
+          ),
         );
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][satuan2_id]',
+            'realisasi[${item['anggaran_id']}][satuan2_id]',
             item['satuan2_id']?.toString() ?? '',
           ),
         );
         formData.fields.add(
-          MapEntry('realisasi[$i][volume3]', item['volume3']?.toString() ?? ''),
+          MapEntry(
+            'realisasi[${item['anggaran_id']}][volume3]',
+            item['volume3']?.toString() ?? '',
+          ),
         );
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][satuan3_id]',
+            'realisasi[${item['anggaran_id']}][satuan3_id]',
             item['satuan3_id']?.toString() ?? '',
           ),
         );
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][harga_satuan]',
+            'realisasi[${item['anggaran_id']}][harga_satuan]',
             item['harga_satuan']?.toString() ?? '',
           ),
         );
       }
 
+      // Add SPK fields
+      if (spkWaktu != null) {
+        formData.fields.add(MapEntry('spk_kesesuaian_waktu', spkWaktu.toString()));
+      }
+      if (spkOutput != null) {
+        formData.fields.add(MapEntry('spk_kesesuaian_output', spkOutput.toString()));
+      }
+
       // Add files
-      if (buktiFilePaths != null && buktiFilePaths.isNotEmpty) {
-        for (int i = 0; i < buktiFilePaths.length; i++) {
-          final file = await MultipartFile.fromFile(
-            buktiFilePaths[i],
-            filename: buktiFilePaths[i].split('/').last,
-          );
-          formData.files.add(MapEntry('bukti_files[$i]', file));
+      if (buktiFiles != null && buktiFiles.isNotEmpty) {
+        for (final entry in buktiFiles.entries) {
+          final anggaranId = entry.key;
+          final paths = entry.value;
+          for (final path in paths) {
+            final file = await MultipartFile.fromFile(
+              path,
+              filename: path.split('/').last,
+            );
+            formData.files.add(MapEntry('bukti[$anggaranId][]', file));
+          }
         }
       }
 
@@ -153,13 +170,17 @@ class LpjService {
   }
 
   /// Request revision for LPJ (Bendahara)
-  Future<void> reviseLpj({
+  Future<bool> reviseLpj({
     required String kegiatanId,
+    String? catatanUmum,
     List<Map<String, dynamic>>? anggaranComments,
     List<Map<String, dynamic>>? lampiranComments,
   }) async {
     try {
       final payload = <String, dynamic>{};
+      if (catatanUmum != null) {
+        payload['catatan'] = catatanUmum;
+      }
       if (anggaranComments != null) {
         payload['anggaran_comments'] = anggaranComments;
       }
@@ -176,6 +197,7 @@ class LpjService {
       if (response.statusCode != 200) {
         throw Exception('Failed to request revision');
       }
+      return true;
     } on DioException catch (e) {
       throw _handleDioException(e);
     }
@@ -185,7 +207,9 @@ class LpjService {
   Future<void> resubmitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    List<String>? buktiFilePaths,
+    Map<String, List<String>>? buktiFiles,
+    int? spkWaktu,
+    int? spkOutput,
   }) async {
     try {
       final formData = FormData();
@@ -195,53 +219,68 @@ class LpjService {
         final item = realizasiData[i];
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][anggaran_id]',
-            item['anggaran_id'].toString(),
+            'realisasi[${item['anggaran_id']}][volume1]',
+            item['volume1']?.toString() ?? '',
           ),
         );
         formData.fields.add(
-          MapEntry('realisasi[$i][volume1]', item['volume1']?.toString() ?? ''),
-        );
-        formData.fields.add(
           MapEntry(
-            'realisasi[$i][satuan1_id]',
+            'realisasi[${item['anggaran_id']}][satuan1_id]',
             item['satuan1_id']?.toString() ?? '',
           ),
         );
         formData.fields.add(
-          MapEntry('realisasi[$i][volume2]', item['volume2']?.toString() ?? ''),
+          MapEntry(
+            'realisasi[${item['anggaran_id']}][volume2]',
+            item['volume2']?.toString() ?? '',
+          ),
         );
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][satuan2_id]',
+            'realisasi[${item['anggaran_id']}][satuan2_id]',
             item['satuan2_id']?.toString() ?? '',
           ),
         );
         formData.fields.add(
-          MapEntry('realisasi[$i][volume3]', item['volume3']?.toString() ?? ''),
+          MapEntry(
+            'realisasi[${item['anggaran_id']}][volume3]',
+            item['volume3']?.toString() ?? '',
+          ),
         );
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][satuan3_id]',
+            'realisasi[${item['anggaran_id']}][satuan3_id]',
             item['satuan3_id']?.toString() ?? '',
           ),
         );
         formData.fields.add(
           MapEntry(
-            'realisasi[$i][harga_satuan]',
+            'realisasi[${item['anggaran_id']}][harga_satuan]',
             item['harga_satuan']?.toString() ?? '',
           ),
         );
       }
 
+      // Add SPK fields
+      if (spkWaktu != null) {
+        formData.fields.add(MapEntry('spk_kesesuaian_waktu', spkWaktu.toString()));
+      }
+      if (spkOutput != null) {
+        formData.fields.add(MapEntry('spk_kesesuaian_output', spkOutput.toString()));
+      }
+
       // Add files
-      if (buktiFilePaths != null && buktiFilePaths.isNotEmpty) {
-        for (int i = 0; i < buktiFilePaths.length; i++) {
-          final file = await MultipartFile.fromFile(
-            buktiFilePaths[i],
-            filename: buktiFilePaths[i].split('/').last,
-          );
-          formData.files.add(MapEntry('bukti_files[$i]', file));
+      if (buktiFiles != null && buktiFiles.isNotEmpty) {
+        for (final entry in buktiFiles.entries) {
+          final anggaranId = entry.key;
+          final paths = entry.value;
+          for (final path in paths) {
+            final file = await MultipartFile.fromFile(
+              path,
+              filename: path.split('/').last,
+            );
+            formData.files.add(MapEntry('bukti[$anggaranId][]', file));
+          }
         }
       }
 

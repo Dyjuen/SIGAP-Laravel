@@ -59,8 +59,11 @@ class RabItem {
   String id;
   String uraian;
   double volume1;
+  int? satuan1Id;
   double? volume2;
+  int? satuan2Id;
   double? volume3;
+  int? satuan3Id;
   double hargaSatuan;
   int kategoriBelanjaId;
   String? note;
@@ -69,8 +72,11 @@ class RabItem {
     required this.id,
     required this.uraian,
     required this.volume1,
+    this.satuan1Id,
     this.volume2,
+    this.satuan2Id,
     this.volume3,
+    this.satuan3Id,
     required this.hargaSatuan,
     required this.kategoriBelanjaId,
     this.note,
@@ -182,8 +188,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             id: r.anggaranId.toString(),
             uraian: r.uraian,
             volume1: r.volume1?.toDouble() ?? 0,
+            satuan1Id: r.satuan1Id,
             volume2: r.volume2?.toDouble(),
+            satuan2Id: r.satuan2Id,
             volume3: r.volume3?.toDouble(),
+            satuan3Id: r.satuan3Id,
             hargaSatuan: r.hargaSatuan?.toDouble() ?? 0,
             kategoriBelanjaId: 1,
           ),
@@ -254,8 +263,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             (r) => {
               'uraian': r.uraian,
               'volume1': r.volume1,
+              'satuan1_id': r.satuan1Id,
               'volume2': r.volume2,
+              'satuan2_id': r.satuan2Id,
               'volume3': r.volume3,
+              'satuan3_id': r.satuan3Id,
               'harga_satuan': r.hargaSatuan,
               'kategori_belanja_id': r.kategoriBelanjaId,
             },
@@ -360,6 +372,28 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
         }
       });
     }
+  }
+
+  Widget _buildSatuanDropdown({
+    required String label,
+    required int? value,
+    required ValueChanged<int?> onChanged,
+  }) {
+    return DropdownButtonFormField<int>(
+      value: widget.satuanOptions.any((s) => (s['satuan_id'] ?? s['id']) == value) ? value : null,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      items: widget.satuanOptions.map<DropdownMenuItem<int>>((satuan) {
+        return DropdownMenuItem<int>(
+          value: satuan['satuan_id'] ?? satuan['id'],
+          child: Text(satuan['nama_satuan'] ?? satuan['name'] ?? ''),
+        );
+      }).toList(),
+      onChanged: onChanged,
+    );
   }
 
   @override
@@ -1349,58 +1383,88 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       children: [
                         Expanded(
                           flex: 1,
-                          child: TextFormField(
-                            initialValue: item.volume1.toString(),
-                            decoration: InputDecoration(
-                              labelText: 'Vol 1',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                initialValue: item.volume1.toString(),
+                                decoration: InputDecoration(
+                                  labelText: 'Vol 1',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  setState(() {
+                                    item.volume1 = double.tryParse(value) ?? 0;
+                                  });
+                                },
                               ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              setState(() {
-                                item.volume1 = double.tryParse(value) ?? 0;
-                              });
-                            },
+                              const SizedBox(height: 8),
+                              _buildSatuanDropdown(
+                                label: 'Satuan 1',
+                                value: item.satuan1Id,
+                                onChanged: (val) => setState(() => item.satuan1Id = val),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           flex: 1,
-                          child: TextFormField(
-                            initialValue: item.volume2?.toString() ?? '',
-                            decoration: InputDecoration(
-                              labelText: 'Vol 2',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                initialValue: item.volume2?.toString() ?? '',
+                                decoration: InputDecoration(
+                                  labelText: 'Vol 2',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  setState(() {
+                                    item.volume2 = double.tryParse(value);
+                                  });
+                                },
                               ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              setState(() {
-                                item.volume2 = double.tryParse(value);
-                              });
-                            },
+                              const SizedBox(height: 8),
+                              _buildSatuanDropdown(
+                                label: 'Satuan 2',
+                                value: item.satuan2Id,
+                                onChanged: (val) => setState(() => item.satuan2Id = val),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           flex: 1,
-                          child: TextFormField(
-                            initialValue: item.volume3?.toString() ?? '',
-                            decoration: InputDecoration(
-                              labelText: 'Vol 3',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                initialValue: item.volume3?.toString() ?? '',
+                                decoration: InputDecoration(
+                                  labelText: 'Vol 3',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (value) {
+                                  setState(() {
+                                    item.volume3 = double.tryParse(value);
+                                  });
+                                },
                               ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            onChanged: (value) {
-                              setState(() {
-                                item.volume3 = double.tryParse(value);
-                              });
-                            },
+                              const SizedBox(height: 8),
+                              _buildSatuanDropdown(
+                                label: 'Satuan 3',
+                                value: item.satuan3Id,
+                                onChanged: (val) => setState(() => item.satuan3Id = val),
+                              ),
+                            ],
                           ),
                         ),
                       ],

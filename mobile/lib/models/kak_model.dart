@@ -132,8 +132,14 @@ class KakRab {
   final String anggaranId;
   final String uraian;
   final double? volume1;
+  final int? satuan1Id;
+  final String? satuan1Nama;
   final double? volume2;
+  final int? satuan2Id;
+  final String? satuan2Nama;
   final double? volume3;
+  final int? satuan3Id;
+  final String? satuan3Nama;
   final double? hargaSatuan;
   final double? jumlahDiusulkan;
   final String? catatanVerifikator;
@@ -142,8 +148,14 @@ class KakRab {
     required this.anggaranId,
     required this.uraian,
     this.volume1,
+    this.satuan1Id,
+    this.satuan1Nama,
     this.volume2,
+    this.satuan2Id,
+    this.satuan2Nama,
     this.volume3,
+    this.satuan3Id,
+    this.satuan3Nama,
     this.hargaSatuan,
     this.jumlahDiusulkan,
     this.catatanVerifikator,
@@ -154,8 +166,14 @@ class KakRab {
       anggaranId: json['anggaran_id']?.toString() ?? '',
       uraian: json['uraian'] ?? '',
       volume1: _parseDoubleOrNull(json['volume1']),
+      satuan1Id: json['satuan1_id'] != null ? int.tryParse(json['satuan1_id'].toString()) : null,
+      satuan1Nama: json['satuan1_nama'] ?? (json['satuan1'] is Map ? json['satuan1']['nama_satuan'] : null),
       volume2: _parseDoubleOrNull(json['volume2']),
+      satuan2Id: json['satuan2_id'] != null ? int.tryParse(json['satuan2_id'].toString()) : null,
+      satuan2Nama: json['satuan2_nama'] ?? (json['satuan2'] is Map ? json['satuan2']['nama_satuan'] : null),
       volume3: _parseDoubleOrNull(json['volume3']),
+      satuan3Id: json['satuan3_id'] != null ? int.tryParse(json['satuan3_id'].toString()) : null,
+      satuan3Nama: json['satuan3_nama'] ?? (json['satuan3'] is Map ? json['satuan3']['nama_satuan'] : null),
       hargaSatuan: _parseDoubleOrNull(json['harga_satuan']),
       jumlahDiusulkan: _parseDoubleOrNull(json['jumlah_diusulkan']),
       catatanVerifikator: json['catatan_verifikator'],
@@ -166,8 +184,11 @@ class KakRab {
     'anggaran_id': anggaranId,
     'uraian': uraian,
     'volume1': volume1,
+    'satuan1_id': satuan1Id,
     'volume2': volume2,
+    'satuan2_id': satuan2Id,
     'volume3': volume3,
+    'satuan3_id': satuan3Id,
     'harga_satuan': hargaSatuan,
     'jumlah_diusulkan': jumlahDiusulkan,
     'catatan_verifikator': catatanVerifikator,

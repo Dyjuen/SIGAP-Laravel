@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class LpjRealization {
   final String anggaranId;
   final String kakId;
@@ -15,6 +17,7 @@ class LpjRealization {
   final String? realisasiSatuan3Id;
   final double? realisasiHargaSatuan;
   final double realisasiJumlah;
+  final String? catatanReviewer;
 
   LpjRealization({
     required this.anggaranId,
@@ -33,9 +36,14 @@ class LpjRealization {
     this.realisasiSatuan3Id,
     this.realisasiHargaSatuan,
     required this.realisasiJumlah,
+    this.catatanReviewer,
   });
 
   factory LpjRealization.fromJson(Map<String, dynamic> json) {
+    final catatan = json['catatan_reviewer'];
+    if (catatan != null) {
+      debugPrint('LpjRealization: Anggaran ${json['anggaran_id']} received note: $catatan');
+    }
     return LpjRealization(
       anggaranId: json['anggaran_id']?.toString() ?? '',
       kakId: json['kak_id']?.toString() ?? '',
@@ -61,6 +69,7 @@ class LpjRealization {
           ? _parseDouble(json['realisasi_harga_satuan'])
           : null,
       realisasiJumlah: _parseDouble(json['realisasi_jumlah']),
+      catatanReviewer: catatan,
     );
   }
 
@@ -81,6 +90,7 @@ class LpjRealization {
     'realisasi_satuan3_id': realisasiSatuan3Id,
     'realisasi_harga_satuan': realisasiHargaSatuan,
     'realisasi_jumlah': realisasiJumlah,
+    'catatan_reviewer': catatanReviewer,
   };
 
   double get percentageRealized {

@@ -4,6 +4,8 @@ import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
+import '../../screens/pengusul/lpj_detail_page.dart';
+import '../../screens/pengusul/lpj_form_page.dart';
 
 class BendaharaDashboardScreen extends StatefulWidget {
   const BendaharaDashboardScreen({super.key});
@@ -370,7 +372,16 @@ class _LpjItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigate to LPJ detail
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => LpjDetailPage(kegiatanId: item.id),
+          ),
+        ).then((_) {
+          if (context.mounted) {
+            context.read<BendaharaDashboardProvider>().loadDashboard();
+          }
+        });
       },
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
@@ -482,7 +493,17 @@ class _LpjItemCard extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Approve LPJ
+                    // Navigate to process (usually details for bendahara review)
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LpjDetailPage(kegiatanId: item.id),
+                      ),
+                    ).then((_) {
+                      if (context.mounted) {
+                        context.read<BendaharaDashboardProvider>().loadDashboard();
+                      }
+                    });
                   },
                   icon: const Icon(Icons.done, size: 16),
                   label: const Text('Proses'),

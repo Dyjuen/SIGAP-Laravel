@@ -61,7 +61,9 @@ class LpjProvider with ChangeNotifier {
   Future<bool> submitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    List<String>? buktiFilePaths,
+    Map<String, List<String>>? buktiFiles,
+    int? spkWaktu,
+    int? spkOutput,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
@@ -71,7 +73,9 @@ class LpjProvider with ChangeNotifier {
       await _lpjService.submitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
-        buktiFilePaths: buktiFilePaths,
+        buktiFiles: buktiFiles,
+        spkWaktu: spkWaktu,
+        spkOutput: spkOutput,
       );
 
       _errorMessage = null;
@@ -113,30 +117,18 @@ class LpjProvider with ChangeNotifier {
   /// Request revision for LPJ (Bendahara)
   Future<bool> reviseLpj({
     required String kegiatanId,
-    required String catatan,
+    String? catatan,
+    List<Map<String, dynamic>>? anggaranComments,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final comments =
-          _selectedLpj?.anggaranItems
-              .map((item) {
-                final anggaranId = int.tryParse(item.anggaranId);
-                if (anggaranId == null) {
-                  return null;
-                }
-
-                return {'id': anggaranId, 'catatan_reviewer': catatan};
-              })
-              .whereType<Map<String, dynamic>>()
-              .toList() ??
-          [];
-
       await _lpjService.reviseLpj(
         kegiatanId: kegiatanId,
-        anggaranComments: comments,
+        catatanUmum: catatan,
+        anggaranComments: anggaranComments,
       );
 
       // Refresh detail
@@ -159,7 +151,9 @@ class LpjProvider with ChangeNotifier {
   Future<bool> resubmitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    List<String>? buktiFilePaths,
+    Map<String, List<String>>? buktiFiles,
+    int? spkWaktu,
+    int? spkOutput,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
@@ -169,7 +163,9 @@ class LpjProvider with ChangeNotifier {
       await _lpjService.resubmitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
-        buktiFilePaths: buktiFilePaths,
+        buktiFiles: buktiFiles,
+        spkWaktu: spkWaktu,
+        spkOutput: spkOutput,
       );
 
       _errorMessage = null;

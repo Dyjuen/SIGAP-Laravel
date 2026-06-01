@@ -235,17 +235,30 @@ class _KakDetailPageState extends State<KakDetailPage> {
                           fontFamily: 'Figtree')),
                   const SizedBox(height: 12),
                   ...rab.map((r) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(r['uraian'] ?? '-',
-                                  style: const TextStyle(color: Color(0xFF334155), fontSize: 13)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(r['uraian'] ?? '-',
+                                      style: const TextStyle(
+                                          color: Color(0xFF1E293B), 
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13)),
+                                ),
+                                Text(
+                                  _formatRupiah(_parseDouble(r['jumlah_diusulkan'])),
+                                  style: const TextStyle(
+                                      color: Color(0xFF33C8DA), fontWeight: FontWeight.bold, fontSize: 13),
+                                ),
+                              ],
                             ),
+                            const SizedBox(height: 2),
                             Text(
-                              _formatRupiah(_parseDouble(r['jumlah_diusulkan'])),
-                              style: const TextStyle(
-                                  color: Color(0xFF33C8DA), fontWeight: FontWeight.bold, fontSize: 13),
+                              _buildVolumeText(r),
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
                             ),
                           ],
                         ),
@@ -437,6 +450,22 @@ class _KakDetailPageState extends State<KakDetailPage> {
         ],
       ),
     );
+  }
+
+  String _buildVolumeText(Map<String, dynamic> r) {
+    List<String> parts = [];
+    
+    if (r['volume1'] != null) {
+      parts.add("${r['volume1']} ${r['satuan1_nama'] ?? ''}");
+    }
+    if (r['volume2'] != null && _parseDouble(r['volume2']) > 0) {
+      parts.add("${r['volume2']} ${r['satuan2_nama'] ?? ''}");
+    }
+    if (r['volume3'] != null && _parseDouble(r['volume3']) > 0) {
+      parts.add("${r['volume3']} ${r['satuan3_nama'] ?? ''}");
+    }
+    
+    return parts.join(" x ");
   }
 
   String _formatRupiah(double amount) {

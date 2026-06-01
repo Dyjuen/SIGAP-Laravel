@@ -373,19 +373,27 @@ class _VerificationItemCard extends StatelessWidget {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 10,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade100,
-                      borderRadius: BorderRadius.circular(4),
+                      color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                          ? const Color(0xFFECFDF5)
+                          : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                              ? const Color(0xFFFEF2F2)
+                              : const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'REVIEW',
+                    child: Text(
+                      item.status?.toUpperCase() ?? 'REVIEW',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+                        color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                            ? const Color(0xFF10B981)
+                            : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                                ? const Color(0xFFEF4444)
+                                : const Color(0xFFF59E0B),
                       ),
                     ),
                   ),
