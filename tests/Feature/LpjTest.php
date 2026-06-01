@@ -14,6 +14,7 @@ use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class LpjTest extends TestCase
@@ -757,5 +758,24 @@ class LpjTest extends TestCase
 
         $response->assertStatus(302);
         $response->assertSessionHasErrors(['message']);
+    }
+
+    public function test_lpj_index_page_receives_tgl_batas_lpj(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
+        $kegiatan->update(['tgl_batas_lpj' => '2026-06-15 12:00:00']);
+
+        $response = $this->actingAs($this->pengusul)
+            ->get(route('lpj.index'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Lpj/Index')
+            ->has('kegiatans', 1, fn (Assert $keg) => $keg
+                ->where('kegiatan_id', $kegiatan->kegiatan_id)
+                ->where('tgl_batas_lpj', '2026-06-15T12:00:00.000000Z')
+                ->etc()
+            )
+        );
     }
 }

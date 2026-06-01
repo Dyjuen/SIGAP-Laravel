@@ -3,9 +3,16 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../providers/auth_provider.dart';
+import '../models/user.dart';
 import '../screens/landing_page.dart';
-import '../screens/pengusul/kak_create_page.dart';
 import '../screens/pengusul/kak_list_page.dart';
+import '../screens/pengusul/kegiatan_page.dart';
+import '../screens/kegiatan_monitoring_page.dart';
+import '../screens/pengusul/lpj_list_page.dart';
+import '../screens/verifikator/verifikator_kak_list_page.dart';
+import '../screens/bendahara/pencairan_page.dart';
+import '../screens/admin/user_management_page.dart';
+import '../screens/placeholder_page.dart';
 
 class DashboardDrawer extends StatelessWidget {
   final int roleId;
@@ -19,69 +26,318 @@ class DashboardDrawer extends StatelessWidget {
 
     return Drawer(
       backgroundColor: Colors.white,
-      child: Column(
-        children: [
-          // Header Drawer
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 56, 20, 20),
-            color: const Color(0xFF33C8DA),
-            width: double.infinity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SvgPicture.asset(
-                  'assets/images/logoauth.svg',
-                  width: 40,
-                  height: 40,
-                  // Jika ingin icon berwarna putih:
-                  // colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                children: [
+                  SvgPicture.asset('assets/images/logoland.svg', height: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SIGAP PNJ',
+                          style: GoogleFonts.figtree(
+                            color: const Color(0xFF0F172A),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          'Navigasi Aplikasi',
+                          style: GoogleFonts.figtree(
+                            color: const Color(0xFF64748B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  _drawerItem(
+                    context,
+                    Icons.dashboard_rounded,
+                    'Dashboard',
+                    onTap: () => Navigator.pop(context),
+                  ),
+                  ..._getRoleMenu(context, roleId),
+                ],
+              ),
+            ),
+            _buildProfileFooter(context, authProvider, user),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _getRoleMenu(BuildContext context, int role) {
+    final menu = <Widget>[];
+
+    if ([1, 2, 3, 6, 7].contains(role)) {
+      menu.add(
+        _drawerItem(
+          context,
+          Icons.file_copy_rounded,
+          'Kegiatan (KAK)',
+          onTap: () => _openKakPage(context, role),
+        ),
+      );
+    }
+
+    if ([1, 3, 4, 5].contains(role)) {
+      menu.addAll([
+        _drawerItem(
+          context,
+          Icons.task_alt_rounded,
+          'Kegiatan',
+          onTap: () => _openPage(context, const KegiatanPage()),
+        ),
+        _drawerItem(
+          context,
+          Icons.visibility_rounded,
+          'Pemantauan Kegiatan',
+          onTap: () => _openPage(context, const KegiatanMonitoringPage()),
+        ),
+      ]);
+    }
+
+    if ([1, 6].contains(role)) {
+      menu.add(
+        _drawerItem(
+          context,
+          Icons.payments_rounded,
+          'Pencairan Dana',
+          onTap: () => _openPage(context, const PencairanPage()),
+        ),
+      );
+    }
+
+    if ([1, 3, 6].contains(role)) {
+      menu.add(
+        _drawerItem(
+          context,
+          Icons.receipt_long_rounded,
+          'LPJ',
+          onTap: () => _openPage(context, const LpjListPage()),
+        ),
+      );
+    }
+
+    if (role == 1) {
+      menu.addAll([
+        _drawerItem(
+          context,
+          Icons.group_rounded,
+          'Manajemen Akun',
+          onTap: () => _openPage(context, const UserManagementPage()),
+        ),
+        _drawerItem(
+          context,
+          Icons.menu_book_rounded,
+          'Manajemen Panduan',
+          onTap: () => _openPage(
+            context,
+            const PlaceholderPage(title: 'Manajemen Panduan'),
+          ),
+        ),
+        _drawerItem(
+          context,
+          Icons.history_rounded,
+          'Riwayat Aktivitas',
+          onTap: () => _openPage(
+            context,
+            const PlaceholderPage(title: 'Riwayat Aktivitas'),
+          ),
+        ),
+        _masterDataTile(context),
+      ]);
+    }
+
+    return menu;
+  }
+
+  Widget _masterDataTile(BuildContext context) {
+    final titles = [
+      'Role & Izin',
+      'Mata Anggaran',
+      'Kategori Belanja',
+      'Satuan',
+      'Tipe Kegiatan',
+      'Status Kegiatan',
+      'IKU',
+      'Manajemen SPK',
+    ];
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 20),
+        childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 8),
+        iconColor: const Color(0xFF33C8DA),
+        collapsedIconColor: const Color(0xFF64748B),
+        leading: const Icon(Icons.storage_rounded, size: 22),
+        title: Text(
+          'Master Data',
+          style: GoogleFonts.figtree(
+            color: const Color(0xFF1F2937),
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+        children: titles
+            .map(
+              (title) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: ListTile(
+                  dense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                  title: Text(
+                    title,
+                    style: GoogleFonts.figtree(
+                      color: const Color(0xFF475569),
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  onTap: () =>
+                      _openPage(context, PlaceholderPage(title: title)),
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  user?.namaLengkap ?? '-',
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  void _openKakPage(BuildContext context, int role) {
+    _openPage(
+      context,
+      [2, 7].contains(role)
+          ? const VerifikatorKakListPage()
+          : const KakListPage(),
+    );
+  }
+
+  void _openPage(BuildContext context, Widget page) {
+    Navigator.pop(context);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
+
+  Widget _buildProfileFooter(
+    BuildContext context,
+    AuthProvider provider,
+    User? user,
+  ) {
+    if (user == null) {
+      return const SizedBox.shrink();
+    }
+
+    final initials = _initials(user.namaLengkap);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8FAFC),
+        border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF33C8DA),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  initials,
                   style: GoogleFonts.figtree(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
                   ),
                 ),
-                Text(
-                  user?.roleName ?? '-',
-                  style: GoogleFonts.figtree(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 12,
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.namaLengkap,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.figtree(
+                        color: const Color(0xFF0F172A),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      user.roleName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.figtree(
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            user.email,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.figtree(
+              color: const Color(0xFF64748B),
+              fontSize: 12,
             ),
           ),
-
-          // Nav Items based on Role
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                _drawerItem(
-                  context,
-                  Icons.dashboard_rounded,
-                  'Dashboard',
-                  onTap: () {
-                    Navigator.pop(context); // Close drawer
-                  },
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async => _handleLogout(context, provider),
+              icon: const Icon(Icons.logout_rounded, size: 18),
+              label: const Text('Keluar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Color(0xFFFECACA)),
+                backgroundColor: const Color(0xFFFFF1F2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                ..._getRoleMenu(context, roleId),
-                const Divider(height: 1),
-                // Logout di bawah
-                _drawerItem(
-                  context,
-                  Icons.logout_rounded,
-                  'Keluar',
-                  isLogout: true,
-                  onTap: () async {
-                    await _handleLogout(context, authProvider);
-                  },
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -89,132 +345,18 @@ class DashboardDrawer extends StatelessWidget {
     );
   }
 
-  List<Widget> _getRoleMenu(BuildContext context, int role) {
-    switch (role) {
-      case 2: // Pengusul
-        return [
-          _drawerItem(
-            context,
-            Icons.add_box_rounded,
-            'Buat KAK',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const KakCreatePage()),
-              );
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.list_alt_rounded,
-            'Daftar KAK',
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const KakListPage()),
-              );
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.task_rounded,
-            'LPJ Saya',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate to LPJ Saya
-            },
-          ),
-        ];
-      case 3: // Verifikator
-        return [
-          _drawerItem(
-            context,
-            Icons.rule_rounded,
-            'Antrian Verifikasi',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.history_rounded,
-            'Riwayat',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-        ];
-      case 4: // PPK
-      case 7: // Wadir 2
-        return [
-          _drawerItem(
-            context,
-            Icons.assignment_rounded,
-            'Daftar Kegiatan',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.fact_check_rounded,
-            'Persetujuan',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-        ];
-      case 5: // Bendahara
-        return [
-          _drawerItem(
-            context,
-            Icons.payments_rounded,
-            'Pencairan Dana',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.receipt_long_rounded,
-            'LPJ',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-        ];
-      case 6: // Direktur/Admin
-        return [
-          _drawerItem(
-            context,
-            Icons.group_rounded,
-            'Manajemen User',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-          _drawerItem(
-            context,
-            Icons.analytics_rounded,
-            'Monitoring',
-            onTap: () {
-              Navigator.pop(context);
-              // TODO: Navigate
-            },
-          ),
-        ];
-      default:
-        return [];
+  String _initials(String name) {
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) {
+      return 'U';
     }
+
+    return parts.take(2).map((part) => part[0]).join().toUpperCase();
   }
 
   Widget _drawerItem(
@@ -222,15 +364,13 @@ class DashboardDrawer extends StatelessWidget {
     IconData icon,
     String label, {
     required VoidCallback onTap,
-    bool isLogout = false,
   }) {
-    final color = isLogout ? Colors.red : const Color(0xFF1F2937);
     return ListTile(
-      leading: Icon(icon, color: color, size: 22),
+      leading: Icon(icon, color: const Color(0xFF1F2937), size: 22),
       title: Text(
         label,
         style: GoogleFonts.figtree(
-          color: color,
+          color: const Color(0xFF1F2937),
           fontWeight: FontWeight.w600,
           fontSize: 14,
         ),
@@ -241,12 +381,21 @@ class DashboardDrawer extends StatelessWidget {
     );
   }
 
-  Future<void> _handleLogout(BuildContext context, AuthProvider provider) async {
+  Future<void> _handleLogout(
+    BuildContext context,
+    AuthProvider provider,
+  ) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Keluar?', style: GoogleFonts.figtree(fontWeight: FontWeight.bold)),
-        content: Text('Anda yakin ingin keluar dari akun?', style: GoogleFonts.figtree()),
+        title: Text(
+          'Keluar?',
+          style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Anda yakin ingin keluar dari akun?',
+          style: GoogleFonts.figtree(),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -294,17 +443,28 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             final confirm = await showDialog<bool>(
               context: context,
               builder: (ctx) => AlertDialog(
-                title: Text('Keluar?', style: GoogleFonts.figtree(fontWeight: FontWeight.bold)),
-                content: Text('Anda yakin ingin keluar dari akun?', style: GoogleFonts.figtree()),
+                title: Text(
+                  'Keluar?',
+                  style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                ),
+                content: Text(
+                  'Anda yakin ingin keluar dari akun?',
+                  style: GoogleFonts.figtree(),
+                ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
                     child: const Text('Batal'),
                   ),
                   ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                    ),
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Keluar', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'Keluar',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),

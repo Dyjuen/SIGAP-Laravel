@@ -11,10 +11,9 @@ export 'feature_card_model.dart';
 
 class FeatureCardWidget extends StatefulWidget {
   const FeatureCardWidget({super.key, String? desc, this.icon, String? title})
-    : this.desc =
-          desc ??
-          'Proses KAK dan RAB kini hanya dalam hitungan menit secara digital.',
-      this.title = title ?? 'Pengajuan Cepat';
+      : this.desc = desc ??
+            'Proses KAK dan RAB kini hanya dalam hitungan menit secara digital.',
+        this.title = title ?? 'Pengajuan Cepat';
 
   final String desc;
   final Widget? icon;
@@ -76,51 +75,51 @@ class _FeatureCardWidgetState extends State<FeatureCardWidget> {
                       shape: BoxShape.rectangle,
                     ),
                     alignment: AlignmentDirectional(0, 0),
-                    child: widget!.icon!,
+                    child: widget.icon!,
                   ),
                   Text(
-                    valueOrDefault<String>(widget!.title, 'Pengajuan Cepat'),
+                    valueOrDefault<String>(widget.title, 'Pengajuan Cepat'),
                     style: FlutterFlowTheme.of(context).titleMedium.override(
-                      font: GoogleFonts.figtree(
-                        fontWeight: FontWeight.w800,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).titleMedium.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).primaryText,
-                      letterSpacing: 0.0,
-                      fontWeight: FontWeight.w800,
-                      fontStyle: FlutterFlowTheme.of(
-                        context,
-                      ).titleMedium.fontStyle,
-                      lineHeight: 1.35,
-                    ),
+                          font: GoogleFonts.figtree(
+                            fontWeight: FontWeight.w800,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).titleMedium.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).primaryText,
+                          letterSpacing: 0.0,
+                          fontWeight: FontWeight.w800,
+                          fontStyle: FlutterFlowTheme.of(
+                            context,
+                          ).titleMedium.fontStyle,
+                          lineHeight: 1.35,
+                        ),
                   ),
                   Text(
                     valueOrDefault<String>(
-                      widget!.desc,
+                      widget.desc,
                       'Proses KAK dan RAB kini hanya dalam hitungan menit secara digital.',
                     ),
                     maxLines: 3,
                     style: FlutterFlowTheme.of(context).bodySmall.override(
-                      font: GoogleFonts.figtree(
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).bodySmall.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).bodySmall.fontStyle,
-                      ),
-                      color: FlutterFlowTheme.of(context).secondaryText,
-                      letterSpacing: 0.0,
-                      fontWeight: FlutterFlowTheme.of(
-                        context,
-                      ).bodySmall.fontWeight,
-                      fontStyle: FlutterFlowTheme.of(
-                        context,
-                      ).bodySmall.fontStyle,
-                      lineHeight: 1.4,
-                    ),
+                          font: GoogleFonts.figtree(
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).bodySmall.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).bodySmall.fontStyle,
+                          ),
+                          color: FlutterFlowTheme.of(context).secondaryText,
+                          letterSpacing: 0.0,
+                          fontWeight: FlutterFlowTheme.of(
+                            context,
+                          ).bodySmall.fontWeight,
+                          fontStyle: FlutterFlowTheme.of(
+                            context,
+                          ).bodySmall.fontStyle,
+                          lineHeight: 1.4,
+                        ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ].divide(SizedBox(height: 8)),

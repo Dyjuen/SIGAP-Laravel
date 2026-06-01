@@ -4,6 +4,8 @@ import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
+import '../../screens/pengusul/lpj_detail_page.dart';
+import '../../screens/pengusul/lpj_form_page.dart';
 
 class BendaharaDashboardScreen extends StatefulWidget {
   const BendaharaDashboardScreen({super.key});
@@ -27,7 +29,7 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: const DashboardDrawer(roleId: 5), // Bendahara
+      drawer: const DashboardDrawer(roleId: 6), // Bendahara
       body: Consumer<BendaharaDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -118,14 +120,18 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
                               Expanded(
                                 child: BlueStatCard(
                                   label: 'DANA DIUSULKAN',
-                                  value: _formatCurrency(stats.totalDanaDisusulkan),
+                                  value: _formatCurrency(
+                                    stats.totalDanaDisusulkan,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: BlueStatCard(
                                   label: 'DANA DICAIRKAN',
-                                  value: _formatCurrency(stats.totalDanaDicairkan),
+                                  value: _formatCurrency(
+                                    stats.totalDanaDicairkan,
+                                  ),
                                 ),
                               ),
                             ],
@@ -145,9 +151,14 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
                     const SizedBox(height: 12),
                     InkWell(
                       onTap: () {
-                        Navigator.pushNamed(context, '/bendahara/pencairan').then((_) {
+                        Navigator.pushNamed(
+                          context,
+                          '/bendahara/pencairan',
+                        ).then((_) {
                           if (context.mounted) {
-                            context.read<BendaharaDashboardProvider>().loadDashboard();
+                            context
+                                .read<BendaharaDashboardProvider>()
+                                .loadDashboard();
                           }
                         });
                       },
@@ -361,7 +372,16 @@ class _LpjItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigate to LPJ detail
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => LpjDetailPage(kegiatanId: item.id),
+          ),
+        ).then((_) {
+          if (context.mounted) {
+            context.read<BendaharaDashboardProvider>().loadDashboard();
+          }
+        });
       },
       child: Card(
         margin: const EdgeInsets.only(bottom: 12),
@@ -473,7 +493,17 @@ class _LpjItemCard extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // Approve LPJ
+                    // Navigate to process (usually details for bendahara review)
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LpjDetailPage(kegiatanId: item.id),
+                      ),
+                    ).then((_) {
+                      if (context.mounted) {
+                        context.read<BendaharaDashboardProvider>().loadDashboard();
+                      }
+                    });
                   },
                   icon: const Icon(Icons.done, size: 16),
                   label: const Text('Proses'),

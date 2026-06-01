@@ -292,13 +292,14 @@ class _KakListPageState extends State<KakListPage> {
                                 ? resp.data['message'] ??
                                       'Gagal mengajukan kegiatan.'
                                 : 'Gagal mengajukan kegiatan.';
-                            if (context.mounted)
+                            if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(msg),
                                   backgroundColor: Colors.redAccent,
                                 ),
                               );
+                            }
                           }
                         } on DioException catch (e) {
                           final responseMessage = e.response?.data is Map
@@ -306,7 +307,7 @@ class _KakListPageState extends State<KakListPage> {
                                     e.response?.data['errors'] ??
                                     e.message)
                               : e.message;
-                          if (context.mounted)
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
@@ -315,14 +316,16 @@ class _KakListPageState extends State<KakListPage> {
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
+                          }
                         } catch (e) {
-                          if (context.mounted)
+                          if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Gagal mengajukan kegiatan: $e'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
+                          }
                         } finally {
                           if (mounted) setState(() => isSubmitting = false);
                         }

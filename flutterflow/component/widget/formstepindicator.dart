@@ -11,8 +11,8 @@ export 'form_step_indicator_model.dart';
 
 class FormStepIndicatorWidget extends StatefulWidget {
   const FormStepIndicatorWidget({super.key, String? label, bool? active})
-    : this.label = label ?? 'Umum',
-      this.active = active ?? true;
+      : this.label = label ?? 'Umum',
+        this.active = active ?? true;
 
   final String label;
   final bool active;
@@ -54,7 +54,7 @@ class _FormStepIndicatorWidgetState extends State<FormStepIndicatorWidget> {
         Container(
           height: 4,
           decoration: BoxDecoration(
-            color: widget!.active
+            color: widget.active
                 ? FlutterFlowTheme.of(context).primary
                 : FlutterFlowTheme.of(context).surfaceVariant,
             borderRadius: BorderRadius.circular(9999),
@@ -62,21 +62,22 @@ class _FormStepIndicatorWidgetState extends State<FormStepIndicatorWidget> {
           ),
         ),
         Text(
-          valueOrDefault<String>(widget!.label, 'Umum'),
+          valueOrDefault<String>(widget.label, 'Umum'),
           textAlign: TextAlign.center,
           style: FlutterFlowTheme.of(context).labelSmall.override(
-            font: GoogleFonts.figtree(
-              fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
-              fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
-            ),
-            color: widget!.active
-                ? FlutterFlowTheme.of(context).primary
-                : FlutterFlowTheme.of(context).secondaryText,
-            letterSpacing: 0.0,
-            fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
-            fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
-            lineHeight: 1.2,
-          ),
+                font: GoogleFonts.figtree(
+                  fontWeight:
+                      FlutterFlowTheme.of(context).labelSmall.fontWeight,
+                  fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                ),
+                color: widget.active
+                    ? FlutterFlowTheme.of(context).primary
+                    : FlutterFlowTheme.of(context).secondaryText,
+                letterSpacing: 0.0,
+                fontWeight: FlutterFlowTheme.of(context).labelSmall.fontWeight,
+                fontStyle: FlutterFlowTheme.of(context).labelSmall.fontStyle,
+                lineHeight: 1.2,
+              ),
         ),
       ].divide(SizedBox(height: 4)),
     );

@@ -186,7 +186,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                 decoration: InputDecoration(
                                   hintText: 'Cari kegiatan...',
                                   filled: true,
-                                  fillColor: colorScheme.surfaceVariant
+                                  fillColor: colorScheme.surfaceContainerHighest
                                       .withOpacity(0.5),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -409,7 +409,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                 _showTrackingStepperBottomSheet(context, item);
                               },
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
                     ),

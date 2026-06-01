@@ -8,7 +8,7 @@ import '../../services/master_data_service.dart';
 import 'kak_create_edit_form.dart';
 
 class KakCreatePage extends StatefulWidget {
-  const KakCreatePage({Key? key}) : super(key: key);
+  const KakCreatePage({super.key});
 
   @override
   State<KakCreatePage> createState() => _KakCreatePageState();

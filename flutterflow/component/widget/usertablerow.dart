@@ -17,10 +17,10 @@ class UserTableRowWidget extends StatefulWidget {
     String? name,
     String? role,
     String? status,
-  }) : this.initials = initials ?? 'AS',
-       this.name = name ?? 'Dr. Ahmad Syarif',
-       this.role = role ?? 'Administrator',
-       this.status = status ?? 'aktif';
+  })  : this.initials = initials ?? 'AS',
+        this.name = name ?? 'Dr. Ahmad Syarif',
+        this.role = role ?? 'Administrator',
+        this.status = status ?? 'aktif';
 
   final String initials;
   final String name;
@@ -86,26 +86,26 @@ class _UserTableRowWidgetState extends State<UserTableRowWidget> {
                     ),
                     alignment: AlignmentDirectional(0, 0),
                     child: Text(
-                      valueOrDefault<String>(widget!.initials, 'AS'),
+                      valueOrDefault<String>(widget.initials, 'AS'),
                       style: FlutterFlowTheme.of(context).titleSmall.override(
-                        font: GoogleFonts.figtree(
-                          fontWeight: FlutterFlowTheme.of(
-                            context,
-                          ).titleSmall.fontWeight,
-                          fontStyle: FlutterFlowTheme.of(
-                            context,
-                          ).titleSmall.fontStyle,
-                        ),
-                        color: FlutterFlowTheme.of(context).primary,
-                        letterSpacing: 0.0,
-                        fontWeight: FlutterFlowTheme.of(
-                          context,
-                        ).titleSmall.fontWeight,
-                        fontStyle: FlutterFlowTheme.of(
-                          context,
-                        ).titleSmall.fontStyle,
-                        lineHeight: 1.4,
-                      ),
+                            font: GoogleFonts.figtree(
+                              fontWeight: FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontWeight,
+                              fontStyle: FlutterFlowTheme.of(
+                                context,
+                              ).titleSmall.fontStyle,
+                            ),
+                            color: FlutterFlowTheme.of(context).primary,
+                            letterSpacing: 0.0,
+                            fontWeight: FlutterFlowTheme.of(
+                              context,
+                            ).titleSmall.fontWeight,
+                            fontStyle: FlutterFlowTheme.of(
+                              context,
+                            ).titleSmall.fontStyle,
+                            lineHeight: 1.4,
+                          ),
                     ),
                   ),
                   Expanded(
@@ -117,11 +117,12 @@ class _UserTableRowWidgetState extends State<UserTableRowWidget> {
                       children: [
                         Text(
                           valueOrDefault<String>(
-                            widget!.name,
+                            widget.name,
                             'Dr. Ahmad Syarif',
                           ),
                           maxLines: 1,
-                          style: FlutterFlowTheme.of(context).titleSmall
+                          style: FlutterFlowTheme.of(context)
+                              .titleSmall
                               .override(
                                 font: GoogleFonts.figtree(
                                   fontWeight: FlutterFlowTheme.of(
@@ -144,29 +145,29 @@ class _UserTableRowWidgetState extends State<UserTableRowWidget> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          valueOrDefault<String>(widget!.role, 'Administrator'),
-                          style: FlutterFlowTheme.of(context).labelSmall
-                              .override(
-                                font: GoogleFonts.figtree(
-                                  fontWeight: FlutterFlowTheme.of(
-                                    context,
-                                  ).labelSmall.fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).labelSmall.fontStyle,
-                                ),
-                                color: FlutterFlowTheme.of(
-                                  context,
-                                ).secondaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(
-                                  context,
-                                ).labelSmall.fontWeight,
-                                fontStyle: FlutterFlowTheme.of(
-                                  context,
-                                ).labelSmall.fontStyle,
-                                lineHeight: 1.2,
-                              ),
+                          valueOrDefault<String>(widget.role, 'Administrator'),
+                          style:
+                              FlutterFlowTheme.of(context).labelSmall.override(
+                                    font: GoogleFonts.figtree(
+                                      fontWeight: FlutterFlowTheme.of(
+                                        context,
+                                      ).labelSmall.fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).labelSmall.fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(
+                                      context,
+                                    ).secondaryText,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(
+                                      context,
+                                    ).labelSmall.fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(
+                                      context,
+                                    ).labelSmall.fontStyle,
+                                    lineHeight: 1.2,
+                                  ),
                         ),
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -175,14 +176,15 @@ class _UserTableRowWidgetState extends State<UserTableRowWidget> {
                           children: [
                             Icon(
                               Icons.circle,
-                              color: widget!.status == 'aktif'
+                              color: widget.status == 'aktif'
                                   ? FlutterFlowTheme.of(context).success
                                   : FlutterFlowTheme.of(context).error,
                               size: 8,
                             ),
                             Text(
-                              valueOrDefault<String>(widget!.status, 'aktif'),
-                              style: FlutterFlowTheme.of(context).labelSmall
+                              valueOrDefault<String>(widget.status, 'aktif'),
+                              style: FlutterFlowTheme.of(context)
+                                  .labelSmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FlutterFlowTheme.of(

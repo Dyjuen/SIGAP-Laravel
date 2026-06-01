@@ -47,10 +47,12 @@ class DashboardController extends Controller
         $user = $request->user();
         $stats = $this->dashboardService->getPengusulStats($user);
         $recentKaks = $this->dashboardService->getPengusulRecentKaks($user);
+        $recentLpjs = $this->dashboardService->getPengusulRecentLpjs($user);
 
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'recent_kaks' => $recentKaks,
+            'recent_lpjs' => $recentLpjs,
             'panduans' => $panduans,
         ]);
     }

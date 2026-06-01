@@ -50,15 +50,30 @@ class DashboardTest extends TestCase
         KAK::factory()->count(2)->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]); // Draft
         KAK::factory()->count(1)->create(['pengusul_user_id' => $user->user_id, 'status_id' => 3]); // Approved
 
+        $kakSelesai = KAK::factory()->create([
+            'pengusul_user_id' => $user->user_id,
+            'status_id' => 14,
+            'nama_kegiatan' => 'Kegiatan Selesai Test',
+        ]);
+        $kegiatan = Kegiatan::create([
+            'kak_id' => $kakSelesai->kak_id,
+            'tgl_batas_lpj' => '2026-06-15 00:00:00',
+        ]);
+
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertStatus(200)
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Dashboard')
-                ->where('stats.total_kak', 3)
+                ->where('stats.total_kak', 4)
                 ->where('stats.draft_kak', 2)
                 ->where('stats.approved_kak', 1)
                 ->has('panduans')
+                ->has('recent_lpjs', 1)
+                ->where('recent_lpjs.0.kegiatan_id', $kegiatan->kegiatan_id)
+                ->where('recent_lpjs.0.nama_kegiatan', 'Kegiatan Selesai Test')
+                ->where('recent_lpjs.0.status_nama', 'Selesai')
+                ->where('recent_lpjs.0.tgl_batas_lpj', '15/06/2026')
             );
     }
 

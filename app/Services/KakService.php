@@ -221,13 +221,13 @@ class KakService
     public function applyListFilters($query, User $user): \Illuminate\Database\Eloquent\Builder
     {
         if ($user->role_id === 3) {
-            // Pengusul: only own KAKs in KAK stage (statuses 1, 2, 4, 5)
+            // Pengusul: own KAKs in statuses Draft(1), Review(2), Approved(3), Rejected(4), Revisi(5)
             $query->where('pengusul_user_id', $user->user_id)
-                  ->whereIn('status_id', [1, 2, 4, 5]);
+                  ->whereIn('status_id', [1, 2, 3, 4, 5]);
         } elseif ($user->role_id === 2) {
-            // Verifikator: only KAKs in "Review Verifikator" status (status_id = 2)
-            // and matching their Tipe Kegiatan
-            $query->where('status_id', 2);
+            // Verifikator: KAKs in Review(2), Approved(3), Rejected(4), Revisi(5)
+            // that match their Tipe Kegiatan
+            $query->whereIn('status_id', [2, 3, 4, 5]);
 
             if (method_exists($user, 'getVerifikatorTipeId')) {
                 $tipeId = $user->getVerifikatorTipeId();
@@ -244,8 +244,8 @@ class KakService
                 $query->whereRaw('1 = 0');
             }
         } else {
-            // Admin/Others: only KAKs in KAK stage (statuses 1, 2, 4, 5)
-            $query->whereIn('status_id', [1, 2, 4, 5]);
+            // Admin/Others: see all KAK stage statuses
+            $query->whereIn('status_id', [1, 2, 3, 4, 5]);
         }
 
         return $query;

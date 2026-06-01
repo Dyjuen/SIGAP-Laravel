@@ -11,8 +11,8 @@ export 'floating_circle_model.dart';
 
 class FloatingCircleWidget extends StatefulWidget {
   const FloatingCircleWidget({super.key, Color? color, double? size})
-    : this.color = color ?? const Color(0x00000000),
-      this.size = size ?? 300.0;
+      : this.color = color ?? const Color(0x00000000),
+        this.size = size ?? 300.0;
 
   final Color color;
   final double size;
@@ -51,11 +51,11 @@ class _FloatingCircleWidgetState extends State<FloatingCircleWidget> {
         child: ImageFiltered(
           imageFilter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
           child: Container(
-            width: valueOrDefault<double>(widget!.size, 300.0),
-            height: valueOrDefault<double>(widget!.size, 300.0),
+            width: valueOrDefault<double>(widget.size, 300.0),
+            height: valueOrDefault<double>(widget.size, 300.0),
             decoration: BoxDecoration(
               color: valueOrDefault<Color>(
-                widget!.color,
+                widget.color,
                 FlutterFlowTheme.of(context).primary,
               ),
               borderRadius: BorderRadius.circular(9999),

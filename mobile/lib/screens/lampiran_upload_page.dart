@@ -289,8 +289,9 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
     if (fileName.endsWith('.pdf')) return Icons.picture_as_pdf;
     if (fileName.endsWith('.png') ||
         fileName.endsWith('.jpg') ||
-        fileName.endsWith('.jpeg'))
+        fileName.endsWith('.jpeg')) {
       return Icons.image;
+    }
     return Icons.file_present;
   }
 }

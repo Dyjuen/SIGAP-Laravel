@@ -42,7 +42,9 @@ class _LoginPageState extends State<LoginPage> {
           ),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     } else {
@@ -70,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        backgroundColor: colorScheme.background,
+        backgroundColor: colorScheme.surface,
         body: Stack(
           alignment: AlignmentDirectional(-1, -1),
           children: [
@@ -84,7 +86,10 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28.0, vertical: 56.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 28.0,
+                vertical: 56.0,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -135,7 +140,9 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.70),
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withOpacity(0.5)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.5),
+                          ),
                         ),
                         child: Form(
                           key: _formKey,
@@ -165,26 +172,48 @@ class _LoginPageState extends State<LoginPage> {
                                 controller: _usernameController,
                                 decoration: InputDecoration(
                                   hintText: 'Masukkan nama pengguna Anda',
-                                  hintStyle: GoogleFonts.figtree(fontSize: 14, color: Colors.grey),
-                                  prefixIcon: const Icon(Icons.person_outline_rounded, size: 20),
+                                  hintStyle: GoogleFonts.figtree(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.person_outline_rounded,
+                                    size: 20,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300.withOpacity(
+                                        0.5,
+                                      ),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300.withOpacity(
+                                        0.5,
+                                      ),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF33C8DA),
+                                      width: 1.5,
+                                    ),
                                   ),
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.05),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 16,
+                                  ),
                                 ),
                                 textInputAction: TextInputAction.next,
-                                validator: (val) => val == null || val.isEmpty ? 'Harap diisi' : null,
+                                validator: (val) => val == null || val.isEmpty
+                                    ? 'Harap diisi'
+                                    : null,
                               ),
                               const SizedBox(height: 16),
                               // Password field
@@ -202,32 +231,55 @@ class _LoginPageState extends State<LoginPage> {
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   hintText: 'Masukkan kata sandi Anda',
-                                  hintStyle: GoogleFonts.figtree(fontSize: 14, color: Colors.grey),
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                  hintStyle: GoogleFonts.figtree(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                  prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                    size: 20,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300.withOpacity(
+                                        0.5,
+                                      ),
+                                    ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: BorderSide(color: Colors.grey.shade300.withOpacity(0.5)),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade300.withOpacity(
+                                        0.5,
+                                      ),
+                                    ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
-                                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF33C8DA),
+                                      width: 1.5,
+                                    ),
                                   ),
                                   filled: true,
                                   fillColor: Colors.white.withOpacity(0.05),
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                    horizontal: 16,
+                                  ),
                                 ),
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _submit(),
-                                validator: (val) => val == null || val.isEmpty ? 'Harap diisi' : null,
+                                validator: (val) => val == null || val.isEmpty
+                                    ? 'Harap diisi'
+                                    : null,
                               ),
                               const SizedBox(height: 16),
                               // Remember me & forgot pass
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
@@ -237,16 +289,25 @@ class _LoginPageState extends State<LoginPage> {
                                         child: Checkbox(
                                           value: _rememberMe,
                                           activeColor: const Color(0xFF33C8DA),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
                                           onChanged: (val) {
-                                            setState(() => _rememberMe = val ?? false);
+                                            setState(
+                                              () => _rememberMe = val ?? false,
+                                            );
                                           },
                                         ),
                                       ),
                                       const SizedBox(width: 8),
                                       Text(
                                         'Ingat Saya',
-                                        style: GoogleFonts.figtree(fontSize: 13, color: Colors.grey[700]),
+                                        style: GoogleFonts.figtree(
+                                          fontSize: 13,
+                                          color: Colors.grey[700],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -269,15 +330,22 @@ class _LoginPageState extends State<LoginPage> {
                                     gradient: authProvider.isLoading
                                         ? null
                                         : const LinearGradient(
-                                            colors: [Color(0xFF33C8DA), Color(0xFF2BA9B8)],
+                                            colors: [
+                                              Color(0xFF33C8DA),
+                                              Color(0xFF2BA9B8),
+                                            ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           ),
-                                    color: authProvider.isLoading ? Colors.grey.shade300 : null,
+                                    color: authProvider.isLoading
+                                        ? Colors.grey.shade300
+                                        : null,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: ElevatedButton(
-                                    onPressed: authProvider.isLoading ? null : _submit,
+                                    onPressed: authProvider.isLoading
+                                        ? null
+                                        : _submit,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.transparent,
                                       shadowColor: Colors.transparent,
@@ -290,7 +358,10 @@ class _LoginPageState extends State<LoginPage> {
                                         ? const SizedBox(
                                             width: 20,
                                             height: 20,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
                                           )
                                         : Text(
                                             'Masuk',

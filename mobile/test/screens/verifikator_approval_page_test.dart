@@ -62,7 +62,7 @@ class FakeKakService extends KakService {
   }
 
   @override
-  Future<void> reviseKak(String kakId, String? catatan, Map<String, String>? catatanFields) async {
+  Future<void> reviseKak(String kakId, String? catatan, Map<String, String>? catatanFields, Map<String, dynamic>? anak) async {
     lastReviseCatatanUmum = catatan;
     lastReviseCatatanFields = catatanFields;
   }

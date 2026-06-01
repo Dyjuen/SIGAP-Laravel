@@ -18,12 +18,12 @@ class CheckboxWidget extends StatefulWidget {
     bool? isChecked,
     bool? hasSubtitle,
     bool? disabled,
-  }) : this.label = label ?? 'Ingat saya',
-       this.subtitle = subtitle ?? 'Receive weekly updates',
-       this.color = color ?? const Color(0x00000000),
-       this.isChecked = isChecked ?? true,
-       this.hasSubtitle = hasSubtitle ?? false,
-       this.disabled = disabled ?? false;
+  })  : this.label = label ?? 'Ingat saya',
+        this.subtitle = subtitle ?? 'Receive weekly updates',
+        this.color = color ?? const Color(0x00000000),
+        this.isChecked = isChecked ?? true,
+        this.hasSubtitle = hasSubtitle ?? false,
+        this.disabled = disabled ?? false;
 
   final String label;
   final String subtitle;
@@ -61,7 +61,7 @@ class _CheckboxWidgetState extends State<CheckboxWidget> {
   @override
   Widget build(BuildContext context) {
     return Opacity(
-      opacity: widget!.disabled ? 0.55 : 1.0,
+      opacity: widget.disabled ? 0.55 : 1.0,
       child: Container(
         child: Container(
           child: Padding(
@@ -75,19 +75,19 @@ class _CheckboxWidgetState extends State<CheckboxWidget> {
                   Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(
                       valueOrDefault<double>(
-                        widget!.hasSubtitle ? 0.0 : 0.0,
+                        widget.hasSubtitle ? 0.0 : 0.0,
                         0.0,
                       ),
                       valueOrDefault<double>(
-                        widget!.hasSubtitle ? 3.0 : 0.0,
+                        widget.hasSubtitle ? 3.0 : 0.0,
                         0.0,
                       ),
                       valueOrDefault<double>(
-                        widget!.hasSubtitle ? 0.0 : 0.0,
+                        widget.hasSubtitle ? 0.0 : 0.0,
                         0.0,
                       ),
                       valueOrDefault<double>(
-                        widget!.hasSubtitle ? 0.0 : 0.0,
+                        widget.hasSubtitle ? 0.0 : 0.0,
                         0.0,
                       ),
                     ),
@@ -96,21 +96,21 @@ class _CheckboxWidgetState extends State<CheckboxWidget> {
                         width: 20,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: widget!.isChecked
+                          color: widget.isChecked
                               ? Color(0x00000000)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(8),
                           shape: BoxShape.rectangle,
                           border: Border.all(
-                            color: widget!.isChecked
+                            color: widget.isChecked
                                 ? FlutterFlowTheme.of(context).primary
                                 : FlutterFlowTheme.of(context).alternate,
-                            width: widget!.isChecked ? 2.0 : 2.0,
+                            width: widget.isChecked ? 2.0 : 2.0,
                           ),
                         ),
                         alignment: AlignmentDirectional(0, 0),
                         child: Visibility(
-                          visible: widget!.isChecked ? true : false,
+                          visible: widget.isChecked ? true : false,
                           child: Icon(
                             Icons.check_rounded,
                             color: FlutterFlowTheme.of(context).onPrimary,
@@ -128,9 +128,10 @@ class _CheckboxWidgetState extends State<CheckboxWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          valueOrDefault<String>(widget!.label, 'Ingat saya'),
+                          valueOrDefault<String>(widget.label, 'Ingat saya'),
                           maxLines: 1,
-                          style: FlutterFlowTheme.of(context).bodyMedium
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
                               .override(
                                 font: GoogleFonts.figtree(
                                   fontWeight: FlutterFlowTheme.of(
@@ -152,16 +153,17 @@ class _CheckboxWidgetState extends State<CheckboxWidget> {
                               ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (widget!.hasSubtitle ? true : false)
+                        if (widget.hasSubtitle ? true : false)
                           Container(
                             child: Container(
                               child: Text(
                                 valueOrDefault<String>(
-                                  widget!.subtitle,
+                                  widget.subtitle,
                                   'Receive weekly updates',
                                 ),
                                 maxLines: 3,
-                                style: FlutterFlowTheme.of(context).bodySmall
+                                style: FlutterFlowTheme.of(context)
+                                    .bodySmall
                                     .override(
                                       font: GoogleFonts.figtree(
                                         fontWeight: FlutterFlowTheme.of(

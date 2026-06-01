@@ -20,14 +20,14 @@ class LogEntryCardWidget extends StatefulWidget {
     String? module,
     String? time,
     String? user,
-  }) : this.action =
-           action ?? 'Mengubah status KAK \'Workshop AI\' menjadi DISETUJUI',
-       this.bgColor = bgColor ?? const Color(0x00000000),
-       this.iconColor = iconColor ?? const Color(0x00000000),
-       this.ip = ip ?? '192.168.1.12',
-       this.module = module ?? 'KAK',
-       this.time = time ?? '10:45',
-       this.user = user ?? 'Admin Utama';
+  })  : this.action =
+            action ?? 'Mengubah status KAK \'Workshop AI\' menjadi DISETUJUI',
+        this.bgColor = bgColor ?? const Color(0x00000000),
+        this.iconColor = iconColor ?? const Color(0x00000000),
+        this.ip = ip ?? '192.168.1.12',
+        this.module = module ?? 'KAK',
+        this.time = time ?? '10:45',
+        this.user = user ?? 'Admin Utama';
 
   final String action;
   final Color bgColor;
@@ -92,14 +92,14 @@ class _LogEntryCardWidgetState extends State<LogEntryCardWidget> {
                     height: 44,
                     decoration: BoxDecoration(
                       color: valueOrDefault<Color>(
-                        widget!.bgColor,
+                        widget.bgColor,
                         FlutterFlowTheme.of(context).primaryContainer,
                       ),
                       borderRadius: BorderRadius.circular(16),
                       shape: BoxShape.rectangle,
                     ),
                     alignment: AlignmentDirectional(0, 0),
-                    child: widget!.icon!,
+                    child: widget.icon!,
                   ),
                   Expanded(
                     flex: 1,
@@ -115,10 +115,11 @@ class _LogEntryCardWidgetState extends State<LogEntryCardWidget> {
                           children: [
                             Text(
                               valueOrDefault<String>(
-                                widget!.user,
+                                widget.user,
                                 'Admin Utama',
                               ),
-                              style: FlutterFlowTheme.of(context).labelLarge
+                              style: FlutterFlowTheme.of(context)
+                                  .labelLarge
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FontWeight.bold,
@@ -138,8 +139,9 @@ class _LogEntryCardWidgetState extends State<LogEntryCardWidget> {
                                   ),
                             ),
                             Text(
-                              valueOrDefault<String>(widget!.time, '10:45'),
-                              style: FlutterFlowTheme.of(context).labelSmall
+                              valueOrDefault<String>(widget.time, '10:45'),
+                              style: FlutterFlowTheme.of(context)
+                                  .labelSmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FlutterFlowTheme.of(
@@ -164,32 +166,32 @@ class _LogEntryCardWidgetState extends State<LogEntryCardWidget> {
                         ),
                         Text(
                           valueOrDefault<String>(
-                            widget!.action,
+                            widget.action,
                             'Mengubah status KAK \'Workshop AI\' menjadi DISETUJUI',
                           ),
                           maxLines: 2,
-                          style: FlutterFlowTheme.of(context).bodyMedium
-                              .override(
-                                font: GoogleFonts.figtree(
-                                  fontWeight: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodyMedium.fontWeight,
-                                  fontStyle: FlutterFlowTheme.of(
-                                    context,
-                                  ).bodyMedium.fontStyle,
-                                ),
-                                color: FlutterFlowTheme.of(
-                                  context,
-                                ).secondaryText,
-                                letterSpacing: 0.0,
-                                fontWeight: FlutterFlowTheme.of(
-                                  context,
-                                ).bodyMedium.fontWeight,
-                                fontStyle: FlutterFlowTheme.of(
-                                  context,
-                                ).bodyMedium.fontStyle,
-                                lineHeight: 1.5,
-                              ),
+                          style:
+                              FlutterFlowTheme.of(context).bodyMedium.override(
+                                    font: GoogleFonts.figtree(
+                                      fontWeight: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(
+                                        context,
+                                      ).bodyMedium.fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(
+                                      context,
+                                    ).secondaryText,
+                                    letterSpacing: 0.0,
+                                    fontWeight: FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(
+                                      context,
+                                    ).bodyMedium.fontStyle,
+                                    lineHeight: 1.5,
+                                  ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Padding(
@@ -217,7 +219,7 @@ class _LogEntryCardWidgetState extends State<LogEntryCardWidget> {
                                   child: Container(
                                     child: Text(
                                       valueOrDefault<String>(
-                                        widget!.module,
+                                        widget.module,
                                         'KAK',
                                       ),
                                       style: FlutterFlowTheme.of(context)
@@ -245,10 +247,11 @@ class _LogEntryCardWidgetState extends State<LogEntryCardWidget> {
                               ),
                               Text(
                                 valueOrDefault<String>(
-                                  widget!.ip,
+                                  widget.ip,
                                   '192.168.1.12',
                                 ),
-                                style: FlutterFlowTheme.of(context).labelSmall
+                                style: FlutterFlowTheme.of(context)
+                                    .labelSmall
                                     .override(
                                       font: GoogleFonts.figtree(
                                         fontWeight: FlutterFlowTheme.of(

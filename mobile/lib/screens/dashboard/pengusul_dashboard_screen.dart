@@ -7,10 +7,8 @@ import '../../providers/dashboard_provider.dart';
 import '../../widgets/activity_item.dart';
 import '../../widgets/blue_stat_card.dart';
 import '../help_guide_page.dart';
-import '../profile_page.dart';
-import '../pengusul/kak_create_page.dart';
+import '../pengusul/kak_form_page.dart';
 import '../pengusul/kak_list_page.dart';
-import '../help_guide_page.dart';
 import '../../widgets/dashboard_drawer.dart';
 
 class PengusulDashboardScreen extends StatefulWidget {
@@ -125,7 +123,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: const DashboardAppBar(),
-        drawer: const DashboardDrawer(roleId: 2), // Pengusul
+        drawer: const DashboardDrawer(roleId: 3), // Pengusul
         body: Consumer2<AuthProvider, PengusulDashboardProvider>(
           builder: (context, authProvider, dashboardProvider, _) {
             if (dashboardProvider.isLoading) {
@@ -136,35 +134,35 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
               );
             }
 
-          if (dashboardProvider.isError) {
-            return Scaffold(
-              backgroundColor: const Color(0xFFF8FAFC),
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Terjadi Kesalahan',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(dashboardProvider.errorMessage),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: dashboardProvider.loadDashboard,
-                      child: const Text('Coba Lagi'),
-                    ),
-                  ],
+            if (dashboardProvider.isError) {
+              return Scaffold(
+                backgroundColor: const Color(0xFFF8FAFC),
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Terjadi Kesalahan',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(dashboardProvider.errorMessage),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: dashboardProvider.loadDashboard,
+                        child: const Text('Coba Lagi'),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }
+              );
+            }
 
             return RefreshIndicator(
               onRefresh: () => dashboardProvider.loadDashboard(),
@@ -192,7 +190,8 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                             ),
                           ),
                           Text(
-                            user?.namaLengkap ?? 'Pengusul Kegiatan',
+                            authProvider.user?.namaLengkap ??
+                                'Pengusul Kegiatan',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.figtree(
                               fontSize: 28,
@@ -225,13 +224,19 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const KakListPage(initialStatusId: null),
+                                          builder: (context) =>
+                                              const KakListPage(
+                                                initialStatusId: null,
+                                              ),
                                         ),
-                                      ).then((_) => dashboardProvider.loadDashboard());
+                                      ).then(
+                                        (_) =>
+                                            dashboardProvider.loadDashboard(),
+                                      );
                                     },
                                     child: BlueStatCard(
                                       bg: const Color(0xFF33C8DA),
-                                      label: 'PENCAIRAN',
+                                      label: 'SEMUA KAK',
                                       textColor: Colors.white,
                                       value: dashboardProvider.stats!.totalKak
                                           .toString(),
@@ -245,14 +250,20 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const KakListPage(initialStatusId: 1),
+                                          builder: (context) =>
+                                              const KakListPage(
+                                                initialStatusId: 1,
+                                              ),
                                         ),
-                                      ).then((_) => dashboardProvider.loadDashboard());
+                                      ).then(
+                                        (_) =>
+                                            dashboardProvider.loadDashboard(),
+                                      );
                                     },
                                     child: BlueStatCard(
                                       bg: Colors.white,
-                                      label: 'KEGIATAN',
-                                      textColor: const Color(0xFF33C8DA),
+                                      label: 'DRAFT',
+                                      textColor: const Color(0xFF64748B),
                                       value: dashboardProvider.stats!.draftKak
                                           .toString(),
                                     ),
@@ -260,52 +271,60 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const KakListPage(initialStatusId: 2),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const KakListPage(
+                                          initialStatusId: 2,
                                         ),
-                                      ).then((_) => dashboardProvider.loadDashboard());
-                                    },
-                                    child: BlueStatCard(
-                                      bg: Colors.white,
-                                      label: 'LPJ',
-                                      textColor: const Color(0xFF33C8DA),
-                                      value: dashboardProvider.stats!.reviewKak
+                                      ),
+                                    ).then(
+                                      (_) => dashboardProvider.loadDashboard(),
+                                    );
+                                  },
+                                  child: BlueStatCard(
+                                    bg: Colors.white,
+                                    label: 'REVIEW',
+                                    textColor: const Color(0xFFF59E0B),
+                                    value: dashboardProvider.stats!.reviewKak
                                         .toString(),
-                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const KakListPage(initialStatusId: 5),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const KakListPage(
+                                          initialStatusId: 3,
                                         ),
-                                      ).then((_) => dashboardProvider.loadDashboard());
-                                    },
-                                    child: BlueStatCard(
-                                      bg: const Color(0xFFE0F7FA),
-                                      label: 'REVISI',
-                                      textColor: const Color(0xFF33C8DA),
-                                      value: dashboardProvider.stats!.approvedKak
-                                          .toString(),
-                                    ),
+                                      ),
+                                    ).then(
+                                      (_) => dashboardProvider.loadDashboard(),
+                                    );
+                                  },
+                                  child: BlueStatCard(
+                                    bg: const Color(0xFFE0F7FA),
+                                    label: 'DISETUJUI',
+                                    textColor: const Color(0xFF10B981),
+                                    value: dashboardProvider.stats!.approvedKak
+                                        .toString(),
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -349,7 +368,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                   final result = await Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const KakCreatePage(),
+                                      builder: (_) => const KakFormPage(),
                                     ),
                                   );
 
@@ -476,9 +495,9 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                   ],
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

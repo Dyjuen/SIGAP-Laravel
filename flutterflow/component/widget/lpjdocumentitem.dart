@@ -22,14 +22,14 @@ class LpjDocumentItemWidget extends StatefulWidget {
     Color? statusColor,
     String? statusText,
     String? title,
-  }) : this.actionText = actionText ?? 'Update',
-       this.actionVariant = actionVariant ?? 'outline',
-       this.date = date ?? '12 Okt 2023',
-       this.files = files ?? '2 Files',
-       this.statusBg = statusBg ?? const Color(0x00000000),
-       this.statusColor = statusColor ?? const Color(0x00000000),
-       this.statusText = statusText ?? 'MENUNGGU',
-       this.title = title ?? 'Workshop Artificial Intelligence';
+  })  : this.actionText = actionText ?? 'Update',
+        this.actionVariant = actionVariant ?? 'outline',
+        this.date = date ?? '12 Okt 2023',
+        this.files = files ?? '2 Files',
+        this.statusBg = statusBg ?? const Color(0x00000000),
+        this.statusColor = statusColor ?? const Color(0x00000000),
+        this.statusText = statusText ?? 'MENUNGGU',
+        this.title = title ?? 'Workshop Artificial Intelligence';
 
   final Widget? actionIcon;
   final String actionText;
@@ -121,11 +121,12 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                           children: [
                             Text(
                               valueOrDefault<String>(
-                                widget!.title,
+                                widget.title,
                                 'Workshop Artificial Intelligence',
                               ),
                               maxLines: 1,
-                              style: FlutterFlowTheme.of(context).titleSmall
+                              style: FlutterFlowTheme.of(context)
+                                  .titleSmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FlutterFlowTheme.of(
@@ -151,10 +152,11 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                             ),
                             Text(
                               valueOrDefault<String>(
-                                widget!.date,
+                                widget.date,
                                 '12 Okt 2023',
                               ),
-                              style: FlutterFlowTheme.of(context).bodySmall
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FlutterFlowTheme.of(
@@ -183,7 +185,7 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                       Container(
                         decoration: BoxDecoration(
                           color: valueOrDefault<Color>(
-                            widget!.statusBg,
+                            widget.statusBg,
                             Color(0x00000000),
                           ),
                           borderRadius: BorderRadius.circular(8),
@@ -194,10 +196,11 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                           child: Container(
                             child: Text(
                               valueOrDefault<String>(
-                                widget!.statusText,
+                                widget.statusText,
                                 'MENUNGGU',
                               ),
-                              style: FlutterFlowTheme.of(context).labelSmall
+                              style: FlutterFlowTheme.of(context)
+                                  .labelSmall
                                   .override(
                                     font: GoogleFonts.figtree(
                                       fontWeight: FontWeight.bold,
@@ -206,7 +209,7 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                                       ).labelSmall.fontStyle,
                                     ),
                                     color: valueOrDefault<Color>(
-                                      widget!.statusColor,
+                                      widget.statusColor,
                                       Color(0x00000000),
                                     ),
                                     letterSpacing: 0.0,
@@ -245,8 +248,9 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                             size: 16,
                           ),
                           Text(
-                            valueOrDefault<String>(widget!.files, '2 Files'),
-                            style: FlutterFlowTheme.of(context).labelSmall
+                            valueOrDefault<String>(widget.files, '2 Files'),
+                            style: FlutterFlowTheme.of(context)
+                                .labelSmall
                                 .override(
                                   font: GoogleFonts.figtree(
                                     fontWeight: FlutterFlowTheme.of(
@@ -295,10 +299,10 @@ class _LpjDocumentItemWidgetState extends State<LpjDocumentItemWidget> {
                             updateCallback: () => safeSetState(() {}),
                             child: ButtonWidget(
                               content: valueOrDefault<String>(
-                                widget!.actionText,
+                                widget.actionText,
                                 'Update',
                               ),
-                              icon: widget!.actionIcon,
+                              icon: widget.actionIcon,
                               iconPresent: false,
                               iconEndPresent: false,
                               variant: 'primary',

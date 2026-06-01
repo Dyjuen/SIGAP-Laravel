@@ -8,7 +8,7 @@ import '../../services/kak_service.dart';
 import 'verifikator_approval_page.dart';
 
 class VerifikatorKakListPage extends StatefulWidget {
-  const VerifikatorKakListPage({Key? key}) : super(key: key);
+  const VerifikatorKakListPage({super.key});
 
   @override
   State<VerifikatorKakListPage> createState() => _VerifikatorKakListPageState();
@@ -42,7 +42,7 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
       if (response.statusCode == 200) {
         final data = response.data;
         List<dynamic> itemsData = [];
-        
+
         // Handle both standard list response and Laravel pagination response
         if (data is Map<String, dynamic> && data.containsKey('data')) {
           itemsData = data['data'] as List<dynamic>;
@@ -92,9 +92,11 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
     // Locally filter by status if 'Menunggu' is selected
     if (_statusFilter == 'Menunggu') {
       result = result
-          .where((item) =>
-              item.status?.toLowerCase().contains('review') == true ||
-              item.status?.toLowerCase().contains('menunggu') == true)
+          .where(
+            (item) =>
+                item.status?.toLowerCase().contains('review') == true ||
+                item.status?.toLowerCase().contains('menunggu') == true,
+          )
           .toList();
     }
 
@@ -132,7 +134,12 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
           // Search & Filter Header
           Container(
             color: Colors.white,
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 8),
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: 16,
+              top: 8,
+            ),
             child: Column(
               children: [
                 // Search bar
@@ -141,7 +148,10 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                   onChanged: (val) => _loadKaks(),
                   decoration: InputDecoration(
                     hintText: 'Cari nama kegiatan...',
-                    hintStyle: GoogleFonts.figtree(color: Colors.grey.shade400, fontSize: 14),
+                    hintStyle: GoogleFonts.figtree(
+                      color: Colors.grey.shade400,
+                      fontSize: 14,
+                    ),
                     prefixIcon: Icon(Icons.search, color: colorScheme.primary),
                     suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
@@ -154,7 +164,10 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                         : null,
                     filled: true,
                     fillColor: Colors.grey.shade50,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey.shade200),
@@ -165,7 +178,10 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+                      borderSide: BorderSide(
+                        color: colorScheme.primary,
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -180,7 +196,9 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                         style: GoogleFonts.figtree(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: _statusFilter == 'Semua' ? Colors.white : Colors.black87,
+                          color: _statusFilter == 'Semua'
+                              ? Colors.white
+                              : Colors.black87,
                         ),
                       ),
                       selected: _statusFilter == 'Semua',
@@ -200,7 +218,9 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                         style: GoogleFonts.figtree(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
-                          color: _statusFilter == 'Menunggu' ? Colors.white : Colors.black87,
+                          color: _statusFilter == 'Menunggu'
+                              ? Colors.white
+                              : Colors.black87,
                         ),
                       ),
                       selected: _statusFilter == 'Menunggu',
@@ -226,39 +246,41 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _filteredKaks.isEmpty
-                      ? ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: [
-                            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-                            Center(
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 64,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Tidak ada KAK yang ditemukan',
-                                    style: GoogleFonts.figtree(
-                                      color: Colors.grey.shade500,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _filteredKaks.length,
-                          itemBuilder: (context, index) {
-                            final item = _filteredKaks[index];
-                            return _buildListCard(context, item);
-                          },
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.2,
                         ),
+                        Center(
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 64,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Tidak ada KAK yang ditemukan',
+                                style: GoogleFonts.figtree(
+                                  color: Colors.grey.shade500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _filteredKaks.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredKaks[index];
+                        return _buildListCard(context, item);
+                      },
+                    ),
             ),
           ),
         ],
@@ -280,7 +302,8 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => VerifikatorApprovalPage(kakId: int.tryParse(item.id) ?? 0),
+              builder: (context) =>
+                  VerifikatorApprovalPage(kakId: int.tryParse(item.id) ?? 0),
             ),
           ).then((result) {
             if (result == true) {
@@ -310,9 +333,18 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
+                      color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                          ? const Color(0xFFECFDF5)
+                          : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                              ? const Color(0xFFFEF2F2)
+                              : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
+                                  ? const Color(0xFFFFFBEB)
+                                  : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -320,7 +352,13 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                       style: GoogleFonts.figtree(
                         fontWeight: FontWeight.bold,
                         fontSize: 10,
-                        color: Colors.orange.shade700,
+                        color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                            ? const Color(0xFF10B981)
+                            : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                                ? const Color(0xFFEF4444)
+                                : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
+                                    ? const Color(0xFFF59E0B)
+                                    : const Color(0xFF64748B),
                       ),
                     ),
                   ),
@@ -331,7 +369,10 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
               if (item.pengusulNama != null) ...[
                 Text(
                   'Dari: ${item.pengusulNama}',
-                  style: GoogleFonts.figtree(fontSize: 12, color: Colors.grey.shade600),
+                  style: GoogleFonts.figtree(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
                 const SizedBox(height: 4),
               ],
@@ -343,7 +384,10 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                     Expanded(
                       child: Text(
                         item.tipe!,
-                        style: GoogleFonts.figtree(fontSize: 11, color: Colors.grey.shade500),
+                        style: GoogleFonts.figtree(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -351,7 +395,10 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                   if (item.createdAt != null)
                     Text(
                       item.createdAt!,
-                      style: GoogleFonts.figtree(fontSize: 11, color: Colors.grey.shade500),
+                      style: GoogleFonts.figtree(
+                        fontSize: 11,
+                        color: Colors.grey.shade500,
+                      ),
                     ),
                 ],
               ),

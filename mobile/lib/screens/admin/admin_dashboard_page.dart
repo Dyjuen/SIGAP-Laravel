@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
+import '../../widgets/dashboard_drawer.dart';
 import '../landing_page.dart';
 import '../help_guide_page.dart';
 import 'user_management_page.dart';
@@ -66,13 +67,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      drawer: DashboardDrawer(roleId: user?.roleId ?? 1),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
+          children: [
+            const Text(
               'SIGAP PNJ',
               style: TextStyle(
                 color: Color(0xFF0F172A),
@@ -82,8 +84,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               ),
             ),
             Text(
-              'Panel Kontrol Super Admin',
-              style: TextStyle(
+              'Panel Kontrol ${user?.roleName ?? "Admin"}',
+              style: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 11,
                 fontFamily: 'Figtree',
@@ -100,15 +102,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfilePage()),
-                ).then((_) => _loadData());
+                Navigator.of(context)
+                    .push(
+                      MaterialPageRoute(builder: (_) => const ProfilePage()),
+                    )
+                    .then((_) => _loadData());
               },
               child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF33C8DA), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFF33C8DA),
+                    width: 1.5,
+                  ),
                 ),
                 child: const CircleAvatar(
                   radius: 18,
@@ -122,9 +129,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF33C8DA),
-              ),
+              child: CircularProgressIndicator(color: Color(0xFF33C8DA)),
             )
           : RefreshIndicator(
               onRefresh: _loadData,
@@ -136,7 +141,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Selamat Datang,\n${user?.namaLengkap ?? "Super Admin"}',
+                      'Selamat Datang,\n${user?.namaLengkap ?? "Pengguna"}',
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -249,7 +254,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: const Text(
                               'Belum ada log aktivitas terdeteksi.',
@@ -267,15 +274,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                               if (log['created_at'] != null) {
                                 try {
                                   final dt = DateTime.parse(log['created_at']);
-                                  timeText = '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+                                  timeText =
+                                      '${dt.day}/${dt.month} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
                                 } catch (_) {}
                               }
 
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 12.0),
                                 child: _buildActivityItem(
-                                  title: log['context_title'] ?? 'Aktivitas Sistem',
-                                  desc: log['description'] ?? 'Melakukan perubahan status',
+                                  title:
+                                      log['context_title'] ??
+                                      'Aktivitas Sistem',
+                                  desc:
+                                      log['description'] ??
+                                      'Melakukan perubahan status',
                                   time: '$timeText • ${log['user_name']}',
                                   status: log['log_type'] ?? 'INFO',
                                 ),
@@ -302,7 +314,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                           await authProvider.logout();
                           if (context.mounted) {
                             Navigator.of(context).pushReplacement(
-                              MaterialPageRoute(builder: (_) => const LandingPage()),
+                              MaterialPageRoute(
+                                builder: (_) => const LandingPage(),
+                              ),
                             );
                           }
                         },
@@ -315,7 +329,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         ),
                         child: const Text(
                           'Keluar Sesi',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
                       ),
                     ),
@@ -407,9 +424,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       children: [
         GestureDetector(
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => page),
-            ).then((_) => _loadData());
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => page))
+                .then((_) => _loadData());
           },
           child: Container(
             width: 58,
@@ -455,7 +472,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     if (status.toUpperCase() == 'ERROR' || status.toUpperCase() == 'DITOLAK') {
       statusColor = const Color(0xFFEF4444);
       statusBg = const Color(0xFFFEF2F2);
-    } else if (status.toUpperCase() == 'SUCCESS' || status.toUpperCase() == 'DISETUJUI') {
+    } else if (status.toUpperCase() == 'SUCCESS' ||
+        status.toUpperCase() == 'DISETUJUI') {
       statusColor = const Color(0xFF10B981);
       statusBg = const Color(0xFFECFDF5);
     } else if (status.toUpperCase() == 'WARNING') {
@@ -478,7 +496,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.flash_on_outlined, color: Color(0xFF64748B), size: 20),
+            child: const Icon(
+              Icons.flash_on_outlined,
+              color: Color(0xFF64748B),
+              size: 20,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(

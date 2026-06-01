@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../models/kak_model.dart';
 import '../providers/kak_detail_provider.dart';
-import 'pengusul/kak_edit_page.dart';
+import 'pengusul/kak_form_page.dart';
 import 'pengusul/pengajuan_create_page.dart';
 
 class KakDetailPage extends StatefulWidget {
@@ -156,8 +156,9 @@ class _KakDetailPageState extends State<KakDetailPage> {
                           )
                           .length;
 
-                  if (parentNotes.isEmpty && childNotesCount == 0)
+                  if (parentNotes.isEmpty && childNotesCount == 0) {
                     return const SizedBox.shrink();
+                  }
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(
@@ -215,8 +216,6 @@ class _KakDetailPageState extends State<KakDetailPage> {
                 _IndikatorKinerjaSection(kak: kak, colorScheme: colorScheme),
               if (kak.rab.isNotEmpty)
                 _RabSection(kak: kak, colorScheme: colorScheme),
-              if (kak.approvals.isNotEmpty)
-                _ApprovalsSection(kak: kak, colorScheme: colorScheme),
 
               if (!widget.embedMode)
                 _ActionsSection(
@@ -437,7 +436,7 @@ class _HeaderSection extends StatelessWidget {
       case 5:
         return Color(0xFFFFEBEE); // Rejected - Red
       default:
-        return colorScheme.surfaceVariant;
+        return colorScheme.surfaceContainerHighest;
     }
   }
 
@@ -681,7 +680,7 @@ class _ManfaatSection extends StatelessWidget {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -792,7 +791,7 @@ class _TahapanSection extends StatelessWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -1044,7 +1043,7 @@ class _RabSection extends StatelessWidget {
                 ),
               ),
             );
-          }).toList(),
+          }),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
@@ -1135,7 +1134,7 @@ class _ActionsSection extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          KakEditPage(kakId: int.parse(kak.kakId)),
+                          KakFormPage(kakId: int.parse(kak.kakId)),
                     ),
                   ).then((result) {
                     if (result == true) {
@@ -1255,7 +1254,7 @@ class _InfoField extends StatelessWidget {
           decoration: BoxDecoration(
             color: hasNote
                 ? const Color(0xFFFFF1F0)
-                : colorScheme.surfaceVariant.withOpacity(0.3),
+                : colorScheme.surfaceContainerHighest.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: hasNote ? Colors.redAccent : colorScheme.outline,
@@ -1327,7 +1326,7 @@ class _CompactInfoField extends StatelessWidget {
           decoration: BoxDecoration(
             color: hasNote
                 ? const Color(0xFFFFF1F0)
-                : colorScheme.surfaceVariant.withOpacity(0.3),
+                : colorScheme.surfaceContainerHighest.withOpacity(0.3),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: hasNote ? Colors.redAccent : colorScheme.outline,

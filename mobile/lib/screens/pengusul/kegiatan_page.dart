@@ -27,21 +27,18 @@ class _KegiatanPageState extends State<KegiatanPage> {
   Future<void> _loadApprovedKaks() async {
     setState(() => _isLoading = true);
     try {
-      final res = await ApiService.get('/kak');
+      final res = await ApiService.get('/kegiatan');
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
         List<dynamic> data = [];
-        if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
-          data = decoded['data'] as List<dynamic>;
+        if (decoded is Map<String, dynamic> && decoded.containsKey('approvedKaks')) {
+          data = decoded['approvedKaks'] as List<dynamic>;
         } else if (decoded is List<dynamic>) {
           data = decoded;
         }
-        // filter to status_id == 3 (Disetujui)
-        final approved = data
-            .where((d) => (d['status_id'] as int?) == 3)
-            .toList();
+        
         setState(() {
-          _items = approved;
+          _items = data;
           _isLoading = false;
         });
       } else {
@@ -137,8 +134,9 @@ class _KegiatanPageState extends State<KegiatanPage> {
                           };
 
                           if (pickedFile != null) {
-                            map['surat_pengantar'] =
-                                await _toMultipartFile(pickedFile!);
+                            map['surat_pengantar'] = await _toMultipartFile(
+                              pickedFile!,
+                            );
                           }
 
                           final formData = FormData.fromMap(map);
@@ -168,17 +166,20 @@ class _KegiatanPageState extends State<KegiatanPage> {
                                 ? resp.data['message'] ??
                                       'Gagal mengajukan kegiatan.'
                                 : 'Gagal mengajukan kegiatan.';
-                            if (context.mounted)
+                            if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(msg),
                                   backgroundColor: Colors.redAccent,
                                 ),
                               );
+                            }
                           }
                         } on DioException catch (e) {
                           final responseMessage = e.response?.data is Map
-                              ? (e.response?.data['message'] ?? e.response?.data['errors'] ?? e.message)
+                              ? (e.response?.data['message'] ??
+                                    e.response?.data['errors'] ??
+                                    e.message)
                               : e.message;
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -194,9 +195,7 @@ class _KegiatanPageState extends State<KegiatanPage> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  'Gagal mengajukan kegiatan: $e',
-                                ),
+                                content: Text('Gagal mengajukan kegiatan: $e'),
                                 backgroundColor: Colors.redAccent,
                               ),
                             );
@@ -259,7 +258,10 @@ class _KegiatanPageState extends State<KegiatanPage> {
     return switch (ext) {
       'pdf' => MediaType('application', 'pdf'),
       'doc' => MediaType('application', 'msword'),
-      'docx' => MediaType('application', 'vnd.openxmlformats-officedocument.wordprocessingml.document'),
+      'docx' => MediaType(
+        'application',
+        'vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ),
       'jpg' || 'jpeg' => MediaType('image', 'jpeg'),
       'png' => MediaType('image', 'png'),
       'webp' => MediaType('image', 'webp'),

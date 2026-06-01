@@ -86,6 +86,9 @@ class LpjApiController extends Controller
                 'lpj_submitted_at' => $kegiatan->lpj_submitted_at,
                 'lpj_approved_at' => $kegiatan->lpj_approved_at ?? null,
                 'lpj_completed_at' => $kegiatan->lpj_completed_at ?? null,
+                'tgl_batas_lpj' => $kegiatan->tgl_batas_lpj,
+                'spk_kesesuaian_waktu' => $kegiatan->spk_kesesuaian_waktu,
+                'spk_kesesuaian_output' => $kegiatan->spk_kesesuaian_output,
                 'pengusul' => $kegiatan->kak?->pengusul ? [
                     'user_id' => $kegiatan->kak->pengusul->user_id,
                     'nama_lengkap' => $kegiatan->kak->pengusul->nama_lengkap,
@@ -109,6 +112,7 @@ class LpjApiController extends Controller
                         'realisasi_satuan3_id' => $item->realisasi_satuan3_id,
                         'realisasi_harga_satuan' => (float) $item->realisasi_harga_satuan,
                         'realisasi_jumlah' => (float) $item->realisasi_jumlah,
+                        'catatan_reviewer' => $item->catatan_verifikator,
                     ];
                 })->toArray() ?? [],
                 'approval_status' => $kegiatan->approvals->where('approval_level', 'Bendahara-LPJ')->first()?->status ?? 'Pending',

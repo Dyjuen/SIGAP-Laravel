@@ -83,6 +83,30 @@ class DashboardService
     }
 
     /**
+     * Get recent LPJs for Pengusul.
+     */
+    public function getPengusulRecentLpjs(User $user, int $limit = 5): array
+    {
+        return Kegiatan::with(['kak.status'])
+            ->whereHas('kak', function ($q) use ($user) {
+                $q->where('pengusul_user_id', $user->user_id)
+                    ->whereIn('status_id', [10, 11, 12, 13, 14]);
+            })
+            ->latest('updated_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($kegiatan) => [
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'kak_id' => $kegiatan->kak_id,
+                'nama_kegiatan' => $kegiatan->kak?->nama_kegiatan ?? '-',
+                'status_id' => $kegiatan->kak?->status_id,
+                'status_nama' => $kegiatan->kak?->status?->nama_status ?? '-',
+                'tgl_batas_lpj' => $kegiatan->tgl_batas_lpj?->format('d/m/Y') ?? '-',
+            ])
+            ->toArray();
+    }
+
+    /**
      * Get PPK Dashboard stats and pending list.
      */
     public function getPpkStatsAndRecent(int $limit = 5): array
@@ -189,7 +213,7 @@ class DashboardService
             ->count();
 
         $recentKaks = KAK::with(['status', 'pengusul', 'tipeKegiatan'])
-            ->where('status_id', 2)
+            ->whereIn('status_id', [2, 3, 4, 5])
             ->when($tipeKegiatanId, fn ($q) => $q->where('tipe_kegiatan_id', $tipeKegiatanId))
             ->orderBy('updated_at', 'desc')
             ->limit($limit)
@@ -200,6 +224,7 @@ class DashboardService
                 'pengusul' => $kak->pengusul?->nama_lengkap,
                 'pengusul_nama' => $kak->pengusul?->nama_lengkap, // support API attribute key
                 'tipe' => $kak->tipeKegiatan?->nama_tipe,
+                'status_nama' => $kak->status?->nama_status,
                 'updated_at' => $kak->updated_at?->format('d M Y'),
             ])
             ->toArray();
@@ -293,24 +318,29 @@ class DashboardService
                 'nama_kegiatan' => $kegiatan->kak?->nama_kegiatan ?? '-',
                 'pelaksana_manual' => $kegiatan->pelaksana_manual,
                 'pengusul_nama' => $kegiatan->kak?->pengusul?->nama_lengkap ?? '-',
+                'dana_diusulkan' => $totalAnggaran, // Match DashboardItem field
+                'dana_dicairkan' => $totalDicairkan, // Match DashboardItem field
                 'total_anggaran_diusulkan' => $totalAnggaran,
-                'dana_dicairkan' => $totalDicairkan,
                 'sisa_dana' => $totalAnggaran - $totalDicairkan,
                 'status' => $status,
                 'lpj_submitted_at' => $kegiatan->lpj_submitted_at,
                 'current_approval_level' => $currentApproval?->approval_level,
             ];
-        })->toArray();
+        });
+
+        $pendingLpjs = $mappedKegiatans->where('status', 'lpj_submitted')->values()->toArray();
 
         return [
             'stats' => [
                 'waiting_count' => $waitingCount,
                 'disbursed_count' => $disbursedCount,
-                'lpj_count' => $lpjCount,
-                'total_disbursed_amount' => $totalDisbursedAmount,
-                'total_undisbursed_amount' => $totalUndisbursedAmount,
+                'lpj_pending' => $lpjCount,
+                'lpj_approved' => $disbursedCount, // Placeholder for approved LPJ count if available
+                'total_dana_diusulkan' => $totalUndisbursedAmount + $totalDisbursedAmount,
+                'total_dana_dicairkan' => $totalDisbursedAmount,
             ],
-            'kegiatans' => $mappedKegiatans,
+            'pending_lpjs' => $pendingLpjs,
+            'kegiatans' => $mappedKegiatans->toArray(),
         ];
     }
 
