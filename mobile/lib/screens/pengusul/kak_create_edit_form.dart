@@ -94,6 +94,7 @@ class KakCreateEditForm extends StatefulWidget {
   final List<dynamic> tipeKegiatanOptions;
   final List<dynamic> ikuOptions;
   final List<dynamic> satuanOptions;
+  final bool readOnly;
   final VoidCallback onSubmit;
   final bool isLoading;
   final Function(Map<String, dynamic>) onFormChange;
@@ -104,6 +105,7 @@ class KakCreateEditForm extends StatefulWidget {
     required this.tipeKegiatanOptions,
     this.ikuOptions = const [],
     this.satuanOptions = const [],
+    this.readOnly = false,
     required this.onSubmit,
     this.isLoading = false,
     required this.onFormChange,
@@ -392,7 +394,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           child: Text(satuan['nama_satuan'] ?? satuan['name'] ?? ''),
         );
       }).toList(),
-      onChanged: onChanged,
+      onChanged: widget.readOnly ? null : onChanged,
     );
   }
 
@@ -470,7 +472,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
                     const SizedBox(height: 6),
@@ -542,12 +545,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                           ),
                         )
                         .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        selectedTipeKegiatan = value;
-                      });
-                      widget.onFormChange(getFormData());
-                    },
+                    onChanged: widget.readOnly
+                        ? null
+                        : (value) {
+                            setState(() {
+                              selectedTipeKegiatan = value;
+                            });
+                            widget.onFormChange(getFormData());
+                          },
                     validator: (value) {
                       if (value == null) return 'Tipe kegiatan harus dipilih';
                       return null;
@@ -607,7 +612,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
                     const SizedBox(height: 6),
@@ -660,7 +666,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
                     const SizedBox(height: 6),
@@ -691,10 +698,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   color: colorScheme.onSurface,
                 ),
               ),
-              IconButton(
-                onPressed: _addManfaat,
-                icon: const Icon(Icons.add_circle),
-              ),
+              if (!widget.readOnly)
+                IconButton(
+                  onPressed: _addManfaat,
+                  icon: const Icon(Icons.add_circle),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -746,11 +754,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                             }
                             return null;
                           },
-                          onChanged: (value) {
-                            setState(() {
-                              item.value = value;
-                            });
-                          },
+                            onChanged: widget.readOnly
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      item.value = value;
+                                    });
+                                  },
+                            enabled: !widget.readOnly,
                         ),
                         if (item.note != null &&
                             item.note!.trim().isNotEmpty) ...[
@@ -827,7 +838,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
                     const SizedBox(height: 6),
@@ -858,10 +870,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   color: colorScheme.onSurface,
                 ),
               ),
-              IconButton(
-                onPressed: _addTahapan,
-                icon: const Icon(Icons.add_circle),
-              ),
+              if (!widget.readOnly)
+                IconButton(
+                  onPressed: _addTahapan,
+                  icon: const Icon(Icons.add_circle),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -931,11 +944,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                             }
                             return null;
                           },
-                          onChanged: (value) {
-                            setState(() {
-                              item.nama = value;
-                            });
-                          },
+                          onChanged: widget.readOnly
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    item.nama = value;
+                                  });
+                                },
+                          enabled: !widget.readOnly,
                         ),
                         if (item.note != null &&
                             item.note!.trim().isNotEmpty) ...[
@@ -953,10 +969,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () => _removeTahapan(index),
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                  ),
+                  if (!widget.readOnly)
+                    IconButton(
+                      onPressed: () => _removeTahapan(index),
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                    ),
                 ],
               ),
             );
@@ -986,10 +1003,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   color: colorScheme.onSurface,
                 ),
               ),
-              IconButton(
-                onPressed: _addIndikatorKinerja,
-                icon: const Icon(Icons.add_circle),
-              ),
+              if (!widget.readOnly)
+                IconButton(
+                  onPressed: _addIndikatorKinerja,
+                  icon: const Icon(Icons.add_circle),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1023,11 +1041,12 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () => _removeIndikatorKinerja(index),
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          iconSize: 20,
-                        ),
+                        if (!widget.readOnly)
+                          IconButton(
+                            onPressed: () => _removeIndikatorKinerja(index),
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            iconSize: 20,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1040,11 +1059,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          item.bulanIndikator = value;
-                        });
-                      },
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.bulanIndikator = value;
+                              });
+                            },
+                      enabled: !widget.readOnly,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -1082,11 +1104,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         }
                         return null;
                       },
-                      onChanged: (value) {
-                        setState(() {
-                          item.deskripsiTarget = value;
-                        });
-                      },
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.deskripsiTarget = value;
+                              });
+                            },
+                      enabled: !widget.readOnly,
                     ),
                     if (item.note != null && item.note!.trim().isNotEmpty) ...[
                       const SizedBox(height: 6),
@@ -1111,11 +1136,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          item.persentaseTarget = double.tryParse(value);
-                        });
-                      },
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.persentaseTarget = double.tryParse(value);
+                              });
+                            },
+                      enabled: !widget.readOnly,
                     ),
                   ],
                 ),
@@ -1150,7 +1178,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: () => _selectDate(context, true),
+                  onTap: widget.readOnly ? null : () => _selectDate(context, true),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1185,7 +1213,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               const SizedBox(width: 12),
               Expanded(
                 child: InkWell(
-                  onTap: () => _selectDate(context, false),
+                  onTap: widget.readOnly ? null : () => _selectDate(context, false),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1260,7 +1288,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               }
               return null;
             },
-            onChanged: (_) => widget.onFormChange(getFormData()),
+            onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+            enabled: !widget.readOnly,
           ),
           if (widget.initialData?.catatanLokasi != null &&
               widget.initialData!.catatanLokasi!.trim().isNotEmpty) ...[
@@ -1288,10 +1317,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                   color: colorScheme.onSurface,
                 ),
               ),
-              IconButton(
-                onPressed: _addRab,
-                icon: const Icon(Icons.add_circle),
-              ),
+              if (!widget.readOnly)
+                IconButton(
+                  onPressed: _addRab,
+                  icon: const Icon(Icons.add_circle),
+                ),
             ],
           ),
           const SizedBox(height: 8),
@@ -1318,11 +1348,12 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        IconButton(
-                          onPressed: () => _removeRab(index),
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          iconSize: 20,
-                        ),
+                        if (!widget.readOnly)
+                          IconButton(
+                            onPressed: () => _removeRab(index),
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            iconSize: 20,
+                          ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1361,11 +1392,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         }
                         return null;
                       },
-                      onChanged: (value) {
-                        setState(() {
-                          item.uraian = value;
-                        });
-                      },
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.uraian = value;
+                              });
+                            },
+                      enabled: !widget.readOnly,
                     ),
                     if (item.note != null && item.note!.trim().isNotEmpty) ...[
                       const SizedBox(height: 6),
@@ -1394,11 +1428,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                                   ),
                                 ),
                                 keyboardType: TextInputType.number,
-                                onChanged: (value) {
-                                  setState(() {
-                                    item.volume1 = double.tryParse(value) ?? 0;
-                                  });
-                                },
+                                onChanged: widget.readOnly
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          item.volume1 = double.tryParse(value) ?? 0;
+                                        });
+                                      },
+                                enabled: !widget.readOnly,
                               ),
                               const SizedBox(height: 8),
                               _buildSatuanDropdown(
@@ -1423,11 +1460,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                                   ),
                                 ),
                                 keyboardType: TextInputType.number,
-                                onChanged: (value) {
-                                  setState(() {
-                                    item.volume2 = double.tryParse(value);
-                                  });
-                                },
+                                onChanged: widget.readOnly
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          item.volume2 = double.tryParse(value);
+                                        });
+                                      },
+                                enabled: !widget.readOnly,
                               ),
                               const SizedBox(height: 8),
                               _buildSatuanDropdown(
@@ -1452,11 +1492,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                                   ),
                                 ),
                                 keyboardType: TextInputType.number,
-                                onChanged: (value) {
-                                  setState(() {
-                                    item.volume3 = double.tryParse(value);
-                                  });
-                                },
+                                onChanged: widget.readOnly
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          item.volume3 = double.tryParse(value);
+                                        });
+                                      },
+                                enabled: !widget.readOnly,
                               ),
                               const SizedBox(height: 8),
                               _buildSatuanDropdown(
@@ -1485,11 +1528,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                         }
                         return null;
                       },
-                      onChanged: (value) {
-                        setState(() {
-                          item.hargaSatuan = double.tryParse(value) ?? 0;
-                        });
-                      },
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.hargaSatuan = double.tryParse(value) ?? 0;
+                              });
+                            },
+                      enabled: !widget.readOnly,
                     ),
                     const SizedBox(height: 8),
                     Container(

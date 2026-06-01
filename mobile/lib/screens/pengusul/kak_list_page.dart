@@ -7,6 +7,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import '../../services/api_service.dart';
 import 'kak_edit_page.dart';
+import 'kak_detail_page.dart';
 import 'kak_create_page.dart';
 
 class KakListPage extends StatefulWidget {
@@ -685,22 +686,34 @@ class _KakListPageState extends State<KakListPage> {
                 child: SizedBox(
                   height: 38,
                   child: OutlinedButton(
-                    onPressed: () => Navigator.of(context)
-                        .push(
-                          MaterialPageRoute(
-                            builder: (_) => KakEditPage(kakId: kakId),
-                          ),
-                        )
-                        .then((_) => _loadKaks()),
+                    onPressed: () {
+                      if (statusId == 2 || statusId == 3) {
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => KakDetailPage(kakId: kakId),
+                              ),
+                            )
+                            .then((_) => _loadKaks());
+                      } else {
+                        Navigator.of(context)
+                            .push(
+                              MaterialPageRoute(
+                                builder: (_) => KakEditPage(kakId: kakId),
+                              ),
+                            )
+                            .then((_) => _loadKaks());
+                      }
+                    },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'Detail / Edit',
-                      style: TextStyle(
+                    child: Text(
+                      (statusId == 2 || statusId == 3) ? 'Detail' : 'Detail / Edit',
+                      style: const TextStyle(
                         color: Color(0xFF475569),
                         fontWeight: FontWeight.bold,
                         fontSize: 13,

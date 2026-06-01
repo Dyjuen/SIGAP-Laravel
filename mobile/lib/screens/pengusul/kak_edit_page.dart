@@ -148,6 +148,7 @@ class _KakEditPageState extends State<KakEditPage> {
         tipeKegiatanOptions: tipeKegiatanOptions,
         ikuOptions: ikuOptions,
         satuanOptions: satuanOptions,
+        readOnly: (kakDetail?.statusId == 2 || kakDetail?.statusId == 3),
         isLoading: isLoading,
         onFormChange: (formData) {
           setState(() {
