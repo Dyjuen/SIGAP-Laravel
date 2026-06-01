@@ -232,13 +232,17 @@ const server = http.createServer((req, res) => {
       const cmd = fs.existsSync(playwrightBin) ? `"${playwrightBin}"` : 'npx playwright';
 
       let grepFlag = '';
-      // Only use grep if we have a reasonable number of specific IDs
-      // PowerShell/CMD have character limits for command length (~8192 chars)
-      if (testIds.length > 0 && testIds.length < 100) {
+      // Only use grep if the resulting regex isn't too long for the command line
+      // Windows CMD has a limit of ~8192 characters.
+      if (testIds.length > 0) {
           const regex = testIds.map(id => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-          grepFlag = `--grep "${regex}"`;
-      } else if (testIds.length >= 100) {
-          broadcastLog(`⚠️ Terlalu banyak filter (${testIds.length}), menjalankan seluruh suite tanpa grep untuk menghindari limit command line.`, 'warn');
+          const potentialGrepFlag = `--grep "${regex}"`;
+          
+          if (potentialGrepFlag.length < 5000) {
+              grepFlag = potentialGrepFlag;
+          } else {
+              broadcastLog(`⚠️ Filter terlalu panjang (${testIds.length} ID, ${potentialGrepFlag.length} karakter), menjalankan seluruh suite tanpa grep untuk menghindari limit command line.`, 'warn');
+          }
       }
 
       const fullCmd = `${cmd} test ${target} ${grepFlag} --reporter=line,json --workers=${workers}`;
