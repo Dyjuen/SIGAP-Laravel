@@ -83,6 +83,30 @@ class DashboardService
     }
 
     /**
+     * Get recent LPJs for Pengusul.
+     */
+    public function getPengusulRecentLpjs(User $user, int $limit = 5): array
+    {
+        return Kegiatan::with(['kak.status'])
+            ->whereHas('kak', function ($q) use ($user) {
+                $q->where('pengusul_user_id', $user->user_id)
+                    ->whereIn('status_id', [10, 11, 12, 13, 14]);
+            })
+            ->latest('updated_at')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($kegiatan) => [
+                'kegiatan_id' => $kegiatan->kegiatan_id,
+                'kak_id' => $kegiatan->kak_id,
+                'nama_kegiatan' => $kegiatan->kak?->nama_kegiatan ?? '-',
+                'status_id' => $kegiatan->kak?->status_id,
+                'status_nama' => $kegiatan->kak?->status?->nama_status ?? '-',
+                'tgl_batas_lpj' => $kegiatan->tgl_batas_lpj?->format('d/m/Y') ?? '-',
+            ])
+            ->toArray();
+    }
+
+    /**
      * Get PPK Dashboard stats and pending list.
      */
     public function getPpkStatsAndRecent(int $limit = 5): array

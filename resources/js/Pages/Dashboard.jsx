@@ -101,7 +101,7 @@ function StatusBadge({ statusId, statusName }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // PENGUSUL DASHBOARD
 // ═════════════════════════════════════════════════════════════════════════════
-function PengusulDashboard({ stats, recentKaks }) {
+function PengusulDashboard({ stats, recentKaks, recentLpjs = [] }) {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             {/* Header Actions - Moved to top right */}
@@ -185,21 +185,33 @@ function PengusulDashboard({ stats, recentKaks }) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {recentKaks?.length > 0 ? recentKaks.slice(0, 5).map((kak, index) => (
-                                    <tr key={`lpj-${kak.kak_id}`} className="hover:bg-slate-50/50 transition-colors">
+                                {recentLpjs?.length > 0 ? recentLpjs.slice(0, 5).map((lpj, index) => (
+                                    <tr key={`lpj-${lpj.kegiatan_id}`} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-4 py-5">
                                             <div className="w-9 h-9 rounded-xl border border-slate-100 flex items-center justify-center text-xs font-black text-slate-400">
                                                 {index + 1}
                                             </div>
                                         </td>
                                         <td className="px-4 py-5">
-                                            <div className="font-bold text-[14px] text-slate-800">{kak.nama_kegiatan}</div>
+                                            <div className="font-bold text-[14px] text-slate-800">{lpj.nama_kegiatan}</div>
                                             <div className="text-[11px] font-black text-cyan-500 mt-0.5 uppercase tracking-wide">Pengusul</div>
                                         </td>
                                         <td className="px-4 py-5 text-right">
                                             <div className="flex flex-col items-end">
-                                                <div className="text-[11px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">Selesai</div>
-                                                <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">Deadline: -</div>
+                                                <div className={clsx(
+                                                    "text-[11px] font-black px-3 py-1 rounded-lg border whitespace-nowrap",
+                                                    lpj.status_id === 10 ? "bg-amber-50 text-amber-600 border-amber-100" :
+                                                    lpj.status_id === 11 ? "bg-blue-50 text-blue-600 border-blue-100" :
+                                                    lpj.status_id === 12 ? "bg-rose-50 text-rose-600 border-rose-100" :
+                                                    lpj.status_id === 13 ? "bg-purple-50 text-purple-600 border-purple-100" :
+                                                    lpj.status_id === 14 ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                                                    "bg-slate-50 text-slate-600 border-slate-100"
+                                                )}>
+                                                    {lpj.status_nama}
+                                                </div>
+                                                <div className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">
+                                                    Deadline: {lpj.tgl_batas_lpj || '-'}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -365,7 +377,7 @@ function AdminDashboard({ stats }) {
 // ═════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═════════════════════════════════════════════════════════════════════════════
-export default function Dashboard({ auth, stats = {}, recent_kaks, pending_kegiatan, panduans = [] }) {
+export default function Dashboard({ auth, stats = {}, recent_kaks, recent_lpjs = [], pending_kegiatan, panduans = [] }) {
     const roleId = auth.user?.role_id;
 
     const roleLabels = {
@@ -390,7 +402,7 @@ export default function Dashboard({ auth, stats = {}, recent_kaks, pending_kegia
 
     const renderDashboard = () => {
         switch (roleId) {
-            case 3: return <PengusulDashboard stats={stats} recentKaks={recent_kaks} />;
+            case 3: return <PengusulDashboard stats={stats} recentKaks={recent_kaks} recentLpjs={recent_lpjs} />;
             case 4:
             case 5: return <ApproverDashboard stats={stats} pendingKegiatan={pending_kegiatan} roleName={roleName} />;
             case 2: return <VerifikatorDashboard stats={stats} recentKaks={recent_kaks} />;
