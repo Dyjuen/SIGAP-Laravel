@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../widgets/sigap_logo.dart';
 
 class KegiatanFormPage extends StatefulWidget {
   final VoidCallback? onSuccess;
@@ -268,14 +269,9 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
+            SigapLogo(
+              width: 90,
+              height: 24,
             ),
             Text(
               'Buat KAK Baru',

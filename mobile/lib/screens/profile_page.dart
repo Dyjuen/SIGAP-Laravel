@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import 'landing_page.dart';
+import '../widgets/sigap_logo.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -123,14 +124,9 @@ class ProfilePage extends StatelessWidget {
               icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            title: const Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
+            title: const SigapLogo(
+              width: 90,
+              height: 24,
             ),
             actions: [
               IconButton(

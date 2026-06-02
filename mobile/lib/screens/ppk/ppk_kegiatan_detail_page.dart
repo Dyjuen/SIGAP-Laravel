@@ -449,35 +449,71 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: const Text(
-          'Detail Kegiatan',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF0F172A),
-            fontFamily: 'Figtree',
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final roleId = authProvider.user?.roleId;
+    final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
+    final String targetLevel = roleId == 4
+        ? 'PPK'
+        : (roleId == 5 ? 'Wadir2' : '');
+    final myApproval = approvals.firstWhere(
+      (a) => a['approval_level'] == targetLevel && a['status'] == 'Aktif',
+      orElse: () => null,
+    );
+    final bool isPendingMyApproval = myApproval != null;
+
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: const Text(
+            'Detail Kegiatan',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF0F172A),
+              fontFamily: 'Figtree',
+            ),
+          ),
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: Color(0xFF0F172A),
+              size: 20,
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          bottom: const TabBar(
+            labelColor: Color(0xFF33C8DA),
+            unselectedLabelColor: Color(0xFF64748B),
+            indicatorColor: Color(0xFF33C8DA),
+            indicatorSize: TabBarIndicatorSize.tab,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              fontFamily: 'Figtree',
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              fontFamily: 'Figtree',
+            ),
+            tabs: [
+              Tab(text: 'Ringkasan'),
+              Tab(text: 'RAB / Budget'),
+              Tab(text: 'Persetujuan'),
+            ],
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF0F172A),
-            size: 20,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        body: _buildBody(isPendingMyApproval),
       ),
-      body: _buildBody(),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(bool isPendingMyApproval) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -540,16 +576,13 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     final tglMulai = kak['tanggal_mulai'];
     final tglSelesai = kak['tanggal_selesai'];
     final lokasi = kak['lokasi'] ?? '-';
-    final ikus = kak['ikus'] as List? ?? [];
-    final ikusStr = ikus
-        .map((i) => i['iku']?['nama_iku'])
-        .where((n) => n != null)
-        .join(', ');
 
     final String deskripsiKegiatan = kak['deskripsi_kegiatan'] ?? '-';
     final String metodePelaksanaan = kak['metode_pelaksanaan'] ?? '-';
     final String sasaranUtama = kak['sasaran_utama'] ?? '-';
-    final String kurunWaktu = kak['kurun_waktu_pelaksanaan'] ?? '-';
+
+    final pj = _kegiatan['penanggung_jawab_manual'] ?? kak['penanggung_jawab_manual'] ?? '-';
+    final pelaksana = _kegiatan['pelaksana_manual'] ?? kak['pelaksana_manual'] ?? '-';
 
     // Grouping anggaran by kategori belanja
     final List<dynamic> anggaran = kak['anggaran'] as List? ?? [];
@@ -568,634 +601,612 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
           sum + (double.tryParse(item['jumlah_diusulkan'].toString()) ?? 0.0),
     );
 
-    final List<dynamic> manfaat = kak['manfaat'] as List? ?? [];
-    final List<dynamic> tahapan = kak['tahapan'] as List? ?? [];
-    final List<dynamic> targets = kak['indikator_kinerja'] as List? ?? [];
-    final List<dynamic> targetIku = kak['target_iku'] as List? ?? [];
-
-    // Public URL for surat pengantar (set by API if available)
+    // Public URL for surat pengantar
     final String? suratPengantarUrl =
         _kegiatan['surat_pengantar_url'] as String?;
 
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final roleId = authProvider.user?.roleId;
-    final String targetLevel = roleId == 4
-        ? 'PPK'
-        : (roleId == 5 ? 'Wadir2' : '');
-    final myApproval = approvals.firstWhere(
-      (a) => a['approval_level'] == targetLevel && a['status'] == 'Aktif',
-      orElse: () => null,
-    );
-    final bool isPendingMyApproval = myApproval != null;
 
     return Stack(
       children: [
-        SingleChildScrollView(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: isPendingMyApproval ? 110 : 24,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
+        TabBarView(
+          children: [
+            // ── TAB 1: RINGKASAN ─────────────────────────────────────────
+            RefreshIndicator(
+              onRefresh: _fetchDetail,
+              color: const Color(0xFF33C8DA),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, isPendingMyApproval ? 110 : 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      namaKegiatan,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF0F172A),
-                        fontFamily: 'Figtree',
+                    // Main Title Card
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            namaKegiatan,
+                            style: GoogleFonts.figtree(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF0F172A),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '📄 $tipe',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF475569),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE0F7FA),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '⚡ $sumberDana',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0E7490),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const Divider(color: Color(0xFFF1F5F9), height: 1),
+                          const SizedBox(height: 16),
+                          Text(
+                            'TOTAL ANGGARAN DIAJUKAN',
+                            style: GoogleFonts.figtree(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatCurrency(totalAnggaran),
+                            style: GoogleFonts.figtree(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF33C8DA),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    const SizedBox(height: 16),
+
+                    // Detail Info Card
+                    _buildSectionCard(
+                      title: 'INFORMASI PELAKSANAAN',
+                      icon: Icons.calendar_today_outlined,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            '📄 $tipe',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
-                            ),
+                        _buildCompactInfoRow('Waktu', '${_formatDate(tglMulai)} s/d ${_formatDate(tglSelesai)}'),
+                        const SizedBox(height: 12),
+                        _buildCompactInfoRow('Lokasi', lokasi),
+                        const SizedBox(height: 12),
+                        _buildCompactInfoRow('Penanggung Jawab', pj),
+                        const SizedBox(height: 12),
+                        _buildCompactInfoRow('Pelaksana', pelaksana),
+                        const SizedBox(height: 12),
+                        _buildCompactInfoRow('Sasaran', sasaranUtama),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Deskripsi Card
+                    _buildSectionCard(
+                      title: 'DESKRIPSI & METODE',
+                      icon: Icons.description_outlined,
+                      children: [
+                        Text(
+                          'Gambaran Umum',
+                          style: GoogleFonts.figtree(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF64748B),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
+                        const SizedBox(height: 4),
+                        Text(
+                          deskripsiKegiatan,
+                          style: GoogleFonts.figtree(
+                            fontSize: 13,
+                            color: const Color(0xFF334155),
+                            height: 1.5,
                           ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE0F7FA),
-                            borderRadius: BorderRadius.circular(8),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Metode Pelaksanaan',
+                          style: GoogleFonts.figtree(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF64748B),
                           ),
-                          child: Text(
-                            '⚡ $sumberDana',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0E7490),
-                            ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          metodePelaksanaan,
+                          style: GoogleFonts.figtree(
+                            fontSize: 13,
+                            color: const Color(0xFF334155),
+                            height: 1.5,
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Surat Pengantar Card
+                    if (suratPengantarUrl != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.insert_drive_file_outlined,
+                                  color: Color(0xFF33C8DA),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'DOKUMEN LAMPIRAN',
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF475569),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 48,
+                              child: ElevatedButton.icon(
+                                onPressed: () => _launchUrl(suratPengantarUrl),
+                                icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
+                                label: Text(
+                                  'Buka Surat Pengantar (PDF)',
+                                  style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF33C8DA),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ── TAB 2: RAB / BUDGET ──────────────────────────────────────
+            RefreshIndicator(
+              onRefresh: _fetchDetail,
+              color: const Color(0xFF33C8DA),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, isPendingMyApproval ? 110 : 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: const [
+                                  Icon(
+                                    Icons.calculate_outlined,
+                                    color: Color(0xFF33C8DA),
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Daftar Anggaran Belanja',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF0F172A),
+                                      fontFamily: 'Figtree',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          if (groupedAnggaran.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 24.0),
+                              child: Center(
+                                child: Text(
+                                  'Belum ada rincian anggaran.',
+                                  style: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else ...[
+                            ...groupedAnggaran.entries.map((entry) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFF8FAFC),
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: Color(0xFF33C8DA),
+                                          width: 4,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      entry.key,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF334155),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ...entry.value.map((item) {
+                                    final List<String> vols = [];
+                                    final double v1 = double.tryParse(item['volume1']?.toString() ?? '0') ?? 0;
+                                    final String s1 = item['satuan1']?['nama_satuan'] ?? '';
+                                    if (v1 > 0) vols.add('${v1.toInt()} $s1');
+
+                                    final double v2 = double.tryParse(item['volume2']?.toString() ?? '0') ?? 0;
+                                    final String s2 = item['satuan2']?['nama_satuan'] ?? '';
+                                    if (v2 > 0) vols.add('${v2.toInt()} $s2');
+
+                                    final double v3 = double.tryParse(item['volume3']?.toString() ?? '0') ?? 0;
+                                    final String s3 = item['satuan3']?['nama_satuan'] ?? '';
+                                    if (v3 > 0) vols.add('${v3.toInt()} $s3');
+
+                                    final String volumeText = vols.join(' x ');
+
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF8FAFC),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            flex: 3,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item['uraian'] ?? '',
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF1E293B),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  volumeText,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(0xFF64748B),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  _formatCurrency(item['jumlah_diusulkan']),
+                                                  style: const TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF33C8DA),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  '@ ${_formatCurrency(item['harga_satuan'])}',
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color(0xFF64748B),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                                  const SizedBox(height: 16),
+                                ],
+                              );
+                            }),
+                            const Divider(color: Color(0xFFE2E8F0)),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Total Anggaran',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E293B),
+                                  ),
+                                ),
+                                Text(
+                                  _formatCurrency(totalAnggaran),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF33C8DA),
+                                    fontFamily: 'Figtree',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+            ),
 
-              // Informasi KAK
-              _buildSectionCard(
-                title: 'INFORMASI KAK',
-                icon: Icons.assignment_outlined,
-                children: [
-                  _buildInfoTile(
-                    Icons.description_outlined,
-                    'Gambaran Umum / Deskripsi Kegiatan',
-                    deskripsiKegiatan,
+            // ── TAB 3: PERSETUJUAN ────────────────────────────────────────
+            RefreshIndicator(
+              onRefresh: _fetchDetail,
+              color: const Color(0xFF33C8DA),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, isPendingMyApproval ? 110 : 24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
-                  _buildInfoTile(
-                    Icons.edit_note_outlined,
-                    'Metode Pelaksanaan',
-                    metodePelaksanaan,
-                  ),
-                  _buildInfoTile(
-                    Icons.calendar_today_outlined,
-                    'Waktu Pelaksanaan',
-                    '${_formatDate(tglMulai)} s/d ${_formatDate(tglSelesai)}',
-                  ),
-                  _buildInfoTile(
-                    Icons.hourglass_bottom_outlined,
-                    'Kurun Waktu Pelaksanaan',
-                    kurunWaktu,
-                  ),
-                  _buildInfoTile(Icons.location_on_outlined, 'Lokasi', lokasi),
-                  _buildInfoTile(
-                    Icons.people_outline,
-                    'Sasaran Utama',
-                    sasaranUtama,
-                  ),
-                  _buildInfoTile(
-                    Icons.track_changes_outlined,
-                    'IKU Sasaran',
-                    ikusStr.isEmpty ? '-' : ikusStr,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              _buildSectionCard(
-                title: 'MANFAAT DAN TAHAPAN',
-                icon: Icons.timeline_outlined,
-                children: [
-                  const Text(
-                    'Surat Pengantar',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0E7490),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  if (suratPengantarUrl != null)
-                    ElevatedButton.icon(
-                      onPressed: () => _launchUrl(suratPengantarUrl),
-                      icon: const Icon(Icons.file_open_outlined, size: 16),
-                      label: const Text('Buka Surat Pengantar (PDF)'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF33C8DA),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Target IKU',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0E7490),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (targetIku.isEmpty)
-                    const Text(
-                      'Tidak ada target IKU.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                        fontStyle: FontStyle.italic,
-                      ),
-                    )
-                  else
-                    ...targetIku.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: _buildInfoTile(
-                          Icons.track_changes_outlined,
-                          '${item['kode_iku'] ?? '-'} - ${item['nama_iku'] ?? '-'}',
-                          'Target: ${item['target'] ?? '-'} ${item['nama_satuan'] ?? ''}\nCatatan: ${item['catatan_verifikator'] ?? '-'}',
-                        ),
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Approval KAK',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0E7490),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (approvals.isEmpty)
-                    const Text(
-                      'Belum ada approval KAK.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF64748B),
-                        fontStyle: FontStyle.italic,
-                      ),
-                    )
-                  else
-                    ...approvals.map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: _buildInfoTile(
-                          Icons.verified_user_outlined,
-                          '${item['approver_nama'] ?? '-'} - ${item['status'] ?? '-'}',
-                          'Tanggal: ${item['tanggal'] ?? '-'}\nCatatan: ${item['catatan'] ?? '-'}',
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // RAB Grouped Table
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.calculate_outlined,
-                          color: Color(0xFF33C8DA),
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Rincian Anggaran Biaya (RAB)',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                            fontFamily: 'Figtree',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    if (groupedAnggaran.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 24.0),
-                        child: Center(
-                          child: Text(
-                            'Belum ada rincian anggaran.',
-                            style: TextStyle(
-                              color: Color(0xFF94A3B8),
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                      )
-                    else ...[
-                      ...groupedAnggaran.entries.map((entry) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF8FAFC),
-                                border: Border(
-                                  left: BorderSide(
-                                    color: Color(0xFF33C8DA),
-                                    width: 4,
-                                  ),
-                                ),
-                              ),
-                              child: Text(
-                                entry.key,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF334155),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ...entry.value.map((item) {
-                              // build volume string
-                              final List<String> vols = [];
-                              final double v1 =
-                                  double.tryParse(
-                                    item['volume1']?.toString() ?? '0',
-                                  ) ??
-                                  0;
-                              final String s1 =
-                                  item['satuan1']?['nama_satuan'] ?? '';
-                              if (v1 > 0) vols.add('${v1.toInt()} $s1');
-
-                              final double v2 =
-                                  double.tryParse(
-                                    item['volume2']?.toString() ?? '0',
-                                  ) ??
-                                  0;
-                              final String s2 =
-                                  item['satuan2']?['nama_satuan'] ?? '';
-                              if (v2 > 0) vols.add('${v2.toInt()} $s2');
-
-                              final double v3 =
-                                  double.tryParse(
-                                    item['volume3']?.toString() ?? '0',
-                                  ) ??
-                                  0;
-                              final String s3 =
-                                  item['satuan3']?['nama_satuan'] ?? '';
-                              if (v3 > 0) vols.add('${v3.toInt()} $s3');
-
-                              final String volumeText = vols.join(' x ');
-
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12.0,
-                                  vertical: 10.0,
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 3,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            item['uraian'] ?? '',
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF1E293B),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            volumeText,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            _formatCurrency(
-                                              item['jumlah_diusulkan'],
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF33C8DA),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            '@ ${_formatCurrency(item['harga_satuan'])}',
-                                            style: const TextStyle(
-                                              fontSize: 10,
-                                              color: Color(0xFF64748B),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                            const SizedBox(height: 12),
-                          ],
-                        );
-                      }),
-                      const Divider(color: Color(0xFFE2E8F0)),
-                      const SizedBox(height: 12),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Total Usulan KAK',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
+                        children: const [
+                          Icon(
+                            Icons.history_rounded,
+                            color: Color(0xFF33C8DA),
+                            size: 20,
                           ),
+                          SizedBox(width: 8),
                           Text(
-                            _formatCurrency(totalAnggaran),
-                            style: const TextStyle(
-                              fontSize: 18,
+                            'Alur Persetujuan',
+                            style: TextStyle(
+                              fontSize: 15,
                               fontWeight: FontWeight.w900,
-                              color: Color(0xFF33C8DA),
+                              color: Color(0xFF0F172A),
                               fontFamily: 'Figtree',
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Riwayat Persetujuan
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: const [
-                        Icon(
-                          Icons.history_rounded,
-                          color: Color(0xFF33C8DA),
-                          size: 20,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Riwayat Persetujuan',
+                      const SizedBox(height: 24),
+                      if (approvals.isEmpty)
+                        const Text(
+                          'Belum ada riwayat persetujuan.',
                           style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                            fontFamily: 'Figtree',
+                            fontSize: 13,
+                            color: Color(0xFF64748B),
+                            fontStyle: FontStyle.italic,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    if (approvals.isEmpty)
-                      const Text(
-                        'Belum ada riwayat persetujuan.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFF64748B),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      )
-                    else
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: approvals.length,
-                        itemBuilder: (context, idx) {
-                          final app = approvals[idx];
-                          final roleName = app['approval_level'] ?? '-';
-                          final status = app['status'] ?? '-';
-                          final userName =
-                              app['approver']?['nama_lengkap'] ?? '-';
-                          final dateStr = _formatDate(app['updated_at']);
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: approvals.length,
+                          itemBuilder: (context, idx) {
+                            final app = approvals[idx];
+                            final roleName = app['approval_level'] ?? '-';
+                            final status = app['status'] ?? '-';
+                            final userName = app['approver']?['nama_lengkap'] ?? '-';
+                            final dateStr = _formatDate(app['updated_at']);
 
-                          // Colors based on status
-                          Color statusColor = Colors.orange;
-                          Color statusBg = const Color(0xFFFFF7ED);
-                          if (status == 'Disetujui') {
-                            statusColor = Colors.green;
-                            statusBg = const Color(0xFFF0FDF4);
-                          } else if (status == 'Ditolak') {
-                            statusColor = Colors.red;
-                            statusBg = const Color(0xFFFEF2F2);
-                          }
+                            Color statusColor = Colors.orange;
+                            Color statusBg = const Color(0xFFFFF7ED);
+                            if (status == 'Disetujui') {
+                              statusColor = Colors.green;
+                              statusBg = const Color(0xFFF0FDF4);
+                            } else if (status == 'Ditolak') {
+                              statusColor = Colors.red;
+                              statusBg = const Color(0xFFFEF2F2);
+                            }
 
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Column(
-                                    children: [
-                                      Icon(
-                                        status == 'Disetujui'
-                                            ? Icons.check_circle
-                                            : status == 'Ditolak'
-                                            ? Icons.cancel
-                                            : Icons.pending,
-                                        color: statusColor,
-                                        size: 20,
-                                      ),
-                                      if (idx < approvals.length - 1)
-                                        Expanded(
-                                          child: Container(
-                                            width: 2,
-                                            color: const Color(0xFFE2E8F0),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Column(
                                       children: [
-                                        Text(
-                                          'Approval Level: $roleName',
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0F172A),
-                                          ),
+                                        Icon(
+                                          status == 'Disetujui'
+                                              ? Icons.check_circle
+                                              : status == 'Ditolak'
+                                                  ? Icons.cancel
+                                                  : Icons.pending,
+                                          color: statusColor,
+                                          size: 20,
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          'Oleh: $userName',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Color(0xFF64748B),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          dateStr,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            color: Color(0xFF94A3B8),
-                                          ),
-                                        ),
-                                        if (app['catatan'] != null &&
-                                            app['catatan']
-                                                .toString()
-                                                .trim()
-                                                .isNotEmpty) ...[
-                                          const SizedBox(height: 6),
-                                          Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 8,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFFF8FAFC),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                color: const Color(0xFFE2E8F0),
-                                              ),
-                                            ),
-                                            child: Text(
-                                              'Catatan: "${app['catatan']}"',
-                                              style: GoogleFonts.figtree(
-                                                fontSize: 11,
-                                                fontStyle: FontStyle.italic,
-                                                color: const Color(0xFF475569),
-                                              ),
+                                        if (idx < approvals.length - 1)
+                                          Expanded(
+                                            child: Container(
+                                              width: 2,
+                                              color: const Color(0xFFE2E8F0),
                                             ),
                                           ),
-                                        ],
-                                        const SizedBox(height: 12),
                                       ],
                                     ),
-                                  ),
-                                  Align(
-                                    alignment: Alignment.topRight,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Persetujuan: $roleName',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF0F172A),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Oleh: $userName',
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF64748B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            dateStr,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF94A3B8),
+                                            ),
+                                          ),
+                                          if (app['catatan'] != null &&
+                                              app['catatan'].toString().trim().isNotEmpty) ...[
+                                            const SizedBox(height: 6),
+                                            Container(
+                                              width: double.infinity,
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFF8FAFC),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                              ),
+                                              child: Text(
+                                                'Catatan: "${app['catatan']}"',
+                                                style: GoogleFonts.figtree(
+                                                  fontSize: 11,
+                                                  fontStyle: FontStyle.italic,
+                                                  color: const Color(0xFF475569),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 12),
+                                        ],
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: statusBg,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        status.toUpperCase(),
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: statusColor,
+                                    ),
+                                    Align(
+                                      alignment: Alignment.topRight,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: statusBg,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          status.toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: statusColor,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                  ],
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
 
         // Sticky Bottom Action Bar
@@ -1279,18 +1290,13 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     required String title,
     required IconData icon,
     required List<Widget> children,
-    bool isCyanTint = false,
   }) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: isCyanTint
-            ? const Color(0xFFE0F7FA).withOpacity(0.4)
-            : Colors.white,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isCyanTint ? const Color(0xFFB2EBF2) : const Color(0xFFE2E8F0),
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -1302,10 +1308,10 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
+                style: GoogleFonts.figtree(
                   fontSize: 12,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF475569),
+                  color: const Color(0xFF475569),
                   letterSpacing: 0.5,
                 ),
               ),
@@ -1318,47 +1324,34 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: const Color(0xFF94A3B8)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ],
-              ),
+  Widget _buildCompactInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: GoogleFonts.figtree(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF64748B),
             ),
-          ],
+          ),
         ),
-      ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            style: GoogleFonts.figtree(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../widgets/sigap_logo.dart';
 
 class HelpGuidePage extends StatefulWidget {
   const HelpGuidePage({super.key});
@@ -177,7 +178,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
 
                   // Tipe Media
                   DropdownButtonFormField<String>(
-                    initialValue: selectedType,
+                    value: selectedType,
                     decoration: const InputDecoration(
                       labelText: 'Tipe Media',
                       prefixIcon: Icon(Icons.perm_media_outlined),
@@ -313,14 +314,9 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
+            SigapLogo(
+              width: 90,
+              height: 24,
             ),
             Text(
               'Pusat Bantuan & Panduan',

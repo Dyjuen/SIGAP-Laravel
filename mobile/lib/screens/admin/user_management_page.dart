@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../widgets/sigap_logo.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -227,7 +228,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                   const SizedBox(height: 16),
 
                   DropdownButtonFormField<int>(
-                    initialValue: selectedRoleId,
+                    value: selectedRoleId,
                     decoration: const InputDecoration(
                       labelText: 'Peran Akses',
                       prefixIcon: Icon(Icons.security_outlined),
@@ -346,14 +347,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
+            SigapLogo(
+              width: 90,
+              height: 24,
             ),
             Text(
               'Manajemen Pengguna Sistem',

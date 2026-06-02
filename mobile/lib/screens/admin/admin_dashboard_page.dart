@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/dashboard_drawer.dart';
+import '../../widgets/sigap_logo.dart';
 import '../landing_page.dart';
 import '../help_guide_page.dart';
 import 'user_management_page.dart';
@@ -74,14 +75,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
+            const SigapLogo(
+              width: 90,
+              height: 24,
             ),
             Text(
               'Panel Kontrol ${user?.roleName ?? "Admin"}',

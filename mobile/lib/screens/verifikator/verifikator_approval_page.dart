@@ -1322,7 +1322,7 @@ class _ApproveBottomSheetState extends State<_ApproveBottomSheet> {
                       vertical: 12,
                     ),
                   ),
-                  initialValue: _selectedMataAnggaranId,
+                  value: _selectedMataAnggaranId,
                   items: _mataAnggaranList.map((item) {
                     return DropdownMenuItem<int>(
                       value: item['mata_anggaran_id'] as int,

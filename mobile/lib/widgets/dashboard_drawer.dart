@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'sigap_logo.dart';
 import '../providers/auth_provider.dart';
 import '../models/user.dart';
 import '../screens/landing_page.dart';
@@ -37,7 +37,7 @@ class DashboardDrawer extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  SvgPicture.asset('assets/images/logoland.svg', height: 28),
+                  const SigapLogo(width: 90, height: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -431,8 +431,15 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: const Color(0xFF1F2937),
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: true,
-      title: SvgPicture.asset('assets/images/logoland.svg', height: 28),
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      title: const Padding(
+        padding: EdgeInsets.only(left: 4.0),
+        child: SigapLogo(
+          width: 120,
+          height: 30,
+        ),
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.logout_rounded),

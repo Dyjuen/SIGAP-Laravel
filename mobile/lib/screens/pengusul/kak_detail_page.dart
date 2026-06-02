@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../widgets/sigap_logo.dart';
 
 class KakDetailPage extends StatefulWidget {
   final int kakId;
@@ -90,12 +91,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text('SIGAP PNJ',
-                style: TextStyle(
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                    fontFamily: 'Figtree')),
+            SigapLogo(width: 90, height: 24),
             Text('Detail KAK',
                 style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontFamily: 'Figtree')),
           ],

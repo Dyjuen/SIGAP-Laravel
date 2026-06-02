@@ -9,6 +9,9 @@ import '../../widgets/blue_stat_card.dart';
 import '../help_guide_page.dart';
 import '../pengusul/kak_form_page.dart';
 import '../pengusul/kak_list_page.dart';
+import '../pengusul/kegiatan_page.dart';
+import '../pengusul/lpj_list_page.dart';
+import '../kegiatan_monitoring_page.dart';
 import '../../widgets/dashboard_drawer.dart';
 
 class PengusulDashboardScreen extends StatefulWidget {
@@ -60,55 +63,66 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
     return ListTile(
       leading: Icon(
         icon,
-        color: selected ? const Color(0xFF00BCD4) : const Color(0xFF475569),
+        color: selected ? const Color(0xFF33C8DA) : const Color(0xFF475569),
       ),
       title: Text(
         title,
         style: GoogleFonts.figtree(
           fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-          color: selected ? const Color(0xFF00BCD4) : const Color(0xFF0F172A),
+          color: selected ? const Color(0xFF33C8DA) : const Color(0xFF0F172A),
         ),
       ),
       onTap: onTap,
     );
   }
 
-  Widget _buildQuickActionCard({
+  Widget _buildQuickActionItem({
     required IconData icon,
     required String label,
+    required Color iconColor,
+    required Color tintColor,
     required VoidCallback onTap,
   }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, color: const Color(0xFF0F172A), size: 32),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.figtree(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: const Color(0xFF0F172A),
-                    letterSpacing: 0,
-                    height: 1.3,
-                  ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: tintColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 26,
+            ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.figtree(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1F2937),
+              height: 1.25,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -123,7 +137,6 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: const DashboardAppBar(),
-        drawer: const DashboardDrawer(roleId: 3), // Pengusul
         body: Consumer2<AuthProvider, PengusulDashboardProvider>(
           builder: (context, authProvider, dashboardProvider, _) {
             if (dashboardProvider.isLoading) {
@@ -216,68 +229,51 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                               physics: const NeverScrollableScrollPhysics(),
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
-                              childAspectRatio: 1.15,
+                              childAspectRatio: 1.85,
                               children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const KakListPage(
-                                                initialStatusId: null,
-                                              ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const KakListPage(
+                                          initialStatusId: null,
                                         ),
-                                      ).then(
-                                        (_) =>
-                                            dashboardProvider.loadDashboard(),
-                                      );
-                                    },
-                                    child: BlueStatCard(
-                                      bg: const Color(0xFF33C8DA),
-                                      label: 'SEMUA KAK',
-                                      textColor: Colors.white,
-                                      value: dashboardProvider.stats!.totalKak
-                                          .toString(),
-                                    ),
+                                      ),
+                                    ).then(
+                                      (_) =>
+                                          dashboardProvider.loadDashboard(),
+                                    );
+                                  },
+                                  child: BlueStatCard(
+                                    label: 'SEMUA KAK',
+                                    value: dashboardProvider.stats!.totalKak
+                                        .toString(),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const KakListPage(
-                                                initialStatusId: 1,
-                                              ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const KakListPage(
+                                          initialStatusId: 1,
                                         ),
-                                      ).then(
-                                        (_) =>
-                                            dashboardProvider.loadDashboard(),
-                                      );
-                                    },
-                                    child: BlueStatCard(
-                                      bg: Colors.white,
-                                      label: 'DRAFT',
-                                      textColor: const Color(0xFF64748B),
-                                      value: dashboardProvider.stats!.draftKak
-                                          .toString(),
-                                    ),
+                                      ),
+                                    ).then(
+                                      (_) =>
+                                          dashboardProvider.loadDashboard(),
+                                    );
+                                  },
+                                  child: BlueStatCard(
+                                    label: 'DRAFT',
+                                    value: dashboardProvider.stats!.draftKak
+                                        .toString(),
                                   ),
                                 ),
-                              ],
-                            ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
+                                GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -291,17 +287,12 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     );
                                   },
                                   child: BlueStatCard(
-                                    bg: Colors.white,
                                     label: 'REVIEW',
-                                    textColor: const Color(0xFFF59E0B),
                                     value: dashboardProvider.stats!.reviewKak
                                         .toString(),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: GestureDetector(
+                                GestureDetector(
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -315,16 +306,13 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                     );
                                   },
                                   child: BlueStatCard(
-                                    bg: const Color(0xFFE0F7FA),
                                     label: 'DISETUJUI',
-                                    textColor: const Color(0xFF10B981),
                                     value: dashboardProvider.stats!.approvedKak
                                         .toString(),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
                           const SizedBox(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -359,11 +347,19 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          Row(
+                          GridView.count(
+                            crossAxisCount: 4,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.8,
                             children: [
-                              _buildQuickActionCard(
+                              _buildQuickActionItem(
                                 icon: Icons.add_circle_outline_rounded,
                                 label: 'Buat KAK',
+                                iconColor: const Color(0xFF33C8DA),
+                                tintColor: const Color(0xFF33C8DA).withOpacity(0.08),
                                 onTap: () async {
                                   final result = await Navigator.push(
                                     context,
@@ -371,26 +367,60 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                                       builder: (_) => const KakFormPage(),
                                     ),
                                   );
-
                                   if (result == true && mounted) {
                                     await dashboardProvider.loadDashboard();
                                   }
                                 },
                               ),
-                              const SizedBox(width: 16),
-                              _buildQuickActionCard(
-                                icon: Icons.assignment_rounded,
+                              _buildQuickActionItem(
+                                icon: Icons.file_copy_rounded,
                                 label: 'Daftar KAK',
+                                iconColor: const Color(0xFFF59E0B),
+                                tintColor: const Color(0xFFF59E0B).withOpacity(0.08),
                                 onTap: () => _openPageAndReload(
                                   context,
                                   dashboardProvider,
                                   const KakListPage(),
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              _buildQuickActionCard(
-                                icon: Icons.help_outline_rounded,
+                              _buildQuickActionItem(
+                                icon: Icons.task_alt_rounded,
+                                label: 'Kegiatan',
+                                iconColor: const Color(0xFF3B82F6),
+                                tintColor: const Color(0xFF3B82F6).withOpacity(0.08),
+                                onTap: () => _openPageAndReload(
+                                  context,
+                                  dashboardProvider,
+                                  const KegiatanPage(),
+                                ),
+                              ),
+                              _buildQuickActionItem(
+                                icon: Icons.visibility_rounded,
+                                label: 'Monitoring',
+                                iconColor: const Color(0xFF6366F1),
+                                tintColor: const Color(0xFF6366F1).withOpacity(0.08),
+                                onTap: () => _openPageAndReload(
+                                  context,
+                                  dashboardProvider,
+                                  const KegiatanMonitoringPage(),
+                                ),
+                              ),
+                              _buildQuickActionItem(
+                                icon: Icons.receipt_long_rounded,
+                                label: 'Kelola LPJ',
+                                iconColor: const Color(0xFF10B981),
+                                tintColor: const Color(0xFF10B981).withOpacity(0.08),
+                                onTap: () => _openPageAndReload(
+                                  context,
+                                  dashboardProvider,
+                                  const LpjListPage(),
+                                ),
+                              ),
+                              _buildQuickActionItem(
+                                icon: Icons.menu_book_rounded,
                                 label: 'Panduan',
+                                iconColor: const Color(0xFF64748B),
+                                tintColor: const Color(0xFF64748B).withOpacity(0.08),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
