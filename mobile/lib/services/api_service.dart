@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 
 class ApiService {
   // ─────────────────────────────────────────────────────────────────────────
@@ -14,17 +12,9 @@ class ApiService {
   //
   // Contoh: static const _physicalDeviceIp = '192.168.1.5';
   // ─────────────────────────────────────────────────────────────────────────
-  static const _physicalDeviceIp = '10.0.2.2'; // ← GANTI jika pakai HP fisik
-
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://127.0.0.1:8000/api';
-    }
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8000/api';
-    }
-    // iOS simulator atau device fisik
-    return 'http://$_physicalDeviceIp:8000/api';
+    // Gunakan URL produksi langsung
+    return 'https://sigap-laravel.wattaway.id/api';
   }
 
   static Future<Map<String, String>> _getHeaders() async {
