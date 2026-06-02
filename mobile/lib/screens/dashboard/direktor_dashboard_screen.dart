@@ -4,6 +4,11 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../help_guide_page.dart';
+import '../pengusul/kak_list_page.dart';
+import '../pengusul/kegiatan_page.dart';
+import '../kegiatan_monitoring_page.dart';
 
 class DirektorDashboardScreen extends StatefulWidget {
   const DirektorDashboardScreen({super.key});
@@ -22,6 +27,57 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
     );
   }
 
+  Widget _buildQuickActionItem({
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+    required Color tintColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: tintColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.figtree(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1F2937),
+              height: 1.25,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -30,7 +86,6 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: DashboardDrawer(roleId: user?.roleId ?? 7), // Rektorat
       body: Consumer<DirektorDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -97,46 +152,105 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
 
                     // Overview Cards
                     if (stats != null) ...[
-                      Column(
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.85,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'TOTAL KAK',
-                                  value: stats.totalKak.toString(),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'KAK DISETUJUI',
-                                  value: stats.approvedKak.toString(),
-                                ),
-                              ),
-                            ],
+                          BlueStatCard(
+                            label: 'TOTAL KAK',
+                            value: stats.totalKak.toString(),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'TOTAL KEGIATAN',
-                                  value: stats.reviewKak.toString(),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'SELESAI',
-                                  value: stats.draftKak.toString(),
-                                ),
-                              ),
-                            ],
+                          BlueStatCard(
+                            label: 'KAK DISETUJUI',
+                            value: stats.approvedKak.toString(),
+                          ),
+                          BlueStatCard(
+                            label: 'TOTAL KEGIATAN',
+                            value: stats.reviewKak.toString(),
+                          ),
+                          BlueStatCard(
+                            label: 'SELESAI',
+                            value: stats.draftKak.toString(),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Akses Cepat',
+                        style: GoogleFonts.figtree(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GridView.count(
+                        crossAxisCount: 4,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.8,
+                        children: [
+                          _buildQuickActionItem(
+                            icon: Icons.file_copy_rounded,
+                            label: 'Daftar KAK',
+                            iconColor: const Color(0xFFF59E0B),
+                            tintColor: const Color(0xFFF59E0B).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const KakListPage(),
+                                ),
+                              ).then((_) => provider.loadDashboard());
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.task_alt_rounded,
+                            label: 'Kegiatan',
+                            iconColor: const Color(0xFF3B82F6),
+                            tintColor: const Color(0xFF3B82F6).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const KegiatanPage(),
+                                ),
+                              ).then((_) => provider.loadDashboard());
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.visibility_rounded,
+                            label: 'Monitoring',
+                            iconColor: const Color(0xFF6366F1),
+                            tintColor: const Color(0xFF6366F1).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const KegiatanMonitoringPage(),
+                                ),
+                              ).then((_) => provider.loadDashboard());
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.menu_book_rounded,
+                            label: 'Panduan',
+                            iconColor: const Color(0xFF64748B),
+                            tintColor: const Color(0xFF64748B).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const HelpGuidePage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
 
                       // KPI Section
                       Text(

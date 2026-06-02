@@ -20,17 +20,10 @@ import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
 import 'screens/pengusul/lpj_list_page.dart';
 import 'screens/bendahara/pencairan_page.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 
 String _getBaseUrl() {
-  if (kIsWeb) {
-    return 'http://127.0.0.1:8000/api';
-  }
-  if (Platform.isAndroid) {
-    return 'http://10.0.2.2:8000/api';
-  }
-  return 'http://127.0.0.1:8000/api';
+  // Gunakan URL produksi langsung
+  return 'https://sigap-laravel.wattaway.id/api';
 }
 
 void main() async {

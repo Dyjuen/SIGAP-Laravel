@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
 import '../../providers/auth_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../help_guide_page.dart';
 import '../landing_page.dart';
 import '../verifikator/verifikator_approval_page.dart';
 import '../verifikator/verifikator_kak_list_page.dart';
@@ -37,12 +39,62 @@ class _VerifikatorDashboardScreenState
     );
   }
 
+  Widget _buildQuickActionItem({
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+    required Color tintColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: tintColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.figtree(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1F2937),
+              height: 1.25,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: const DashboardDrawer(roleId: 2), // Verifikator
       body: Consumer<VerifikatorDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -108,62 +160,102 @@ class _VerifikatorDashboardScreenState
 
                     // Stat Cards
                     if (stats != null) ...[
-                      Column(
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.85,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const VerifikatorKakListPage(),
-                                      ),
-                                    ).then((_) {
-                                      if (context.mounted) {
-                                        context
-                                            .read<
-                                              VerifikatorDashboardProvider
-                                            >()
-                                            .loadDashboard();
-                                      }
-                                    });
-                                  },
-                                  child: BlueStatCard(
-                                    label: 'PENDING',
-                                    value:
-                                        stats.pendingCount?.toString() ?? '0',
-                                  ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const VerifikatorKakListPage(),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'APPROVED',
-                                  value: stats.approvedCount?.toString() ?? '0',
-                                ),
-                              ),
-                            ],
+                              ).then((_) {
+                                if (context.mounted) {
+                                  context
+                                      .read<
+                                        VerifikatorDashboardProvider
+                                      >()
+                                      .loadDashboard();
+                                }
+                              });
+                            },
+                            child: BlueStatCard(
+                              label: 'PENDING',
+                              value: stats.pendingCount?.toString() ?? '0',
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'REJECTED',
-                                  value: stats.rejectedCount?.toString() ?? '0',
+                          BlueStatCard(
+                            label: 'APPROVED',
+                            value: stats.approvedCount?.toString() ?? '0',
+                          ),
+                          BlueStatCard(
+                            label: 'REJECTED',
+                            value: stats.rejectedCount?.toString() ?? '0',
+                          ),
+                          BlueStatCard(
+                            label: 'TOTAL VERIFIED',
+                            value: stats.totalVerified?.toString() ?? '0',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Akses Cepat',
+                        style: GoogleFonts.figtree(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GridView.count(
+                        crossAxisCount: 4,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.8,
+                        children: [
+                          _buildQuickActionItem(
+                            icon: Icons.file_copy_rounded,
+                            label: 'Verifikasi KAK',
+                            iconColor: const Color(0xFF33C8DA),
+                            tintColor: const Color(0xFF33C8DA).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const VerifikatorKakListPage(),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'TOTAL VERIFIED',
-                                  value: stats.totalVerified?.toString() ?? '0',
+                              ).then((_) {
+                                if (context.mounted) {
+                                  context
+                                      .read<VerifikatorDashboardProvider>()
+                                      .loadDashboard();
+                                }
+                              });
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.menu_book_rounded,
+                            label: 'Panduan',
+                            iconColor: const Color(0xFF64748B),
+                            tintColor: const Color(0xFF64748B).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const HelpGuidePage(),
                                 ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ],
                       ),

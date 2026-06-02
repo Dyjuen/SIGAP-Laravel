@@ -501,7 +501,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DropdownButtonFormField<int>(
-                    initialValue: selectedTipeKegiatan,
+                    value: selectedTipeKegiatan,
                     decoration: InputDecoration(
                       labelText: 'Tipe Kegiatan',
                       border: OutlineInputBorder(

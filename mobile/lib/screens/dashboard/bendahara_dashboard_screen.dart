@@ -4,8 +4,13 @@ import '../../providers/dashboard_provider.dart';
 import '../../models/dashboard_model.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../screens/pengusul/lpj_detail_page.dart';
 import '../../screens/pengusul/lpj_form_page.dart';
+import '../../screens/pengusul/lpj_list_page.dart';
+import '../../screens/pengusul/kak_list_page.dart';
+import '../../screens/bendahara/pencairan_page.dart';
+import '../help_guide_page.dart';
 
 class BendaharaDashboardScreen extends StatefulWidget {
   const BendaharaDashboardScreen({super.key});
@@ -24,12 +29,62 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
     );
   }
 
+  Widget _buildQuickActionItem({
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+    required Color tintColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: tintColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.figtree(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1F2937),
+              height: 1.25,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: const DashboardDrawer(roleId: 6), // Bendahara
       body: Consumer<BendaharaDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -95,137 +150,108 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
 
                     // Stat Cards
                     if (stats != null) ...[
-                      Column(
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.85,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'LPJ PENDING',
-                                  value: stats.lpjPending?.toString() ?? '0',
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'LPJ APPROVED',
-                                  value: stats.lpjApproved?.toString() ?? '0',
-                                ),
-                              ),
-                            ],
+                          BlueStatCard(
+                            label: 'LPJ PENDING',
+                            value: stats.lpjPending?.toString() ?? '0',
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'DANA DIUSULKAN',
-                                  value: _formatCurrency(
-                                    stats.totalDanaDisusulkan,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: BlueStatCard(
-                                  label: 'DANA DICAIRKAN',
-                                  value: _formatCurrency(
-                                    stats.totalDanaDicairkan,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          BlueStatCard(
+                            label: 'LPJ APPROVED',
+                            value: stats.lpjApproved?.toString() ?? '0',
+                          ),
+                          BlueStatCard(
+                            label: 'DANA DIUSULKAN',
+                            value: _formatCurrency(stats.totalDanaDisusulkan),
+                          ),
+                          BlueStatCard(
+                            label: 'DANA DICAIRKAN',
+                            value: _formatCurrency(stats.totalDanaDicairkan),
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
                     ],
 
-                    // Quick Action Menu / Card
                     Text(
                       'Akses Cepat',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: GoogleFonts.figtree(
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: const Color(0xFF0F172A),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    InkWell(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/bendahara/pencairan',
-                        ).then((_) {
-                          if (context.mounted) {
-                            context
-                                .read<BendaharaDashboardProvider>()
-                                .loadDashboard();
-                          }
-                        });
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF33C8DA), Color(0xFF00ACC1)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF33C8DA).withOpacity(0.2),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                    const SizedBox(height: 16),
+                    GridView.count(
+                      crossAxisCount: 4,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.8,
+                      children: [
+                        _buildQuickActionItem(
+                          icon: Icons.payments_outlined,
+                          label: 'Pencairan',
+                          iconColor: const Color(0xFF6366F1),
+                          tintColor: const Color(0xFF6366F1).withOpacity(0.08),
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/bendahara/pencairan',
+                            ).then((_) {
+                              if (context.mounted) {
+                                provider.loadDashboard();
+                              }
+                            });
+                          },
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
+                        _buildQuickActionItem(
+                          icon: Icons.file_copy_rounded,
+                          label: 'Daftar KAK',
+                          iconColor: const Color(0xFFF59E0B),
+                          tintColor: const Color(0xFFF59E0B).withOpacity(0.08),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const KakListPage(),
                               ),
-                              child: const Icon(
-                                Icons.payments_outlined,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Pencairan Dana',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Kelola pencairan dana kegiatan dan anggaran',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ],
+                            ).then((_) => provider.loadDashboard());
+                          },
                         ),
-                      ),
+                        _buildQuickActionItem(
+                          icon: Icons.receipt_long_rounded,
+                          label: 'Kelola LPJ',
+                          iconColor: const Color(0xFF10B981),
+                          tintColor: const Color(0xFF10B981).withOpacity(0.08),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const LpjListPage(),
+                              ),
+                            ).then((_) => provider.loadDashboard());
+                          },
+                        ),
+                        _buildQuickActionItem(
+                          icon: Icons.menu_book_rounded,
+                          label: 'Panduan',
+                          iconColor: const Color(0xFF64748B),
+                          tintColor: const Color(0xFF64748B).withOpacity(0.08),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const HelpGuidePage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 

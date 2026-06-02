@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../providers/monitoring_provider.dart';
 import '../models/monitoring_model.dart';
 import '../widgets/monitoring_card.dart';
+import '../widgets/sigap_logo.dart';
 import 'kak_detail_page.dart';
 
 class KegiatanMonitoringPage extends StatefulWidget {
@@ -101,27 +102,9 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Row(
-                                            children: [
-                                              Text(
-                                                'SIGAP',
-                                                style: GoogleFonts.figtree(
-                                                  fontWeight: FontWeight.w900,
-                                                  fontSize: 24,
-                                                  color: colorScheme.onSurface,
-                                                  height: 1.3,
-                                                ),
-                                              ),
-                                              Text(
-                                                'PNJ',
-                                                style: GoogleFonts.figtree(
-                                                  fontWeight: FontWeight.w900,
-                                                  fontSize: 24,
-                                                  color: colorScheme.primary,
-                                                  height: 1.3,
-                                                ),
-                                              ),
-                                            ],
+                                          const SigapLogo(
+                                            width: 96,
+                                            height: 24,
                                           ),
                                           const SizedBox(height: 4),
                                           Text(

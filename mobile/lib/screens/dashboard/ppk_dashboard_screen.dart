@@ -7,6 +7,9 @@ import '../../models/dashboard_model.dart';
 import '../profile_page.dart';
 import '../ppk/ppk_kegiatan_list_page.dart';
 import '../ppk/ppk_kegiatan_detail_page.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../help_guide_page.dart';
+import '../pengusul/kegiatan_page.dart';
 import '../kegiatan_monitoring_page.dart';
 import '../../widgets/dashboard_drawer.dart';
 import '../../widgets/blue_stat_card.dart';
@@ -35,6 +38,57 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
     return 'Selamat Malam';
   }
 
+  Widget _buildQuickActionItem({
+    required IconData icon,
+    required String label,
+    required Color iconColor,
+    required Color tintColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: tintColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: iconColor.withOpacity(0.06),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 26,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.figtree(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1F2937),
+              height: 1.25,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -47,9 +101,6 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: const DashboardAppBar(),
-      drawer: DashboardDrawer(
-        roleId: user?.roleId ?? 4,
-      ), // 4 is PPK, 7 is Wadir
       body: Consumer<BaseDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
@@ -147,75 +198,146 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Stat Cards Row
+                    // Stat Cards Grid
                     if (stats != null) ...[
-                      Row(
+                      GridView.count(
+                        crossAxisCount: 2,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.85,
                         children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                Navigator.of(context)
-                                    .push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const PpkKegiatanListPage(),
-                                      ),
-                                    )
-                                    .then((_) => provider.loadDashboard());
-                              },
-                              child: BlueStatCard(
-                                label: 'MENUNGGU',
-                                value: stats.pendingCount?.toString() ?? '0',
-                              ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const PpkKegiatanListPage(),
+                                    ),
+                                  )
+                                  .then((_) => provider.loadDashboard());
+                            },
+                            child: BlueStatCard(
+                              label: 'MENUNGGU',
+                              value: stats.pendingCount?.toString() ?? '0',
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                context
-                                    .read<MonitoringProvider>()
-                                    .setSelectedFilter('Disetujui');
-                                Navigator.of(context)
-                                    .push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const KegiatanMonitoringPage(),
-                                      ),
-                                    )
-                                    .then((_) => provider.loadDashboard());
-                              },
-                              child: BlueStatCard(
-                                label: 'DISETUJUI',
-                                value: stats.approvedCount?.toString() ?? '0',
-                              ),
+                          GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<MonitoringProvider>()
+                                  .setSelectedFilter('Disetujui');
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const KegiatanMonitoringPage(),
+                                    ),
+                                  )
+                                  .then((_) => provider.loadDashboard());
+                            },
+                            child: BlueStatCard(
+                              label: 'DISETUJUI',
+                              value: stats.approvedCount?.toString() ?? '0',
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () {
-                                context
-                                    .read<MonitoringProvider>()
-                                    .setSelectedFilter('Semua');
-                                Navigator.of(context)
-                                    .push(
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const KegiatanMonitoringPage(),
-                                      ),
-                                    )
-                                    .then((_) => provider.loadDashboard());
-                              },
-                              child: BlueStatCard(
-                                label: 'TOTAL',
-                                value: stats.totalKegiatan?.toString() ?? '0',
-                              ),
+                          GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<MonitoringProvider>()
+                                  .setSelectedFilter('Semua');
+                              Navigator.of(context)
+                                  .push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const KegiatanMonitoringPage(),
+                                    ),
+                                  )
+                                  .then((_) => provider.loadDashboard());
+                            },
+                            child: BlueStatCard(
+                              label: 'TOTAL',
+                              value: stats.totalKegiatan?.toString() ?? '0',
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Akses Cepat',
+                        style: GoogleFonts.figtree(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      GridView.count(
+                        crossAxisCount: 4,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 8,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.8,
+                        children: [
+                          _buildQuickActionItem(
+                            icon: Icons.task_alt_rounded,
+                            label: 'Kegiatan',
+                            iconColor: const Color(0xFF3B82F6),
+                            tintColor: const Color(0xFF3B82F6).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const KegiatanPage(),
+                                ),
+                              ).then((_) => provider.loadDashboard());
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.fact_check_rounded,
+                            label: 'Persetujuan',
+                            iconColor: const Color(0xFF33C8DA),
+                            tintColor: const Color(0xFF33C8DA).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const PpkKegiatanListPage(),
+                                ),
+                              ).then((_) => provider.loadDashboard());
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.visibility_rounded,
+                            label: 'Monitoring',
+                            iconColor: const Color(0xFF6366F1),
+                            tintColor: const Color(0xFF6366F1).withOpacity(0.08),
+                            onTap: () {
+                              context.read<MonitoringProvider>().setSelectedFilter('Semua');
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const KegiatanMonitoringPage(),
+                                ),
+                              ).then((_) => provider.loadDashboard());
+                            },
+                          ),
+                          _buildQuickActionItem(
+                            icon: Icons.menu_book_rounded,
+                            label: 'Panduan',
+                            iconColor: const Color(0xFF64748B),
+                            tintColor: const Color(0xFF64748B).withOpacity(0.08),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const HelpGuidePage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
                     ],
 
                     // Section Title Table

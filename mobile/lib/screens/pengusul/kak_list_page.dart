@@ -9,6 +9,7 @@ import '../../services/api_service.dart';
 import 'kak_edit_page.dart';
 import 'kak_detail_page.dart';
 import 'kak_create_page.dart';
+import '../../widgets/sigap_logo.dart';
 
 class KakListPage extends StatefulWidget {
   final int? initialStatusId;
@@ -332,7 +333,12 @@ class _KakListPageState extends State<KakListPage> {
                         }
                       },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00BCD4),
+                  backgroundColor: const Color(0xFF33C8DA),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: isSubmitting
                     ? const SizedBox(
@@ -410,14 +416,9 @@ class _KakListPageState extends State<KakListPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            Text(
-              'SIGAP PNJ',
-              style: TextStyle(
-                color: Color(0xFF0F172A),
-                fontWeight: FontWeight.w900,
-                fontSize: 20,
-                fontFamily: 'Figtree',
-              ),
+            SigapLogo(
+              width: 90,
+              height: 24,
             ),
             Text(
               'Daftar KAK Saya',
@@ -730,7 +731,7 @@ class _KakListPageState extends State<KakListPage> {
                     child: ElevatedButton(
                       onPressed: () => _openKegiatanSubmitModal(kak),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00BCD4),
+                        backgroundColor: const Color(0xFF33C8DA),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
