@@ -129,7 +129,12 @@ class _VerifikatorDashboardScreenState
           }
 
           final stats = provider.stats;
-          final items = provider.items;
+          final items = provider.items.where((item) {
+            final status = item.status?.toLowerCase() ?? '';
+            return !status.contains('disetujui') && 
+                   !status.contains('approved') && 
+                   !status.contains('revisi');
+          }).toList();
 
           return RefreshIndicator(
             onRefresh: () => provider.loadDashboard(),
