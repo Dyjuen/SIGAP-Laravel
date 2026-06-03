@@ -89,6 +89,15 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
   void _applyFilters() {
     List<DashboardItem> result = List.from(_kaks);
 
+    // Explicitly exclude Disetujui (Approved) and Revisi from this screen
+    // regardless of backend role returns (e.g., if testing as Admin)
+    result = result.where((item) {
+      final status = item.status?.toLowerCase() ?? '';
+      return !status.contains('disetujui') && 
+             !status.contains('approved') && 
+             !status.contains('revisi');
+    }).toList();
+
     // Locally filter by status if 'Menunggu' is selected
     if (_statusFilter == 'Menunggu') {
       result = result

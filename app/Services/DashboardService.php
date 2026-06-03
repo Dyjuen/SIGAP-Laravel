@@ -213,7 +213,7 @@ class DashboardService
             ->count();
 
         $recentKaks = KAK::with(['status', 'pengusul', 'tipeKegiatan'])
-            ->whereIn('status_id', [2, 3, 4, 5])
+            ->whereIn('status_id', [2, 4])
             ->when($tipeKegiatanId, fn ($q) => $q->where('tipe_kegiatan_id', $tipeKegiatanId))
             ->orderBy('updated_at', 'desc')
             ->limit($limit)
