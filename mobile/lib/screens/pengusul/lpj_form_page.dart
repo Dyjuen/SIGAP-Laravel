@@ -29,8 +29,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
 
   bool _initialized = false;
   bool _loadingSatuan = true;
-  double _spkWaktu = 50;
-  double _spkOutput = 0;
 
   @override
   void initState() {
@@ -118,8 +116,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
       _rows.add(_RealisasiRowControllers.fromItem(item));
     }
 
-    _spkWaktu = (detail.spkKesesuaianWaktu ?? 50).toDouble();
-    _spkOutput = (detail.spkKesesuaianOutput ?? 0).toDouble();
+    // SPK fields removed; no initialization required
     _initialized = true;
   }
 
@@ -218,15 +215,11 @@ class _LpjFormPageState extends State<LpjFormPage> {
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
-              spkWaktu: _spkWaktu.toInt(),
-              spkOutput: _spkOutput.toInt(),
             )
           : await provider.submitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
-              spkWaktu: _spkWaktu.toInt(),
-              spkOutput: _spkOutput.toInt(),
             );
 
       debugPrint('LpjFormPage: Submission success = $success');
@@ -329,8 +322,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
                       _buildHeader(detail),
                       const SizedBox(height: 16),
                       _buildTableAlternative(detail, isEditable, roleId),
-                      const SizedBox(height: 24),
-                      _buildSpkSection(detail, isEditable),
                       const SizedBox(height: 24),
                       if (isEditable)
                         Padding(
@@ -882,147 +873,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Widget _buildSpkSection(LpjDetail detail, bool isEditable) {
-    // Prediction logic (mocking the web logic)
-    final totalBudget = detail.totalAnggaranDiusulkan;
-    final totalRealization = _calculateCurrentTotalRealization();
-    
-    int predictedAnggaranScore = 100;
-    if (totalBudget > 0) {
-        final ratio = totalRealization / totalBudget;
-        final diff = (1 - ratio).abs() * 100;
-        predictedAnggaranScore = (100 - diff).round().clamp(50, 100);
-    }
-
-    final totalScore = ((_spkWaktu * 0.25) + (predictedAnggaranScore * 0.25) + (_spkOutput * 0.25) + (100 * 0.25)); // Simplified weight logic
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.analytics_outlined, color: Color(0xFF33C8DA)),
-              const SizedBox(width: 10),
-              Text(
-                'Evaluasi Kinerja (SPK)',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          
-          _buildSpkSlider('Kesesuaian Waktu', _spkWaktu, 50, 100, isEditable, (val) => setState(() => _spkWaktu = val)),
-          const SizedBox(height: 16),
-          _buildSpkOutputSelect(isEditable),
-          const SizedBox(height: 16),
-          
-          _buildSpkReadOnlyStat('Ketepatan Anggaran (Prediksi)', '$predictedAnggaranScore/100', 'Berdasarkan selisih realisasi vs usulan.'),
-          const SizedBox(height: 20),
-          
-          const Divider(color: Colors.white24),
-          const SizedBox(height: 16),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Prediksi Skor Akhir:', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-              Text(
-                totalScore.toStringAsFixed(2),
-                style: GoogleFonts.figtree(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF33C8DA),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpkSlider(String label, double value, double min, double max, bool enabled, ValueChanged<double> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-            Text('${value.round()}%', style: const TextStyle(color: Color(0xFF33C8DA), fontWeight: FontWeight.bold)),
-          ],
-        ),
-        Slider(
-          value: value.clamp(min, max),
-          min: min,
-          max: max,
-          activeColor: const Color(0xFF33C8DA),
-          inactiveColor: Colors.white10,
-          onChanged: enabled ? onChanged : null,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSpkOutputSelect(bool isEditable) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Kesesuaian Output (IKU)', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-          child: DropdownButton<double>(
-            value: _spkOutput,
-            isExpanded: true,
-            underline: const SizedBox(),
-            dropdownColor: const Color(0xFF1E293B),
-            onChanged: isEditable ? (val) => setState(() => _spkOutput = val!) : null,
-            items: const [
-              DropdownMenuItem(value: 0.0, child: Text('0 - Tidak Sesuai IKU', style: TextStyle(color: Colors.white, fontSize: 13))),
-              DropdownMenuItem(value: 100.0, child: Text('100 - Sesuai IKU', style: TextStyle(color: Colors.white, fontSize: 13))),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSpkReadOnlyStat(String label, String value, String hint) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(hint, style: const TextStyle(color: Colors.white38, fontSize: 11)),
-            Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ],
-        ),
-      ],
-    );
-  }
+  // SPK UI and calculation removed
 
   // --- Helpers & UI Components ---
 

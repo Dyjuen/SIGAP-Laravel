@@ -62,8 +62,6 @@ class LpjProvider with ChangeNotifier {
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
     Map<String, List<String>>? buktiFiles,
-    int? spkWaktu,
-    int? spkOutput,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
@@ -74,8 +72,6 @@ class LpjProvider with ChangeNotifier {
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
         buktiFiles: buktiFiles,
-        spkWaktu: spkWaktu,
-        spkOutput: spkOutput,
       );
 
       _errorMessage = null;
@@ -152,8 +148,6 @@ class LpjProvider with ChangeNotifier {
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
     Map<String, List<String>>? buktiFiles,
-    int? spkWaktu,
-    int? spkOutput,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
@@ -164,8 +158,6 @@ class LpjProvider with ChangeNotifier {
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
         buktiFiles: buktiFiles,
-        spkWaktu: spkWaktu,
-        spkOutput: spkOutput,
       );
 
       _errorMessage = null;

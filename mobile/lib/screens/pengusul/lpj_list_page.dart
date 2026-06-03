@@ -128,8 +128,8 @@ class _LpjListPageState extends State<LpjListPage> {
   List<LpjListItem> _filterItems(List<LpjListItem> items, int? roleId) {
     final query = _searchQuery.trim().toLowerCase();
     return items.where((item) {
-      // If user is Bendahara (roleId == 6), hide Draft items entirely
-      if (roleId == 6 && item.lpjStatus == 'Draft') return false;
+      // Note: Bendahara should still see Draft in the list, but actions
+      // and displayed status are handled when rendering each item.
 
       final matchesQuery =
           query.isEmpty ||
@@ -263,7 +263,15 @@ class _LpjListPageState extends State<LpjListPage> {
     int? roleId,
     DateTime now,
   ) {
-    final themeColor = _statusColor(item.lpjStatus);
+    // Determine display status and color. For Bendahara (roleId==6), show
+    // Draft items but display their status as 'Menunggu LPJ' and use the
+    // Submitted color so they look like waiting items.
+    String displayStatus = item.lpjStatusDisplay;
+    Color themeColor = _statusColor(item.lpjStatus);
+    if (roleId == 6 && item.lpjStatus == 'Draft') {
+      displayStatus = 'Menunggu LPJ';
+      themeColor = _statusColor('Submitted');
+    }
     final actionLabel = _actionLabel(item, roleId);
 
     return InkWell(
@@ -314,7 +322,7 @@ class _LpjListPageState extends State<LpjListPage> {
                     ],
                   ),
                 ),
-                _StatusChip(label: item.lpjStatusDisplay, color: themeColor),
+                _StatusChip(label: displayStatus, color: themeColor),
               ],
             ),
             const SizedBox(height: 14),
@@ -355,24 +363,26 @@ class _LpjListPageState extends State<LpjListPage> {
               ),
             ],
             const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _openDetail(context, item.kegiatanId),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF33C8DA),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+            // For Bendahara viewing Draft items, do not show any action button.
+            if (!(roleId == 6 && item.lpjStatus == 'Draft'))
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _openDetail(context, item.kegiatanId),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF33C8DA),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    actionLabel,
+                    style: GoogleFonts.figtree(fontWeight: FontWeight.w700),
                   ),
                 ),
-                child: Text(
-                  actionLabel,
-                  style: GoogleFonts.figtree(fontWeight: FontWeight.w700),
-                ),
               ),
-            ),
           ],
         ),
       ),

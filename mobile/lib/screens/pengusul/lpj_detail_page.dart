@@ -64,8 +64,6 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                   _buildHeader(detail),
                   _buildTableSection(detail, authProvider.user?.roleId),
                   const SizedBox(height: 16),
-                  _buildSpkSection(detail),
-                  const SizedBox(height: 16),
                   _buildTimeline(detail),
                   const SizedBox(height: 16),
                   _buildApprovalCard(detail),
@@ -262,84 +260,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     );
   }
 
-  Widget _buildSpkSection(LpjDetail detail) {
-    final spkWaktu = (detail.spkKesesuaianWaktu ?? 50).toDouble();
-    final spkOutput = (detail.spkKesesuaianOutput ?? 0).toDouble();
-    
-    // Prediction logic
-    final totalBudget = detail.totalAnggaranDiusulkan;
-    final totalRealization = detail.totalRealisasi;
-    
-    int predictedAnggaranScore = 100;
-    if (totalBudget > 0) {
-        final ratio = totalRealization / totalBudget;
-        final diff = (1 - ratio).abs() * 100;
-        predictedAnggaranScore = (100 - diff).round().clamp(50, 100);
-    }
-
-    final totalScore = ((spkWaktu * 0.25) + (predictedAnggaranScore * 0.25) + (spkOutput * 0.25) + (100 * 0.25));
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.analytics_outlined, color: Color(0xFF33C8DA)),
-              const SizedBox(width: 10),
-              Text(
-                'Evaluasi Kinerja (SPK)',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildSpkStat('Kesesuaian Waktu', '${spkWaktu.round()}%'),
-          const SizedBox(height: 12),
-          _buildSpkStat('Kesesuaian Output (IKU)', spkOutput == 100 ? 'Sesuai IKU' : 'Tidak Sesuai IKU'),
-          const SizedBox(height: 12),
-          _buildSpkStat('Ketepatan Anggaran', '$predictedAnggaranScore/100'),
-          const SizedBox(height: 16),
-          const Divider(color: Colors.white24),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Skor Akhir (Weighted):', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-              Text(
-                totalScore.toStringAsFixed(2),
-                style: GoogleFonts.figtree(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF33C8DA),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpkStat(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
+  // SPK display and calculation removed
 
   Widget _buildTimeline(LpjDetail detail) {
     final items = [
