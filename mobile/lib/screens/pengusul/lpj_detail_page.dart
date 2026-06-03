@@ -10,8 +10,15 @@ import 'lpj_form_page.dart';
 
 class LpjDetailPage extends StatefulWidget {
   final String kegiatanId;
+  final int? initialStatusId;
+  final String? initialStatusName;
 
-  const LpjDetailPage({super.key, required this.kegiatanId});
+  const LpjDetailPage({
+    super.key,
+    required this.kegiatanId,
+    this.initialStatusId,
+    this.initialStatusName,
+  });
 
   @override
   State<LpjDetailPage> createState() => _LpjDetailPageState();
@@ -19,10 +26,15 @@ class LpjDetailPage extends StatefulWidget {
 
 class _LpjDetailPageState extends State<LpjDetailPage> {
   final Map<String, String> _itemComments = {};
+  late final int? _initialStatusId;
+  late final String? _initialStatusName;
 
   @override
   void initState() {
     super.initState();
+    _initialStatusId = widget.initialStatusId;
+    _initialStatusName = widget.initialStatusName;
+
     Future.microtask(
       () => context.read<LpjProvider>().getLpjDetail(widget.kegiatanId),
     );
@@ -61,19 +73,21 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildHeader(detail),
-                  _buildTableSection(detail, authProvider.user?.roleId),
+                      _buildHeader(detail),
+                      _buildTableSection(detail, authProvider.user?.roleId),
                   const SizedBox(height: 16),
                   _buildTimeline(detail),
                   const SizedBox(height: 16),
                   _buildApprovalCard(detail),
                   const SizedBox(height: 16),
-                  _buildActionArea(
-                    context,
-                    lpjProvider,
-                    detail,
-                    authProvider.user?.roleId,
-                  ),
+                      _buildActionArea(
+                        context,
+                        lpjProvider,
+                        detail,
+                        authProvider.user?.roleId,
+                        initialStatusId: _initialStatusId,
+                        initialStatusName: _initialStatusName,
+                      ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -108,9 +122,10 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                   ),
                 ),
               ),
+              // Prefer initial KAK status (from list) when available to match web.
               _Badge(
-                label: detail.statusDisplay,
-                color: _statusColor(detail.lpjStatus),
+                label: _initialStatusName ?? detail.statusDisplay,
+                color: _statusColor(_initialStatusName ?? detail.lpjStatus),
               ),
             ],
           ),
@@ -119,9 +134,15 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildCompactStat('Diusulkan', _formatCurrency(detail.totalAnggaranDiusulkan)),
+              _buildCompactStat(
+                'Diusulkan',
+                _formatCurrency(detail.totalAnggaranDiusulkan),
+              ),
               const SizedBox(width: 16),
-              _buildCompactStat('Realisasi', _formatCurrency(detail.totalRealisasi)),
+              _buildCompactStat(
+                'Realisasi',
+                _formatCurrency(detail.totalRealisasi),
+              ),
             ],
           ),
         ],
@@ -163,7 +184,11 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              const Icon(Icons.table_chart_outlined, size: 20, color: Color(0xFF33C8DA)),
+              const Icon(
+                Icons.table_chart_outlined,
+                size: 20,
+                color: Color(0xFF33C8DA),
+              ),
               const SizedBox(width: 8),
               Text(
                 'Tabel Rincian Realisasi',
@@ -195,63 +220,82 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 const DataColumn(label: Text('Diusulkan'), numeric: true),
                 const DataColumn(label: Text('Realisasi')),
                 const DataColumn(label: Text('Persentase'), numeric: true),
-                if (isBendahara && detail.isSubmitted) const DataColumn(label: Text('Review')),
+                if (isBendahara && detail.isSubmitted)
+                  const DataColumn(label: Text('Review')),
               ],
               rows: detail.anggaranItems.map((item) {
                 return DataRow(
                   cells: [
-                  DataCell(
-                    SizedBox(
-                      width: 150,
-                      child: Column(
+                    DataCell(
+                      SizedBox(
+                        width: 150,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.uraianKegiatan,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
+                    DataCell(
+                      Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.uraianKegiatan,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                            _formatCurrency(item.realisasiJumlah),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF10B981),
+                            ),
+                          ),
+                          Text(
+                            '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade600,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
-                  DataCell(
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_formatCurrency(item.realisasiJumlah), style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
-                        Text(
-                          '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
-                          style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  DataCell(
-                    Text(
-                      '${item.percentageRealized.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: item.percentageRealized > 100 ? Colors.red : Colors.blueGrey,
-                      ),
-                    ),
-                  ),
-                  if (isBendahara && detail.isSubmitted)
                     DataCell(
-                      IconButton(
-                        icon: Icon(
-                          _itemComments.containsKey(item.anggaranId) ? Icons.comment : Icons.add_comment_outlined,
-                          color: _itemComments.containsKey(item.anggaranId) ? Colors.orange : Colors.grey,
-                          size: 20,
+                      Text(
+                        '${item.percentageRealized.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: item.percentageRealized > 100
+                              ? Colors.red
+                              : Colors.blueGrey,
                         ),
-                        onPressed: () => _showItemCommentDialog(item),
                       ),
                     ),
-                ]);
+                    if (isBendahara && detail.isSubmitted)
+                      DataCell(
+                        IconButton(
+                          icon: Icon(
+                            _itemComments.containsKey(item.anggaranId)
+                                ? Icons.comment
+                                : Icons.add_comment_outlined,
+                            color: _itemComments.containsKey(item.anggaranId)
+                                ? Colors.orange
+                                : Colors.grey,
+                            size: 20,
+                          ),
+                          onPressed: () => _showItemCommentDialog(item),
+                        ),
+                      ),
+                  ],
+                );
               }).toList(),
             ),
           ),
@@ -263,10 +307,12 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
   // SPK display and calculation removed
 
   Widget _buildTimeline(LpjDetail detail) {
+    final isSetor = (_initialStatusId == 13) || (detail.lpjApprovedAt != null && ( _initialStatusId == 13));
     final items = [
       _TimelineItemData('Draft', detail.isDraft),
       _TimelineItemData('Submitted', detail.lpjSubmittedAt != null),
       _TimelineItemData('Approved', detail.lpjApprovedAt != null),
+      _TimelineItemData('Setor Fisik', isSetor),
       _TimelineItemData('Completed', detail.lpjCompletedAt != null),
     ];
 
@@ -405,6 +451,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     LpjProvider provider,
     LpjDetail detail,
     int? roleId,
+    {int? initialStatusId, String? initialStatusName}
   ) {
     // Pengusul Actions
     if (roleId == 3 && detail.canEditPengusul) {
@@ -448,7 +495,10 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     }
 
     // Bendahara Actions (Role 6)
-    if (roleId == 6 && detail.isSubmitted) {
+    // Use KAK status (initialStatusId) to decide action visibility to match web.
+    final isSetor = initialStatusId == 13;
+    final isReviewStage = initialStatusId == 11 || detail.isSubmitted;
+    if (roleId == 6 && isReviewStage && !isSetor) {
       return Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -460,7 +510,8 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => LpjFormPage(kegiatanId: detail.kegiatanId),
+                      builder: (_) =>
+                          LpjFormPage(kegiatanId: detail.kegiatanId),
                     ),
                   );
                 },
@@ -508,10 +559,14 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                               'Apakah Anda yakin ingin menyetujui LPJ ini?',
                             );
                             if (ok == true) {
-                              final success = await provider.approveLpj(detail.kegiatanId);
+                              final success = await provider.approveLpj(
+                                detail.kegiatanId,
+                              );
                               if (success && mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('LPJ berhasil disetujui')),
+                                  const SnackBar(
+                                    content: Text('LPJ berhasil disetujui'),
+                                  ),
                                 );
                               }
                             }
@@ -529,6 +584,50 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    // If in Setor Fisik stage, show Complete action for Bendahara
+    if (roleId == 6 && initialStatusId == 13) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: provider.isSubmitting
+                    ? null
+                    : () async {
+                        // Open form to mark physical docs received
+                        final ok = await _showConfirmDialog(
+                          context,
+                          'Tandai Setor Fisik',
+                          'Konfirmasi: berkas fisik sudah diterima dan LPJ dapat diselesaikan?',
+                        );
+                        if (ok == true) {
+                          final success = await provider.completeLpj(detail.kegiatanId);
+                          if (success && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('LPJ berhasil diselesaikan')),
+                            );
+                          }
+                        }
+                      },
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Selesaikan LPJ'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
@@ -554,7 +653,11 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     );
   }
 
-  Future<bool?> _showConfirmDialog(BuildContext context, String title, String content) {
+  Future<bool?> _showConfirmDialog(
+    BuildContext context,
+    String title,
+    String content,
+  ) {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -575,7 +678,9 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
   }
 
   void _showItemCommentDialog(LpjRealization item) {
-    final controller = TextEditingController(text: _itemComments[item.anggaranId]);
+    final controller = TextEditingController(
+      text: _itemComments[item.anggaranId],
+    );
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -614,7 +719,11 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     );
   }
 
-  void _showReviseDialog(BuildContext context, LpjProvider provider, LpjDetail detail) {
+  void _showReviseDialog(
+    BuildContext context,
+    LpjProvider provider,
+    LpjDetail detail,
+  ) {
     final controller = TextEditingController();
     showDialog(
       context: context,
@@ -629,7 +738,11 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: Text(
                   'Anda telah memberikan ${_itemComments.length} catatan pada item anggaran.',
-                  style: const TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             TextField(
@@ -652,23 +765,34 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               final generalNote = controller.text.trim();
               if (generalNote.isEmpty && _itemComments.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Berikan setidaknya satu catatan (umum atau per item)')),
+                  const SnackBar(
+                    content: Text(
+                      'Berikan setidaknya satu catatan (umum atau per item)',
+                    ),
+                  ),
                 );
                 return;
               }
-              
+
               Navigator.pop(context);
-              
+
               // Prepare per-item comments for API
-              final anggaranComments = _itemComments.entries.map((e) => {
-                'id': int.tryParse(e.key),
-                'catatan_reviewer': e.value,
-              }).where((element) => element['id'] != null).toList();
+              final anggaranComments = _itemComments.entries
+                  .map(
+                    (e) => {
+                      'id': int.tryParse(e.key),
+                      'catatan_reviewer': e.value,
+                    },
+                  )
+                  .where((element) => element['id'] != null)
+                  .toList();
 
               final success = await provider.reviseLpj(
                 kegiatanId: detail.kegiatanId,
                 catatan: generalNote.isNotEmpty ? generalNote : null,
-                anggaranComments: anggaranComments.isNotEmpty ? anggaranComments : null,
+                anggaranComments: anggaranComments.isNotEmpty
+                    ? anggaranComments
+                    : null,
               );
 
               if (success && context.mounted) {
@@ -724,6 +848,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
       'Draft' => detail.lpjSubmittedAt,
       'Submitted' => detail.lpjSubmittedAt,
       'Approved' => detail.lpjApprovedAt,
+      'Setor Fisik' => detail.lpjApprovedAt ?? null,
       'Completed' => detail.lpjCompletedAt,
       _ => null,
     };
@@ -739,12 +864,18 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'Draft': return const Color(0xFF3B82F6);
-      case 'Submitted': return const Color(0xFFF59E0B);
-      case 'Approved': return const Color(0xFF10B981);
-      case 'Revision Requested': return const Color(0xFFF97316);
-      case 'Completed': return const Color(0xFF8B5CF6);
-      default: return const Color(0xFF64748B);
+      case 'Draft':
+        return const Color(0xFF3B82F6);
+      case 'Submitted':
+        return const Color(0xFFF59E0B);
+      case 'Approved':
+        return const Color(0xFF10B981);
+      case 'Revision Requested':
+        return const Color(0xFFF97316);
+      case 'Completed':
+        return const Color(0xFF8B5CF6);
+      default:
+        return const Color(0xFF64748B);
     }
   }
 
@@ -772,8 +903,18 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: color.withOpacity(0.16), borderRadius: BorderRadius.circular(8)),
-      child: Text(label, style: GoogleFonts.figtree(color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.16),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.figtree(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

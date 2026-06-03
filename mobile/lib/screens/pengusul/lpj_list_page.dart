@@ -90,11 +90,11 @@ class _LpjListPageState extends State<LpjListPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildHero(totalCount, filteredList.length),
+                          _buildHero(totalCount, filteredList.length),
                     const SizedBox(height: 16),
                     _buildSearchBar(),
                     const SizedBox(height: 12),
-                    _buildStatusFilter(roleId),
+                    _buildStatusFilter(roleId, lpjProvider.lpjList),
                     const SizedBox(height: 16),
                     if (lpjProvider.errorMessage != null)
                       Padding(
@@ -128,15 +128,13 @@ class _LpjListPageState extends State<LpjListPage> {
   List<LpjListItem> _filterItems(List<LpjListItem> items, int? roleId) {
     final query = _searchQuery.trim().toLowerCase();
     return items.where((item) {
-      // Note: Bendahara should still see Draft in the list, but actions
-      // and displayed status are handled when rendering each item.
-
+      // Use KAK status name (web source of truth) for search/filter to match web.
       final matchesQuery =
           query.isEmpty ||
           item.namaKegiatan.toLowerCase().contains(query) ||
-          item.lpjStatusDisplay.toLowerCase().contains(query);
+          item.statusNama.toLowerCase().contains(query);
       final matchesStatus =
-          _statusFilter == 'Semua' || item.lpjStatusDisplay == _statusFilter;
+          _statusFilter == 'Semua' || item.statusNama == _statusFilter;
       return matchesQuery && matchesStatus;
     }).toList();
   }
@@ -208,14 +206,17 @@ class _LpjListPageState extends State<LpjListPage> {
     );
   }
 
-  Widget _buildStatusFilter(int? roleId) {
+  Widget _buildStatusFilter(int? roleId, List<LpjListItem> items) {
+    // Build status options from the list (reflects web KAK status names).
+    final statusSet = <String>{};
+    for (final i in items) {
+      if ((i.statusNama ?? '').isNotEmpty) {
+        statusSet.add(i.statusNama);
+      }
+    }
     final statuses = [
       'Semua',
-      if (roleId != 6) 'Draft',
-      'Menunggu Approval',
-      'Disetujui',
-      'Perlu Revisi',
-      'Selesai',
+      ...statusSet.toList(),
     ];
 
     // Ensure bendahara doesn't keep 'Draft' as active filter
@@ -263,19 +264,14 @@ class _LpjListPageState extends State<LpjListPage> {
     int? roleId,
     DateTime now,
   ) {
-    // Determine display status and color. For Bendahara (roleId==6), show
-    // Draft items but display their status as 'Menunggu LPJ' and use the
-    // Submitted color so they look like waiting items.
-    String displayStatus = item.lpjStatusDisplay;
-    Color themeColor = _statusColor(item.lpjStatus);
-    if (roleId == 6 && item.lpjStatus == 'Draft') {
-      displayStatus = 'Menunggu LPJ';
-      themeColor = _statusColor('Submitted');
-    }
+    // Use KAK status (statusNama) as primary display (to match web).
+    final String displayStatus = (item.statusNama.isNotEmpty) ? item.statusNama : item.lpjStatusDisplay;
+    // Map color based on KAK status if available, otherwise fall back to LPJ status mapping.
+    final Color themeColor = _statusColor(item.statusNama.isNotEmpty ? item.statusNama : item.lpjStatus);
     final actionLabel = _actionLabel(item, roleId);
 
     return InkWell(
-      onTap: () => _openDetail(context, item.kegiatanId),
+      onTap: () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
       borderRadius: BorderRadius.circular(22),
       child: Container(
         padding: const EdgeInsets.all(18),
@@ -368,7 +364,7 @@ class _LpjListPageState extends State<LpjListPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => _openDetail(context, item.kegiatanId),
+                  onPressed: () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF33C8DA),
                     foregroundColor: Colors.white,
@@ -469,38 +465,42 @@ class _LpjListPageState extends State<LpjListPage> {
     );
   }
 
-  void _openDetail(BuildContext context, String kegiatanId) {
+  void _openDetail(BuildContext context, String kegiatanId, [int? statusId, String? statusName]) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => LpjDetailPage(kegiatanId: kegiatanId)),
+      MaterialPageRoute(
+        builder: (_) => LpjDetailPage(
+          kegiatanId: kegiatanId,
+          initialStatusId: statusId,
+          initialStatusName: statusName,
+        ),
+      ),
     ).then((_) => context.read<LpjProvider>().fetchLpjList());
   }
 
   String _actionLabel(LpjListItem item, int? roleId) {
-    if (roleId == 6 && item.lpjStatus == 'Approved') {
+    // Prefer KAK status when available
+    final statusId = item.statusId;
+    final statusNama = item.statusNama;
+
+    if (roleId == 6 && statusId == 13) {
       return 'Selesaikan LPJ';
     }
-    if (item.lpjStatus == 'Draft' || item.lpjStatus == 'Revision Requested') {
+    if (statusNama == 'Draft' || item.lpjStatus == 'Revision Requested') {
       return 'Lihat / Submit LPJ';
     }
     return 'Lihat / Review LPJ';
   }
 
   Color _statusColor(String status) {
-    switch (status) {
-      case 'Draft':
-        return const Color(0xFF3B82F6);
-      case 'Submitted':
-        return const Color(0xFFF59E0B);
-      case 'Approved':
-        return const Color(0xFF10B981);
-      case 'Revision Requested':
-        return const Color(0xFFF97316);
-      case 'Completed':
-        return const Color(0xFF8B5CF6);
-      default:
-        return const Color(0xFF64748B);
-    }
+    final s = status.toLowerCase();
+    if (s.contains('draft')) return const Color(0xFF3B82F6);
+    if (s.contains('menunggu') || s.contains('review') || s.contains('submitted')) return const Color(0xFFF59E0B);
+    if (s.contains('disetujui') || s.contains('approved')) return const Color(0xFF10B981);
+    if (s.contains('revisi') || s.contains('revisi')) return const Color(0xFFF97316);
+    if (s.contains('setor')) return const Color(0xFF8B5CF6);
+    if (s.contains('selesai') || s.contains('completed')) return const Color(0xFF8B5CF6);
+    return const Color(0xFF64748B);
   }
 
   String _formatCurrency(double value) {

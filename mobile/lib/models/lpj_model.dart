@@ -42,7 +42,9 @@ class LpjRealization {
   factory LpjRealization.fromJson(Map<String, dynamic> json) {
     final catatan = json['catatan_reviewer'];
     if (catatan != null) {
-      debugPrint('LpjRealization: Anggaran ${json['anggaran_id']} received note: $catatan');
+      debugPrint(
+        'LpjRealization: Anggaran ${json['anggaran_id']} received note: $catatan',
+      );
     }
     return LpjRealization(
       anggaranId: json['anggaran_id']?.toString() ?? '',
@@ -229,6 +231,7 @@ class LpjListItem {
   final String kakId;
   final String namaKegiatan;
   final String statusNama;
+  final int? statusId;
   final String lpjStatus;
   final String? lpjSubmittedAt;
   final String? tglBatasLpj;
@@ -242,6 +245,7 @@ class LpjListItem {
     required this.namaKegiatan,
     required this.statusNama,
     required this.lpjStatus,
+    this.statusId,
     this.lpjSubmittedAt,
     this.tglBatasLpj,
     required this.totalAnggaranDiusulkan,
@@ -255,6 +259,9 @@ class LpjListItem {
       kakId: json['kak_id']?.toString() ?? '',
       namaKegiatan: json['nama_kegiatan'] ?? '',
       statusNama: json['status_nama'] ?? '',
+      statusId: json['status_id'] != null
+          ? int.tryParse(json['status_id'].toString())
+          : null,
       lpjStatus: json['lpj_status'] ?? 'Draft',
       lpjSubmittedAt: json['lpj_submitted_at']?.toString(),
       tglBatasLpj: json['tgl_batas_lpj']?.toString(),
@@ -278,6 +285,9 @@ class LpjListItem {
   };
 
   String get lpjStatusDisplay {
+    // If KAK status indicates 'Setor Fisik Dokumen' (status_id == 13),
+    // show that as an LPJ step between 'Disetujui' and 'Selesai'.
+    if (statusId == 13) return 'Setor Fisik';
     switch (lpjStatus) {
       case 'Draft':
         return 'Draft';
