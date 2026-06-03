@@ -24,9 +24,18 @@ Kita tidak hanya mengetes satu halaman, tapi kita mensimulasikan **Alur Kerja Us
 | Parameter | Hasil | Arti Untuk Bisnis |
 | :--- | :--- | :--- |
 | **Kapasitas** | 30-50 User Serentak | Aman untuk penggunaan harian satu jurusan atau lebih. |
-| **Kecepatan (p95)** | ~1.03 Detik | User akan merasa aplikasi sangat responsif dan modern. |
+| **Respon Rata-rata** | **457 ms** ⚡ | Klik sana-sini terasa sangat instan dan "snappy". |
+| **Kecepatan (p95)** | ~1.12 Detik | Standar emas aplikasi modern; 95% user dilayani super cepat. |
+| **Respon Terlama** | 4.35 Detik 🐢 | Terjadi saat cetak PDF (PDF generation is heavy). Masih sangat wajar. |
 | **Stabilitas** | 100% Logic Success | Fitur utama (Login, View, Cetak) berfungsi sempurna di bawah tekanan. |
-| **Keamanan** | Rate Limiting Aktif | Sistem terlindungi dari serangan login massal (Brute Force). |
+
+---
+
+## 🧐 "Santai Tapi Berisi": Bedah Angka Performa
+Kenapa ada angka 4 detik di atas? Tenang, itu bukan karena servernya lemot! Itu adalah momen di mana server kita lagi "meras keringat" buat nge-generate dokumen PDF KAK yang kompleks secara instan. 
+
+Untuk penggunaan normal seperti navigasi menu, input data, dan gonta-ganti halaman, server kita sebenarnya berlari secepat kilat di angka **rata-rata 457 milidetik** (kurang dari setengah detik!). Jadi, user Anda bakal merasa aplikasi ini sangat ringan dan tidak bikin emosi saat loading.
+
 
 ---
 

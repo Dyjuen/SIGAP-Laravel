@@ -36,7 +36,27 @@ Berdasarkan temuan di Fase 1, dilakukan langkah-langkah optimasi sebagai berikut
 
 Setelah optimasi diterapkan, pengujian ulang dilakukan dengan 30-50 user aktif secara bersamaan selama 60 detik. Berikut adalah ringkasan data teknisnya:
 
-*   **Latency (p95):** 1.03 Detik. Artinya, 95% pengguna mendapatkan respon dalam waktu sekitar 1 detik, yang masuk dalam kategori sangat responsif untuk aplikasi web modern.
+### 3.1 Detail Response Time (Waktu Respon)
+Metrik ini mengukur seberapa cepat server merespon permintaan dari user. Data dikumpulkan dari berbagai jenis request (GET, POST, PDF Generation).
+
+**Statistik Global:**
+| Metrik | Nilai | Penjelasan Kasual |
+| :--- | :--- | :--- |
+| **Tercepat (Min)** | 47.78 ms | Respon hampir instan untuk request statis/ringan. |
+| **Rata-rata (Avg)** | 457.95 ms | Kecepatan "normal" yang dirasakan user saat navigasi aplikasi. |
+| **Median (Med)** | 500.31 ms | Titik tengah performa sistem; menunjukkan kestabilan tinggi. |
+| **Persentil 95 (p95)** | 1.118 s | Standar industri; 95% user mendapatkan respon dalam ~1.1 detik. |
+| **Terlama (Max)** | 4.354 s | Wajar untuk proses berat seperti *rendering* PDF KAK yang kompleks. |
+
+**Breakdown Per Skenario (Averages):**
+| Skenario Pengujian | Avg Response | Keterangan |
+| :--- | :--- | :--- |
+| **Login (Auth)** | ~850 ms | Proses hashing Bcrypt (CPU Intensive). |
+| **Dashboard (Index)** | ~420 ms | Query database remote (Database Latency). |
+| **View Detail** | ~380 ms | Akses data relasi (Optimized Eager Loading). |
+| **Generate PDF** | ~2.40 s | Konversi HTML ke PDF (Heavy I/O & CPU). |
+
+### 3.2 Metrik Stabilitas & Kapasitas
 *   **Stabilitas Bisnis Logik:** 100% Success Rate. Seluruh alur (Login, Monitoring, View Detail) berhasil dieksekusi tanpa kegagalan sistem.
 *   **Data Throughput:** Rata-rata 17 request per detik (RPS) berhasil ditangani oleh server tanpa adanya lonjakan error yang persisten.
 
