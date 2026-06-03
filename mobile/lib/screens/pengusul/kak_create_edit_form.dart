@@ -275,6 +275,15 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             },
           )
           .toList(),
+      'target_iku': targetIkuList
+          .map(
+            (t) => {
+              'iku_id': t.ikuId,
+              'target': t.target,
+              'satuan_id': t.satuanId,
+            },
+          )
+          .toList(),
     };
   }
 
@@ -333,6 +342,25 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
   void _removeIndikatorKinerja(int index) {
     setState(() {
       indikatorKinerjaList.removeAt(index);
+    });
+  }
+
+  void _addTargetIku() {
+    setState(() {
+      targetIkuList.add(
+        TargetIkuItem(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          ikuId: 0,
+          ikuNama: '',
+          target: '',
+        ),
+      );
+    });
+  }
+
+  void _removeTargetIku(int index) {
+    setState(() {
+      targetIkuList.removeAt(index);
     });
   }
 
@@ -1320,6 +1348,159 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               ),
             ),
           ],
+          const SizedBox(height: 24),
+
+          // Indikator Kinerja Utama (IKU)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Indikator Kinerja Utama (IKU)',
+                style: GoogleFonts.figtree(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              if (!widget.readOnly)
+                IconButton(
+                  onPressed: _addTargetIku,
+                  icon: const Icon(Icons.add_circle),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...targetIkuList.asMap().entries.map((entry) {
+            int index = entry.key;
+            TargetIkuItem item = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: (item.note != null && item.note!.trim().isNotEmpty)
+                        ? Colors.redAccent
+                        : colorScheme.outline,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  color: (item.note != null && item.note!.trim().isNotEmpty)
+                      ? const Color(0xFFFFF1F0)
+                      : null,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Target IKU ${index + 1}',
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (!widget.readOnly)
+                          IconButton(
+                            onPressed: () => _removeTargetIku(index),
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            iconSize: 20,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // IKU Selection
+                    DropdownButtonFormField<int>(
+                      value: widget.ikuOptions.any(
+                                (i) => (i['iku_id'] ?? i['id']) == item.ikuId,
+                              )
+                          ? item.ikuId
+                          : null,
+                      decoration: InputDecoration(
+                        labelText: 'Pilih IKU',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      items: widget.ikuOptions.map<DropdownMenuItem<int>>((
+                        iku,
+                      ) {
+                        return DropdownMenuItem<int>(
+                          value: iku['iku_id'] ?? iku['id'],
+                          child: Text(
+                            '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.ikuId = value ?? 0;
+                              });
+                              widget.onFormChange(getFormData());
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    // Target Input
+                    TextFormField(
+                      initialValue: item.target,
+                      decoration: InputDecoration(
+                        labelText: 'Target Capaian',
+                        hintText: 'Contoh: 100',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      keyboardType: TextInputType.text,
+                      onChanged: widget.readOnly
+                          ? null
+                          : (value) {
+                              setState(() {
+                                item.target = value;
+                              });
+                              widget.onFormChange(getFormData());
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    // Satuan Selection
+                    _buildSatuanDropdown(
+                      label: 'Satuan Target',
+                      value: item.satuanId,
+                      onChanged: (val) {
+                        setState(() {
+                          item.satuanId = val;
+                        });
+                        widget.onFormChange(getFormData());
+                      },
+                    ),
+                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Catatan Verifikator: ${item.note}',
+                        style: GoogleFonts.figtree(
+                          fontSize: 12,
+                          color: Colors.redAccent,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }),
+          if (targetIkuList.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Text(
+                'Klik + untuk menambah target IKU',
+                style: GoogleFonts.figtree(
+                  fontSize: 12,
+                  color: colorScheme.outline,
+                ),
+              ),
+            ),
           const SizedBox(height: 16),
 
           // RAB

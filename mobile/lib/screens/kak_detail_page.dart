@@ -214,6 +214,8 @@ class _KakDetailPageState extends State<KakDetailPage> {
                 _TahapanSection(kak: kak, colorScheme: colorScheme),
               if (kak.indikatorKinerja.isNotEmpty)
                 _IndikatorKinerjaSection(kak: kak, colorScheme: colorScheme),
+              if (kak.targetIku.isNotEmpty)
+                _IkuSection(kak: kak, colorScheme: colorScheme),
               if (kak.rab.isNotEmpty)
                 _RabSection(kak: kak, colorScheme: colorScheme),
 
@@ -874,6 +876,7 @@ class _IndikatorKinerjaSection extends StatelessWidget {
                               DataCell(
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
                                       ind.deskripsiTarget,
@@ -885,9 +888,9 @@ class _IndikatorKinerjaSection extends StatelessWidget {
                                         ind.catatanVerifikator!
                                             .trim()
                                             .isNotEmpty) ...[
-                                      const SizedBox(height: 6),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        'Catatan Verifikator: ${ind.catatanVerifikator!}',
+                                        'Catatan: ${ind.catatanVerifikator!}',
                                         style: GoogleFonts.figtree(
                                           fontSize: 11,
                                           color: Colors.redAccent,
@@ -916,6 +919,159 @@ class _IndikatorKinerjaSection extends StatelessWidget {
               );
             },
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// IKU Section
+class _IkuSection extends StatelessWidget {
+  final KakDetail kak;
+  final ColorScheme colorScheme;
+
+  const _IkuSection({required this.kak, required this.colorScheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Indikator Kinerja Utama (IKU)',
+            style: GoogleFonts.figtree(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...kak.targetIku.asMap().entries.map((e) {
+            final iku = e.value;
+            final hasNote =
+                iku.catatanVerifikator != null &&
+                iku.catatanVerifikator!.trim().isNotEmpty;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: hasNote ? Colors.redAccent : colorScheme.outline,
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  color: hasNote ? const Color(0xFFFFF1F0) : null,
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            iku.kodeIku ?? 'IKU',
+                            style: GoogleFonts.figtree(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            iku.ikuNama,
+                            style: GoogleFonts.figtree(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Target Capaian',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 11,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                iku.target,
+                                style: GoogleFonts.figtree(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Satuan',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 11,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                iku.satuanNama ?? '-',
+                                style: GoogleFonts.figtree(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (hasNote) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'Catatan: ${iku.catatanVerifikator!}',
+                          style: GoogleFonts.figtree(
+                            fontSize: 12,
+                            color: Colors.redAccent,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );

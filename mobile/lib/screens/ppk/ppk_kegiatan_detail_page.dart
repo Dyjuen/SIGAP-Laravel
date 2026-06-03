@@ -1231,36 +1231,6 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
               child: Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Kembalikan kegiatan hanya didukung pada persetujuan KAK oleh Verifikator.',
-                            ),
-                            backgroundColor: Color(0xFFC2410C),
-                          ),
-                        );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        side: const BorderSide(color: Colors.red),
-                      ),
-                      child: const Text(
-                        'Kembalikan',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
                     child: ElevatedButton(
                       onPressed: _showApproveBottomSheet,
                       style: ElevatedButton.styleFrom(
