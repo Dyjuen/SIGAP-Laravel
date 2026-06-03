@@ -1,5 +1,6 @@
 ---
-description: Testing patterns (PHPUnit, Browser MCP) for SIGAP-Laravel. Triggers: writing tests, TDD, failing tests.
+name: testing-patterns
+description: Apply testing patterns (PHPUnit, Browser MCP) and TDD. Use when writing tests, debugging failing tests, and verifying behavior.
 ---
 
 # Testing Patterns

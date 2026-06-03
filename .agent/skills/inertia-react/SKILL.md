@@ -1,5 +1,6 @@
 ---
-description: Inertia.js and React patterns for SIGAP-Laravel frontend. Triggers: creating/editing React pages, components, forms.
+name: inertia-react
+description: Apply Inertia.js and React patterns. Use when creating or editing React pages, components, and forms.
 ---
 
 # Inertia & React Patterns

@@ -1,5 +1,6 @@
 ---
-description: Laravel 11 conventions, patterns, and anti-patterns for SIGAP-Laravel backend development. Triggers: creating controllers, models, migrations, routes.
+name: laravel-conventions
+description: Apply Laravel 11 conventions, standards, and patterns. Use when creating or editing controllers, models, migrations, and routes.
 ---
 
 # Laravel Conventions & Patterns

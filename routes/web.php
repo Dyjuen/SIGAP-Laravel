@@ -53,7 +53,9 @@ Route::middleware('auth')->group(function () {
     // Kegiatan Routes
     Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
         Route::get('/kegiatan/monitoring', [KegiatanController::class, 'monitoring'])->name('kegiatan.monitoring');
-        Route::resource('kegiatan', KegiatanController::class)->only(['index', 'store', 'update']);
+        Route::get('/kegiatan', [KegiatanController::class, 'index'])->name('kegiatan.index');
+        Route::post('/kegiatan', [KegiatanController::class, 'store'])->name('kegiatan.store')->middleware('throttle:60,1');
+        Route::match(['put', 'patch'], '/kegiatan/{kegiatan}', [KegiatanController::class, 'update'])->name('kegiatan.update');
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanController::class, 'approve'])->name('kegiatan.approve');
     });
 

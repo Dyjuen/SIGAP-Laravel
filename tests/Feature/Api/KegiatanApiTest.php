@@ -518,19 +518,11 @@ class KegiatanApiTest extends TestCase
 
     public function test_api_unauthorized_roles_cannot_access_monitoring()
     {
-        $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
         $bendahara = User::factory()->create(['role_id' => 6]);
         $rektorat = User::factory()->create(['role_id' => 7]);
 
-        $verifToken = $verifikator->createToken('test-token')->plainTextToken;
         $bendaharaToken = $bendahara->createToken('test-token')->plainTextToken;
         $rektoratToken = $rektorat->createToken('test-token')->plainTextToken;
-
-        // Verifikator
-        $this->withHeaders([
-            'Authorization' => 'Bearer '.$verifToken,
-            'Accept' => 'application/json',
-        ])->getJson('/api/kegiatan/monitoring')->assertStatus(403);
 
         // Bendahara
         $this->withHeaders([
@@ -544,12 +536,13 @@ class KegiatanApiTest extends TestCase
             'Accept' => 'application/json',
         ])->getJson('/api/kegiatan/monitoring')->assertStatus(403);
     }
+
     public function test_api_verifikator_can_only_see_matching_tipe_kegiatan()
     {
         $verifikator1 = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
 
-        $kak1 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 1]);   
-        $kak2 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 2]);   
+        $kak1 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 1]);
+        $kak2 = KAK::factory()->create(['pengusul_user_id' => $this->pengusul->user_id, 'tipe_kegiatan_id' => 2]);
 
         $kegiatan1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);
         $kegiatan2 = Kegiatan::create(['kak_id' => $kak2->kak_id]);

@@ -89,8 +89,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
         Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
-        Route::post('/kegiatan', [KegiatanApiController::class, 'store']);
-        Route::put('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'update']);
+        Route::post('/kegiatan', [KegiatanApiController::class, 'store'])->middleware('throttle:60,1');
+        Route::match(['put', 'patch'], '/kegiatan/{kegiatan}', [KegiatanApiController::class, 'update']);
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanApiController::class, 'approve']);
     });
 

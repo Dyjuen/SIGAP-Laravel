@@ -1,5 +1,6 @@
 ---
-description: Responsive design & cross-browser compatibility patterns for SIGAP-Laravel. Triggers: making a page responsive, fixing layout on mobile/tablet, cross-browser fixes, scaling issues.
+name: responsive-design
+description: Apply responsive design and cross-browser compatibility. Use when making pages responsive, fixing mobile/tablet layouts, and scaling issues.
 ---
 
 # Responsive Design & Cross-Browser Compatibility
