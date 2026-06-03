@@ -270,8 +270,13 @@ class _LpjListPageState extends State<LpjListPage> {
     final Color themeColor = _statusColor(item.statusNama.isNotEmpty ? item.statusNama : item.lpjStatus);
     final actionLabel = _actionLabel(item, roleId);
 
+    // Bendahara should not be able to click or see actions if LPJ is not yet submitted (Draft)
+    final isBendaharaDraft = roleId == 6 && item.lpjStatus == 'Draft';
+
     return InkWell(
-      onTap: () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
+      onTap: isBendaharaDraft
+          ? null
+          : () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
       borderRadius: BorderRadius.circular(22),
       child: Container(
         padding: const EdgeInsets.all(18),
@@ -360,7 +365,7 @@ class _LpjListPageState extends State<LpjListPage> {
             ],
             const SizedBox(height: 14),
             // For Bendahara viewing Draft items, do not show any action button.
-            if (!(roleId == 6 && item.lpjStatus == 'Draft'))
+            if (!isBendaharaDraft)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
