@@ -30,7 +30,6 @@ class _KakListPageState extends State<KakListPage> {
     {'id': null, 'label': 'Semua'},
     {'id': 1, 'label': 'Draft'},
     {'id': 2, 'label': 'Review'},
-    {'id': 3, 'label': 'Disetujui'},
     {'id': 4, 'label': 'Ditolak'},
     {'id': 5, 'label': 'Revisi'},
   ];
@@ -61,7 +60,8 @@ class _KakListPageState extends State<KakListPage> {
           data = decoded;
         }
         setState(() {
-          _kaks = data;
+          // Filter out Approved KAKs (status_id == 3) since they should only appear in "Pengajuan Kegiatan"
+          _kaks = data.where((k) => k['status_id'] != 3).toList();
           _applyFilter();
           _isLoading = false;
         });

@@ -226,9 +226,9 @@ class KakService
             $query->where('pengusul_user_id', $user->user_id)
                 ->whereIn('status_id', [1, 2, 3, 4, 5]);
         } elseif ($user->role_id === 2) {
-            // Verifikator: KAKs in Review(2), Rejected(4)
+            // Verifikator: KAKs in Review(2) only
             // that match their Tipe Kegiatan
-            $query->whereIn('status_id', [2, 4]);
+            $query->where('status_id', 2);
 
             if (method_exists($user, 'getVerifikatorTipeId')) {
                 $tipeId = $user->getVerifikatorTipeId();

@@ -40,9 +40,9 @@ class ReviseKakRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'catatan' => 'nullable|string',
-            'catatan_kak' => 'nullable|array',
-            'anak' => 'nullable|array',
+            'catatan' => 'required_without_all:catatan_kak,anak|nullable|string',
+            'catatan_kak' => 'required_without_all:catatan,anak|nullable|array',
+            'anak' => 'required_without_all:catatan,catatan_kak|nullable|array',
         ];
     }
 
@@ -51,6 +51,7 @@ class ReviseKakRequest extends FormRequest
         return [
             'string' => ':attribute harus berupa teks.',
             'array' => ':attribute harus berupa array.',
+            'required_without_all' => 'Anda harus memberikan minimal satu catatan revisi.',
         ];
     }
 

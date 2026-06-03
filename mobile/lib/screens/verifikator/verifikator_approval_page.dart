@@ -810,7 +810,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
 
       if (kak != null) {
         if (kak.manfaat.isNotEmpty) {
-          anak['t_kak_manfaat'] = kak.manfaat
+          final list = kak.manfaat
               .asMap()
               .entries
               .map((entry) {
@@ -824,13 +824,14 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
               .where(
                 (item) =>
                     item['catatan_manfaat'] != null &&
-                    item['catatan_manfaat']!.isNotEmpty,
+                    (item['catatan_manfaat'] as String).isNotEmpty,
               )
               .toList();
+          if (list.isNotEmpty) anak['t_kak_manfaat'] = list;
         }
 
         if (kak.tahapan.isNotEmpty) {
-          anak['t_kak_tahapan'] = kak.tahapan
+          final list = kak.tahapan
               .asMap()
               .entries
               .map((entry) {
@@ -845,13 +846,14 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
               .where(
                 (item) =>
                     item['catatan_verifikator'] != null &&
-                    item['catatan_verifikator']!.isNotEmpty,
+                    (item['catatan_verifikator'] as String).isNotEmpty,
               )
               .toList();
+          if (list.isNotEmpty) anak['t_kak_tahapan'] = list;
         }
 
         if (kak.indikatorKinerja.isNotEmpty) {
-          anak['t_kak_target'] = kak.indikatorKinerja
+          final list = kak.indikatorKinerja
               .asMap()
               .entries
               .map((entry) {
@@ -865,13 +867,14 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
               .where(
                 (item) =>
                     item['catatan_verifikator'] != null &&
-                    item['catatan_verifikator']!.isNotEmpty,
+                    (item['catatan_verifikator'] as String).isNotEmpty,
               )
               .toList();
+          if (list.isNotEmpty) anak['t_kak_target'] = list;
         }
 
         if (kak.targetIku.isNotEmpty) {
-          anak['t_kak_iku'] = kak.targetIku
+          final list = kak.targetIku
               .asMap()
               .entries
               .map((entry) {
@@ -885,13 +888,14 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
               .where(
                 (item) =>
                     item['catatan_verifikator'] != null &&
-                    item['catatan_verifikator']!.isNotEmpty,
+                    (item['catatan_verifikator'] as String).isNotEmpty,
               )
               .toList();
+          if (list.isNotEmpty) anak['t_kak_iku'] = list;
         }
 
         if (kak.rab.isNotEmpty) {
-          anak['t_kak_anggaran'] = kak.rab
+          final list = kak.rab
               .asMap()
               .entries
               .map((entry) {
@@ -906,9 +910,10 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
               .where(
                 (item) =>
                     item['catatan_verifikator'] != null &&
-                    item['catatan_verifikator']!.isNotEmpty,
+                    (item['catatan_verifikator'] as String).isNotEmpty,
               )
               .toList();
+          if (list.isNotEmpty) anak['t_kak_anggaran'] = list;
         }
       }
 
@@ -919,6 +924,19 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
         acc[entry.key] = entry.value;
         return acc;
       });
+
+      if (catatanFields.isEmpty && childPayload.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Anda harus memberikan minimal satu catatan revisi'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          setState(() => isProcessing = false);
+        }
+        return;
+      }
 
       await kakService.reviseKak(
         widget.kakId.toString(),
