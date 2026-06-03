@@ -382,7 +382,10 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     required ValueChanged<int?> onChanged,
   }) {
     return DropdownButtonFormField<int>(
-      value: widget.satuanOptions.any((s) => (s['satuan_id'] ?? s['id']) == value) ? value : null,
+      value:
+          widget.satuanOptions.any((s) => (s['satuan_id'] ?? s['id']) == value)
+          ? value
+          : null,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -472,7 +475,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly
+                        ? null
+                        : (_) => widget.onFormChange(getFormData()),
                     enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
@@ -612,7 +617,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly
+                        ? null
+                        : (_) => widget.onFormChange(getFormData()),
                     enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
@@ -666,7 +673,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly
+                        ? null
+                        : (_) => widget.onFormChange(getFormData()),
                     enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
@@ -754,14 +763,14 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                             }
                             return null;
                           },
-                            onChanged: widget.readOnly
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      item.value = value;
-                                    });
-                                  },
-                            enabled: !widget.readOnly,
+                          onChanged: widget.readOnly
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    item.value = value;
+                                  });
+                                },
+                          enabled: !widget.readOnly,
                         ),
                         if (item.note != null &&
                             item.note!.trim().isNotEmpty) ...[
@@ -838,7 +847,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                       }
                       return null;
                     },
-                    onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+                    onChanged: widget.readOnly
+                        ? null
+                        : (_) => widget.onFormChange(getFormData()),
                     enabled: !widget.readOnly,
                   ),
                   if (hasNote) ...[
@@ -1178,7 +1189,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: widget.readOnly ? null : () => _selectDate(context, true),
+                  onTap: widget.readOnly
+                      ? null
+                      : () => _selectDate(context, true),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1213,7 +1226,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               const SizedBox(width: 12),
               Expanded(
                 child: InkWell(
-                  onTap: widget.readOnly ? null : () => _selectDate(context, false),
+                  onTap: widget.readOnly
+                      ? null
+                      : () => _selectDate(context, false),
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
@@ -1288,7 +1303,9 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
               }
               return null;
             },
-            onChanged: widget.readOnly ? null : (_) => widget.onFormChange(getFormData()),
+            onChanged: widget.readOnly
+                ? null
+                : (_) => widget.onFormChange(getFormData()),
             enabled: !widget.readOnly,
           ),
           if (widget.initialData?.catatanLokasi != null &&
@@ -1432,7 +1449,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                                     ? null
                                     : (value) {
                                         setState(() {
-                                          item.volume1 = double.tryParse(value) ?? 0;
+                                          item.volume1 =
+                                              double.tryParse(value) ?? 0;
                                         });
                                       },
                                 enabled: !widget.readOnly,
@@ -1441,7 +1459,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                               _buildSatuanDropdown(
                                 label: 'Satuan 1',
                                 value: item.satuan1Id,
-                                onChanged: (val) => setState(() => item.satuan1Id = val),
+                                onChanged: (val) =>
+                                    setState(() => item.satuan1Id = val),
                               ),
                             ],
                           ),
@@ -1473,7 +1492,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                               _buildSatuanDropdown(
                                 label: 'Satuan 2',
                                 value: item.satuan2Id,
-                                onChanged: (val) => setState(() => item.satuan2Id = val),
+                                onChanged: (val) =>
+                                    setState(() => item.satuan2Id = val),
                               ),
                             ],
                           ),
@@ -1505,7 +1525,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
                               _buildSatuanDropdown(
                                 label: 'Satuan 3',
                                 value: item.satuan3Id,
-                                onChanged: (val) => setState(() => item.satuan3Id = val),
+                                onChanged: (val) =>
+                                    setState(() => item.satuan3Id = val),
                               ),
                             ],
                           ),

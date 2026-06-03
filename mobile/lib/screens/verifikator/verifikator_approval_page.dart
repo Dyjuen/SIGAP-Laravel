@@ -684,13 +684,32 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.figtree(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF0F172A),
-            ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.figtree(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+              // Inline per-item comment icon (mirip LPJ)
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                icon: Icon(
+                  noteController.text.trim().isNotEmpty ? Icons.comment : Icons.add_comment_outlined,
+                  color: noteController.text.trim().isNotEmpty ? Colors.orange : Colors.grey,
+                  size: 20,
+                ),
+                onPressed: onToggle,
+                tooltip: isExpanded ? 'Sembunyikan Catatan' : 'Tambah Catatan',
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           ...details.map(

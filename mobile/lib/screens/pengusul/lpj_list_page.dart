@@ -68,7 +68,8 @@ class _LpjListPageState extends State<LpjListPage> {
         ),
         body: Consumer2<AuthProvider, LpjProvider>(
           builder: (context, authProvider, lpjProvider, _) {
-            final filteredList = _filterItems(lpjProvider.lpjList);
+            final roleId = authProvider.user?.roleId;
+            final filteredList = _filterItems(lpjProvider.lpjList, roleId);
             final totalCount = lpjProvider.lpjList.length;
 
             if (lpjProvider.isLoading && totalCount == 0) {
@@ -93,7 +94,7 @@ class _LpjListPageState extends State<LpjListPage> {
                     const SizedBox(height: 16),
                     _buildSearchBar(),
                     const SizedBox(height: 12),
-                    _buildStatusFilter(),
+                    _buildStatusFilter(roleId),
                     const SizedBox(height: 16),
                     if (lpjProvider.errorMessage != null)
                       Padding(
@@ -124,9 +125,12 @@ class _LpjListPageState extends State<LpjListPage> {
     );
   }
 
-  List<LpjListItem> _filterItems(List<LpjListItem> items) {
+  List<LpjListItem> _filterItems(List<LpjListItem> items, int? roleId) {
     final query = _searchQuery.trim().toLowerCase();
     return items.where((item) {
+      // If user is Bendahara (roleId == 6), hide Draft items entirely
+      if (roleId == 6 && item.lpjStatus == 'Draft') return false;
+
       final matchesQuery =
           query.isEmpty ||
           item.namaKegiatan.toLowerCase().contains(query) ||
@@ -204,15 +208,22 @@ class _LpjListPageState extends State<LpjListPage> {
     );
   }
 
-  Widget _buildStatusFilter() {
-    const statuses = [
+  Widget _buildStatusFilter(int? roleId) {
+    final statuses = [
       'Semua',
-      'Draft',
+      if (roleId != 6) 'Draft',
       'Menunggu Approval',
       'Disetujui',
       'Perlu Revisi',
       'Selesai',
     ];
+
+    // Ensure bendahara doesn't keep 'Draft' as active filter
+    if (roleId == 6 && _statusFilter == 'Draft') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _statusFilter = 'Semua');
+      });
+    }
 
     return Container(
       decoration: BoxDecoration(

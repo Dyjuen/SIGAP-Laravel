@@ -713,7 +713,9 @@ class _KakListPageState extends State<KakListPage> {
                       ),
                     ),
                     child: Text(
-                      (statusId == 2 || statusId == 3) ? 'Detail' : 'Detail / Edit',
+                      (statusId == 2 || statusId == 3)
+                          ? 'Detail'
+                          : 'Detail / Edit',
                       style: const TextStyle(
                         color: Color(0xFF475569),
                         fontWeight: FontWeight.bold,
