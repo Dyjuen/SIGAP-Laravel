@@ -9,6 +9,7 @@ use App\Models\KAK;
 use App\Models\Kegiatan;
 use App\Services\KegiatanMonitoringService;
 use App\Services\KegiatanService;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -114,7 +115,7 @@ class KegiatanController extends Controller
         ]);
 
         if ($kegiatan->surat_pengantar_path && ! str_starts_with($kegiatan->surat_pengantar_path, 'http')) {
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $supabaseDisk */
+            /** @var FilesystemAdapter $supabaseDisk */
             $supabaseDisk = Storage::disk('supabase');
             $kegiatan->surat_pengantar_url = $supabaseDisk->url($kegiatan->surat_pengantar_path);
         }

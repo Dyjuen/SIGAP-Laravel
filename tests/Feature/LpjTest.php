@@ -165,7 +165,7 @@ class LpjTest extends TestCase
             ->assertRedirect('/login');
     }
 
-        /**
+    /**
      * Test Case: LPJ-I-001, LPJ-I-004
      */
     public function test_pengusul_can_submit_lpj(): void
@@ -302,7 +302,7 @@ class LpjTest extends TestCase
     // REVIEW TESTS
     // ========================================
 
-        /**
+    /**
      * Test Case: LPJ-F-001, LPJ-I-007
      */
     public function test_bendahara_can_review_lpj(): void
@@ -347,7 +347,7 @@ class LpjTest extends TestCase
     // REVISE TESTS
     // ========================================
 
-        /**
+    /**
      * Test Case: LPJ-I-002, LPJ-I-009
      */
     public function test_bendahara_can_revise_lpj(): void
@@ -563,7 +563,7 @@ class LpjTest extends TestCase
     // APPROVE TESTS
     // ========================================
 
-        /**
+    /**
      * Test Case: LPJ-I-003, LPJ-I-011
      */
     public function test_bendahara_can_approve_lpj(): void
@@ -696,7 +696,7 @@ class LpjTest extends TestCase
     // COMPLETE TESTS
     // ========================================
 
-        /**
+    /**
      * Test Case: LPJ-I-006
      */
     public function test_bendahara_can_complete_lpj(): void

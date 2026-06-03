@@ -70,4 +70,3 @@ class Kegiatan extends Model
         return $this->approvals->where('approval_level', 'Bendahara-Setor')->first()?->approved_at;
     }
 }
-

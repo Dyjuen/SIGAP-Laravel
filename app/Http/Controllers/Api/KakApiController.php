@@ -35,7 +35,7 @@ class KakApiController extends Controller
         $user = $request->user();
         $query = KAK::with(['status', 'tipeKegiatan']);
 
-        if (!in_array($user->role_id, [1, 2, 3])) {
+        if (! in_array($user->role_id, [1, 2, 3])) {
             return response()->json(['message' => 'Akses ditolak.'], 403);
         }
 

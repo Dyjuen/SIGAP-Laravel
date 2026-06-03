@@ -10,6 +10,7 @@ use App\Models\KAKTahapan;
 use App\Models\KAKTarget;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class KakService
@@ -218,12 +219,12 @@ class KakService
         return $days > 0 ? "{$months} Bulan {$days} Hari" : "{$months} Bulan";
     }
 
-    public function applyListFilters($query, User $user): \Illuminate\Database\Eloquent\Builder
+    public function applyListFilters($query, User $user): Builder
     {
         if ($user->role_id === 3) {
             // Pengusul: own KAKs in statuses Draft(1), Review(2), Approved(3), Rejected(4), Revisi(5)
             $query->where('pengusul_user_id', $user->user_id)
-                  ->whereIn('status_id', [1, 2, 3, 4, 5]);
+                ->whereIn('status_id', [1, 2, 3, 4, 5]);
         } elseif ($user->role_id === 2) {
             // Verifikator: KAKs in Review(2), Approved(3), Rejected(4), Revisi(5)
             // that match their Tipe Kegiatan

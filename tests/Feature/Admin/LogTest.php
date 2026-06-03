@@ -27,7 +27,7 @@ class LogTest extends TestCase
         }
     }
 
-        /**
+    /**
      * Test Case: LGN-I-003, USR-I-004, MK-F-006
      */
     public function test_admin_can_view_logs_page()

@@ -119,7 +119,7 @@ class KegiatanService
     private function storeSuratPengantar(UploadedFile $file, string $filename): string|false
     {
         $contentType = $this->resolveContentType($file);
-        $path = 'surat-pengantar/' . $filename;
+        $path = 'surat-pengantar/'.$filename;
 
         $stream = fopen($file->getRealPath(), 'r');
         if ($stream === false) {
