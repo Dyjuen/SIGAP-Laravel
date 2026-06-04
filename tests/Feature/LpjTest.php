@@ -778,4 +778,66 @@ class LpjTest extends TestCase
             )
         );
     }
+
+    /**
+     * Test Case: LPJ-F-003 - Revisi LPJ: Validasi Field Kosong
+     */
+    public function test_revise_lpj_validates_empty_comments(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
+        $this->submitLpj($kegiatan);
+
+        $anggaran = $kegiatan->kak->anggaran->first();
+
+        $response = $this->actingAs($this->bendahara)
+            ->post(route('lpj.revise', $kegiatan), [
+                'anggaran_comments' => [
+                    ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => ''],
+                ],
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['anggaran_comments.0.catatan_reviewer']);
+    }
+
+    /**
+     * Test Case: LPJ-F-004 - Revisi LPJ: Validasi Karakter Max
+     */
+    public function test_revise_lpj_validates_max_characters(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
+        $this->submitLpj($kegiatan);
+
+        $anggaran = $kegiatan->kak->anggaran->first();
+        $longComment = str_repeat('a', 1001);
+
+        $response = $this->actingAs($this->bendahara)
+            ->post(route('lpj.revise', $kegiatan), [
+                'anggaran_comments' => [
+                    ['id' => $anggaran->anggaran_id, 'catatan_reviewer' => $longComment],
+                ],
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['anggaran_comments.0.catatan_reviewer']);
+    }
+
+    /**
+     * Test Case: LPJ-F-005 - Revisi LPJ: ID Lampiran Invalid
+     */
+    public function test_revise_lpj_validates_invalid_lampiran_id(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
+        $this->submitLpj($kegiatan);
+
+        $response = $this->actingAs($this->bendahara)
+            ->post(route('lpj.revise', $kegiatan), [
+                'lampiran_comments' => [
+                    ['id' => 999999, 'catatan_reviewer' => 'Invalid ID'],
+                ],
+            ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['lampiran_comments.0.id']);
+    }
 }

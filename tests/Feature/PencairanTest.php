@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\FundsReleasedMail;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
@@ -10,6 +11,7 @@ use App\Models\PencairanDana;
 use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class PencairanTest extends TestCase
@@ -525,5 +527,35 @@ class PencairanTest extends TestCase
 
         $response->assertStatus(302);
         $response->assertSessionHasErrors(['message']);
+    }
+
+    public function test_bendahara_can_search_pencairan_by_activity_name(): void
+    {
+        $kegiatan1 = $this->createKegiatanAtBendaharaCair($this->pengusul);
+        // Rename the first one
+        $kegiatan1->kak->update(['nama_kegiatan' => 'Seminar Laravel']);
+
+        $kegiatan2 = $this->createKegiatanAtBendaharaCair($this->pengusulLain);
+        $kegiatan2->kak->update(['nama_kegiatan' => 'Pelatihan Flutter']);
+
+        $response = $this->actingAs($this->bendahara)->get(route('pencairan.index', ['search' => 'Laravel']));
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Pencairan/Index')
+                ->has('kegiatans', 1)
+                ->where('kegiatans.0.nama_kegiatan', 'Seminar Laravel')
+            );
+    }
+
+    public function test_selesai_pencairan_triggers_email_notification(): void
+    {
+        Mail::fake();
+        $kegiatan = $this->createKegiatanAtBendaharaCair($this->pengusul);
+
+        $response = $this->actingAs($this->bendahara)->post(route('pencairan.selesai', $kegiatan));
+
+        $response->assertStatus(302);
+        Mail::assertQueued(FundsReleasedMail::class);
     }
 }

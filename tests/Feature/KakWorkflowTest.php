@@ -369,6 +369,50 @@ class KakWorkflowTest extends TestCase
     /**
      * Test Case: KAK-IT-013 - Log History: Cek riwayat status di tab History
      */
+    public function test_log_history_transitions(): void
+    {
+        $pengusul = User::factory()->create(['role_id' => 3]);
+        $verif = $this->createVerifikator(1);
+        $kak = KAK::factory()->create([
+            'pengusul_user_id' => $pengusul->user_id,
+            'status_id' => 1,
+            'tipe_kegiatan_id' => 1,
+        ]);
+
+        // Status 1 -> 2 (Submit)
+        $this->actingAs($pengusul)->post(route('kak.submit', $kak->kak_id));
+
+        // Status 2 -> 5 (Revise)
+        $this->actingAs($verif)->post(route('kak.revise', $kak->kak_id), [
+            'catatan' => 'Revision note',
+        ]);
+
+        // Status 5 -> 2 (Resubmit)
+        $this->actingAs($pengusul)->post(route('kak.resubmit', $kak->kak_id));
+
+        // Cek log status
+        $this->assertDatabaseHas('t_kak_log_status', [
+            'kak_id' => $kak->kak_id,
+            'status_id_lama' => 1,
+            'status_id_baru' => 2,
+            'actor_user_id' => $pengusul->user_id,
+        ]);
+
+        $this->assertDatabaseHas('t_kak_log_status', [
+            'kak_id' => $kak->kak_id,
+            'status_id_lama' => 2,
+            'status_id_baru' => 5,
+            'actor_user_id' => $verif->user_id,
+        ]);
+
+        $this->assertDatabaseHas('t_kak_log_status', [
+            'kak_id' => $kak->kak_id,
+            'status_id_lama' => 5,
+            'status_id_baru' => 2,
+            'actor_user_id' => $pengusul->user_id,
+        ]);
+    }
+
     /**
      * Test Case: KAK-IT-023 - Mail: Mail Failure Handling
      */

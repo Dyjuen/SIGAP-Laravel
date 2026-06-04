@@ -263,4 +263,24 @@ class MonitoringKegiatanTest extends TestCase
                 ->where('kegiatans.data.0.dates.accWD2', null) // Not yet approved
         );
     }
+
+    public function test_monitoring_filter_by_kak_type(): void
+    {
+        $admin = $this->createAdmin();
+        $kak1 = KAK::factory()->create(['tipe_kegiatan_id' => 1]);
+        $kak2 = KAK::factory()->create(['tipe_kegiatan_id' => 2]);
+
+        Kegiatan::create(['kak_id' => $kak1->kak_id]);
+        Kegiatan::create(['kak_id' => $kak2->kak_id]);
+
+        $response = $this->actingAs($admin)->get(route('kegiatan.monitoring', ['tipe_kegiatan_id' => 1]));
+
+        $response->assertStatus(200);
+        $response->assertInertia(
+            fn (AssertableInertia $page) => $page
+                ->component('Kegiatan/Monitoring')
+                ->has('kegiatans.data', 1)
+                ->where('kegiatans.data.0.kak_id', $kak1->kak_id)
+        );
+    }
 }

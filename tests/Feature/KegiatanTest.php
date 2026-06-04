@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Events\KegiatanDiajukan;
 use App\Mail\KAKWorkflowMail;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Database\Seeders\MasterDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -655,5 +657,158 @@ class KegiatanTest extends TestCase
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
 
         $this->actingAs($bendahara)->get("/kegiatan/{$kegiatan->kegiatan_id}")->assertStatus(200);
+    }
+
+    /**
+     * Test Case: TC-K-F21 - Modul PPK-WD2: Log status dibuat saat kegiatan dibuat
+     */
+    public function test_audit_log_created_when_kegiatan_submitted(): void
+    {
+        Storage::fake('supabase');
+        $kak = $this->createApprovedKak($this->pengusul);
+        $file = UploadedFile::fake()->create('surat.pdf', 100);
+
+        $this->actingAs($this->pengusul)->post('/kegiatan', [
+            'kak_id' => $kak->kak_id,
+            'penanggung_jawab_manual' => 'John Doe',
+            'pelaksana_manual' => 'Jane Doe',
+            'surat_pengantar' => $file,
+        ]);
+
+        $kegiatan = Kegiatan::first();
+
+        $this->assertDatabaseHas('t_kegiatan_log_status', [
+            'kegiatan_id' => $kegiatan->kegiatan_id,
+            'status_id_lama' => 3, // Disetujui Verifikator
+            'status_id_baru' => 6, // Review PPK
+            'actor_user_id' => $this->pengusul->user_id,
+            'catatan' => 'Mengajukan Kegiatan',
+        ]);
+    }
+
+    public function test_pengusul_can_search_approved_kaks_by_name(): void
+    {
+        $this->createApprovedKak($this->pengusul);
+        $otherKak = KAK::create([
+            'nama_kegiatan' => 'Workshop IT dan Bisnis',
+            'deskripsi_kegiatan' => 'Test Deskripsi',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 3,
+            'tanggal_mulai' => now()->addDays(1),
+            'tanggal_selesai' => now()->addDays(5),
+            'tipe_kegiatan_id' => 1,
+            'mata_anggaran_id' => 1,
+        ]);
+
+        $response = $this->actingAs($this->pengusul)->get('/kegiatan?search=Workshop');
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Index')
+                ->has('approvedKaks', 1)
+                ->where('approvedKaks.0.nama_kegiatan', 'Workshop IT dan Bisnis')
+            );
+    }
+
+    public function test_ppk_and_wadir_can_search_pending_kegiatan_by_name(): void
+    {
+        $kak1 = $this->createApprovedKak($this->pengusul);
+        $kegiatan1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan1->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Aktif']);
+
+        $kak2 = KAK::create([
+            'nama_kegiatan' => 'Seminar Kewirausahaan Mahasiswa',
+            'deskripsi_kegiatan' => 'Test Deskripsi',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 6,
+            'tanggal_mulai' => now()->addDays(1),
+            'tanggal_selesai' => now()->addDays(5),
+            'tipe_kegiatan_id' => 1,
+            'mata_anggaran_id' => 1,
+        ]);
+        $kegiatan2 = Kegiatan::create(['kak_id' => $kak2->kak_id]);
+        KegiatanApproval::create(['kegiatan_id' => $kegiatan2->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Aktif']);
+
+        $response = $this->actingAs($this->ppk)->get('/kegiatan?search=Seminar');
+
+        $response->assertStatus(200)
+            ->assertInertia(fn ($page) => $page
+                ->component('Kegiatan/Index')
+                ->has('pendingKegiatan', 1)
+                ->where('pendingKegiatan.0.kak.nama_kegiatan', 'Seminar Kewirausahaan Mahasiswa')
+            );
+    }
+
+    public function test_kegiatan_update_validation_rejects_invalid_date_range(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $response = $this->actingAs($this->pengusul)->put("/kegiatan/{$kegiatan->kegiatan_id}", [
+            'nama_kegiatan' => 'Update Kegiatan Valid',
+            'deskripsi_kegiatan' => str_repeat('a', 60),
+            'tanggal_mulai' => now()->addDays(5)->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(), // earlier than start date
+            'lokasi' => 'Gedung Serbaguna PNJ',
+            'mata_anggaran_id' => 1,
+        ]);
+
+        $response->assertSessionHasErrors(['tanggal_selesai']);
+    }
+
+    public function test_kegiatan_update_validation_max_characters(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $response = $this->actingAs($this->pengusul)->put("/kegiatan/{$kegiatan->kegiatan_id}", [
+            'nama_kegiatan' => str_repeat('a', 201), // Max is 200
+            'deskripsi_kegiatan' => str_repeat('a', 60),
+            'tanggal_mulai' => now()->addDays(1)->toDateString(),
+            'tanggal_selesai' => now()->addDays(5)->toDateString(),
+            'lokasi' => str_repeat('l', 201), // Max is 200
+            'mata_anggaran_id' => 1,
+        ]);
+
+        $response->assertSessionHasErrors(['nama_kegiatan', 'lokasi']);
+    }
+
+    public function test_kegiatan_update_strips_xss_tags(): void
+    {
+        $kak = $this->createApprovedKak($this->pengusul);
+        $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
+
+        $response = $this->actingAs($this->pengusul)->put("/kegiatan/{$kegiatan->kegiatan_id}", [
+            'nama_kegiatan' => '<b>Bold Nama Kegiatan</b><script>alert(1)</script>',
+            'deskripsi_kegiatan' => str_repeat('a', 50).'<iframe src="malicious.html"></iframe>',
+            'tanggal_mulai' => now()->addDays(1)->toDateString(),
+            'tanggal_selesai' => now()->addDays(5)->toDateString(),
+            'lokasi' => 'Gedung Serbaguna PNJ',
+            'mata_anggaran_id' => 1,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('t_kak', [
+            'kak_id' => $kak->kak_id,
+            'nama_kegiatan' => 'Bold Nama Kegiatanalert(1)', // script & b stripped
+            'deskripsi_kegiatan' => str_repeat('a', 50), // iframe stripped
+        ]);
+    }
+
+    public function test_kegiatan_submission_dispatches_event(): void
+    {
+        Event::fake();
+        Storage::fake('supabase');
+        $kak = $this->createApprovedKak($this->pengusul);
+        $file = UploadedFile::fake()->create('surat.pdf', 100);
+
+        $this->actingAs($this->pengusul)->post('/kegiatan', [
+            'kak_id' => $kak->kak_id,
+            'penanggung_jawab_manual' => 'John Doe',
+            'pelaksana_manual' => 'Jane Doe',
+            'surat_pengantar' => $file,
+        ]);
+
+        Event::assertDispatched(KegiatanDiajukan::class);
     }
 }

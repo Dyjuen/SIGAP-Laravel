@@ -118,4 +118,22 @@ class UserValidationTest extends TestCase
 
         $response->assertSessionHasErrors('email');
     }
+
+    /**
+     * Test Case: USR-F-022 - Validasi Edit: Format Email Tidak Valid
+     */
+    public function test_email_must_be_valid_format_on_edit()
+    {
+        $admin = User::factory()->create(['role_id' => 1]);
+        $userToEdit = User::factory()->create(['email' => 'testdika@gmail.com']);
+
+        $response = $this->actingAs($admin)
+            ->put("/admin/user-management/{$userToEdit->user_id}", [
+                'nama_lengkap' => 'Admin',
+                'email' => 'testingdika@', // Invalid format
+                'role_ids' => [1],
+            ]);
+
+        $response->assertSessionHasErrors('email');
+    }
 }

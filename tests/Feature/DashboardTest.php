@@ -224,4 +224,24 @@ class DashboardTest extends TestCase
             ->where('panduans.1.judul', 'P3')
         );
     }
+
+    /**
+     * Test Case: TC-D-F08 - Dashboard: Admin/default melihat statistik umum
+     */
+    public function test_admin_sees_general_stats(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]); // Admin
+
+        $response = $this->actingAs($admin)->get(route('dashboard'));
+
+        $response->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard')
+                ->has('stats')
+                ->where('stats.total_kak', 0)
+                ->where('stats.total_kegiatan', 0)
+                ->where('stats.pending_approvals', 0)
+                ->has('panduans')
+            );
+    }
 }

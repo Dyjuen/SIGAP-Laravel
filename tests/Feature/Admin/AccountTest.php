@@ -144,6 +144,87 @@ class AccountTest extends TestCase
     }
 
     /**
+     * Test Case: USR-I-001 - Tambah -> Login: User Baru Bisa Login
+     */
+    public function test_newly_created_user_can_login(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]);
+
+        // Create user via HTTP Request
+        $this->actingAs($admin)
+            ->post('/admin/user-management', [
+                'nama_lengkap' => 'Test User 01',
+                'username' => 'testuser01',
+                'email' => 'test01@example.com',
+                'password' => 'password123',
+                'password_confirmation' => 'password123',
+                'role_ids' => [3],
+            ]);
+
+        // Logout admin
+        $this->post('/logout');
+
+        // Login as new user
+        $response = $this->post('/login', [
+            'username' => 'testuser01',
+            'password' => 'password123',
+        ]);
+
+        $this->assertAuthenticated();
+    }
+
+    /**
+     * Test Case: USR-I-002 - Edit Role -> Akses: Perubahan Role Langsung Berlaku
+     */
+    public function test_user_role_change_applies_immediately(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]);
+        $user = User::factory()->create(['role_id' => 2]); // Verifikator initially
+
+        // Admin updates user role to Pengusul (3)
+        $this->actingAs($admin)
+            ->put("/admin/user-management/{$user->user_id}", [
+                'nama_lengkap' => $user->nama_lengkap,
+                'email' => $user->email,
+                'role_ids' => [3],
+            ]);
+
+        // Act as the updated user and try to access a verifikator-only route
+        // Assuming /admin/logs/index is for Admin only, maybe another route?
+        // Let's use /admin/user-management as an example of a protected route
+        $response = $this->actingAs($user)->get('/admin/user-management');
+
+        // Should be forbidden since they are no longer Admin/Verifikator with access
+        $response->assertStatus(403);
+    }
+
+    /**
+     * Test Case: USR-I-003 - Hapus -> Login: User Terhapus Tidak Bisa Login
+     */
+    public function test_deleted_user_cannot_login(): void
+    {
+        $admin = User::factory()->create(['role_id' => 1]);
+        $user = User::factory()->create([
+            'username' => 'testuser01',
+            'password_hash' => Hash::make('password123'),
+        ]);
+
+        // Admin deletes user
+        $this->actingAs($admin)->delete("/admin/user-management/{$user->user_id}");
+
+        // Logout Admin
+        $this->post('/logout');
+
+        // Attempt login with deleted user
+        $response = $this->post('/login', [
+            'username' => 'testuser01',
+            'password' => 'password123',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    /**
      * Test Case: USR-F-024 - Hapus User: Konfirmasi Hapus (Ya)
      */
     public function test_admin_can_delete_user(): void

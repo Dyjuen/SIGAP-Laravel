@@ -74,6 +74,67 @@ class AuthenticationTest extends TestCase
     }
 
     /**
+     * Test Case: LGN-F-005 - Login: Login Case-Sensitive Password
+     */
+    public function test_users_can_not_authenticate_with_case_sensitive_invalid_password(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'admin',
+            'password_hash' => bcrypt('admin123'),
+        ]);
+
+        $response = $this->post('/login', [
+            'username' => 'admin',
+            'password' => 'Admin123',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors(['username']);
+    }
+
+    /**
+     * Test Case: LGN-F-006 - Validasi Form: Validasi Input Kosong
+     */
+    public function test_login_validates_empty_inputs(): void
+    {
+        $response = $this->post('/login', [
+            'username' => '',
+            'password' => '',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors(['username', 'password']);
+    }
+
+    /**
+     * Test Case: LGN-F-007 - Validasi Form: Validasi Username Kosong
+     */
+    public function test_login_validates_empty_username(): void
+    {
+        $response = $this->post('/login', [
+            'username' => '',
+            'password' => 'password123',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors(['username']);
+    }
+
+    /**
+     * Test Case: LGN-F-008 - Validasi Form: Validasi Password Kosong
+     */
+    public function test_login_validates_empty_password(): void
+    {
+        $response = $this->post('/login', [
+            'username' => 'admin',
+            'password' => '',
+        ]);
+
+        $this->assertGuest();
+        $response->assertSessionHasErrors(['password']);
+    }
+
+    /**
      * Test Case: LGN-I-002 - Logout & Session: Logout Lalu Akses Dashboard
      */
     public function test_users_can_logout(): void
@@ -153,6 +214,42 @@ class AuthenticationTest extends TestCase
         // We'll verify exact message later or just that it fails
     }
 
+    /**
+     * Test Case: LGN-F-010 - Rate Limiting - Release
+     */
+    public function test_login_rate_limiting_releases_after_timeout(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'testuser',
+            'password_hash' => bcrypt('password'),
+        ]);
+
+        // Attempt 5 times with wrong password to trigger lockout
+        for ($i = 0; $i < 5; $i++) {
+            $this->post('/login', [
+                'username' => 'testuser',
+                'password' => 'wrong-password',
+            ]);
+        }
+
+        // 6th attempt should be locked out
+        $this->post('/login', [
+            'username' => 'testuser',
+            'password' => 'password',
+        ])->assertSessionHasErrors(['username']);
+
+        // Travel 60 seconds into the future
+        $this->travel(61)->seconds();
+
+        // 7th attempt with correct password should succeed
+        $response = $this->post('/login', [
+            'username' => 'testuser',
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+    }
+
     public function test_login_prevents_sql_injection(): void
     {
         User::factory()->create([
@@ -222,5 +319,25 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $response->assertCookie(Auth::guard()->getRecallerName());
+    }
+
+    /**
+     * Test Case: LGN-F-014 - Ingat Saya: Tanpa Centang Ingat Saya
+     */
+    public function test_users_can_authenticate_without_remember_me(): void
+    {
+        $user = User::factory()->create([
+            'username' => 'testuser',
+            'password_hash' => bcrypt($password = 'password'),
+        ]);
+
+        $response = $this->post('/login', [
+            'username' => 'testuser',
+            'password' => $password,
+            // 'remember' is explicitly omitted
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertCookieMissing(Auth::guard()->getRecallerName());
     }
 }
