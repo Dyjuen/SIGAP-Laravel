@@ -144,7 +144,7 @@ class _LpjListPageState extends State<LpjListPage> {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          colors: [Color(0xFF33C8DA), Color(0xFF2BA9B8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

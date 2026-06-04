@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../core/app_theme.dart';
 import 'dashboard_router.dart';
 
 class LoginPage extends StatefulWidget {
@@ -155,6 +156,10 @@ class _LoginPageState extends State<LoginPage> {
                                   'assets/images/logoauth.svg',
                                   width: 40,
                                   height: 40,
+                                  colorFilter: const ColorFilter.mode(
+                                    AppTheme.primary,
+                                    BlendMode.srcIn,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 24),

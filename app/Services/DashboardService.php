@@ -119,6 +119,10 @@ class DashboardService
             ->where('status', 'Disetujui')
             ->count();
 
+        $rejectedCount = KegiatanApproval::where('approval_level', 'PPK')
+            ->where('status', 'Ditolak')
+            ->count();
+
         $totalKegiatan = Kegiatan::count();
 
         $pendingKegiatan = Kegiatan::with(['kak.pengusul', 'kak.tipeKegiatan'])
@@ -142,6 +146,7 @@ class DashboardService
             'stats' => [
                 'pending_count' => $pendingCount,
                 'approved_count' => $approvedCount,
+                'rejected_count' => $rejectedCount,
                 'total_kegiatan' => $totalKegiatan,
             ],
             'pending_kegiatan' => $pendingKegiatan,
@@ -209,6 +214,10 @@ class DashboardService
             ->when($tipeKegiatanId, fn ($q) => $q->where('tipe_kegiatan_id', $tipeKegiatanId))
             ->count();
 
+        $rejectedKak = KAK::whereIn('status_id', [4, 5])
+            ->when($tipeKegiatanId, fn ($q) => $q->where('tipe_kegiatan_id', $tipeKegiatanId))
+            ->count();
+
         $totalKak = KAK::when($tipeKegiatanId, fn ($q) => $q->where('tipe_kegiatan_id', $tipeKegiatanId))
             ->count();
 
@@ -233,6 +242,7 @@ class DashboardService
             'stats' => [
                 'pending_kak' => $pendingKak,
                 'approved_kak' => $approvedKak,
+                'rejected_kak' => $rejectedKak,
                 'total_kak' => $totalKak,
             ],
             'recent_kaks' => $recentKaks,
@@ -353,10 +363,22 @@ class DashboardService
         $totalKegiatan = Kegiatan::count();
         $pendingApprovals = KegiatanApproval::where('status', 'Aktif')->count();
 
+        $approvedKak = KAK::where('status_id', 3)->count();
+
+        $kegiatanSelesai = Kegiatan::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('t_kegiatan_approval as ka')
+                ->whereColumn('ka.kegiatan_id', 't_kegiatan.kegiatan_id')
+                ->where('ka.approval_level', 'Bendahara-Setor')
+                ->where('ka.status', 'Disetujui');
+        })->count();
+
         return [
             'total_kak' => $totalKak,
             'total_kegiatan' => $totalKegiatan,
             'pending_approvals' => $pendingApprovals,
+            'approved_kak' => $approvedKak,
+            'kegiatan_selesai' => $kegiatanSelesai,
         ];
     }
 

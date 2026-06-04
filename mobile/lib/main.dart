@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
@@ -140,11 +141,22 @@ class _MyAppState extends State<MyApp> {
           onPrimary: Colors.white,
           secondary: const Color(0xFF2BA9B8),
           surface: Colors.white,
-          background: const Color(0xFFF8FAFC),
-          onBackground: const Color(0xFF1F2937),
           onSurface: const Color(0xFF1F2937),
         ),
         useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Color(0xFF0F172A),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light,
+          ),
+        ),
       ),
       routes: {
         '/lpj': (context) => const LpjListPage(),

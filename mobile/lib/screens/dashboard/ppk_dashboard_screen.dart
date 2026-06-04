@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/monitoring_provider.dart';
 import '../../models/dashboard_model.dart';
-import '../profile_page.dart';
 import '../ppk/ppk_kegiatan_list_page.dart';
 import '../ppk/ppk_kegiatan_detail_page.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../help_guide_page.dart';
 import '../pengusul/kegiatan_page.dart';
 import '../kegiatan_monitoring_page.dart';
-import '../../widgets/dashboard_drawer.dart';
-import '../../widgets/blue_stat_card.dart';
+import '../pengusul/lpj_list_page.dart';
+import '../../widgets/stat_card.dart';
+import '../../widgets/sigap_app_bar.dart';
+import '../../widgets/status_badge.dart';
 
 class PpkDashboardScreen extends StatefulWidget {
   const PpkDashboardScreen({super.key});
@@ -52,36 +53,29 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 52,
-            height: 52,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: tintColor,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: iconColor.withOpacity(0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: iconColor.withValues(alpha: 0.12), width: 1),
             ),
             child: Icon(
               icon,
               color: iconColor,
-              size: 26,
+              size: 22,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 7),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: GoogleFonts.figtree(
+            style: AppTheme.label.copyWith(
+              color: AppTheme.textPrimary,
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1F2937),
-              height: 1.25,
             ),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ],
@@ -94,20 +88,16 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
     final String displayName = user?.namaLengkap.split(' ').first ?? 'User';
-    final String roleLabel = user?.roleId == 4
-        ? 'PPK (Pengampu Kegiatan)'
-        : 'Wakil Direktur II';
+    final String roleLabel = user?.roleId == 4 ? 'PPK' : 'WADIR II';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: const DashboardAppBar(),
+      backgroundColor: AppTheme.background,
+      appBar: SigapAppBar(roleLabel: user?.roleId == 4 ? 'PPK KEGIATAN' : 'WAKIL DIREKTUR II'),
       body: Consumer<BaseDashboardProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading) {
             return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
-              ),
+              child: CircularProgressIndicator(color: AppTheme.primary),
             );
           }
 
@@ -119,38 +109,32 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
-                      Icons.error_outline,
+                      Icons.error_outline_rounded,
                       size: 64,
-                      color: Color(0xFFE57373),
+                      color: AppTheme.danger,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'Terjadi Kesalahan',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                        fontFamily: 'Figtree',
-                      ),
+                      style: AppTheme.heading,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       provider.errorMessage,
-                      style: const TextStyle(color: Color(0xFF64748B)),
+                      style: AppTheme.body.copyWith(color: AppTheme.textSecondary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => provider.loadDashboard(),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Coba Lagi'),
+                    ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF33C8DA),
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppTheme.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
+                      onPressed: () => provider.loadDashboard(),
+                      child: Text('Coba Lagi', style: AppTheme.bodyBold.copyWith(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -163,411 +147,273 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
 
           return RefreshIndicator(
             onRefresh: () => provider.loadDashboard(),
-            color: const Color(0xFF33C8DA),
+            color: AppTheme.primary,
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Greeting Section
-                    Column(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Greeting Section
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${_getGreeting()}, $displayName!',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF0F172A),
-                            fontFamily: 'Figtree',
-                            letterSpacing: -0.5,
+                          '${_getGreeting()},',
+                          style: AppTheme.caption.copyWith(
+                            color: AppTheme.textSecondary,
+                            fontSize: 14,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Dashboard $roleLabel — SIGAP PNJ',
-                          style: const TextStyle(
-                            color: Color(0xFF64748B),
-                            fontSize: 14,
-                            fontFamily: 'Figtree',
+                          displayName,
+                          style: AppTheme.displayLg,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Stat Cards row
+                  if (stats != null) ...[
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 2.2,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                      children: [
+                        StatCard(
+                          subtitle: 'KEGIATAN',
+                          label: 'Menunggu',
+                          value: stats.pendingCount ?? 0,
+                          isCyan: true,
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const PpkKegiatanListPage(),
+                                  ),
+                                )
+                                .then((_) => provider.loadDashboard());
+                          },
+                        ),
+                        StatCard(
+                          subtitle: 'KEGIATAN',
+                          label: 'Disetujui',
+                          value: stats.approvedCount ?? 0,
+                          isCyan: false,
+                          onTap: () {
+                            context.read<MonitoringProvider>().setSelectedFilter('Disetujui');
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const KegiatanMonitoringPage(),
+                                  ),
+                                )
+                                .then((_) => provider.loadDashboard());
+                          },
+                        ),
+                        StatCard(
+                          subtitle: 'KEGIATAN',
+                          label: 'Ditolak',
+                          value: stats.rejectedCount ?? 0,
+                          isCyan: false,
+                          onTap: () {
+                            context.read<MonitoringProvider>().setSelectedFilter('Ditolak');
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const KegiatanMonitoringPage(),
+                                  ),
+                                )
+                                .then((_) => provider.loadDashboard());
+                          },
+                        ),
+                        StatCard(
+                          subtitle: 'KEGIATAN',
+                          label: 'Total Kegiatan',
+                          value: stats.totalKegiatan ?? 0,
+                          isCyan: false,
+                          onTap: () {
+                            context.read<MonitoringProvider>().setSelectedFilter('Semua');
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const KegiatanMonitoringPage(),
+                                  ),
+                                )
+                                .then((_) => provider.loadDashboard());
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                  ],
+
+                  // Quick Actions
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Akses Cepat',
+                          style: AppTheme.subheading,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildQuickActionItem(
+                              icon: Icons.fact_check_rounded,
+                              label: 'Persetujuan',
+                              iconColor: AppTheme.primary,
+                              tintColor: AppTheme.primaryLight,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const PpkKegiatanListPage(),
+                                  ),
+                                ).then((_) => provider.loadDashboard());
+                              },
+                            ),
+                            _buildQuickActionItem(
+                              icon: Icons.receipt_long_rounded,
+                              label: 'LPJ',
+                              iconColor: AppTheme.success,
+                              tintColor: const Color(0xFFD1FAE5),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const LpjListPage(),
+                                  ),
+                                ).then((_) => provider.loadDashboard());
+                              },
+                            ),
+                            _buildQuickActionItem(
+                              icon: Icons.menu_book_rounded,
+                              label: 'Panduan',
+                              iconColor: const Color(0xFF64748B),
+                              tintColor: const Color(0xFFF1F5F9),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => const HelpGuidePage(),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Table/List container
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Menunggu Persetujuan',
+                              style: AppTheme.subheading,
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context)
+                                    .push(
+                                      MaterialPageRoute(
+                                        builder: (_) => const PpkKegiatanListPage(),
+                                      ),
+                                    )
+                                    .then((_) => provider.loadDashboard());
+                              },
+                              child: Text(
+                                'Lihat Semua',
+                                style: AppTheme.caption.copyWith(
+                                  color: AppTheme.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        if (items.isNotEmpty)
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: items.length > 5 ? 5 : items.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = items[index];
+                              return _ApprovalRow(item: item);
+                            },
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 40),
+                            decoration: AppTheme.cardDecoration,
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  const Icon(
+                                    Icons.done_all_rounded,
+                                    size: 48,
+                                    color: AppTheme.success,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Tidak ada kegiatan menunggu persetujuan',
+                                    style: AppTheme.body.copyWith(
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+
+                  // Footer
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'SIGAP PNJ v1.0.4',
+                          style: AppTheme.caption.copyWith(
+                            color: AppTheme.textTertiary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Politeknik Negeri Jakarta',
+                          style: AppTheme.caption.copyWith(
+                            color: AppTheme.textSecondary,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-
-                    // Stat Cards Grid
-                    if (stats != null) ...[
-                      GridView.count(
-                        crossAxisCount: 2,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 1.85,
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.of(context)
-                                  .push(
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const PpkKegiatanListPage(),
-                                    ),
-                                  )
-                                  .then((_) => provider.loadDashboard());
-                            },
-                            child: BlueStatCard(
-                              label: 'MENUNGGU',
-                              value: stats.pendingCount?.toString() ?? '0',
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<MonitoringProvider>()
-                                  .setSelectedFilter('Disetujui');
-                              Navigator.of(context)
-                                  .push(
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const KegiatanMonitoringPage(),
-                                    ),
-                                  )
-                                  .then((_) => provider.loadDashboard());
-                            },
-                            child: BlueStatCard(
-                              label: 'DISETUJUI',
-                              value: stats.approvedCount?.toString() ?? '0',
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              context
-                                  .read<MonitoringProvider>()
-                                  .setSelectedFilter('Semua');
-                              Navigator.of(context)
-                                  .push(
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const KegiatanMonitoringPage(),
-                                    ),
-                                  )
-                                  .then((_) => provider.loadDashboard());
-                            },
-                            child: BlueStatCard(
-                              label: 'TOTAL',
-                              value: stats.totalKegiatan?.toString() ?? '0',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      Text(
-                        'Akses Cepat',
-                        style: GoogleFonts.figtree(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      GridView.count(
-                        crossAxisCount: 4,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 8,
-                        mainAxisSpacing: 16,
-                        childAspectRatio: 0.8,
-                        children: [
-                          _buildQuickActionItem(
-                            icon: Icons.task_alt_rounded,
-                            label: 'Kegiatan',
-                            iconColor: const Color(0xFF3B82F6),
-                            tintColor: const Color(0xFF3B82F6).withOpacity(0.08),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const KegiatanPage(),
-                                ),
-                              ).then((_) => provider.loadDashboard());
-                            },
-                          ),
-                          _buildQuickActionItem(
-                            icon: Icons.fact_check_rounded,
-                            label: 'Persetujuan',
-                            iconColor: const Color(0xFF33C8DA),
-                            tintColor: const Color(0xFF33C8DA).withOpacity(0.08),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const PpkKegiatanListPage(),
-                                ),
-                              ).then((_) => provider.loadDashboard());
-                            },
-                          ),
-                          _buildQuickActionItem(
-                            icon: Icons.visibility_rounded,
-                            label: 'Monitoring',
-                            iconColor: const Color(0xFF6366F1),
-                            tintColor: const Color(0xFF6366F1).withOpacity(0.08),
-                            onTap: () {
-                              context.read<MonitoringProvider>().setSelectedFilter('Semua');
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const KegiatanMonitoringPage(),
-                                ),
-                              ).then((_) => provider.loadDashboard());
-                            },
-                          ),
-                          _buildQuickActionItem(
-                            icon: Icons.menu_book_rounded,
-                            label: 'Panduan',
-                            iconColor: const Color(0xFF64748B),
-                            tintColor: const Color(0xFF64748B).withOpacity(0.08),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const HelpGuidePage(),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // Section Title Table
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0F172A).withOpacity(0.03),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header block
-                          Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Menunggu Persetujuan Anda',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w900,
-                                          color: Color(0xFF0F172A),
-                                          fontFamily: 'Figtree',
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const Text(
-                                        'Daftar kegiatan yang memerlukan verifikasi segera',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Color(0xFF94A3B8),
-                                          fontFamily: 'Figtree',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.of(context)
-                                        .push(
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const PpkKegiatanListPage(),
-                                          ),
-                                        )
-                                        .then((_) => provider.loadDashboard());
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF33C8DA),
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 10,
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Semua →',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-
-                          // Items List
-                          if (items.isNotEmpty)
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: items.length > 5 ? 5 : items.length,
-                              separatorBuilder: (_, _) => const Divider(
-                                height: 1,
-                                color: Color(0xFFF1F5F9),
-                              ),
-                              itemBuilder: (context, index) {
-                                final item = items[index];
-                                return _ApprovalRow(item: item);
-                              },
-                            )
-                          else
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 48.0,
-                              ),
-                              child: Center(
-                                child: Column(
-                                  children: [
-                                    const Icon(
-                                      Icons.done_all_rounded,
-                                      size: 64,
-                                      color: Color(0xFFE2E8F0),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      'Tidak ada kegiatan yang menunggu.',
-                                      style: TextStyle(
-                                        color: Color(0xFF94A3B8),
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        fontFamily: 'Figtree',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isCyan;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.isCyan,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    IconData statIcon;
-    if (isCyan) {
-      statIcon = Icons.pending_actions_rounded;
-    } else if (label == 'DISETUJUI') {
-      statIcon = Icons.check_circle_rounded;
-    } else {
-      statIcon = Icons.assignment_rounded;
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isCyan ? const Color(0xFF33C8DA) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: isCyan ? null : Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: isCyan
-                ? const Color(0xFF33C8DA).withOpacity(0.15)
-                : const Color(0xFF0F172A).withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: isCyan
-                  ? Colors.white.withOpacity(0.8)
-                  : const Color(0xFF33C8DA),
-              letterSpacing: 0.5,
-              fontFamily: 'Figtree',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w900,
-                      color: isCyan ? Colors.white : const Color(0xFF0F172A),
-                      fontFamily: 'Figtree',
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 4),
-              Icon(
-                statIcon,
-                size: 18,
-                color: isCyan
-                    ? Colors.white.withOpacity(0.6)
-                    : const Color(0xFF94A3B8),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -580,8 +426,9 @@ class _ApprovalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
+    return Container(
+      decoration: AppTheme.cardDecoration,
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -595,11 +442,9 @@ class _ApprovalRow extends StatelessWidget {
                   children: [
                     Text(
                       item.nama,
-                      style: const TextStyle(
+                      style: AppTheme.subheading.copyWith(
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
-                        fontFamily: 'Figtree',
+                        color: AppTheme.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -607,37 +452,15 @@ class _ApprovalRow extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Pengusul: ${item.pengusulNama ?? '-'}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF64748B),
-                        fontFamily: 'Figtree',
-                      ),
+                      style: AppTheme.caption.copyWith(color: AppTheme.textSecondary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFFFEDD5)),
-                ),
-                child: const Text(
-                  'PENDING',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFC2410C),
-                  ),
-                ),
-              ),
+              const SizedBox(width: 12),
+              const StatusBadge(status: 'PENDING'),
             ],
           ),
           const SizedBox(height: 12),
@@ -652,20 +475,17 @@ class _ApprovalRow extends StatelessWidget {
                   children: [
                     if (item.tipe != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           item.tipe!.toUpperCase(),
-                          style: const TextStyle(
+                          style: AppTheme.label.copyWith(
                             fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF475569),
+                            color: const Color(0xFF475569),
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
@@ -676,16 +496,12 @@ class _ApprovalRow extends StatelessWidget {
                           const Icon(
                             Icons.calendar_today_outlined,
                             size: 12,
-                            color: Color(0xFF94A3B8),
+                            color: AppTheme.textTertiary,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             item.createdAt!,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Color(0xFF94A3B8),
-                              fontFamily: 'Figtree',
-                            ),
+                            style: AppTheme.caption.copyWith(color: AppTheme.textTertiary),
                           ),
                         ],
                       ),
@@ -693,43 +509,46 @@ class _ApprovalRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              ElevatedButton.icon(
+              ElevatedButton(
                 onPressed: () {
                   final int parsedId = int.tryParse(item.id) ?? 0;
                   if (parsedId > 0) {
                     Navigator.of(context)
                         .push(
                           MaterialPageRoute(
-                            builder: (_) =>
-                                PpkKegiatanDetailPage(kegiatanId: parsedId),
+                            builder: (_) => PpkKegiatanDetailPage(kegiatanId: parsedId),
                           ),
                         )
                         .then((value) {
                           if (value == true) {
-                            context
-                                .read<BaseDashboardProvider>()
-                                .loadDashboard();
+                            context.read<BaseDashboardProvider>().loadDashboard();
                           }
                         });
                   }
                 },
-                icon: const Text(
-                  'Detail',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                label: const Icon(Icons.arrow_forward_rounded, size: 14),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE0F7FA),
-                  foregroundColor: const Color(0xFF0E7490),
+                  backgroundColor: AppTheme.primaryLight,
+                  foregroundColor: AppTheme.primary,
                   elevation: 0,
                   shadowColor: Colors.transparent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Detail',
+                      style: AppTheme.bodyBold.copyWith(
+                        fontSize: 12,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_forward_rounded, size: 14, color: AppTheme.primary),
+                  ],
                 ),
               ),
             ],

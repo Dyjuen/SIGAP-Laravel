@@ -14,6 +14,7 @@ class DashboardStats {
   final int? rejectedCount;
   final int? totalVerified;
   final int? totalKegiatan;
+  final int? kegiatanSelesai;
 
   DashboardStats({
     required this.totalKak,
@@ -31,6 +32,7 @@ class DashboardStats {
     this.rejectedCount,
     this.totalVerified,
     this.totalKegiatan,
+    this.kegiatanSelesai,
   });
 
   factory DashboardStats.fromJson(Map<String, dynamic> json) {
@@ -45,11 +47,12 @@ class DashboardStats {
       lpjApproved: json['lpj_approved'],
       totalDanaDisusulkan: (json['total_dana_diusulkan'] as num?)?.toDouble(),
       totalDanaDicairkan: (json['total_dana_dicairkan'] as num?)?.toDouble(),
-      pendingCount: json['pending_count'] ?? json['pending_kak'] ?? json['review_kak'],
+      pendingCount: json['pending_count'] ?? json['pending_approvals'] ?? json['pending_kak'] ?? json['review_kak'],
       approvedCount: json['approved_count'] ?? json['approved_kak'],
       rejectedCount: json['rejected_count'] ?? json['rejected_kak'],
       totalVerified: json['total_verified'] ?? json['total_kak'],
       totalKegiatan: json['total_kegiatan'],
+      kegiatanSelesai: json['kegiatan_selesai'],
     );
   }
 
@@ -70,6 +73,7 @@ class DashboardStats {
       'rejected_count': rejectedCount,
       'total_verified': totalVerified,
       'total_kegiatan': totalKegiatan,
+      'kegiatan_selesai': kegiatanSelesai,
     };
   }
 }
