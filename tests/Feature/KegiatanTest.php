@@ -710,7 +710,7 @@ class KegiatanTest extends TestCase
             );
     }
 
-    public function test_ppk_and_wadir_can_search_pending_kegiatan_by_name(): void
+    public function test_ppk_and_wadir_can_search_kegiatan_waiting_approval_by_name(): void
     {
         $kak1 = $this->createApprovedKak($this->pengusul);
         $kegiatan1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);
@@ -720,7 +720,7 @@ class KegiatanTest extends TestCase
             'nama_kegiatan' => 'Seminar Kewirausahaan Mahasiswa',
             'deskripsi_kegiatan' => 'Test Deskripsi',
             'pengusul_user_id' => $this->pengusul->user_id,
-            'status_id' => 6,
+            'status_id' => 3,
             'tanggal_mulai' => now()->addDays(1),
             'tanggal_selesai' => now()->addDays(5),
             'tipe_kegiatan_id' => 1,

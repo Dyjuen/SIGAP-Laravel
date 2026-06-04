@@ -7,6 +7,7 @@ use App\Http\Requests\ApproveKegiatanRequest;
 use App\Http\Requests\StoreKegiatanRequest;
 use App\Models\KAK;
 use App\Models\Kegiatan;
+use App\Models\TipeKegiatan;
 use App\Services\KegiatanMonitoringService;
 use App\Services\KegiatanService;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -25,21 +26,28 @@ class KegiatanController extends Controller
     {
         $user = $request->user();
         $role = $user->getRoleName();
+        $search = $request->search;
+        $operator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
 
         $approvedKaks = [];
         $pendingKegiatan = [];
 
         if ($role === 'Pengusul') {
             // KAKs approved by Verifikator (status 3) with no Kegiatan yet, owned by this user
-            $approvedKaks = KAK::with(['tipeKegiatan', 'mataAnggaran', 'ikus.iku'])
+            $query = KAK::with(['tipeKegiatan', 'mataAnggaran', 'ikus.iku'])
                 ->where('status_id', 3)
                 ->where('pengusul_user_id', $user->user_id)
-                ->whereDoesntHave('kegiatan')
-                ->get();
+                ->whereDoesntHave('kegiatan');
+
+            if ($search) {
+                $query->where('nama_kegiatan', $operator, '%'.$search.'%');
+            }
+
+            $approvedKaks = $query->get();
         } elseif ($role === 'PPK' || $role === 'Wadir') {
             $approvalLevel = $role === 'Wadir' ? 'Wadir2' : 'PPK';
 
-            $pendingKegiatan = Kegiatan::with([
+            $query = Kegiatan::with([
                 'kak.tipeKegiatan',
                 'kak.mataAnggaran',
                 'kak.pengusul',
@@ -48,8 +56,15 @@ class KegiatanController extends Controller
                 ->whereHas('activeApproval', function ($query) use ($approvalLevel) {
                     $query->where('approval_level', $approvalLevel)
                         ->where('status', 'Aktif');
-                })
-                ->get();
+                });
+
+            if ($search) {
+                $query->whereHas('kak', function ($q) use ($search, $operator) {
+                    $q->where('nama_kegiatan', $operator, '%'.$search.'%');
+                });
+            }
+
+            $pendingKegiatan = $query->get();
 
             // For Wadir, load PPK catatan from previous approved step
             if ($approvalLevel === 'Wadir2') {
@@ -66,6 +81,7 @@ class KegiatanController extends Controller
         return Inertia::render('Kegiatan/Index', [
             'approvedKaks' => $approvedKaks,
             'pendingKegiatan' => $pendingKegiatan,
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -178,8 +194,9 @@ class KegiatanController extends Controller
     {
         $user = $request->user();
         $searchTerm = $request->search;
+        $tipeKegiatanId = $request->tipe_kegiatan_id;
 
-        $kegiatans = $monitoringService->buildMonitoringQuery($user, $searchTerm)
+        $kegiatans = $monitoringService->buildMonitoringQuery($user, $searchTerm, $tipeKegiatanId)
             ->latest('kegiatan_id')
             ->paginate(10)
             ->withQueryString();
@@ -191,11 +208,13 @@ class KegiatanController extends Controller
         $kegiatans->setCollection($mappedKegiatans);
 
         $monitoringStats = $monitoringService->getStats($user);
+        $tipeKegiatans = TipeKegiatan::all();
 
         return Inertia::render('Kegiatan/Monitoring', [
             'kegiatans' => $kegiatans,
             'stats' => $monitoringStats,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'tipe_kegiatan_id']),
+            'tipeKegiatans' => $tipeKegiatans,
         ]);
     }
 }

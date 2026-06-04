@@ -58,6 +58,13 @@ class PencairanController extends Controller
                 $q->whereDate('tanggal_pencairan', '<=', $request->end_date);
             });
         }
+        if ($request->filled('search')) {
+            $operator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+            $search = $request->search;
+            $query->whereHas('kak', function ($q) use ($search, $operator) {
+                $q->where('nama_kegiatan', $operator, '%'.$search.'%');
+            });
+        }
 
         $kegiatans = $query->get();
 
@@ -89,6 +96,7 @@ class PencairanController extends Controller
 
         return Inertia::render('Pencairan/Index', [
             'kegiatans' => $kegiatans,
+            'filters' => $request->only(['search']),
         ]);
     }
 

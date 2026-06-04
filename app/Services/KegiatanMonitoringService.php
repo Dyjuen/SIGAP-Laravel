@@ -19,7 +19,7 @@ class KegiatanMonitoringService
     /**
      * Build the query for monitoring based on role.
      */
-    public function buildMonitoringQuery(User $user, ?string $searchTerm = null): Builder
+    public function buildMonitoringQuery(User $user, ?string $searchTerm = null, ?int $tipeKegiatanId = null): Builder
     {
         $query = Kegiatan::with(['kak.tipeKegiatan', 'approvals']);
         $role = $user->getRoleName();
@@ -29,10 +29,10 @@ class KegiatanMonitoringService
                 $q->where('pengusul_user_id', $user->user_id);
             });
         } elseif ($role === 'Verifikator') {
-            $tipeKegiatanId = $user->getVerifikatorTipeId();
-            if ($tipeKegiatanId !== null) {
-                $query->whereHas('kak', function ($q) use ($tipeKegiatanId) {
-                    $q->where('tipe_kegiatan_id', $tipeKegiatanId);
+            $userTipeKegiatanId = $user->getVerifikatorTipeId();
+            if ($userTipeKegiatanId !== null) {
+                $query->whereHas('kak', function ($q) use ($userTipeKegiatanId) {
+                    $q->where('tipe_kegiatan_id', $userTipeKegiatanId);
                 });
             }
         }
@@ -41,6 +41,12 @@ class KegiatanMonitoringService
             $operator = config('database.default') === 'pgsql' ? 'ilike' : 'like';
             $query->whereHas('kak', function ($q) use ($searchTerm, $operator) {
                 $q->where('nama_kegiatan', $operator, '%'.$searchTerm.'%');
+            });
+        }
+
+        if ($tipeKegiatanId !== null) {
+            $query->whereHas('kak', function ($q) use ($tipeKegiatanId) {
+                $q->where('tipe_kegiatan_id', $tipeKegiatanId);
             });
         }
 

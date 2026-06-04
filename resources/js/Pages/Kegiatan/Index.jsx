@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage, router } from '@inertiajs/react';
+import { Search, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 import KegiatanPengusulTable from './Components/KegiatanPengusulTable';
@@ -10,11 +11,55 @@ import KegiatanSubmitModal from './Components/KegiatanSubmitModal';
 import KegiatanApproveModal from './Components/KegiatanApproveModal';
 import KakPreviewModal from '../Kak/Components/KakPreviewModal'; // Reusing Kak's PDF Modal
 
-export default function Index({ auth, approvedKaks, pendingKegiatan }) {
+function debounce(func, wait) {
+    let timeout;
+    const executedFunction = function (...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+    executedFunction.cancel = function () {
+        clearTimeout(timeout);
+    };
+    return executedFunction;
+}
+
+export default function Index({ auth, approvedKaks, pendingKegiatan, filters }) {
     const role = auth.user?.role_id; // 3: Pengusul, 4: PPK, 5: Wadir
     const isPengusul = role === 3;
     const isPpk = role === 4;
     const isWadir = role === 5;
+
+    const [searchQuery, setSearchQuery] = useState(filters?.search || '');
+
+    const performSearch = useCallback(
+        debounce((query) => {
+            router.get(
+                route('kegiatan.index'),
+                { search: query },
+                { preserveState: true, preserveScroll: true }
+            );
+        }, 300),
+        []
+    );
+
+    const isMounted = useRef(false);
+
+    useEffect(() => {
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+        performSearch(searchQuery);
+        return () => performSearch.cancel();
+    }, [searchQuery, performSearch]);
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+    };
 
     // Form for Pengusul Submit
     const { data: submitData, setData: setSubmitData, post: postSubmit, processing: submitProcessing, reset: resetSubmit, errors: submitErrors } = useForm({
@@ -162,6 +207,30 @@ export default function Index({ auth, approvedKaks, pendingKegiatan }) {
                         title="Manajemen Kegiatan" 
                         description="Proses, setujui, dan kelola usulan kegiatan yang diajukan dengan mudah." 
                     />
+
+                    {/* Search Bar */}
+                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/40 backdrop-blur-md p-4 rounded-[28px] border border-white shadow-sm">
+                        <div className="relative w-full md:w-96 group">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                                <Search size={20} strokeWidth={2.5} />
+                            </div>
+                            <input
+                                type="text"
+                                className="block w-full pl-12 pr-11 py-3.5 bg-white/80 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm"
+                                placeholder="Cari usulan kegiatan..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery && (
+                                <button
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition-colors"
+                                    onClick={handleClearSearch}
+                                >
+                                    <X size={18} strokeWidth={2.5} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
                     
                     {/* SECTION for Pengusul: Submit Kegiatan */}
                     {isPengusul && (

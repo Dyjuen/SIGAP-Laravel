@@ -18,8 +18,8 @@ import {
 import Swal from 'sweetalert2';
 import clsx from 'clsx';
 
-export default function Index({ auth, kegiatans }) {
-    const [searchQuery, setSearchQuery] = useState('');
+export default function Index({ auth, kegiatans, filters }) {
+    const [searchQuery, setSearchQuery] = useState(filters?.search || '');
     const [processing, setProcessing] = useState(null); // stores kegiatan_id being processed
 
     const formatCurrency = (amount) => {

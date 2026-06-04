@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\KegiatanApproved;
+use App\Events\KegiatanDiajukan;
 use App\Exceptions\KegiatanException;
 use App\Models\KAK;
 use App\Models\Kegiatan;
@@ -101,6 +102,8 @@ class KegiatanService
                     'actor_user_id' => $actor->user_id,
                     'catatan' => 'Mengajukan Kegiatan',
                 ]);
+
+                event(new KegiatanDiajukan($kegiatan));
 
                 return $kegiatan;
             });

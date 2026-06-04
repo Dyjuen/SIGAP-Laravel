@@ -123,24 +123,34 @@ function debounce(func, wait) {
     return executedFunction;
 }
 
-export default function Monitoring({ auth, kegiatans, stats, filters }) {
+export default function Monitoring({ auth, kegiatans, stats, filters, tipeKegiatans }) {
     const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    const [tipeKegiatanId, setTipeKegiatanId] = useState(filters.tipe_kegiatan_id || '');
 
     const performSearch = useCallback(
-        debounce((query) => {
+        debounce((query, typeId) => {
             router.get(
                 route('kegiatan.monitoring'),
-                { search: query },
+                { 
+                    search: query,
+                    tipe_kegiatan_id: typeId || undefined
+                },
                 { preserveState: true, preserveScroll: true }
             );
         }, 300),
         []
     );
 
+    const isMounted = useRef(false);
+
     useEffect(() => {
-        performSearch(searchQuery);
+        if (!isMounted.current) {
+            isMounted.current = true;
+            return;
+        }
+        performSearch(searchQuery, tipeKegiatanId);
         return () => performSearch.cancel();
-    }, [searchQuery, performSearch]);
+    }, [searchQuery, tipeKegiatanId, performSearch]);
 
     const handleClearSearch = () => {
         setSearchQuery('');
@@ -279,25 +289,40 @@ export default function Monitoring({ auth, kegiatans, stats, filters }) {
 
                     {/* Actions & Filters Row */}
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/40 backdrop-blur-md p-4 rounded-[28px] border border-white shadow-sm">
-                        <div className="relative w-full md:w-96 group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
-                                <Search size={20} strokeWidth={2.5} />
+                        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto flex-1">
+                            <div className="relative w-full sm:w-80 group">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-cyan-500 transition-colors">
+                                    <Search size={20} strokeWidth={2.5} />
+                                </div>
+                                <input
+                                    type="text"
+                                    className="block w-full pl-12 pr-11 py-3.5 bg-white/80 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm"
+                                    placeholder="Cari nama kegiatan..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                {searchQuery && (
+                                    <button
+                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition-colors"
+                                        onClick={handleClearSearch}
+                                    >
+                                        <X size={18} strokeWidth={2.5} />
+                                    </button>
+                                )}
                             </div>
-                            <input
-                                type="text"
-                                className="block w-full pl-12 pr-11 py-3.5 bg-white/80 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm"
-                                placeholder="Cari nama kegiatan..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            {searchQuery && (
-                                <button
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-rose-500 transition-colors"
-                                    onClick={handleClearSearch}
-                                >
-                                    <X size={18} strokeWidth={2.5} />
-                                </button>
-                            )}
+
+                            <select
+                                className="block w-full sm:w-48 px-4 py-3.5 bg-white/80 border-2 border-slate-100 rounded-2xl text-sm font-bold text-slate-700 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all shadow-sm"
+                                value={tipeKegiatanId}
+                                onChange={(e) => setTipeKegiatanId(e.target.value)}
+                            >
+                                <option value="">Semua Tipe</option>
+                                {tipeKegiatans?.map((type) => (
+                                    <option key={type.tipe_kegiatan_id} value={type.tipe_kegiatan_id}>
+                                        {type.nama_tipe}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         
                         {auth.user.role_id === 3 && (
