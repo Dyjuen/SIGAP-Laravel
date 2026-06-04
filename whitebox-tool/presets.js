@@ -128,6 +128,34 @@ const PRESETS = {
 13->15(FALSE)`,
     },
 
+    "DashboardService:getPanduans": {
+        module: "Modul Dashboard",
+        node: `# DashboardService:getPanduans
+1:entry:public function getPanduans(?int $roleId):0
+2:if:! $roleId:1
+3:exit:return [];:0
+4:stmt:return Panduan::where(...)->orWhereNull(...)->get()->map(...)->toArray();:0`,
+        edge: `# Edges
+1->2
+2->3(TRUE)
+2->4(FALSE)`,
+    },
+
+    "DashboardService:getPpkStatsAndRecent": {
+        module: "Modul Dashboard",
+        node: `# DashboardService:getPpkStatsAndRecent
+1:entry:public function getPpkStatsAndRecent(int $limit = 5):0
+2:stmt:$pendingCount = ...count(); $approvedCount = ...count(); $rejectedCount = ...count();:0
+3:stmt:$totalKegiatan = Kegiatan::count();:0
+4:stmt:$pendingKegiatan = Kegiatan::with(...)->whereHas(...)->latest()->limit()->get()->map(...)->toArray();:0
+5:exit:return [...];:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5`,
+    },
+
     "DashboardService:getVerifikatorStatsAndRecent": {
         module: "Modul Dashboard",
         node: `# DashboardService:getVerifikatorStatsAndRecent
@@ -208,12 +236,278 @@ const PRESETS = {
 23->25(Loop Exit)`,
     },
 
+    "DashboardService:getDirekturDashboardData": {
+        module: "Modul Dashboard",
+        node: `# DashboardService:getDirekturDashboardData
+1:entry:public function getDirekturDashboardData(string $period):0
+2:stmt:$startDate = $this->getStartDate($period);:0
+3:stmt:return [...]:0`,
+        edge: `# Edges
+1->2
+2->3`,
+    },
+
+    "DashboardService:getBendaharaStatsAndKegiatans": {
+        module: "Modul Dashboard",
+        node: `# DashboardService:getBendaharaStatsAndKegiatans
+1:entry:public function getBendaharaStatsAndKegiatans():0
+2:stmt:Fetch $kegiatans with sums and roles:0
+3:stmt:Load anggaran sum:0
+4:stmt:Initialize $waitingCount, $disbursedCount, etc:0
+5:loop:map each $kegiatan:1
+6:stmt:$totalAnggaran, $totalDicairkan, $currentApproval:0
+7:stmt:$isWaitingDisbursement, $isDisbursed, $isLpjVerification:0
+8:if:$isWaitingDisbursement:1
+9:stmt:$waitingCount++; $totalUndisbursedAmount += $totalAnggaran;:0
+10:if:$isDisbursed:1
+11:stmt:$disbursedCount++; $totalDisbursedAmount += $totalAnggaran;:0
+12:if:$isLpjVerification && $kegiatan->lpj_submitted_at:2
+13:stmt:$lpjCount++;:0
+14:stmt:$status = 'waiting':0
+15:if:$isLpjVerification:1
+16:ternary:$status = $kegiatan->lpj_submitted_at ? 'lpj_submitted' : 'lpj_waiting';:1
+17:elseif:$isDisbursed:1
+18:stmt:$status = 'disbursed';:0
+19:stmt:return mapped data:0
+20:stmt:$pendingLpjs = ...:0
+21:exit:return stats and activities:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5
+5->6(Loop Body)
+6->7
+7->8
+8->9(TRUE)
+8->10(FALSE)
+9->10
+10->11(TRUE)
+10->12(FALSE)
+11->12
+12->13(TRUE)
+12->14(FALSE)
+13->14
+14->15
+15->16(TRUE)
+15->17(FALSE)
+16->19
+17->18(TRUE)
+17->19(FALSE)
+18->19
+19->5(Next)
+5->20(Loop Exit)
+20->21`,
+    },
+
+    "DashboardService:parseJurusan": {
+        module: "Modul Dashboard",
+        node: `# DashboardService:parseJurusan
+1:entry:private function parseJurusan($namaLengkap):0
+2:if:! $namaLengkap:1
+3:exit:return 'Unit Lain':0
+4:stmt:$patterns = [...]:0
+5:loop:foreach ($patterns as $jurusan => $pattern):1
+6:if:preg_match($pattern, $namaLengkap):1
+7:exit:return $jurusan:0
+8:exit:return 'Unit Lain':0`,
+        edge: `# Edges
+1->2
+2->3(TRUE)
+2->4(FALSE)
+4->5
+5->6(Loop Body)
+6->7(TRUE)
+6->5(FALSE/Next)
+5->8(Loop Exit)`,
+    },
+
+    "DashboardService:getTrends": {
+        module: "Modul Dashboard",
+        node: `# DashboardService:getTrends
+1:entry:private function getTrends(Carbon $startDate):0
+2:stmt:$curr, $end, $trends = []:0
+3:loop:while ($curr <= $end):1
+4:stmt:$s, $e, $label:0
+5:stmt:$cnt = count kegiatan in month:0
+6:stmt:$danaRencana = sum anggaran:0
+7:stmt:$danaRealisasi = sum pencairan:0
+8:stmt:$trends[] = [...]; $curr->addMonth():0
+9:exit:return $trends:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(Loop Body)
+4->5
+5->6
+6->7
+7->8
+8->3(Next)
+3->9(Loop Exit)`,
+    },
+
+    "DashboardDirekturController:getByJurusan": {
+        module: "Modul Dashboard (Analytics)",
+        node: `# DashboardDirekturController:getByJurusan
+1:entry:private function getByJurusan(Carbon $startDate, $topsisResults = null):0
+2:stmt:$users = User::all(); $jurusanUsers = [];:0
+3:loop:foreach ($users as $user):1
+4:stmt:$jur = $this->parseJurusan(...);:0
+5:if:! isset($jurusanUsers[$jur]):1
+6:stmt:$jurusanUsers[$jur] = [];:0
+7:stmt:$jurusanUsers[$jur][] = $user->user_id;:0
+8:ternary:$topsisByJurusan = $topsisResults ? ... : ...;:1
+9:loop:foreach ($topsisByJurusan as $namaJurusan => $list):1
+10:stmt:$jurusanAverages[...] = ...;:0
+11:stmt:Bulk load aggregates ($kakDiajukanMap, etc.):0
+12:loop:foreach ($jurusanUsers as $namaJurusan => $userIds):1
+13:stmt:$kakDiajukan = 0; ... $danaTerserap = 0;:0
+14:loop:foreach ($userIds as $uid):1
+15:stmt:$kakDiajukan += ...; ... $danaTerserap += ...;:0
+16:ternary:$persentaseSerapan = $danaDiminta > 0 ? ... : 0;:1
+17:stmt:$result[] = [...];:0
+18:stmt:usort($result, ...);:0
+19:exit:return $result;:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(Loop Body)
+4->5
+5->6(TRUE)
+5->7(FALSE)
+6->7
+7->3(Next)
+3->8(Loop Exit)
+8->9
+9->10(Loop Body)
+10->9(Next)
+9->11(Loop Exit)
+11->12
+12->13(Loop Body)
+13->14
+14->15(Loop Body)
+15->14(Next)
+14->16(Loop Exit)
+16->17
+17->12(Next)
+12->18(Loop Exit)
+18->19`,
+    },
+
     // ════════════════════════════════════════════════════════════
-    // MODUL 3: PPK-WD2 WORKFLOW
+    // MODUL 3: KAK (KERANGKA ACUAN KERJA)
+    // ════════════════════════════════════════════════════════════
+
+    "KakService:create": {
+        module: "Modul KAK",
+        node: `# KakService:create
+1:entry:public function create(array $data, User $actor):0
+2:stmt:DB::transaction(function () { ... });:0
+3:stmt:$kakData = $this->extractParentData($data);:0
+4:stmt:$kakData['kurun_waktu_pelaksanaan'] = $this->computeKurunWaktu(...);:0
+5:stmt:$kakData['pengusul_user_id'] = $actor->user_id; $kakData['status_id'] = 1;:0
+6:stmt:$kak = KAK::create($kakData);:0
+7:stmt:$this->saveChildren($kak, $data);:0
+8:exit:return $kak:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4
+4->5
+5->6
+6->7
+7->8`,
+    },
+
+    "KakService:update": {
+        module: "Modul KAK",
+        node: `# KakService:update
+1:entry:public function update(KAK $kak, array $data):0
+2:if:! in_array($kak->status_id, [1, 4, 5]):1
+3:exit:abort(403, 'Anda tidak dapat mengedit KAK ini.'):0
+4:stmt:DB::transaction(function () { ... });:0
+5:stmt:$kakData = $this->extractParentData($data);:0
+6:stmt:$kakData['kurun_waktu_pelaksanaan'] = $this->computeKurunWaktu(...);:0
+7:stmt:$kak->update($kakData);:0
+8:stmt:$this->saveChildren($kak, $data, true);:0
+9:exit:return $kak:0`,
+        edge: `# Edges
+1->2
+2->3(TRUE)
+2->4(FALSE)
+4->5
+5->6
+6->7
+7->8
+8->9`,
+    },
+
+    "KakService:saveChildren": {
+        module: "Modul KAK",
+        node: `# KakService:saveChildren
+1:entry:private function saveChildren(KAK $kak, array $data, bool $isUpdate = false):0
+2:stmt:$rawKak = ...; $manfaatData = ...;:0
+3:if:$isUpdate:1
+4:stmt:$kak->manfaat()->whereNotIn(...)->delete();:0
+5:loop:foreach ($manfaatData as $m):1
+6:if:$isUpdate && ! empty($m['manfaat_id']):1
+7:stmt:$kak->manfaat()->where(...)->update(...);:0
+8:stmt:KAKManfaat::create([...]);:0
+9:stmt:$tahapanData = ...;:0
+10:if:$isUpdate:1
+11:stmt:$kak->tahapan()->whereNotIn(...)->delete();:0
+12:loop:foreach ($tahapanData as $idx => $t):1
+13:if:$isUpdate && ! empty($t['tahapan_id']):1
+14:stmt:$kak->tahapan()->where(...)->update(...);:0
+15:stmt:KAKTahapan::create([...]);:0
+16:stmt:$indikatorData = ...;:0
+17:if:$isUpdate:1
+18:stmt:$kak->targets()->whereNotIn(...)->delete();:0
+19:loop:foreach ($indikatorData as $i):1
+20:if:$isUpdate && ! empty($i['target_id']):1
+21:stmt:$kak->targets()->where(...)->update(...);:0
+22:stmt:KAKTarget::create([...]);:0
+23:exit:void:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+4->5
+5->6(Loop Body)
+6->7(TRUE)
+6->8(FALSE)
+7->5(Next)
+8->5(Next)
+5->9(Loop Exit)
+9->10
+10->11(TRUE)
+10->12(FALSE)
+11->12
+12->13(Loop Body)
+13->14(TRUE)
+13->15(FALSE)
+14->12(Next)
+15->12(Next)
+12->16(Loop Exit)
+16->17
+17->18(TRUE)
+17->19(FALSE)
+18->19
+19->20(Loop Body)
+20->21(TRUE)
+20->22(FALSE)
+21->19(Next)
+22->19(Next)
+19->23(Loop Exit)`,
+    },
+
+    // ════════════════════════════════════════════════════════════
+    // MODUL 4: KAK WORKFLOW (APPROVAL & VERIFIKASI)
     // ════════════════════════════════════════════════════════════
 
     "KakWorkflowService:submit": {
-        module: "Modul PPK-WD2",
+        module: "Modul KAK Workflow",
         node: `# KakWorkflowService:submit
 1:entry:public function submit(KAK $kak, User $actor):0
 2:if:! in_array($kak->status_id, [1, 5]):1
@@ -230,7 +524,7 @@ const PRESETS = {
     },
 
     "KakWorkflowService:approve": {
-        module: "Modul PPK-WD2",
+        module: "Modul KAK Workflow",
         node: `# KakWorkflowService:approve
 1:entry:public function approve(KAK $kak, array $data, User $actor):0
 2:if:$kak->status_id !== 2:1
@@ -256,7 +550,7 @@ const PRESETS = {
     },
 
     "KakWorkflowService:revise": {
-        module: "Modul PPK-WD2",
+        module: "Modul KAK Workflow",
         node: `# KakWorkflowService:revise
 1:entry:public function revise(KAK $kak, array $data, User $actor):0
 2:if:$kak->status_id !== 2:1
@@ -298,8 +592,119 @@ const PRESETS = {
 15->16`,
     },
 
+    "KakWorkflowService:reject": {
+        module: "Modul KAK Workflow",
+        node: `# KakWorkflowService:reject
+1:entry:public function reject(KAK $kak, string $catatan, User $actor):0
+2:if:$kak->status_id !== 2:1
+3:exit:throw new KakWorkflowException(...):0
+4:if:empty($catatan):1
+5:exit:throw new KakWorkflowException(...):0
+6:stmt:DB::transaction(function () { ... });:0
+7:stmt:$kak->status_id = 4; $kak->save(); $this->logStatus(...);:0
+8:stmt:KAKApproval::create([...]); event(new KakRejected(...));:0
+9:exit:void:0`,
+        edge: `# Edges
+1->2
+2->3(TRUE)
+2->4(FALSE)
+4->5(TRUE)
+4->6(FALSE)
+6->7
+7->8
+8->9`,
+    },
+
+    // ════════════════════════════════════════════════════════════
+    // MODUL 5: AUTH & PERMISSIONS
+    // ════════════════════════════════════════════════════════════
+
+    "KakController:authorizeAccess": {
+        module: "Modul Auth & Permissions",
+        node: `# KakController:authorizeAccess
+1:entry:private function authorizeAccess(KAK $kak, $requireEdit = false):0
+2:stmt:$user = Auth::user();:0
+3:if:$user->role_id === 1:1
+4:exit:return:0
+5:if:$user->role_id === 3:1
+6:if:$kak->pengusul_user_id !== $user->user_id:1
+7:exit:abort(403, '...'):0
+8:exit:return:0
+9:if:$requireEdit:1
+10:exit:abort(403, '...'):0
+11:if:$user->role_id === 2:1
+12:if:preg_match('/verifikator(\\d+)/', ...):1
+13:stmt:$allowedTipeId = (int) $matches[1];:0
+14:if:$kak->tipe_kegiatan_id !== $allowedTipeId:1
+15:exit:abort(403, '...'):0
+16:exit:abort(403, '...'):0
+17:exit:return:0
+18:exit:end:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6(TRUE)
+5->9(FALSE)
+6->7(TRUE)
+6->8(FALSE)
+9->10(TRUE)
+9->11(FALSE)
+11->12(TRUE)
+11->18(FALSE)
+12->13(TRUE)
+12->16(FALSE)
+13->14
+14->15(TRUE)
+14->17(FALSE)`,
+    },
+
+    // ════════════════════════════════════════════════════════════
+    // MODUL 6: KEGIATAN & PERSETUJUAN
+    // ════════════════════════════════════════════════════════════
+
+    "KegiatanService:store": {
+        module: "Modul Kegiatan",
+        node: `# KegiatanService:store
+1:entry:public function store(KAK $kak, array $data, ?UploadedFile $suratPengantar, User $actor):0
+2:if:$kak->kegiatan()->exists():1
+3:exit:throw new KegiatanException(...):0
+4:if:$kak->status_id !== 3:1
+5:exit:throw new KegiatanException(...):0
+6:stmt:DB::transaction(function () { ... });:0
+7:if:$suratPengantar:1
+8:stmt:$uploadedPath = $suratPengantar->storeAs(...);:0
+9:if:! $uploadedPath:1
+10:exit:throw new KegiatanException(...):0
+11:stmt:Kegiatan::create([...]);:0
+12:loop:foreach (self::APPROVAL_STEPS as $step):1
+13:stmt:KegiatanApproval::create([...]);:0
+14:stmt:$kak->update(['status_id' => 6]); KegiatanLogStatus::create([...]); event(new KegiatanDiajukan(...));:0
+15:exit:return $kegiatan:0
+16:stmt:Storage::disk('supabase')->delete($uploadedPath); throw $e;:0`,
+        edge: `# Edges
+1->2
+2->3(TRUE)
+2->4(FALSE)
+4->5(TRUE)
+4->6(FALSE)
+6->7
+7->8(TRUE)
+7->11(FALSE)
+8->9
+9->10(TRUE)
+9->11(FALSE)
+11->12
+12->13(Loop Body)
+13->12(Next Iteration)
+12->14(Loop Exit)
+14->15
+15->16(CATCH)`,
+    },
+
     "KegiatanService:approve": {
-        module: "Modul PPK-WD2",
+        module: "Modul Kegiatan",
         node: `# KegiatanService:approve
 1:entry:public function approve(Kegiatan $kegiatan, string $actorRole, ?string $catatan, User $actor):0
 2:stmt:DB::transaction(function () { ... });:0
@@ -339,8 +744,33 @@ const PRESETS = {
 16->17`,
     },
 
+    // ════════════════════════════════════════════════════════════
+    // MODUL 7: PENCAIRAN DANA (UM)
+    // ════════════════════════════════════════════════════════════
+
+    "PencairanService:store": {
+        module: "Modul Pencairan",
+        node: `# PencairanService:store
+1:entry:public function store(Kegiatan $kegiatan, float $nominalPencairan, ...):0
+2:stmt:$bendaharaCairApproval = query active approval:0
+3:if:! $bendaharaCairApproval:1
+4:exit:throw new PencairanException 'Not active':0
+5:stmt:$summary = $this->computeSisaDana($kegiatan):0
+6:if:$nominalPencairan > $summary['sisa_dana']:1
+7:exit:throw new PencairanException 'Over budget':0
+8:exit:return PencairanDana::create(...):0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6
+6->7(TRUE)
+6->8(FALSE)`,
+    },
+
     "PencairanService:selesai": {
-        module: "Modul PPK-WD2",
+        module: "Modul Pencairan",
         node: `# PencairanService:selesai
 1:entry:public function selesai(Kegiatan $kegiatan, User $actor):0
 2:stmt:$bendaharaCairApproval = $kegiatan->approvals()->where(...)->where('status', 'Aktif')->first();:0
@@ -368,7 +798,7 @@ const PRESETS = {
     },
 
     // ════════════════════════════════════════════════════════════
-    // MODUL 6: LAPORAN PERTANGGUNGJAWABAN (LPJ)
+    // MODUL 8: LAPORAN PERTANGGUNGJAWABAN (LPJ)
     // ════════════════════════════════════════════════════════════
 
     "LpjService:submit": {
@@ -424,6 +854,29 @@ const PRESETS = {
 19->21(FALSE)
 20->21
 21->22`,
+    },
+
+    "LpjController:submit": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjController:submit
+1:entry:public function submit(SubmitLpjRequest $request, Kegiatan $kegiatan):0
+2:stmt:Log::info('LPJ Submit Method Reached', [...]);:0
+3:if:$kegiatan->kak->pengusul_user_id !== $request->user()->user_id:1
+4:exit:abort(403, 'Anda tidak memiliki akses ke kegiatan ini.'):0
+5:stmt:$spkInputs = [...];:0
+6:stmt:$this->lpjService->submit($kegiatan, ..., $spkInputs, $request->user());:0
+7:exit:return redirect()->route('lpj.index')->with('success', '...'):0
+8:stmt:Log::error('LPJ Submit Failed', [...]);:0
+9:exit:return redirect()->back()->withErrors([...]):0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6
+6->7
+7->8(CATCH)
+8->9`,
     },
 
     "LpjService:revise": {
@@ -565,6 +1018,70 @@ const PRESETS = {
 7->8`,
     },
 
+    "LpjService:calculateSpkScores": {
+        module: "Modul LPJ (Laporan Pertanggungjawaban)",
+        node: `# LpjService:calculateSpkScores
+1:entry:public function calculateSpkScores(Kegiatan $kegiatan):0
+2:stmt:$config = SpkConfig::getActive(); $totalBudget = 0; $totalRealization = 0; $anggarans = ...;:0
+3:loop:foreach ($anggarans as $anggaran):1
+4:stmt:$totalBudget += ...; $totalRealization += ...;:0
+5:if:$totalBudget > 0:1
+6:stmt:$ratio = $totalRealization / $totalBudget;:0
+7:if:abs($ratio - 1) >= 0.001:1
+8:stmt:$differencePercentage = ...; $ketepatanAnggaran = ...;:0
+9:stmt:$ketepatanLpj = $config->lpj_max;:0
+10:if:$kegiatan->tgl_batas_lpj:1
+11:stmt:$deadline = ...; $submissionTime = ...;:0
+12:if:$submissionTime->gt($deadline):1
+13:stmt:$daysLate = ...; $ketepatanLpj = ...;:0
+14:exit:return [...]:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(Loop Body)
+4->3(Next Iteration)
+3->5(Loop Exit)
+5->6(TRUE)
+5->9(FALSE)
+6->7
+7->8(TRUE)
+7->9(FALSE)
+8->9
+9->10
+10->11(TRUE)
+10->14(FALSE)
+11->12
+12->13(TRUE)
+12->14(FALSE)
+13->14`,
+    },
+
+    "LpjService:getEligibleLpjs": {
+        module: "Modul LPJ (Advanced)",
+        node: `# LpjService:getEligibleLpjs
+1:entry:public function getEligibleLpjs(User $user):0
+2:stmt:$role = $user->getRoleName();:0
+3:if:! in_array($role, ['Admin', 'Bendahara', 'Pengusul']):1
+4:exit:throw new AuthorizationException(...):0
+5:stmt:$query = Kegiatan::select(...)->with(...)->whereHas('kak', ...);:0
+6:if:$role === 'Pengusul':1
+7:stmt:$query->whereHas('kak', ...);:0
+8:stmt:$kegiatans = $query->get(); $kegiatans->load(...);:0
+9:loop:return $kegiatans->map(...):1
+10:exit:return $mappedResult:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6
+6->7(TRUE)
+6->8(FALSE)
+7->8
+8->9
+9->10`,
+    },
+
     "SpkController:index": {
         module: "Modul Admin",
         node: `# SpkController:index
@@ -609,6 +1126,131 @@ const PRESETS = {
 16->3(Next Iteration)
 3->17(Loop Exit)
 17->18`,
+    },
+
+    "LampiranService:cleanupParents": {
+        module: "Modul Lampiran",
+        node: `# LampiranService:cleanupParents
+1:entry:public function cleanupParents(KegiatanLampiran $lampiran):0
+2:stmt:$parent = $lampiran->parent;:0
+3:if:$parent && $parent->status_lampiran === 'archived':2
+4:stmt:Storage::disk('supabase')->delete(...);:0
+5:stmt:$this->cleanupParents($parent); (RECURSION):0
+6:stmt:$parent->delete();:0
+7:exit:void:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->7(FALSE)
+4->5
+5->6
+6->7`,
+    },
+
+    "LampiranService:store": {
+        module: "Modul Lampiran",
+        node: `# LampiranService:store
+1:entry:public function store(KAKAnggaran $anggaran, $file, ...):0
+2:stmt:$count = KegiatanLampiran::count(...):0
+3:if:$count >= 10:1
+4:exit:throw ValidationException:0
+5:stmt:DB::transaction(function () { ... }):0
+6:stmt:try:0
+7:stmt:$storedPath = $file->storeAs(...):0
+8:if:! $storedPath:1
+9:stmt:throw new Exception:0
+10:exit:return KegiatanLampiran::create(...):0
+11:stmt:catch (Exception $e):0
+12:if:$storedPath:1
+13:stmt:Storage::disk('supabase')->delete(...):0
+14:exit:throw $e:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->5(FALSE)
+5->6
+6->7
+7->8
+8->9(TRUE)
+8->10(FALSE)
+9->11
+11->12
+12->13(TRUE)
+12->14(FALSE)`,
+    },
+
+    "SendKakWorkflowEmail:handle": {
+        module: "Modul Email Workflow",
+        node: `# SendKakWorkflowEmail:handle
+1:entry:public function handle(mixed $event):0
+2:stmt:$kak = $event->kak;:0
+3:if:$event instanceof KakSubmitted:1
+4:stmt:Load pengusul and find $verifikator:0
+5:if:$verifikator && $verifikator->email:2
+6:stmt:Send mail and create Notifikasi to Verifikator:0
+7:stmt:Load pengusul:0
+8:if:$pengusul && $pengusul->email:2
+9:stmt:$type = $event->type; $catatan = null;:0
+10:if:$event instanceof KakRejected || $event instanceof KakRevised:2
+11:stmt:$catatan = $event->catatan;:0
+12:if:isset($config[$type]):1
+13:stmt:Send mail and create Notifikasi to Pengusul:0
+14:exit:void:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(TRUE)
+3->7(FALSE)
+4->5
+5->6(TRUE)
+5->14(FALSE)
+6->14
+7->8
+8->9(TRUE)
+8->14(FALSE)
+9->10
+10->11(TRUE)
+10->12(FALSE)
+11->12
+12->13(TRUE)
+12->14(FALSE)
+13->14`,
+    },
+
+    // ════════════════════════════════════════════════════════════
+    // MODUL 9: MONITORING & ANALYTICS (ADVANCED)
+    // ════════════════════════════════════════════════════════════
+
+    "KegiatanMonitoringService:mapMonitoringItem": {
+        module: "Modul Monitoring",
+        node: `# KegiatanMonitoringService:mapMonitoringItem
+1:entry:public function mapMonitoringItem(Kegiatan $kegiatan):0
+2:stmt:$dates = [...]; $approvedSteps = []; $currentStatus = 1;:0
+3:loop:foreach ($kegiatan->approvals as $approval):1
+4:if:($approval->status === 'Disetujui' || ...) && isset(...):2
+5:stmt:$mapping = ...; $dates[...] = ...; $approvedSteps[] = ...;:0
+6:ternary:$maxApprovedStep = ! empty($approvedSteps) ? max($approvedSteps) : 0;:1
+7:stmt:$activeApproval = $kegiatan->approvals->where('status', 'Aktif')->first();:0
+8:if:$activeApproval && isset(...):1
+9:stmt:$currentStatus = ...;:0
+10:ternary:$currentStatus = $maxApprovedStep === 5 ? 6 : $maxApprovedStep + 1;:1
+11:exit:return [...]:0`,
+        edge: `# Edges
+1->2
+2->3
+3->4(Loop Body)
+4->5(TRUE)
+4->3(FALSE/Next)
+5->3(Next)
+3->6(Loop Exit)
+6->7
+7->8
+8->9(TRUE)
+8->10(FALSE)
+9->11
+10->11`,
     },
 };
 
