@@ -39,11 +39,11 @@ function clearAll() {
 // ---- ZOOM & PAN ----
 function zoomIn() { currentZoom = Math.min(currentZoom * 1.2, 5); updateViewport(); }
 function zoomOut() { currentZoom = Math.max(currentZoom / 1.2, 0.1); updateViewport(); }
-function resetZoom() { 
-    currentZoom = 1; 
+function resetZoom() {
+    currentZoom = 1;
     panX = 0;
     panY = 0;
-    updateViewport(); 
+    updateViewport();
 }
 
 function updateViewport() {
@@ -62,11 +62,11 @@ function fitToView() {
     if (!analysisData) return;
     const container = document.getElementById('flowgraphContainer');
     const { svgW, svgH } = analysisData;
-    
+
     const padding = 40;
     const cw = container.clientWidth - padding;
     const ch = container.clientHeight - padding;
-    
+
     currentZoom = Math.min(cw / svgW, ch / svgH, 1);
     panX = (container.clientWidth - svgW * currentZoom) / 2;
     panY = (container.clientHeight - svgH * currentZoom) / 2;
@@ -88,11 +88,11 @@ function exportSVG() {
 }
 
 // ---- LIVE COUNTER ----
-document.getElementById('nodeInput').addEventListener('input', function() {
+document.getElementById('nodeInput').addEventListener('input', function () {
     const lines = this.value.trim().split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
     document.getElementById('nodeCount').textContent = lines.length + ' node';
 });
-document.getElementById('edgeInput').addEventListener('input', function() {
+document.getElementById('edgeInput').addEventListener('input', function () {
     const lines = this.value.trim().split('\n').filter(l => l.trim() && !l.trim().startsWith('#'));
     document.getElementById('edgeCount').textContent = lines.length + ' edge';
 });
@@ -101,56 +101,56 @@ document.getElementById('edgeInput').addEventListener('input', function() {
 function analyze() {
     const nodeText = document.getElementById('nodeInput').value;
     const edgeText = document.getElementById('edgeInput').value;
-    
+
     if (!nodeText.trim()) { document.getElementById('nodeErrors').textContent = 'Node tidak boleh kosong!'; return; }
     if (!edgeText.trim()) { document.getElementById('edgeErrors').textContent = 'Edge tidak boleh kosong!'; return; }
-    
+
     // Parse
     const { nodes, errors: nErr } = parseNodes(nodeText);
     document.getElementById('nodeErrors').textContent = nErr.length ? nErr[0] : '';
     if (nErr.length > 0) return;
-    
+
     const nodeIds = new Set(nodes.map(n => n.id));
     const { edges, errors: eErr } = parseEdges(edgeText, nodeIds);
     document.getElementById('edgeErrors').textContent = eErr.length ? eErr[0] : '';
     if (eErr.length > 0) return;
-    
+
     // Compute
     const { vg, totalP, predicates } = computeComplexity(nodes);
     const paths = findIndependentPaths(nodes, edges, vg);
     const coverage = analyzeCoverage(nodes, edges, paths);
-    
+
     // Get initial positions
     const positions = layoutGraph(nodes, edges);
-    
+
     // Calculate static bounds so dragging doesn't shift the canvas
     let minX = Infinity, maxX = -Infinity, minY = 0, maxY = -Infinity;
     positions.forEach(pos => {
-        minX = Math.min(minX, pos.x - pos.w/2);
-        maxX = Math.max(maxX, pos.x + pos.w/2);
+        minX = Math.min(minX, pos.x - pos.w / 2);
+        maxX = Math.max(maxX, pos.x + pos.w / 2);
         maxY = Math.max(maxY, pos.y + pos.h);
     });
-    
+
     const pad = 100;
     const svgW = (maxX - minX) + pad * 2;
     const svgH = maxY + pad * 2;
     const offX = -minX + pad;
     const offY = pad;
-    
+
     analysisData = { nodes, edges, vg, totalP, predicates, paths, coverage, positions, svgW, svgH, offX, offY, maxX };
     manualLabelPos.clear();
     undoStack = [];
-    
+
     // Render all tabs
     renderFlowgraph();
     renderComplexity(vg, totalP, predicates, nodes.length, edges.length);
     renderPaths(paths, nodes, edges);
     renderCoverage(coverage, paths);
-    
+
     // Show results
     document.getElementById('emptyState').style.display = 'none';
     switchTab('flowgraph');
-    
+
     // Fit to view after a short delay for layout to settle
     setTimeout(fitToView, 10);
 }
@@ -233,61 +233,61 @@ function renderFlowgraph() {
     if (!analysisData) return;
     const { nodes, edges, positions, svgW, svgH, offX, offY, maxX } = analysisData;
     const svg = document.getElementById('flowgraphSvg');
-    
+
     // Reset SVG to be responsive
     svg.setAttribute('width', '100%');
     svg.setAttribute('height', '100%');
     svg.setAttribute('viewBox', `0 0 ${svgW} ${svgH}`);
-    
+
     const nodeColors = {
-        entry:   { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        exit:    { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        stmt:    { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        'if':    { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        elseif:  { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        loop:    { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        'try':   { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        entry: { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        exit: { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        stmt: { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        'if': { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        elseif: { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        loop: { fill: '#ffffff', stroke: '#333333', text: '#111' },
+        'try': { fill: '#ffffff', stroke: '#333333', text: '#111' },
         'catch': { fill: '#ffffff', stroke: '#333333', text: '#111' },
         ternary: { fill: '#ffffff', stroke: '#333333', text: '#111' },
-        merge:   { fill: '#ffffff', stroke: '#333333', text: '#111' }
+        merge: { fill: '#ffffff', stroke: '#333333', text: '#111' }
     };
-    
+
     let html = `<defs>
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" fill="#333">
             <polygon points="0 0, 10 3.5, 0 7"/>
         </marker>
     </defs>
     <g id="svgViewport" transform="translate(${panX}, ${panY}) scale(${currentZoom})">`;
-    
+
     const allOffsets = computeAllAnchorOffsets(edges);
-    
+
     // Draw edges — ORTHOGONAL (garis lurus siku-siku)
     edges.forEach(e => {
         const from = positions.get(e.from);
         const to = positions.get(e.to);
         if (!from || !to) return;
-        
+
         const edgeId = `${e.from}->${e.to}`;
-        const dOff = allOffsets.get(edgeId) || {sourceOffX: 0, targetOffX: 0, midYJitter: 0};
+        const dOff = allOffsets.get(edgeId) || { sourceOffX: 0, targetOffX: 0, midYJitter: 0 };
 
         // Respect manual anchor offsets if present
-        const sOff = manualAnchorOffsets.get(`${edgeId}-source`) || {x: dOff.sourceOffX, y: from.h};
-        const tOff = manualAnchorOffsets.get(`${edgeId}-target`) || {x: dOff.targetOffX, y: -4};
+        const sOff = manualAnchorOffsets.get(`${edgeId}-source`) || { x: dOff.sourceOffX, y: from.h };
+        const tOff = manualAnchorOffsets.get(`${edgeId}-target`) || { x: dOff.targetOffX, y: -4 };
 
         const x1 = from.x + offX + sOff.x, y1 = from.y + offY + sOff.y;
         const x2 = to.x + offX + tOff.x, y2 = to.y + offY + tOff.y;
-        
+
         let waypoints = manualEdgeWaypoints.get(edgeId);
-        
+
         // Generate default waypoints if none exist
         if (!waypoints) {
-            const mEdge = manualEdgePos.get(edgeId) || {x: 0, y: 0};
+            const mEdge = manualEdgePos.get(edgeId) || { x: 0, y: 0 };
             const snX = snap(mEdge.x), snY = snap(mEdge.y);
-            
+
             if (y2 <= y1 - from.h) {
                 // Loop
                 const rx = snap(maxX + offX + 60) + snX + (dOff.idxIn * 5);
-                waypoints = [{x: x1, y: y1+20}, {x: rx, y: y1+20}, {x: rx, y: y2-20}, {x: x2, y: y2-20}];
+                waypoints = [{ x: x1, y: y1 + 20 }, { x: rx, y: y1 + 20 }, { x: rx, y: y2 - 20 }, { x: x2, y: y2 - 20 }];
             } else if (Math.abs(x1 - x2) < 5 && snX === 0) {
                 // Straight
                 waypoints = [];
@@ -295,7 +295,7 @@ function renderFlowgraph() {
                 // Orthogonal
                 const midY = snap(y1 + (y2 - y1) / 2) + snY + dOff.midYJitter;
                 const midX = x1 + snX;
-                waypoints = [{x: midX, y: midY}, {x: x2, y: midY}];
+                waypoints = [{ x: midX, y: midY }, { x: x2, y: midY }];
             }
         }
 
@@ -324,7 +324,7 @@ function renderFlowgraph() {
         html += `<path d="${pathD}" fill="none" stroke="transparent" stroke-width="12" class="edge-hit-area" />`;
         // Visible path
         html += `<path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-dasharray="${dash}" marker-end="url(#arrowhead)"/>`;
-        
+
         // Waypoint handles
         if (isSelected && waypoints) {
             waypoints.forEach((p, idx) => {
@@ -332,61 +332,61 @@ function renderFlowgraph() {
             });
         }
         html += `</g>`;
-        
+
         // Edge label
         if (e.label) {
             const edgeId = `${e.from}->${e.to}`;
-            const mPos = manualLabelPos.get(edgeId) || {x: 0, y: 0};
-            
+            const mPos = manualLabelPos.get(edgeId) || { x: 0, y: 0 };
+
             labelX += snap(mPos.x);
             labelY += snap(mPos.y);
-            
+
             const tw = e.label.length * 6.5;
-            let bgX = labelX - tw/2;
+            let bgX = labelX - tw / 2;
             if (labelAnchor === 'start') bgX = labelX;
             else if (labelAnchor === 'end') bgX = labelX - tw;
-            
+
             html += `<g class="draggable-label" data-edge="${edgeId}" style="cursor: grab;">`;
             html += `<rect x="${bgX - 4}" y="${labelY - 10}" width="${tw + 8}" height="16" fill="#ffffff" opacity="0.95" rx="2" stroke="#ddd" stroke-width="0.5"/>`;
             html += `<text x="${labelX}" y="${labelY + 2}" fill="#333" font-size="11" font-family="Inter,sans-serif" font-weight="600" text-anchor="${labelAnchor}">${e.label}</text>`;
             html += `</g>`;
         }
     });
-    
+
     // Draw nodes
     nodes.forEach(n => {
         const pos = positions.get(n.id);
         if (!pos) return;
-        const x = snap(pos.x + offX - pos.w/2);
+        const x = snap(pos.x + offX - pos.w / 2);
         const y = snap(pos.y + offY);
         const c = nodeColors[n.type] || nodeColors.stmt;
-        const isDiamond = ['if','elseif','loop','ternary'].includes(n.type);
-        
+        const isDiamond = ['if', 'elseif', 'loop', 'ternary'].includes(n.type);
+
         html += `<g class="draggable-node" data-id="${n.id}" style="cursor: grab;">`;
-        
+
         if (isDiamond) {
-            const cx = x + pos.w/2, cy = y + pos.h/2;
-            const hw = pos.w/2 + 25, hh = pos.h/2 + 10;
-            html += `<polygon points="${cx},${cy-hh} ${cx+hw},${cy} ${cx},${cy+hh} ${cx-hw},${cy}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
+            const cx = x + pos.w / 2, cy = y + pos.h / 2;
+            const hw = pos.w / 2 + 25, hh = pos.h / 2 + 10;
+            html += `<polygon points="${cx},${cy - hh} ${cx + hw},${cy} ${cx},${cy + hh} ${cx - hw},${cy}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
         } else if (n.type === 'merge') {
-            html += `<circle cx="${x+pos.w/2}" cy="${y+pos.h/2}" r="${pos.h/2}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
+            html += `<circle cx="${x + pos.w / 2}" cy="${y + pos.h / 2}" r="${pos.h / 2}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
         } else {
             const r = (n.type === 'entry' || n.type === 'exit') ? 20 : 8;
             html += `<rect x="${x}" y="${y}" width="${pos.w}" height="${pos.h}" rx="${r}" fill="${c.fill}" stroke="${c.stroke}" stroke-width="1.5"/>`;
         }
-        
+
         // Node ID badge
         // Node ID number positioned top-right outside the shape
-        html += `<text x="${x+pos.w+8}" y="${y+14}" fill="#333" font-size="12" font-family="Inter" font-weight="700" text-anchor="start">${n.id}</text>`;
-        
+        html += `<text x="${x + pos.w + 8}" y="${y + 14}" fill="#333" font-size="12" font-family="Inter" font-weight="700" text-anchor="start">${n.id}</text>`;
+
         // Node label
         const maxChars = 50;
         const label = n.label.length > maxChars ? n.label.substring(0, maxChars) + '…' : n.label;
-        html += `<text x="${x+pos.w/2}" y="${y+pos.h/2+4}" fill="${c.text}" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="500">${escapeHtml(label)}</text>`;
-        
+        html += `<text x="${x + pos.w / 2}" y="${y + pos.h / 2 + 4}" fill="${c.text}" font-size="11" font-family="JetBrains Mono,monospace" text-anchor="middle" font-weight="500">${escapeHtml(label)}</text>`;
+
         html += `</g>`;
     });
-    
+
     html += `</g>`;
     svg.innerHTML = html;
 }
@@ -405,10 +405,10 @@ const flowgraphSvg = document.getElementById('flowgraphSvg');
 flowgraphContainer.addEventListener('wheel', (e) => {
     if (!analysisData || !e.ctrlKey) return;
     e.preventDefault();
-    
+
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const nextZoom = Math.min(Math.max(currentZoom * delta, 0.1), 5);
-    
+
     const rect = flowgraphContainer.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -432,7 +432,7 @@ flowgraphSvg.addEventListener('contextmenu', (e) => e.preventDefault());
 
 flowgraphSvg.addEventListener('mousedown', (e) => {
     const target = e.target.closest('.draggable-node, .draggable-label, .draggable-edge, .waypoint-handle');
-    
+
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
 
@@ -449,7 +449,7 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
         flowgraphSvg.style.cursor = 'grabbing';
         return;
     }
-    
+
     // Left Click (Button 0)
     if (e.button === 0) {
         if (target) {
@@ -467,7 +467,7 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 dragType = 'label';
                 dragId = target.getAttribute('data-edge');
-                if (!manualLabelPos.has(dragId)) manualLabelPos.set(dragId, {x: 0, y: 0});
+                if (!manualLabelPos.has(dragId)) manualLabelPos.set(dragId, { x: 0, y: 0 });
             } else if (target.classList.contains('draggable-edge')) {
                 const edgeId = target.getAttribute('data-edge');
                 selectedEdgeId = edgeId;
@@ -475,7 +475,7 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
                 const svgP = getSVGPoint(e);
                 const path = getEdgeFullPath(edgeId);
                 const x1 = path[0].x, y1 = path[0].y;
-                const x2 = path[path.length-1].x, y2 = path[path.length-1].y;
+                const x2 = path[path.length - 1].x, y2 = path[path.length - 1].y;
 
                 const distSource = Math.hypot(svgP.x - x1, svgP.y - y1);
                 const distTarget = Math.hypot(svgP.x - x2, svgP.y - y2);
@@ -497,8 +497,8 @@ flowgraphSvg.addEventListener('mousedown', (e) => {
                     }
                     const pts = manualEdgeWaypoints.get(edgeId);
                     const insertIdx = findNearestSegmentIndex(svgP, path);
-                    pts.splice(insertIdx, 0, {x: svgP.x, y: svgP.y});
-                    
+                    pts.splice(insertIdx, 0, { x: svgP.x, y: svgP.y });
+
                     hasDragged = true;
                     isDragging = true;
                     dragType = 'waypoint';
@@ -530,16 +530,16 @@ function findNearestSegmentIndex(p, path) {
     for (let i = 0; i < path.length - 1; i++) {
         const a = path[i];
         const b = path[i + 1];
-        
+
         // Distance from point p to segment ab
-        const l2 = (a.x - b.x)**2 + (a.y - b.y)**2;
+        const l2 = (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
         if (l2 === 0) continue;
-        
+
         let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
         t = Math.max(0, Math.min(1, t));
-        
-        const dist = Math.sqrt((p.x - (a.x + t * (b.x - a.x)))**2 + (p.y - (a.y + t * (b.y - a.y)))**2);
-        
+
+        const dist = Math.sqrt((p.x - (a.x + t * (b.x - a.x))) ** 2 + (p.y - (a.y + t * (b.y - a.y))) ** 2);
+
         if (dist < minDist) {
             minDist = dist;
             bestIdx = i; // Will insert at i in waypoints (compensating for start node)
@@ -565,11 +565,11 @@ function computeAllAnchorOffsets(edges) {
         incomingMap.set(e.to, (incomingMap.get(e.to) || 0) + 1);
         outgoingMap.set(e.from, (outgoingMap.get(e.from) || 0) + 1);
     });
-    
+
     const incomingProcessed = new Map();
     const outgoingProcessed = new Map();
     const offsets = new Map();
-    
+
     edges.forEach(e => {
         const edgeId = `${e.from}->${e.to}`;
         const totalIn = incomingMap.get(e.to) || 1;
@@ -583,7 +583,7 @@ function computeAllAnchorOffsets(edges) {
         const sourceOffX = totalOut > 1 ? (idxOut - (totalOut - 1) / 2) * 12 : 0;
         const targetOffX = totalIn > 1 ? (idxIn - (totalIn - 1) / 2) * 12 : 0;
         const midYJitter = totalIn > 1 ? (idxIn - (totalIn - 1) / 2) * 8 : 0;
-        
+
         offsets.set(edgeId, { sourceOffX, targetOffX, midYJitter, idxIn, idxOut });
     });
     return offsets;
@@ -594,23 +594,23 @@ function getEdgeFullPath(edgeId) {
     const { edges, positions, offX, offY } = analysisData;
     const e = edges.find(edge => `${edge.from}->${edge.to}` === edgeId);
     if (!e) return [];
-    
+
     const from = positions.get(e.from);
     const to = positions.get(e.to);
-    
+
     // Get automatic distribution offsets for this edge
     const allOffsets = computeAllAnchorOffsets(edges);
-    const dOff = allOffsets.get(edgeId) || {sourceOffX: 0, targetOffX: 0, midYJitter: 0};
+    const dOff = allOffsets.get(edgeId) || { sourceOffX: 0, targetOffX: 0, midYJitter: 0 };
 
     // Priority: Manual > Automatic Distribution
-    const sOff = manualAnchorOffsets.get(`${edgeId}-source`) || {x: dOff.sourceOffX, y: from.h};
-    const tOff = manualAnchorOffsets.get(`${edgeId}-target`) || {x: dOff.targetOffX, y: -4};
-    
+    const sOff = manualAnchorOffsets.get(`${edgeId}-source`) || { x: dOff.sourceOffX, y: from.h };
+    const tOff = manualAnchorOffsets.get(`${edgeId}-target`) || { x: dOff.targetOffX, y: -4 };
+
     const x1 = from.x + offX + sOff.x, y1 = from.y + offY + sOff.y;
     const x2 = to.x + offX + tOff.x, y2 = to.y + offY + tOff.y;
-    
+
     const pts = manualEdgeWaypoints.get(edgeId) || [];
-    return [{x: x1, y: y1}, ...pts, {x: x2, y: y2}];
+    return [{ x: x1, y: y1 }, ...pts, { x: x2, y: y2 }];
 }
 
 function initializeWaypointsForEdge(edgeId) {
@@ -621,24 +621,24 @@ function initializeWaypointsForEdge(edgeId) {
     const to = positions.get(e.to);
     const x1 = from.x + offX, y1 = from.y + offY + from.h;
     const x2 = to.x + offX, y2 = to.y + offY - 4;
-    
+
     if (y2 <= y1 - from.h) {
         const rx = maxX + offX + 60;
-        return [{x: x1, y: y1+20}, {x: rx, y: y1+20}, {x: rx, y: y2-20}, {x: x2, y: y2-20}];
+        return [{ x: x1, y: y1 + 20 }, { x: rx, y: y1 + 20 }, { x: rx, y: y2 - 20 }, { x: x2, y: y2 - 20 }];
     } else if (Math.abs(x1 - x2) < 5) {
-        return [{x: (x1+x2)/2, y: (y1+y2)/2}];
+        return [{ x: (x1 + x2) / 2, y: (y1 + y2) / 2 }];
     } else {
         const midY = y1 + (y2 - y1) / 2;
-        return [{x: x1, y: midY}, {x: x2, y: midY}];
+        return [{ x: x1, y: midY }, { x: x2, y: midY }];
     }
 }
 
 window.addEventListener('mousemove', (e) => {
     if ((!isDragging && !isPanning) || !analysisData) return;
-    
+
     const dx = (e.clientX - lastMouseX) / currentZoom;
     const dy = (e.clientY - lastMouseY) / currentZoom;
-    
+
     if (isPanning) {
         const sensitivity = 1.6; // Increased sensitivity
         panX += (e.clientX - lastMouseX) * sensitivity;
@@ -651,9 +651,9 @@ window.addEventListener('mousemove', (e) => {
 
     lastMouseX = e.clientX;
     lastMouseY = e.clientY;
-    
+
     if (isDragging) hasDragged = true;
-    
+
     if (dragType === 'node') {
         const pos = analysisData.positions.get(dragId);
         pos.x += dx;
@@ -678,19 +678,19 @@ window.addEventListener('mousemove', (e) => {
         // Slide along perimeter logic
         const relX = svgP.x - (node.x + offX);
         const relY = svgP.y - (node.y + offY);
-        
-        const distL = Math.abs(relX + node.w/2);
-        const distR = Math.abs(relX - node.w/2);
+
+        const distL = Math.abs(relX + node.w / 2);
+        const distR = Math.abs(relX - node.w / 2);
         const distT = Math.abs(relY);
         const distB = Math.abs(relY - node.h);
-        
+
         const min = Math.min(distL, distR, distT, distB);
         let finalX = relX, finalY = relY;
-        
-        if (min === distL) { finalX = -node.w/2; finalY = Math.max(0, Math.min(node.h, relY)); }
-        else if (min === distR) { finalX = node.w/2; finalY = Math.max(0, Math.min(node.h, relY)); }
-        else if (min === distT) { finalY = 0; finalX = Math.max(-node.w/2, Math.min(node.w/2, relX)); }
-        else { finalY = node.h; finalX = Math.max(-node.w/2, Math.min(node.w/2, relX)); }
+
+        if (min === distL) { finalX = -node.w / 2; finalY = Math.max(0, Math.min(node.h, relY)); }
+        else if (min === distR) { finalX = node.w / 2; finalY = Math.max(0, Math.min(node.h, relY)); }
+        else if (min === distT) { finalY = 0; finalX = Math.max(-node.w / 2, Math.min(node.w / 2, relX)); }
+        else { finalY = node.h; finalX = Math.max(-node.w / 2, Math.min(node.w / 2, relX)); }
 
         manualAnchorOffsets.set(`${dragId}-${dragAnchorType}`, { x: finalX, y: finalY });
     } else if (dragType === 'edge') {
@@ -698,15 +698,15 @@ window.addEventListener('mousemove', (e) => {
         if (pts && dragSegmentIdx !== -1) {
             const i = dragSegmentIdx;
             const fullPath = getEdgeFullPath(dragId);
-            const s = fullPath[i], en = fullPath[i+1];
-            
+            const s = fullPath[i], en = fullPath[i + 1];
+
             const isHorizontal = Math.abs(s.y - en.y) < 5;
             const isVertical = Math.abs(s.x - en.x) < 5;
 
-            if (i > 0 && pts[i-1]) {
-                if (isHorizontal) pts[i-1].y += dy;
-                else if (isVertical) pts[i-1].x += dx;
-                else { pts[i-1].x += dx; pts[i-1].y += dy; }
+            if (i > 0 && pts[i - 1]) {
+                if (isHorizontal) pts[i - 1].y += dy;
+                else if (isVertical) pts[i - 1].x += dx;
+                else { pts[i - 1].x += dx; pts[i - 1].y += dy; }
             }
             if (i < pts.length && pts[i]) {
                 if (isHorizontal) pts[i].y += dy;
@@ -716,13 +716,13 @@ window.addEventListener('mousemove', (e) => {
         } else if (pts) {
             pts.forEach(p => { p.x += dx; p.y += dy; });
         } else {
-            const off = manualEdgePos.get(dragId) || {x: 0, y: 0};
+            const off = manualEdgePos.get(dragId) || { x: 0, y: 0 };
             if (!manualEdgePos.has(dragId)) manualEdgePos.set(dragId, off);
             off.x += dx;
             off.y += dy;
         }
     }
-    
+
     renderFlowgraph();
 });
 
@@ -730,7 +730,7 @@ window.addEventListener('mouseup', (e) => {
     if (isDragging) {
         pushUndo();
     }
-    
+
     isDragging = false;
     isPanning = false;
     dragType = null;
@@ -738,7 +738,7 @@ window.addEventListener('mouseup', (e) => {
 });
 
 function escapeHtml(t) {
-    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ---- EXPORT FUNCTIONS ----
@@ -746,7 +746,7 @@ function escapeHtml(t) {
 function getStandaloneSVG() {
     const svg = document.getElementById('flowgraphSvg').cloneNode(true);
     const viewport = svg.querySelector('#svgViewport');
-    
+
     // If we want to export the current view, we keep the transform.
     // If we want to export the whole graph exactly as laid out, we reset it.
     // Let's reset it for a clean export of the full graph.
@@ -802,10 +802,10 @@ async function exportSVG() {
     const source = getStandaloneSVG();
     const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
     const name = (document.getElementById('functionName').value || 'flowgraph') + ".svg";
-    
+
     await saveAsSystem(blob, name, [{
         description: 'SVG Image',
-        accept: {'image/svg+xml': ['.svg']},
+        accept: { 'image/svg+xml': ['.svg'] },
     }]);
 }
 
@@ -813,20 +813,20 @@ async function exportPNG() {
     const source = getStandaloneSVG();
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    
+
     const img = new Image();
-    img.onload = async function() {
+    img.onload = async function () {
         canvas.width = img.width;
         canvas.height = img.height;
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
-        
+
         canvas.toBlob(async (blob) => {
             const name = (document.getElementById('functionName').value || 'flowgraph') + ".png";
             await saveAsSystem(blob, name, [{
                 description: 'PNG Image',
-                accept: {'image/png': ['.png']},
+                accept: { 'image/png': ['.png'] },
             }]);
         }, 'image/png');
     };
@@ -843,46 +843,54 @@ function copySummary() {
     if (!analysisData) return;
     const { nodes, edges, vg, totalP, paths, coverage } = analysisData;
     const funcName = document.getElementById('functionName').value || 'Unnamed Function';
-    
+
     const riskLabel = vg <= 5 ? 'Low' : vg <= 10 ? 'Medium' : vg <= 20 ? 'High' : 'Very High';
-    
-    let text = `WHITEBOX TESTING ANALYSIS SUMMARY: ${funcName}\n`;
-    text += `==================================================\n\n`;
-    
+
+    let text = `${funcName}\n`;
+
     text += `1. CYCLOMATIC COMPLEXITY (McCabe)\n`;
-    text += `----------------------------------\n`;
     text += `- Total Predicate Nodes (P): ${totalP}\n`;
     text += `- V(G) = P + 1 = ${totalP} + 1 = ${vg}\n`;
-    text += `- Risk Level: ${riskLabel}\n`;
     text += `- Minimum Test Cases Required: ${vg}\n\n`;
-    
-    text += `2. INDEPENDENT PATHS\n`;
-    text += `---------------------\n`;
-    paths.forEach((path, i) => {
-        text += `Path ${i + 1}: ${path.join(' -> ')}\n`;
+
+    const seenNodes = new Set();
+    const statementPaths = [];
+    paths.forEach((p, i) => {
+        const newNodes = p.filter(n => !seenNodes.has(n));
+        p.forEach(n => seenNodes.add(n));
+        if (newNodes.length > 0) {
+            statementPaths.push({ index: i + 1, path: p });
+        }
     });
-    text += `\n`;
-    
-    text += `3. COVERAGE ANALYSIS\n`;
-    text += `---------------------\n`;
-    text += `- Statement Coverage: ${coverage.statement.pct}% (${coverage.statement.covered}/${coverage.statement.total} nodes)\n`;
-    text += `- Decision Coverage: ${coverage.decision.pct}% (${coverage.decision.covered}/${coverage.decision.total} decisions)\n\n`;
-    
-    text += `4. DETAILED DECISION NODES\n`;
-    text += `--------------------------\n`;
-    if (coverage.decision.details.length > 0) {
-        coverage.decision.details.forEach(d => {
-            text += `- Node ${d.nodeId} (${d.label}):\n`;
-            d.branches.forEach(b => {
-                text += `  * ${b.label}: ${b.covered ? 'COVERED' : 'NOT COVERED'}\n`;
-            });
-        });
-    } else {
-        text += `No decision nodes found.\n`;
-    }
-    
-    text += `\n--------------------------------------------------\n`;
-    text += `Generated by Whitebox Testing Tool (SIGAP PNJ)`;
+
+    const seenEdges = new Set();
+    const decisionPaths = [];
+    paths.forEach((p, i) => {
+        let hasNewEdge = false;
+        for (let j = 0; j < p.length - 1; j++) {
+            const edge = `${p[j]}->${p[j + 1]}`;
+            if (!seenEdges.has(edge)) {
+                hasNewEdge = true;
+                seenEdges.add(edge);
+            }
+        }
+        if (hasNewEdge) {
+            decisionPaths.push({ index: i + 1, path: p });
+        }
+    });
+
+    text += `2. INDEPENDENT PATHS\n`;
+    text += `A. Statement Coverage Paths\n`;
+    if (statementPaths.length === 0) text += `- No paths found.\n`;
+    statementPaths.forEach(sp => {
+        text += `Path ${sp.index}: ${sp.path.join(' -> ')}\n`;
+    });
+
+    text += `\nB. Decision Coverage Paths\n`;
+    if (decisionPaths.length === 0) text += `- No paths found.\n`;
+    decisionPaths.forEach(dp => {
+        text += `Path ${dp.index}: ${dp.path.join(' -> ')}\n`;
+    });
 
     navigator.clipboard.writeText(text).then(() => {
         const btn = document.getElementById('copySummaryBtn');
@@ -897,7 +905,7 @@ function renderComplexity(vg, totalP, predicates, nodeCount, edgeCount) {
     const riskColor = vg <= 5 ? 'var(--accent-green)' : vg <= 10 ? 'var(--accent-yellow)' : vg <= 20 ? 'var(--accent-orange)' : 'var(--accent-red)';
     const riskLabel = vg <= 5 ? 'Rendah' : vg <= 10 ? 'Sedang' : vg <= 20 ? 'Tinggi' : 'Sangat Tinggi';
     const riskBadge = vg <= 5 ? 'badge-green' : vg <= 10 ? 'badge-yellow' : 'badge-red';
-    
+
     let html = `
     <div class="result-card">
         <div class="vg-display">
@@ -919,7 +927,7 @@ function renderComplexity(vg, totalP, predicates, nodeCount, edgeCount) {
     <div class="result-card">
         <h3>🔍 Detail Predicate Nodes</h3>
         <ul class="predicate-list">`;
-    
+
     predicates.forEach(p => {
         html += `<li>
             <span class="node-badge">Node ${p.id}</span>
@@ -927,10 +935,10 @@ function renderComplexity(vg, totalP, predicates, nodeCount, edgeCount) {
             <span class="pred-p">P=${p.p}</span>
         </li>`;
     });
-    
+
     if (predicates.length === 0) html += `<li style="color:var(--text-muted)">Tidak ada predicate node (kode linear)</li>`;
     html += `</ul></div>`;
-    
+
     document.getElementById('complexityResult').innerHTML = html;
 }
 
@@ -939,30 +947,30 @@ function renderPaths(paths, nodes, edges) {
     const nodeMap = new Map(nodes.map(n => [n.id, n]));
     const edgeMap = new Map();
     edges.forEach(e => { edgeMap.set(`${e.from}->${e.to}`, e.label); });
-    
+
     let html = `<div class="result-card"><h3>🛤️ Independent Paths <span class="badge badge-blue">${paths.length} path</span></h3>`;
-    
+
     if (paths.length === 0) {
         html += `<p style="color:var(--text-muted);font-size:0.8rem">Tidak dapat menemukan path. Pastikan ada node entry dan exit.</p>`;
     }
-    
+
     paths.forEach((path, i) => {
         // Build description
         let desc = '';
         const lastNode = nodeMap.get(path[path.length - 1]);
-        const hasDecision = path.some(id => { const n = nodeMap.get(id); return n && ['if','elseif','loop','catch','ternary'].includes(n.type); });
+        const hasDecision = path.some(id => { const n = nodeMap.get(id); return n && ['if', 'elseif', 'loop', 'catch', 'ternary'].includes(n.type); });
         if (lastNode && lastNode.type === 'exit') desc = lastNode.label;
-        
+
         html += `<div class="path-item">
             <div class="path-header">
                 <span class="path-name">Path ${i + 1}</span>
                 ${desc ? `<span class="path-desc">${escapeHtml(desc)}</span>` : ''}
             </div>
             <div class="path-nodes">`;
-        
+
         path.forEach((nodeId, j) => {
             if (j > 0) {
-                const edgeLabel = edgeMap.get(`${path[j-1]}->${nodeId}`);
+                const edgeLabel = edgeMap.get(`${path[j - 1]}->${nodeId}`);
                 if (edgeLabel) {
                     html += `<span class="decision-label">(${escapeHtml(edgeLabel)})</span>`;
                 }
@@ -970,10 +978,10 @@ function renderPaths(paths, nodes, edges) {
             }
             html += `<span class="node-ref">${nodeId}</span>`;
         });
-        
+
         html += `</div></div>`;
     });
-    
+
     html += `</div>`;
     document.getElementById('pathsResult').innerHTML = html;
 }
@@ -993,7 +1001,7 @@ function renderCoverage(cov, paths) {
             <div class="coverage-bar"><div class="coverage-bar-fill green" style="width:${cov.decision.pct}%"></div></div>
         </div>
     </div>`;
-    
+
     // Statement Coverage Detail
     html += `<div class="result-card coverage-section">
         <h4>📋 Statement Coverage (${cov.statement.covered}/${cov.statement.total} node)</h4>
@@ -1001,19 +1009,19 @@ function renderCoverage(cov, paths) {
             Setiap node (baris kode) harus dieksekusi minimal 1 kali. Jalankan path berikut untuk memenuhi 100% statement coverage:
         </p>
         <table class="coverage-table"><thead><tr><th>Path</th><th>Node yang Dilalui</th></tr></thead><tbody>`;
-    
+
     const seenNodes = new Set();
     paths.forEach((p, i) => {
         const newNodes = p.filter(n => !seenNodes.has(n));
         p.forEach(n => seenNodes.add(n));
         if (newNodes.length > 0) {
-            html += `<tr><td style="color:var(--accent-cyan);font-weight:600">Path ${i+1}</td>
+            html += `<tr><td style="color:var(--accent-cyan);font-weight:600">Path ${i + 1}</td>
                 <td>${p.map(n => `<span class="node-ref">${n}</span>`).join(' → ')}</td></tr>`;
         }
     });
-    
+
     html += `</tbody></table></div>`;
-    
+
     // Decision Coverage Detail
     html += `<div class="result-card coverage-section">
         <h4>🔀 Decision Coverage (${cov.decision.covered}/${cov.decision.total} decision)</h4>
@@ -1021,7 +1029,7 @@ function renderCoverage(cov, paths) {
             Setiap percabangan (IF/Loop/Ternary) harus menghasilkan TRUE <strong>dan</strong> FALSE minimal 1 kali.
         </p>
         <table class="coverage-table"><thead><tr><th>Node</th><th>Kondisi</th><th>Cabang</th><th>Status</th></tr></thead><tbody>`;
-    
+
     cov.decision.details.forEach(d => {
         d.branches.forEach((b, bi) => {
             html += `<tr>
@@ -1032,13 +1040,13 @@ function renderCoverage(cov, paths) {
             </tr>`;
         });
     });
-    
+
     if (cov.decision.details.length === 0) {
         html += `<tr><td colspan="4" style="color:var(--text-muted);text-align:center">Tidak ada decision node</td></tr>`;
     }
-    
+
     html += `</tbody></table></div>`;
-    
+
     document.getElementById('coverageResult').innerHTML = html;
 }
 
@@ -1108,7 +1116,7 @@ function loadExample() {
 }
 
 // ---- KEYBOARD SHORTCUT ----
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         const guide = document.getElementById('guideOverlay');
         if (guide.classList.contains('active')) toggleGuide();
@@ -1124,7 +1132,7 @@ function populatePresetDropdown() {
     if (typeof PRESETS === 'undefined') return;
     const select = document.getElementById('presetSelect');
     if (!select) return;
-    
+
     const modules = getPresetsByModule();
     for (const [modName, fns] of Object.entries(modules)) {
         const optgroup = document.createElement('optgroup');
@@ -1141,18 +1149,18 @@ function populatePresetDropdown() {
 
 function loadSelectedPreset(presetId) {
     if (!presetId || typeof PRESETS === 'undefined' || !PRESETS[presetId]) return;
-    
+
     const preset = PRESETS[presetId];
     document.getElementById('functionName').value = presetId;
     document.getElementById('nodeInput').value = preset.node;
     document.getElementById('edgeInput').value = preset.edge;
-    
+
     // Update counters
     const nLines = preset.node.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
     const eLines = preset.edge.split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
     document.getElementById('nodeCount').textContent = nLines + ' node';
     document.getElementById('edgeCount').textContent = eLines + ' edge';
-    
+
     // Automatically analyze
     analyze();
 }
