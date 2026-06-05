@@ -98,7 +98,7 @@ class LpjApiController extends Controller
                         'anggaran_id' => $item->anggaran_id,
                         'kak_id' => $item->kak_id,
                         'mata_anggaran_nama' => $item->mataAnggaran?->nama_mata_anggaran ?? '-',
-                        'uraian_kegiatan' => $item->uraian_kegiatan,
+                        'uraian' => $item->uraian,
                         'volume' => $item->volume,
                         'satuan_id' => $item->satuan_id,
                         'harga_satuan' => (float) $item->harga_satuan,

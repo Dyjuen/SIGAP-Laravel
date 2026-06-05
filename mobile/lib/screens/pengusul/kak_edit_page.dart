@@ -21,6 +21,7 @@ class _KakEditPageState extends State<KakEditPage> {
   List<dynamic> tipeKegiatanOptions = [];
   List<dynamic> ikuOptions = [];
   List<dynamic> satuanOptions = [];
+  List<dynamic> kategoriBelanjaOptions = [];
   bool isLoading = false;
   bool isLoadingMaster = true;
   bool isLoadingData = true;
@@ -41,11 +42,13 @@ class _KakEditPageState extends State<KakEditPage> {
       final tipeKegiatanData = await masterDataService.getTipeKegiatan();
       final ikuData = await masterDataService.getIku();
       final satuanData = await masterDataService.getSatuan();
+      final kategoriBelanjaData = await masterDataService.getKategoriBelanja();
 
       setState(() {
         tipeKegiatanOptions = tipeKegiatanData;
         ikuOptions = ikuData;
         satuanOptions = satuanData;
+        kategoriBelanjaOptions = kategoriBelanjaData;
         isLoadingMaster = false;
       });
 
@@ -148,6 +151,7 @@ class _KakEditPageState extends State<KakEditPage> {
         tipeKegiatanOptions: tipeKegiatanOptions,
         ikuOptions: ikuOptions,
         satuanOptions: satuanOptions,
+        kategoriBelanjaOptions: kategoriBelanjaOptions,
         readOnly: (kakDetail?.statusId == 2 || kakDetail?.statusId == 3),
         isLoading: isLoading,
         onFormChange: (formData) {

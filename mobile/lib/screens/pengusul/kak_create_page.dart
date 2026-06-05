@@ -18,6 +18,7 @@ class _KakCreatePageState extends State<KakCreatePage> {
   List<dynamic> tipeKegiatanOptions = [];
   List<dynamic> ikuOptions = [];
   List<dynamic> satuanOptions = [];
+  List<dynamic> kategoriBelanjaOptions = [];
   bool isLoading = false;
   bool isLoadingMaster = true;
   String? errorMessage;
@@ -35,11 +36,13 @@ class _KakCreatePageState extends State<KakCreatePage> {
       final tipeKegiatanData = await masterDataService.getTipeKegiatan();
       final ikuData = await masterDataService.getIku();
       final satuanData = await masterDataService.getSatuan();
+      final kategoriBelanjaData = await masterDataService.getKategoriBelanja();
 
       setState(() {
         tipeKegiatanOptions = tipeKegiatanData;
         ikuOptions = ikuData;
         satuanOptions = satuanData;
+        kategoriBelanjaOptions = kategoriBelanjaData;
         isLoadingMaster = false;
       });
     } catch (e) {
@@ -111,6 +114,7 @@ class _KakCreatePageState extends State<KakCreatePage> {
         tipeKegiatanOptions: tipeKegiatanOptions,
         ikuOptions: ikuOptions,
         satuanOptions: satuanOptions,
+        kategoriBelanjaOptions: kategoriBelanjaOptions,
         isLoading: isLoading,
         onFormChange: (formData) {
           setState(() {

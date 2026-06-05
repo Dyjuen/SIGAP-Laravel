@@ -211,7 +211,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
             const SizedBox(height: 12),
           ],
 
-          // RAB Summary
+          // RAB Summary Grouped by Category
           if (rab.isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.all(18),
@@ -230,36 +230,62 @@ class _KakDetailPageState extends State<KakDetailPage> {
                           color: Color(0xFF0F172A),
                           fontFamily: 'Figtree')),
                   const SizedBox(height: 12),
-                  ...rab.map((r) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(r['uraian'] ?? '-',
-                                      style: const TextStyle(
-                                          color: Color(0xFF1E293B), 
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13)),
-                                ),
-                                Text(
-                                  _formatRupiah(_parseDouble(r['jumlah_diusulkan'])),
-                                  style: const TextStyle(
-                                      color: Color(0xFF33C8DA), fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              _buildVolumeText(r),
-                              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                            ),
-                          ],
+                  ..._groupRabByCategory(rab).entries.map((group) {
+                    final kategoriId = group.key;
+                    final items = group.value;
+                    final kategoriNama = items.isNotEmpty && items.first['kategori_belanja'] != null 
+                        ? items.first['kategori_belanja']['nama'] 
+                        : (kategoriId == 1 ? 'Belanja Barang' : kategoriId == 2 ? 'Belanja Jasa' : kategoriId == 3 ? 'Belanja Perjalanan' : 'Lainnya');
+                    final subtotal = items.fold<double>(0, (sum, r) => sum + _parseDouble(r['jumlah_diusulkan']));
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(kategoriNama, 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF33C8DA), fontSize: 13)),
+                              Text(_formatRupiah(subtotal),
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF33C8DA), fontSize: 12)),
+                            ],
+                          ),
                         ),
-                      )),
-                  const Divider(),
+                        ...items.map((r) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12, left: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(r['uraian'] ?? '-',
+                                        style: const TextStyle(
+                                            color: Color(0xFF1E293B), 
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13)),
+                                  ),
+                                  Text(
+                                    _formatRupiah(_parseDouble(r['jumlah_diusulkan'])),
+                                    style: const TextStyle(
+                                        color: Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _buildVolumeText(r),
+                                style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        )),
+                        const Divider(height: 24),
+                      ],
+                    );
+                  }),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -474,6 +500,15 @@ class _KakDetailPageState extends State<KakDetailPage> {
       count++;
     }
     return 'Rp ${result.toString().split('').reversed.join()}';
+  }
+
+  Map<int, List<dynamic>> _groupRabByCategory(List<dynamic> rab) {
+    final Map<int, List<dynamic>> groups = {};
+    for (var item in rab) {
+      final int katId = item['kategori_belanja_id'] ?? 1;
+      groups.putIfAbsent(katId, () => []).add(item);
+    }
+    return groups;
   }
 
   double _parseDouble(dynamic value) {

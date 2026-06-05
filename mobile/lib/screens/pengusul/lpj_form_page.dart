@@ -55,7 +55,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Catatan Revisi: ${item.uraianKegiatan}',
+          'Catatan Revisi: ${item.uraian}',
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         content: TextField(
@@ -524,7 +524,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                       SizedBox(
                         width: 150,
                         child: Text(
-                          item.uraianKegiatan,
+                          item.uraian,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
@@ -573,6 +573,19 @@ class _LpjFormPageState extends State<LpjFormPage> {
     bool isEditable,
     int? roleId,
   ) {
+    // Group items by category
+    final groupedItems = <int, List<LpjRealization>>{};
+    final kategoriNames = <int, String>{};
+
+    for (var item in detail.anggaranItems) {
+      groupedItems.putIfAbsent(item.kategoriBelanjaId, () => []).add(item);
+      if (item.kategoriNama != null) {
+        kategoriNames[item.kategoriBelanjaId] = item.kategoriNama!;
+      }
+    }
+
+    final sortedKategoriIds = groupedItems.keys.toList()..sort();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -598,18 +611,39 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ),
         ),
         const SizedBox(height: 12),
-        ...detail.anggaranItems.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final item = entry.value;
-          final row = _rows[idx];
-
-          return _buildEnhancedRowItem(
-            idx,
-            item,
-            row,
-            isEditable,
-            roleId,
-            detail,
+        ...sortedKategoriIds.map((katId) {
+          final items = groupedItems[katId]!;
+          final katNama = kategoriNames[katId] ?? (katId == 1 ? 'Belanja Barang' : katId == 2 ? 'Belanja Jasa' : katId == 3 ? 'Belanja Perjalanan' : 'Lainnya');
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 16, 8),
+                child: Text(
+                  katNama,
+                  style: GoogleFonts.figtree(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    color: const Color(0xFF33C8DA),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+              ...items.map((item) {
+                final mainIdx = detail.anggaranItems.indexOf(item);
+                final row = _rows[mainIdx];
+                return _buildEnhancedRowItem(
+                  mainIdx,
+                  item,
+                  row,
+                  isEditable,
+                  roleId,
+                  detail,
+                );
+              }),
+              const SizedBox(height: 8),
+            ],
           );
         }),
       ],
@@ -625,7 +659,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
     LpjDetail detail,
   ) {
     debugPrint(
-      'Item ${item.uraianKegiatan} catatanReviewer: ${item.catatanReviewer}',
+      'Item ${item.uraian} catatanReviewer: ${item.catatanReviewer}',
     );
     final hasRevision =
         item.catatanReviewer != null && item.catatanReviewer!.trim().isNotEmpty;
@@ -717,7 +751,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.uraianKegiatan,
+                            item.uraian,
                             style: GoogleFonts.figtree(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,

@@ -130,6 +130,8 @@ class KakTargetIku {
 
 class KakRab {
   final String anggaranId;
+  final int kategoriBelanjaId;
+  final String? kategoriNama;
   final String uraian;
   final double? volume1;
   final int? satuan1Id;
@@ -146,6 +148,8 @@ class KakRab {
 
   KakRab({
     required this.anggaranId,
+    required this.kategoriBelanjaId,
+    this.kategoriNama,
     required this.uraian,
     this.volume1,
     this.satuan1Id,
@@ -164,6 +168,12 @@ class KakRab {
   factory KakRab.fromJson(Map<String, dynamic> json) {
     return KakRab(
       anggaranId: json['anggaran_id']?.toString() ?? '',
+      kategoriBelanjaId: json['kategori_belanja_id'] != null 
+          ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1 
+          : 1,
+      kategoriNama: json['kategori_belanja'] != null 
+          ? json['kategori_belanja']['nama'] 
+          : null,
       uraian: json['uraian'] ?? '',
       volume1: _parseDoubleOrNull(json['volume1']),
       satuan1Id: json['satuan1_id'] != null ? int.tryParse(json['satuan1_id'].toString()) : null,
@@ -182,6 +192,7 @@ class KakRab {
 
   Map<String, dynamic> toJson() => {
     'anggaran_id': anggaranId,
+    'kategori_belanja_id': kategoriBelanjaId,
     'uraian': uraian,
     'volume1': volume1,
     'satuan1_id': satuan1Id,

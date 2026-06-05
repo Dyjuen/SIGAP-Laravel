@@ -4,7 +4,9 @@ class LpjRealization {
   final String anggaranId;
   final String kakId;
   final String mataAnggaranNama;
-  final String uraianKegiatan;
+  final String uraian;
+  final int kategoriBelanjaId;
+  final String? kategoriNama;
   final double volume;
   final String? satuanId;
   final double hargaSatuan;
@@ -23,7 +25,9 @@ class LpjRealization {
     required this.anggaranId,
     required this.kakId,
     required this.mataAnggaranNama,
-    required this.uraianKegiatan,
+    required this.uraian,
+    required this.kategoriBelanjaId,
+    this.kategoriNama,
     required this.volume,
     this.satuanId,
     required this.hargaSatuan,
@@ -50,7 +54,13 @@ class LpjRealization {
       anggaranId: json['anggaran_id']?.toString() ?? '',
       kakId: json['kak_id']?.toString() ?? '',
       mataAnggaranNama: json['mata_anggaran_nama'] ?? '',
-      uraianKegiatan: json['uraian_kegiatan'] ?? '',
+      uraian: json['uraian'] ?? '',
+      kategoriBelanjaId: json['kategori_belanja_id'] != null 
+          ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1 
+          : 1,
+      kategoriNama: json['kategori_belanja'] != null 
+          ? json['kategori_belanja']['nama'] ?? json['kategori_belanja']['nama_kategori_belanja']
+          : null,
       volume: _parseDouble(json['volume']),
       satuanId: json['satuan_id']?.toString(),
       hargaSatuan: _parseDouble(json['harga_satuan']),
@@ -79,7 +89,8 @@ class LpjRealization {
     'anggaran_id': anggaranId,
     'kak_id': kakId,
     'mata_anggaran_nama': mataAnggaranNama,
-    'uraian_kegiatan': uraianKegiatan,
+    'uraian': uraian,
+    'kategori_belanja_id': kategoriBelanjaId,
     'volume': volume,
     'satuan_id': satuanId,
     'harga_satuan': hargaSatuan,
@@ -130,6 +141,8 @@ class LpjDetail {
     this.tglBatasLpj,
     this.spkKesesuaianWaktu,
     this.spkKesesuaianOutput,
+    this.spkKetepatanAnggaran,
+    this.spkKetepatanWaktuLpj,
     this.pengusulNama,
     this.pengusulId,
     required this.anggaranItems,

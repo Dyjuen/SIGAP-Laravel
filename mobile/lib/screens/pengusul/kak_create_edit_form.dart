@@ -94,6 +94,7 @@ class KakCreateEditForm extends StatefulWidget {
   final List<dynamic> tipeKegiatanOptions;
   final List<dynamic> ikuOptions;
   final List<dynamic> satuanOptions;
+  final List<dynamic> kategoriBelanjaOptions;
   final bool readOnly;
   final VoidCallback onSubmit;
   final bool isLoading;
@@ -105,6 +106,7 @@ class KakCreateEditForm extends StatefulWidget {
     required this.tipeKegiatanOptions,
     this.ikuOptions = const [],
     this.satuanOptions = const [],
+    this.kategoriBelanjaOptions = const [],
     this.readOnly = false,
     required this.onSubmit,
     this.isLoading = false,
@@ -196,7 +198,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             volume3: r.volume3?.toDouble(),
             satuan3Id: r.satuan3Id,
             hargaSatuan: r.hargaSatuan?.toDouble() ?? 0,
-            kategoriBelanjaId: 1,
+            kategoriBelanjaId: r.kategoriBelanjaId,
           ),
         )
         .toList();
@@ -364,7 +366,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     });
   }
 
-  void _addRab() {
+  void _addRab(int kategoriId) {
     setState(() {
       rabList.add(
         RabItem(
@@ -372,7 +374,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           uraian: '',
           volume1: 1,
           hargaSatuan: 0,
-          kategoriBelanjaId: 1,
+          kategoriBelanjaId: kategoriId,
         ),
       );
     });
@@ -1503,272 +1505,296 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             ),
           const SizedBox(height: 16),
 
-          // RAB
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Rencana Anggaran Biaya (RAB)',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addRab,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...rabList.asMap().entries.map((entry) {
-            int index = entry.key;
-            RabItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: colorScheme.outline),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // RAB Grouped by Category
+          ...widget.kategoriBelanjaOptions.map((kategori) {
+            final kategoriId = kategori['kategori_belanja_id'] ?? kategori['id'];
+            final kategoriNama = kategori['nama'] ?? kategori['name'] ?? '';
+            final categoryItems = rabList.where((item) => item.kategoriBelanjaId == kategoriId).toList();
+            final categoryTotal = categoryItems.fold<double>(0, (sum, item) => sum + item.getTotal());
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Item RAB ${index + 1}',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w600,
-                          ),
+                    Expanded(
+                      child: Text(
+                        kategoriNama,
+                        style: GoogleFonts.figtree(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
                         ),
-                        if (!widget.readOnly)
-                          IconButton(
-                            onPressed: () => _removeRab(index),
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,
-                          ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.uraian,
-                      decoration: InputDecoration(
-                        labelText: 'Uraian',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    if (!widget.readOnly)
+                      IconButton(
+                        onPressed: () => _addRab(kategoriId),
+                        icon: const Icon(Icons.add_circle),
+                      ),
+                  ],
+                ),
+                if (categoryTotal > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Text(
+                      'Subtotal: Rp ${NumberFormat("#,##0", "id_ID").format(categoryTotal.toInt())}',
+                      style: GoogleFonts.figtree(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                if (categoryItems.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      'Klik + untuk menambah $kategoriNama',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: colorScheme.outline,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ...categoryItems.map((item) {
+                  final indexInMainList = rabList.indexOf(item);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: (item.note != null && item.note!.trim().isNotEmpty)
+                              ? Colors.redAccent
+                              : colorScheme.outline,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? Colors.redAccent
-                                : const Color(0xFFE2E8F0),
-                            width:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? 1.2
-                                : 0.5,
-                          ),
-                        ),
-                        filled:
-                            (item.note != null && item.note!.trim().isNotEmpty),
-                        fillColor:
-                            (item.note != null && item.note!.trim().isNotEmpty)
+                        borderRadius: BorderRadius.circular(8),
+                        color: (item.note != null && item.note!.trim().isNotEmpty)
                             ? const Color(0xFFFFF1F0)
                             : null,
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Uraian tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.uraian = value;
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Catatan Verifikator: ${item.note!}',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                initialValue: item.volume1.toString(),
-                                decoration: InputDecoration(
-                                  labelText: 'Vol 1',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                onChanged: widget.readOnly
-                                    ? null
-                                    : (value) {
-                                        setState(() {
-                                          item.volume1 =
-                                              double.tryParse(value) ?? 0;
-                                        });
-                                      },
-                                enabled: !widget.readOnly,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildSatuanDropdown(
-                                label: 'Satuan 1',
-                                value: item.satuan1Id,
-                                onChanged: (val) =>
-                                    setState(() => item.satuan1Id = val),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                initialValue: item.volume2?.toString() ?? '',
-                                decoration: InputDecoration(
-                                  labelText: 'Vol 2',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                onChanged: widget.readOnly
-                                    ? null
-                                    : (value) {
-                                        setState(() {
-                                          item.volume2 = double.tryParse(value);
-                                        });
-                                      },
-                                enabled: !widget.readOnly,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildSatuanDropdown(
-                                label: 'Satuan 2',
-                                value: item.satuan2Id,
-                                onChanged: (val) =>
-                                    setState(() => item.satuan2Id = val),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          flex: 1,
-                          child: Column(
-                            children: [
-                              TextFormField(
-                                initialValue: item.volume3?.toString() ?? '',
-                                decoration: InputDecoration(
-                                  labelText: 'Vol 3',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                onChanged: widget.readOnly
-                                    ? null
-                                    : (value) {
-                                        setState(() {
-                                          item.volume3 = double.tryParse(value);
-                                        });
-                                      },
-                                enabled: !widget.readOnly,
-                              ),
-                              const SizedBox(height: 8),
-                              _buildSatuanDropdown(
-                                label: 'Satuan 3',
-                                value: item.satuan3Id,
-                                onChanged: (val) =>
-                                    setState(() => item.satuan3Id = val),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.hargaSatuan.toString(),
-                      decoration: InputDecoration(
-                        labelText: 'Harga Satuan (Rp)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Harga satuan harus diisi';
-                        }
-                        return null;
-                      },
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.hargaSatuan = double.tryParse(value) ?? 0;
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Total:',
-                            style: GoogleFonts.figtree(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Item RAB',
+                                style: GoogleFonts.figtree(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (!widget.readOnly)
+                                IconButton(
+                                  onPressed: () => _removeRab(indexInMainList),
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  iconSize: 20,
+                                ),
+                            ],
                           ),
-                          Text(
-                            'Rp ${NumberFormat("#,##0", "id_ID").format(item.getTotal().toInt())}',
-                            style: GoogleFonts.figtree(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            initialValue: item.uraian,
+                            decoration: InputDecoration(
+                              labelText: 'Uraian',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Uraian tidak boleh kosong';
+                              }
+                              return null;
+                            },
+                            onChanged: widget.readOnly
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      item.uraian = value;
+                                    });
+                                  },
+                            enabled: !widget.readOnly,
+                          ),
+                          if (item.note != null && item.note!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              'Catatan Verifikator: ${item.note!}',
+                              style: GoogleFonts.figtree(
+                                fontSize: 12,
+                                color: Colors.redAccent,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  children: [
+                                    TextFormField(
+                                      initialValue: item.volume1.toString(),
+                                      decoration: InputDecoration(
+                                        labelText: 'Vol 1',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: widget.readOnly
+                                          ? null
+                                          : (value) {
+                                              setState(() {
+                                                item.volume1 =
+                                                    double.tryParse(value) ?? 0;
+                                              });
+                                            },
+                                      enabled: !widget.readOnly,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildSatuanDropdown(
+                                      label: 'Satuan 1',
+                                      value: item.satuan1Id,
+                                      onChanged: (val) =>
+                                          setState(() => item.satuan1Id = val),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  children: [
+                                    TextFormField(
+                                      initialValue: item.volume2?.toString() ?? '',
+                                      decoration: InputDecoration(
+                                        labelText: 'Vol 2',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: widget.readOnly
+                                          ? null
+                                          : (value) {
+                                              setState(() {
+                                                item.volume2 = double.tryParse(value);
+                                              });
+                                            },
+                                      enabled: !widget.readOnly,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildSatuanDropdown(
+                                      label: 'Satuan 2',
+                                      value: item.satuan2Id,
+                                      onChanged: (val) =>
+                                          setState(() => item.satuan2Id = val),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 1,
+                                child: Column(
+                                  children: [
+                                    TextFormField(
+                                      initialValue: item.volume3?.toString() ?? '',
+                                      decoration: InputDecoration(
+                                        labelText: 'Vol 3',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onChanged: widget.readOnly
+                                          ? null
+                                          : (value) {
+                                              setState(() {
+                                                item.volume3 = double.tryParse(value);
+                                              });
+                                            },
+                                      enabled: !widget.readOnly,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildSatuanDropdown(
+                                      label: 'Satuan 3',
+                                      value: item.satuan3Id,
+                                      onChanged: (val) =>
+                                          setState(() => item.satuan3Id = val),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            initialValue: item.hargaSatuan.toString(),
+                            decoration: InputDecoration(
+                              labelText: 'Harga Satuan (Rp)',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Harga satuan harus diisi';
+                              }
+                              return null;
+                            },
+                            onChanged: widget.readOnly
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      item.hargaSatuan = double.tryParse(value) ?? 0;
+                                    });
+                                  },
+                            enabled: !widget.readOnly,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total:',
+                                  style: GoogleFonts.figtree(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  'Rp ${NumberFormat("#,##0", "id_ID").format(item.getTotal().toInt())}',
+                                  style: GoogleFonts.figtree(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  );
+                }),
+              ],
             );
           }),
           if (rabList.isEmpty)

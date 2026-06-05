@@ -299,6 +299,19 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
   Widget _buildTableSection(LpjDetail detail, int? roleId) {
     final isBendahara = roleId == 6;
 
+    // Group items by category
+    final groupedItems = <int, List<LpjRealization>>{};
+    final kategoriNames = <int, String>{};
+
+    for (var item in detail.anggaranItems) {
+      groupedItems.putIfAbsent(item.kategoriBelanjaId, () => []).add(item);
+      if (item.kategoriNama != null) {
+        kategoriNames[item.kategoriBelanjaId] = item.kategoriNama!;
+      }
+    }
+
+    final sortedKategoriIds = groupedItems.keys.toList()..sort();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -345,80 +358,100 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 if (isBendahara && detail.isSubmitted)
                   const DataColumn(label: Text('Review')),
               ],
-              rows: detail.anggaranItems.map((item) {
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      SizedBox(
-                        width: 150,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.uraianKegiatan,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
-                    DataCell(
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _formatCurrency(item.realisasiJumlah),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF10B981),
-                            ),
-                          ),
-                          Text(
-                            '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        '${item.percentageRealized.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: item.percentageRealized > 100
-                              ? Colors.red
-                              : Colors.blueGrey,
-                        ),
-                      ),
-                    ),
-                    if (isBendahara && detail.isSubmitted)
+              rows: [
+                for (var katId in sortedKategoriIds) ...[
+                  DataRow(
+                    color: WidgetStatePropertyAll(Colors.blueGrey.withOpacity(0.05)),
+                    cells: [
                       DataCell(
-                        IconButton(
-                          icon: Icon(
-                            _itemComments.containsKey(item.anggaranId)
-                                ? Icons.comment
-                                : Icons.add_comment_outlined,
-                            color: _itemComments.containsKey(item.anggaranId)
-                                ? Colors.orange
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                          onPressed: () => _showItemCommentDialog(item),
+                        Text(
+                          kategoriNames[katId] ?? (katId == 1 ? 'Belanja Barang' : katId == 2 ? 'Belanja Jasa' : katId == 3 ? 'Belanja Perjalanan' : 'Lainnya'),
+                          style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF33C8DA), fontSize: 12),
                         ),
                       ),
-                  ],
-                );
-              }).toList(),
+                      const DataCell(SizedBox.shrink()),
+                      const DataCell(SizedBox.shrink()),
+                      const DataCell(SizedBox.shrink()),
+                      if (isBendahara && detail.isSubmitted)
+                        const DataCell(SizedBox.shrink()),
+                    ],
+                  ),
+                  ...groupedItems[katId]!.map((item) {
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          SizedBox(
+                            width: 150,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.uraian,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
+                        DataCell(
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _formatCurrency(item.realisasiJumlah),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF10B981),
+                                ),
+                              ),
+                              Text(
+                                '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            '${item.percentageRealized.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: item.percentageRealized > 100
+                                  ? Colors.red
+                                  : Colors.blueGrey,
+                            ),
+                          ),
+                        ),
+                        if (isBendahara && detail.isSubmitted)
+                          DataCell(
+                            IconButton(
+                              icon: Icon(
+                                _itemComments.containsKey(item.anggaranId)
+                                    ? Icons.comment
+                                    : Icons.add_comment_outlined,
+                                color: _itemComments.containsKey(item.anggaranId)
+                                    ? Colors.orange
+                                    : Colors.grey,
+                                size: 20,
+                              ),
+                              onPressed: () => _showItemCommentDialog(item),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+                ],
+              ],
             ),
           ),
         ),
@@ -756,6 +789,43 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
       );
     }
 
+    // Setor Fisik Instructions for Pengusul
+    if (roleId == 3 && initialStatusId == 13) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0FDF4),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFBBF7D0)),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.info_outline_rounded, color: Color(0xFF16A34A), size: 32),
+            const SizedBox(height: 12),
+            Text(
+              'Status: Setor Fisik Dokumen',
+              style: GoogleFonts.figtree(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF16A34A),
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'LPJ online Anda telah disetujui. Silakan serahkan dokumen bukti fisik asli ke bagian Bendahara untuk menyelesaikan proses LPJ ini.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.figtree(
+                color: const Color(0xFF166534),
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -807,7 +877,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Catatan Revisi: ${item.uraianKegiatan}',
+          'Catatan Revisi: ${item.uraian}',
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         ),
         content: TextField(

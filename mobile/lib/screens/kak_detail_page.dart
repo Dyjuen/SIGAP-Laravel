@@ -1092,6 +1092,20 @@ class _RabSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Group RAB by kategoriBelanjaId
+    final groupedRab = <int, List<KakRab>>{};
+    final kategoriNames = <int, String>{};
+
+    for (var item in kak.rab) {
+      groupedRab.putIfAbsent(item.kategoriBelanjaId, () => []).add(item);
+      if (item.kategoriNama != null) {
+        kategoriNames[item.kategoriBelanjaId] = item.kategoriNama!;
+      }
+    }
+
+    // Sort categories (optional, e.g., 1, 2, 3)
+    final sortedKategoriIds = groupedRab.keys.toList()..sort();
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -1106,107 +1120,149 @@ class _RabSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ...kak.rab.map((item) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color:
-                        (item.catatanVerifikator != null &&
-                            item.catatanVerifikator!.trim().isNotEmpty)
-                        ? Colors.redAccent
-                        : colorScheme.outline,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  color:
-                      (item.catatanVerifikator != null &&
-                          item.catatanVerifikator!.trim().isNotEmpty)
-                      ? const Color(0xFFFFF1F0)
-                      : null,
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.uraian,
-                      style: GoogleFonts.figtree(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    if (item.catatanVerifikator != null &&
-                        item.catatanVerifikator!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 8),
+          ...sortedKategoriIds.map((katId) {
+            final items = groupedRab[katId]!;
+            final katNama = kategoriNames[katId] ?? (katId == 1 ? 'Belanja Barang' : katId == 2 ? 'Belanja Jasa' : katId == 3 ? 'Belanja Perjalanan' : 'Lainnya');
+            final subtotal = items.fold<double>(0, (sum, item) => sum + (item.jumlahDiusulkan ?? 0));
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       Text(
-                        'Catatan Verifikator: ${item.catatanVerifikator!}',
+                        katNama,
                         style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      Text(
+                        _formatCurrency(subtotal),
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ],
-                    const SizedBox(height: 8),
-                    if (item.volume1 != null)
-                      _RabDetailRow('Volume 1', '${item.volume1}', colorScheme),
-                    if (item.volume2 != null)
-                      _RabDetailRow('Volume 2', '${item.volume2}', colorScheme),
-                    if (item.volume3 != null)
-                      _RabDetailRow('Volume 3', '${item.volume3}', colorScheme),
-                    if (item.hargaSatuan != null)
-                      _RabDetailRow(
-                        'Harga Satuan',
-                        _formatCurrency(item.hargaSatuan!),
-                        colorScheme,
-                      ),
-                    if (item.jumlahDiusulkan != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Jumlah Diusulkan',
-                                style: GoogleFonts.figtree(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                _formatCurrency(item.jumlahDiusulkan!),
-                                style: GoogleFonts.figtree(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                  color: colorScheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
-              ),
+                ...items.map((item) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color:
+                              (item.catatanVerifikator != null &&
+                                  item.catatanVerifikator!.trim().isNotEmpty)
+                              ? Colors.redAccent
+                              : colorScheme.outline,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        color:
+                            (item.catatanVerifikator != null &&
+                                item.catatanVerifikator!.trim().isNotEmpty)
+                            ? const Color(0xFFFFF1F0)
+                            : null,
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.uraian,
+                            style: GoogleFonts.figtree(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          if (item.catatanVerifikator != null &&
+                              item.catatanVerifikator!.trim().isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Catatan Verifikator: ${item.catatanVerifikator!}',
+                              style: GoogleFonts.figtree(
+                                fontSize: 12,
+                                color: Colors.redAccent,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          if (item.volume1 != null)
+                            _RabDetailRow('Volume 1', '${item.volume1} ${item.satuan1Nama ?? ''}', colorScheme),
+                          if (item.volume2 != null && item.volume2! > 0)
+                            _RabDetailRow('Volume 2', '${item.volume2} ${item.satuan2Nama ?? ''}', colorScheme),
+                          if (item.volume3 != null && item.volume3! > 0)
+                            _RabDetailRow('Volume 3', '${item.volume3} ${item.satuan3Nama ?? ''}', colorScheme),
+                          if (item.hargaSatuan != null)
+                            _RabDetailRow(
+                              'Harga Satuan',
+                              _formatCurrency(item.hargaSatuan!),
+                              colorScheme,
+                            ),
+                          if (item.jumlahDiusulkan != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Jumlah',
+                                      style: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatCurrency(item.jumlahDiusulkan!),
+                                      style: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                const Divider(),
+              ],
             );
           }),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
+              color: colorScheme.primary,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: colorScheme.primary, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1215,16 +1271,16 @@ class _RabSection extends StatelessWidget {
                   'Total Anggaran',
                   style: GoogleFonts.figtree(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: colorScheme.onSurface,
+                    fontSize: 15,
+                    color: colorScheme.onPrimary,
                   ),
                 ),
                 Text(
                   _formatCurrency(kak.getTotalBudget()),
                   style: GoogleFonts.figtree(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: colorScheme.primary,
+                    fontSize: 16,
+                    color: colorScheme.onPrimary,
                   ),
                 ),
               ],
