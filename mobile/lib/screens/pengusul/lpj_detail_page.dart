@@ -76,6 +76,8 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                       _buildHeader(detail),
                       _buildTableSection(detail, authProvider.user?.roleId),
                   const SizedBox(height: 16),
+                  _buildSpkSection(detail),
+                  const SizedBox(height: 16),
                   _buildTimeline(detail),
                   const SizedBox(height: 16),
                   _buildApprovalCard(detail),
@@ -168,6 +170,126 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
             fontSize: 14,
             fontWeight: FontWeight.w800,
             color: const Color(0xFF0F172A),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpkSection(LpjDetail detail) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF33C8DA).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.analytics_outlined,
+                  color: Color(0xFF33C8DA),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Evaluasi Kinerja SPK',
+                      style: GoogleFonts.figtree(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Decision Support System',
+                      style: GoogleFonts.figtree(
+                        fontSize: 12,
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildSpkItem(
+            'Kesesuaian Waktu',
+            detail.spkKesesuaianWaktu?.toString() ?? '-',
+            'Variabel Kualitatif (Input Pengusul)',
+          ),
+          const SizedBox(height: 16),
+          _buildSpkItem(
+            'Kesesuaian Output (IKU)',
+            detail.spkKesesuaianOutput == 100
+                ? 'Sesuai'
+                : (detail.spkKesesuaianOutput == 0 ? 'Tidak Sesuai' : '-'),
+            'Variabel Kualitatif (Input Pengusul)',
+          ),
+          const SizedBox(height: 16),
+          _buildSpkItem(
+            'Ketepatan Anggaran',
+            detail.spkKetepatanAnggaran?.toString() ?? '-',
+            'Variabel Kuantitatif (Otomatis Sistem)',
+          ),
+          const SizedBox(height: 16),
+          _buildSpkItem(
+            'Ketepatan Waktu LPJ',
+            detail.spkKetepatanWaktuLpj?.toString() ?? '-',
+            'Variabel Kuantitatif (Otomatis Sistem)',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpkItem(String label, String value, String description) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.figtree(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF475569),
+              ),
+            ),
+            Text(
+              value,
+              style: GoogleFonts.figtree(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          description,
+          style: GoogleFonts.figtree(
+            fontSize: 11,
+            color: const Color(0xFF94A3B8),
+            fontStyle: FontStyle.italic,
           ),
         ),
       ],

@@ -111,6 +111,8 @@ class LpjDetail {
   final String? tglBatasLpj;
   final int? spkKesesuaianWaktu;
   final int? spkKesesuaianOutput;
+  final int? spkKetepatanAnggaran;
+  final int? spkKetepatanWaktuLpj;
   final String? pengusulNama;
   final String? pengusulId;
   final List<LpjRealization> anggaranItems;
@@ -159,6 +161,12 @@ class LpjDetail {
       spkKesesuaianOutput: json['spk_kesesuaian_output'] != null
           ? int.tryParse(json['spk_kesesuaian_output'].toString())
           : null,
+      spkKetepatanAnggaran: json['spk_ketepatan_anggaran'] != null
+          ? int.tryParse(json['spk_ketepatan_anggaran'].toString())
+          : null,
+      spkKetepatanWaktuLpj: json['spk_ketepatan_waktu_lpj'] != null
+          ? int.tryParse(json['spk_ketepatan_waktu_lpj'].toString())
+          : null,
       pengusulNama: json['pengusul']?['nama_lengkap'],
       pengusulId: json['pengusul']?['user_id']?.toString(),
       anggaranItems: anggaranList,
@@ -178,6 +186,8 @@ class LpjDetail {
     'tgl_batas_lpj': tglBatasLpj,
     'spk_kesesuaian_waktu': spkKesesuaianWaktu,
     'spk_kesesuaian_output': spkKesesuaianOutput,
+    'spk_ketepatan_anggaran': spkKetepatanAnggaran,
+    'spk_ketepatan_waktu_lpj': spkKetepatanWaktuLpj,
     'pengusul': {'nama_lengkap': pengusulNama, 'user_id': pengusulId},
     'anggaran_items': anggaranItems.map((i) => i.toJson()).toList(),
     'approval_status': approvalStatus,

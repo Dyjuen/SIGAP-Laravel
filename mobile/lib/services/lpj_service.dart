@@ -59,6 +59,8 @@ class LpjService {
   Future<void> submitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
+    int? spkKesesuaianWaktu,
+    int? spkKesesuaianOutput,
     Map<String, List<String>>? buktiFiles,
   }) async {
     try {
@@ -111,7 +113,17 @@ class LpjService {
         );
       }
 
-      // SPK fields removed: calculations handled on server or not used
+      // Add SPK fields
+      if (spkKesesuaianWaktu != null) {
+        formData.fields.add(
+          MapEntry('spk_kesesuaian_waktu', spkKesesuaianWaktu.toString()),
+        );
+      }
+      if (spkKesesuaianOutput != null) {
+        formData.fields.add(
+          MapEntry('spk_kesesuaian_output', spkKesesuaianOutput.toString()),
+        );
+      }
 
       // Add files
       if (buktiFiles != null && buktiFiles.isNotEmpty) {
@@ -199,6 +211,8 @@ class LpjService {
   Future<void> resubmitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
+    int? spkKesesuaianWaktu,
+    int? spkKesesuaianOutput,
     Map<String, List<String>>? buktiFiles,
   }) async {
     try {
@@ -251,7 +265,17 @@ class LpjService {
         );
       }
 
-      // SPK fields removed: calculations handled on server or not used
+      // Add SPK fields
+      if (spkKesesuaianWaktu != null) {
+        formData.fields.add(
+          MapEntry('spk_kesesuaian_waktu', spkKesesuaianWaktu.toString()),
+        );
+      }
+      if (spkKesesuaianOutput != null) {
+        formData.fields.add(
+          MapEntry('spk_kesesuaian_output', spkKesesuaianOutput.toString()),
+        );
+      }
 
       // Add files
       if (buktiFiles != null && buktiFiles.isNotEmpty) {

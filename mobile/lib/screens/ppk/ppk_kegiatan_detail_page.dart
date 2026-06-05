@@ -722,6 +722,105 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
                     ),
                     const SizedBox(height: 16),
 
+                    // IKU Card
+                    () {
+                      final List<dynamic> targets = kak['target_iku'] as List? ?? [];
+                      if (targets.isEmpty) return const SizedBox.shrink();
+
+                      return Column(
+                        children: [
+                          _buildSectionCard(
+                            title: 'INDIKATOR KINERJA UTAMA (IKU)',
+                            icon: Icons.track_changes_rounded,
+                            children: [
+                              ...targets.map((t) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF33C8DA),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              t['iku']?['kode_iku'] ?? 'IKU',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              t['iku']?['nama_iku'] ?? '-',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF1E293B),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Target Capaian',
+                                                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                                ),
+                                                Text(
+                                                  t['target']?.toString() ?? '-',
+                                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'Satuan',
+                                                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                                                ),
+                                                Text(
+                                                  t['satuan']?['nama_satuan'] ?? '-',
+                                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      );
+                    }(),
+
                     // Deskripsi Card
                     _buildSectionCard(
                       title: 'DESKRIPSI & METODE',

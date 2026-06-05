@@ -28,12 +28,17 @@ class _LpjFormPageState extends State<LpjFormPage> {
   final Map<String, String> _itemComments = {}; // anggaran_id -> comment
   final List<_SatuanOption> _satuanOptions = [];
 
+  // SPK fields
+  late TextEditingController _waktuController;
+  int? _selectedOutput;
+
   bool _initialized = false;
   bool _loadingSatuan = true;
 
   @override
   void initState() {
     super.initState();
+    _waktuController = TextEditingController();
     Future.microtask(() async {
       if (widget.kegiatanId.isNotEmpty) {
         await context.read<LpjProvider>().getLpjDetail(widget.kegiatanId);
@@ -86,6 +91,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
 
   @override
   void dispose() {
+    _waktuController.dispose();
     for (final row in _rows) {
       row.dispose();
     }
@@ -125,7 +131,10 @@ class _LpjFormPageState extends State<LpjFormPage> {
       _rows.add(_RealisasiRowControllers.fromItem(item));
     }
 
-    // SPK fields removed; no initialization required
+    // Initialize SPK fields
+    _waktuController.text = detail.spkKesesuaianWaktu?.toString() ?? '';
+    _selectedOutput = detail.spkKesesuaianOutput;
+
     _initialized = true;
   }
 
@@ -238,11 +247,15 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ? await provider.resubmitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
+              spkKesesuaianWaktu: int.tryParse(_waktuController.text),
+              spkKesesuaianOutput: _selectedOutput,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
             )
           : await provider.submitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
+              spkKesesuaianWaktu: int.tryParse(_waktuController.text),
+              spkKesesuaianOutput: _selectedOutput,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
             );
 
@@ -347,6 +360,8 @@ class _LpjFormPageState extends State<LpjFormPage> {
                       const SizedBox(height: 16),
                       _buildTableAlternative(detail, isEditable, roleId),
                       const SizedBox(height: 24),
+                      _buildSpkSection(detail, isEditable),
+                      const SizedBox(height: 32),
                       if (isEditable)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1105,7 +1120,170 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  // SPK UI and calculation removed
+  Widget _buildSpkSection(LpjDetail detail, bool isEditable) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9).withOpacity(0.5),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF33C8DA).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.analytics_outlined,
+                  color: Color(0xFF33C8DA),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Evaluasi Kinerja SPK Pimpinan',
+                      style: GoogleFonts.figtree(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      'Decision Support System (Variabel Kualitatif)',
+                      style: GoogleFonts.figtree(
+                        fontSize: 11,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Kesesuaian Waktu
+          Text(
+            'KESESUAIAN WAKTU (PELAKSANAAN KEGIATAN)',
+            style: GoogleFonts.figtree(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF475569),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextFormField(
+            controller: _waktuController,
+            enabled: isEditable,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              hintText: 'Nilai (50 - 100)',
+              filled: true,
+              fillColor: isEditable ? Colors.white : Colors.grey.shade50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Kesesuaian waktu harus diisi';
+              }
+              final val = int.tryParse(value);
+              if (val == null || val < 50 || val > 100) {
+                return 'Nilai harus antara 50 - 100';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Konstrain 50-100. Nilai kesesuaian waktu acara dibanding jadwal original.',
+            style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.4),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Kesesuaian Output
+          Text(
+            'KESESUAIAN OUTPUT (IKU)',
+            style: GoogleFonts.figtree(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF475569),
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<int>(
+            value: _selectedOutput,
+            onChanged: isEditable
+                ? (val) {
+                    setState(() => _selectedOutput = val);
+                  }
+                : null,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isEditable ? Colors.white : Colors.grey.shade50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            hint: const Text('Pilih Kesesuaian IKU'),
+            items: const [
+              DropdownMenuItem(value: 0, child: Text('0 - Output TIDAK Sesuai')),
+              DropdownMenuItem(value: 100, child: Text('100 - Output SESUAI')),
+            ],
+            validator: (value) {
+              if (value == null) return 'Pilih kesesuaian output';
+              return null;
+            },
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Hanya boleh 0 (tidak sesuai) atau 100 (sesuai indikator IKU KAK).',
+            style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
 
   // --- Helpers & UI Components ---
 

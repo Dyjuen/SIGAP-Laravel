@@ -61,6 +61,8 @@ class LpjProvider with ChangeNotifier {
   Future<bool> submitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
+    int? spkKesesuaianWaktu,
+    int? spkKesesuaianOutput,
     Map<String, List<String>>? buktiFiles,
   }) async {
     _isSubmitting = true;
@@ -71,6 +73,8 @@ class LpjProvider with ChangeNotifier {
       await _lpjService.submitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
+        spkKesesuaianWaktu: spkKesesuaianWaktu,
+        spkKesesuaianOutput: spkKesesuaianOutput,
         buktiFiles: buktiFiles,
       );
 
@@ -147,6 +151,8 @@ class LpjProvider with ChangeNotifier {
   Future<bool> resubmitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
+    int? spkKesesuaianWaktu,
+    int? spkKesesuaianOutput,
     Map<String, List<String>>? buktiFiles,
   }) async {
     _isSubmitting = true;
@@ -157,6 +163,8 @@ class LpjProvider with ChangeNotifier {
       await _lpjService.resubmitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
+        spkKesesuaianWaktu: spkKesesuaianWaktu,
+        spkKesesuaianOutput: spkKesesuaianOutput,
         buktiFiles: buktiFiles,
       );
 
