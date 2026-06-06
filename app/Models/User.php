@@ -52,6 +52,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the name of the password attribute for the user.
+     *
+     * @return string
+     */
+    public function getAuthPasswordName()
+    {
+        return 'password_hash';
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
