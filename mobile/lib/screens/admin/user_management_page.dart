@@ -223,7 +223,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       border: OutlineInputBorder(),
                     ),
                     validator: (v) =>
-                        v == null || v.length < 4 ? 'Minimal 4 karakter' : null,
+                        v == null || v.length < 8 ? 'Minimal 8 karakter' : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -265,9 +265,11 @@ class _UserManagementPageState extends State<UserManagementPage> {
                             final res = await ApiService.post('/admin/users', {
                               'username': usernameCtrl.text.trim(),
                               'password': passwordCtrl.text,
+                              'password_confirmation': passwordCtrl.text,
                               'nama_lengkap': nameCtrl.text.trim(),
                               'email': emailCtrl.text.trim(),
                               'role_id': selectedRoleId,
+                              'role_ids': [selectedRoleId],
                             });
 
                             if (res.statusCode == 201) {
@@ -316,6 +318,248 @@ class _UserManagementPageState extends State<UserManagementPage> {
                       ),
                       child: const Text(
                         'Simpan Pengguna',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditUserDialog(Map<String, dynamic> user) {
+    final formKey = GlobalKey<FormState>();
+    final nameCtrl = TextEditingController(text: user['nama_lengkap']);
+    final usernameCtrl = TextEditingController(text: user['username']);
+    final emailCtrl = TextEditingController(text: user['email']);
+    final passwordCtrl = TextEditingController();
+    int selectedRoleId = user['role_id'] ?? 3;
+
+    final roles = [
+      {'id': 1, 'name': 'Administrator'},
+      {'id': 2, 'name': 'Verifikator'},
+      {'id': 3, 'name': 'Pengusul'},
+      {'id': 4, 'name': 'PPK'},
+      {'id': 5, 'name': 'Wadir'},
+      {'id': 6, 'name': 'Bendahara'},
+      {'id': 7, 'name': 'Rektorat'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Edit Pengguna',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0F172A),
+                      fontFamily: 'Figtree',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+
+                  TextFormField(
+                    controller: usernameCtrl,
+                    enabled: false,
+                    decoration: const InputDecoration(
+                      labelText: 'Username (Tidak dapat diubah)',
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(),
+                      fillColor: Color(0xFFF1F5F9),
+                      filled: true,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: nameCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Lengkap',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) => v == null || v.isEmpty
+                        ? 'Nama lengkap wajib diisi'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: emailCtrl,
+                    decoration: const InputDecoration(
+                      labelText: 'Alamat Email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Email wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: passwordCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Kata Sandi Baru (Kosongkan jika tidak diubah)',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (v) {
+                      if (v != null && v.isNotEmpty && v.length < 8) {
+                        return 'Minimal 8 karakter';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  DropdownButtonFormField<int>(
+                    value: selectedRoleId,
+                    decoration: const InputDecoration(
+                      labelText: 'Peran Akses',
+                      prefixIcon: Icon(Icons.security_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: roles.map((r) {
+                      return DropdownMenuItem<int>(
+                        value: r['id'] as int,
+                        child: Text(r['name'] as String),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() {
+                          selectedRoleId = val;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (formKey.currentState!.validate()) {
+                          Navigator.of(ctx).pop();
+
+                          setState(() {
+                            _isLoading = true;
+                          });
+
+                          try {
+                            final userId = user['user_id'];
+                            
+                            // 1. Update basic info
+                            final res = await ApiService.put('/admin/users/$userId', {
+                              'nama_lengkap': nameCtrl.text.trim(),
+                              'email': emailCtrl.text.trim(),
+                              'role_ids': [selectedRoleId],
+                            });
+
+                            if (res.statusCode == 200) {
+                              bool passwordSuccess = true;
+                              
+                              // 2. If password field is not empty, update password
+                              if (passwordCtrl.text.isNotEmpty) {
+                                final pwdRes = await ApiService.put(
+                                  '/admin/users/$userId/change-password',
+                                  {
+                                    'new_password': passwordCtrl.text,
+                                    'new_password_confirmation': passwordCtrl.text,
+                                  },
+                                );
+                                if (pwdRes.statusCode != 200) {
+                                  passwordSuccess = false;
+                                }
+                              }
+
+                              if (passwordSuccess) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Pengguna berhasil diperbarui.',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Data diperbarui, tetapi gagal mengubah kata sandi.',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                              _loadUsers();
+                            } else {
+                              final data = jsonDecode(res.body);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    data['message'] ??
+                                        'Gagal memperbarui pengguna.',
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Terjadi kesalahan koneksi.'),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF33C8DA),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Simpan Perubahan',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -595,13 +839,25 @@ class _UserManagementPageState extends State<UserManagementPage> {
                                       ],
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete_outline,
-                                      color: Colors.redAccent,
-                                    ),
-                                    onPressed: () =>
-                                        _deleteUser(u['user_id'] as int, name),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.edit_outlined,
+                                          color: Color(0xFF33C8DA),
+                                        ),
+                                        onPressed: () => _showEditUserDialog(u),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          color: Colors.redAccent,
+                                        ),
+                                        onPressed: () =>
+                                            _deleteUser(u['user_id'] as int, name),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

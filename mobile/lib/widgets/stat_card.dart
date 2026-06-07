@@ -44,7 +44,7 @@ class StatCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -59,7 +59,7 @@ class StatCard extends StatelessWidget {
                     subtitle.toUpperCase(),
                     style: AppTheme.label.copyWith(
                       color: subCol,
-                      fontSize: 8,
+                      fontSize: 9,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.8,
                     ),
@@ -69,8 +69,8 @@ class StatCard extends StatelessWidget {
                     label,
                     style: AppTheme.subheading.copyWith(
                       color: textCol,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -83,7 +83,7 @@ class StatCard extends StatelessWidget {
               '$value',
               style: AppTheme.displayLg.copyWith(
                 color: valCol,
-                fontSize: 22,
+                fontSize: 26,
                 fontWeight: FontWeight.w900,
                 height: 1.0,
               ),

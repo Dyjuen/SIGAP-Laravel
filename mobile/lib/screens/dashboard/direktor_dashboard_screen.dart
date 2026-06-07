@@ -9,6 +9,7 @@ import '../help_guide_page.dart';
 import '../pengusul/kak_list_page.dart';
 import '../pengusul/kegiatan_page.dart';
 import '../kegiatan_monitoring_page.dart';
+import '../../widgets/dashboard/activity_item.dart';
 
 class DirektorDashboardScreen extends StatefulWidget {
   const DirektorDashboardScreen({super.key});
@@ -337,7 +338,77 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
                           style: AppTheme.subheading,
                         ),
                         const SizedBox(height: 16),
-                        const _UnitPerformanceList(),
+                        _UnitPerformanceList(units: provider.byJurusan),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+
+                  // Log Aktivitas Terbaru
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Log Aktivitas Terbaru',
+                              style: AppTheme.subheading,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        if (provider.items.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: AppTheme.cardDecoration,
+                            child: const Center(
+                              child: Text(
+                                'Belum ada aktivitas terbaru.',
+                                style: TextStyle(color: AppTheme.textSecondary),
+                              ),
+                            ),
+                          )
+                        else
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: provider.items.length,
+                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final item = provider.items[index];
+                              
+                              Color statusColor = const Color(0xFF3B82F6);
+                              Color statusBgColor = const Color(0xFFDBEAFE);
+                              
+                              final statusLower = item.status?.toLowerCase() ?? '';
+                              if (statusLower.contains('setuju') || statusLower.contains('approve') || statusLower == 'disetujui') {
+                                statusColor = const Color(0xFF10B981);
+                                statusBgColor = const Color(0xFFD1FAE5);
+                              } else if (statusLower.contains('tolak') || statusLower == 'ditolak') {
+                                statusColor = const Color(0xFFEF4444);
+                                statusBgColor = const Color(0xFFFEE2E2);
+                              } else if (statusLower.contains('revisi') || statusLower == 'revisi') {
+                                statusColor = const Color(0xFFF59E0B);
+                                statusBgColor = const Color(0xFFFEF3C7);
+                              }
+
+                              return ActivityItem(
+                                icon: Icon(
+                                  Icons.assignment_turned_in_rounded,
+                                  color: statusColor,
+                                  size: 24,
+                                ),
+                                status: item.status ?? 'Aktif',
+                                time: item.createdAt ?? '-',
+                                title: '${item.nama} (${item.tipe ?? "Pengusul"})',
+                                statusColor: statusColor,
+                                statusBgColor: statusBgColor,
+                              );
+                            },
+                          ),
                       ],
                     ),
                   ),
@@ -392,29 +463,7 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
                     const SizedBox(height: 40),
                   ],
 
-                  // Footer info
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-                    child: Column(
-                      children: [
-                        Text(
-                          'SIGAP PNJ v1.0.4',
-                          style: AppTheme.caption.copyWith(
-                            color: AppTheme.textTertiary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Politeknik Negeri Jakarta',
-                          style: AppTheme.caption.copyWith(
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
@@ -526,34 +575,28 @@ class _KpiCard extends StatelessWidget {
 }
 
 class _UnitPerformanceList extends StatelessWidget {
-  const _UnitPerformanceList();
+  final List<dynamic> units;
+  const _UnitPerformanceList({required this.units});
 
   @override
   Widget build(BuildContext context) {
-    final units = [
-      {
-        'nama': 'Teknik Informatika Komputer',
-        'kak_count': 12,
-        'kak_approved': 10,
-        'performance': 0.85,
-      },
-      {
-        'nama': 'Teknik Sipil',
-        'kak_count': 8,
-        'kak_approved': 6,
-        'performance': 0.75,
-      },
-      {
-        'nama': 'Akuntansi',
-        'kak_count': 6,
-        'kak_approved': 5,
-        'performance': 0.83,
-      },
-    ];
+    if (units.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: AppTheme.cardDecoration,
+        child: const Center(
+          child: Text(
+            'Belum ada data unit.',
+            style: TextStyle(color: AppTheme.textSecondary),
+          ),
+        ),
+      );
+    }
 
     return Column(
       children: units.map((unit) {
-        final performance = unit['performance'] as double;
+        final double rawPerf = (unit['persentase_serapan'] as num?)?.toDouble() ?? 0.0;
+        final double performance = (rawPerf / 100.0).clamp(0.0, 1.0);
         return Padding(
           padding: const EdgeInsets.only(bottom: 12.0),
           child: Container(
@@ -567,7 +610,7 @@ class _UnitPerformanceList extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        unit['nama'] as String,
+                        unit['nama_jurusan']?.toString() ?? '-',
                         style: AppTheme.subheading.copyWith(fontSize: 13, color: AppTheme.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -581,7 +624,7 @@ class _UnitPerformanceList extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        '${(performance * 100).toStringAsFixed(0)}%',
+                        '${rawPerf.toStringAsFixed(0)}%',
                         style: AppTheme.label.copyWith(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -603,7 +646,7 @@ class _UnitPerformanceList extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${unit['kak_approved']} dari ${unit['kak_count']} KAK disetujui',
+                  '${unit['kegiatan_selesai'] ?? 0} kegiatan selesai dari ${unit['kak_diajukan'] ?? 0} KAK diajukan',
                   style: AppTheme.caption.copyWith(color: AppTheme.textSecondary),
                 ),
               ],

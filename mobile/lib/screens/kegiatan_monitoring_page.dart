@@ -397,35 +397,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                       ),
                     ),
                   const SizedBox(height: 40),
-                  // Footer
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'SIGAP PNJ v1.0.4',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 11,
-                            color: colorScheme.onSurfaceVariant,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Politeknik Negeri Jakarta',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 11,
-                            color: colorScheme.onSurface,
-                            height: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             );

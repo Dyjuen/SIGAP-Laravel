@@ -10,7 +10,6 @@ import '../../widgets/status_badge.dart';
 import 'user_management_page.dart';
 import '../help_guide_page.dart';
 import '../profile_page.dart';
-import '../bendahara/pencairan_page.dart';
 import 'spk_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -205,17 +204,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildQuickActionItem(
-                                icon: Icons.payments_outlined,
-                                label: 'Pencairan',
-                                iconColor: const Color(0xFF10B981),
-                                tintColor: const Color(0xFFD1FAE5),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const PencairanPage()),
-                                  ).then((_) => _loadData());
-                                },
-                              ),
-                              _buildQuickActionItem(
                                 icon: Icons.bar_chart_rounded,
                                 label: 'SPK',
                                 iconColor: const Color(0xFF6366F1),
@@ -223,6 +211,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(builder: (_) => const SpkPage()),
+                                  );
+                                },
+                              ),
+                              _buildQuickActionItem(
+                                icon: Icons.library_books_outlined,
+                                label: 'Master Data',
+                                iconColor: const Color(0xFF10B981),
+                                tintColor: const Color(0xFFD1FAE5),
+                                onTap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Master Data tersedia di versi web.'),
+                                      backgroundColor: Color(0xFF10B981),
+                                    ),
                                   );
                                 },
                               ),
@@ -283,11 +285,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                   } catch (_) {}
                                 }
 
+                                // Map log_type → StatusBadge-compatible string
+                                final logType = (log['log_type'] ?? '').toString().toUpperCase();
+                                String badgeStatus;
+                                if (logType.contains('APPROVAL')) {
+                                  badgeStatus = 'DISETUJUI';
+                                } else if (logType.contains('STATUS')) {
+                                  badgeStatus = 'AKTIF';
+                                } else {
+                                  badgeStatus = 'INFO';
+                                }
+
                                 return _ActivityRow(
                                   title: log['context_title'] ?? 'Aktivitas Sistem',
                                   desc: log['description'] ?? 'Melakukan perubahan status',
                                   time: '$timeText • ${log['user_name']}',
-                                  status: log['log_type'] ?? 'INFO',
+                                  status: badgeStatus,
                                 );
                               },
                             ),
@@ -295,29 +308,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                       ),
                     ),
 
-                    // Footer / Version Info
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-                      child: Column(
-                        children: [
-                          Text(
-                            'SIGAP PNJ v1.0.4',
-                            style: AppTheme.caption.copyWith(
-                              color: AppTheme.textTertiary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Politeknik Negeri Jakarta',
-                            style: AppTheme.caption.copyWith(
-                              color: AppTheme.textSecondary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),

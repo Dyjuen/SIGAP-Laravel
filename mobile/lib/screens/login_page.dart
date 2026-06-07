@@ -89,31 +89,20 @@ class _LoginPageState extends State<LoginPage> {
             SingleChildScrollView(
               padding: const EdgeInsets.symmetric(
                 horizontal: 28.0,
-                vertical: 56.0,
+                vertical: 32.0,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
                   // Header — sesuai web: logo SVG polos di tengah tanpa kotak
                   Column(
                     children: [
                       Text(
-                        'Selamat Datang di',
+                        'Selamat Datang di SIGAP PNJ!',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.figtree(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF1F2937),
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      Text(
-                        'SIGAP PNJ!',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.figtree(
-                          fontSize: 26,
+                          fontSize: 22,
                           fontWeight: FontWeight.w800,
                           color: const Color(0xFF1F2937),
                           letterSpacing: -0.5,
@@ -130,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 20),
                   // Glassmorphism Card — sama dengan web
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),

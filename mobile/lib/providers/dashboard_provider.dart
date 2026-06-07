@@ -21,6 +21,7 @@ class BaseDashboardProvider extends ChangeNotifier {
 
   DashboardStats? get stats => _dashboardData?.stats;
   List<DashboardItem> get items => _dashboardData?.items ?? [];
+  List<dynamic> get byJurusan => _dashboardData?.byJurusan ?? [];
 
   /// Load dashboard data - to be overridden by subclasses
   Future<void> loadDashboard() async {

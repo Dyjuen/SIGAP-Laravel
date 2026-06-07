@@ -21,6 +21,7 @@ class SigapAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
+      automaticallyImplyLeading: false,
       titleSpacing: showBackButton ? 0 : 20,
       leading: showBackButton
           ? IconButton(

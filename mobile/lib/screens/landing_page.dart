@@ -214,7 +214,7 @@ class _LandingPageState extends State<LandingPage> {
 
                           // ── Stats Band ──
                           Container(
-                            color: dark,
+                            color: const Color(0xFFE0F7FA),
                             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -443,7 +443,7 @@ class _LandingPageState extends State<LandingPage> {
           style: GoogleFonts.figtree(
             fontSize: 22,
             fontWeight: FontWeight.w900,
-            color: Colors.white,
+            color: const Color(0xFF33C8DA),
           ),
         ),
         const SizedBox(height: 4),
@@ -451,7 +451,7 @@ class _LandingPageState extends State<LandingPage> {
           label,
           style: GoogleFonts.figtree(
             fontSize: 11,
-            color: const Color(0xFF94A3B8),
+            color: const Color(0xFF475569),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -463,7 +463,7 @@ class _LandingPageState extends State<LandingPage> {
     return Container(
       width: 1,
       height: 32,
-      color: Colors.white.withOpacity(0.15),
+      color: const Color(0xFF33C8DA).withOpacity(0.2),
     );
   }
 

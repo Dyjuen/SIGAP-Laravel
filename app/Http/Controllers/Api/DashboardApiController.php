@@ -66,9 +66,12 @@ class DashboardApiController extends Controller
     public function direktur(Request $request)
     {
         $stats = $this->dashboardService->getDirekturStats();
+        $details = $this->dashboardService->getDirekturDashboardData('year');
 
         return response()->json([
             'stats' => $stats,
+            'by_jurusan' => $details['by_jurusan'] ?? [],
+            'recent_activities' => $details['recent_activities'] ?? [],
         ]);
     }
 }

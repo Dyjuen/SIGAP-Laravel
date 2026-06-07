@@ -108,7 +108,7 @@ class DashboardItem {
       id: json['kak_id']?.toString() ?? json['kegiatan_id']?.toString() ?? '',
       nama: json['nama_kegiatan'] ?? json['nama'] ?? '',
       pengusulNama: json['pengusul_nama'],
-      tipe: json['tipe'],
+      tipe: json['tipe'] ?? json['approval_level'],
       status: json['status_nama'] ?? json['status'],
       tanggalMulai: json['tanggal_mulai'],
       tanggalSelesai: json['tanggal_selesai'],
@@ -137,9 +137,15 @@ class DashboardItem {
 class DashboardResponse {
   final DashboardStats stats;
   final List<DashboardItem> items;
+  final List<dynamic>? byJurusan;
   final String? message;
 
-  DashboardResponse({required this.stats, required this.items, this.message});
+  DashboardResponse({
+    required this.stats,
+    required this.items,
+    this.byJurusan,
+    this.message,
+  });
 
   factory DashboardResponse.fromJson(Map<String, dynamic> json) {
     final stats = DashboardStats.fromJson(json['stats'] ?? {});
@@ -151,6 +157,7 @@ class DashboardResponse {
     final pendingKaks = json['pending_kaks'] as List?;
     final pendingKegiatans = (json['pending_kegiatans'] ?? json['pending_kegiatan']) as List?;
     final pendingLpjs = json['pending_lpjs'] as List?;
+    final recentActivities = json['recent_activities'] as List?;
 
     if (recentKaks != null) {
       items = recentKaks
@@ -168,11 +175,16 @@ class DashboardResponse {
       items = pendingLpjs
           .map((e) => DashboardItem.fromJson(e as Map<String, dynamic>))
           .toList();
+    } else if (recentActivities != null) {
+      items = recentActivities
+          .map((e) => DashboardItem.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
 
     return DashboardResponse(
       stats: stats,
       items: items,
+      byJurusan: json['by_jurusan'] as List?,
       message: json['message'],
     );
   }
@@ -181,6 +193,7 @@ class DashboardResponse {
     return {
       'stats': stats.toJson(),
       'items': items.map((e) => e.toJson()).toList(),
+      'by_jurusan': byJurusan,
       'message': message,
     };
   }

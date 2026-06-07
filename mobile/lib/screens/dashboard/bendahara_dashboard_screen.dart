@@ -9,7 +9,7 @@ import '../../widgets/sigap_app_bar.dart';
 import '../../widgets/status_badge.dart';
 import '../pengusul/lpj_detail_page.dart';
 import '../pengusul/lpj_list_page.dart';
-import '../pengusul/kak_list_page.dart';
+
 import '../help_guide_page.dart';
 
 class BendaharaDashboardScreen extends StatefulWidget {
@@ -232,19 +232,7 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildQuickActionItem(
-                              icon: Icons.file_copy_rounded,
-                              label: 'Daftar KAK',
-                              iconColor: const Color(0xFFF59E0B),
-                              tintColor: const Color(0xFFFEF3C7),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const KakListPage(),
-                                  ),
-                                ).then((_) => provider.loadDashboard());
-                              },
-                            ),
+
                             _buildQuickActionItem(
                               icon: Icons.menu_book_rounded,
                               label: 'Panduan',
@@ -335,29 +323,7 @@ class _BendaharaDashboardScreenState extends State<BendaharaDashboardScreen> {
                     ),
                   ),
 
-                  // Footer info
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-                    child: Column(
-                      children: [
-                        Text(
-                          'SIGAP PNJ v1.0.4',
-                          style: AppTheme.caption.copyWith(
-                            color: AppTheme.textTertiary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Politeknik Negeri Jakarta',
-                          style: AppTheme.caption.copyWith(
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),

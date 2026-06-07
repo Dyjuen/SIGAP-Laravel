@@ -333,29 +333,7 @@ class _PengusulDashboardScreenState extends State<PengusulDashboardScreen> {
                     ),
                   ),
 
-                  // Footer info
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-                    child: Column(
-                      children: [
-                        Text(
-                          'SIGAP PNJ v1.0.4',
-                          style: AppTheme.caption.copyWith(
-                            color: AppTheme.textTertiary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Politeknik Negeri Jakarta',
-                          style: AppTheme.caption.copyWith(
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
