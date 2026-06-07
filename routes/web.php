@@ -20,7 +20,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', LandingPageController::class);
-Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
+Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])
+    ->name('chatbot.chat')
+    ->middleware('throttle:20,1');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth'])

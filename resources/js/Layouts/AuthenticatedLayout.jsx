@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/Components/Sidebar/Sidebar';
+import Chatbot from '@/Components/Chatbot';
 import NotificationBell from '@/Components/NotificationBell';
 import ToastContainer from '@/Components/ToastContainer';
 import { Menu } from 'lucide-react';
@@ -74,6 +75,7 @@ export default function AuthenticatedLayout({ user, header, children }) {
                     {children}
                 </main>
             </div>
+            <Chatbot />
         </div>
     );
 }
