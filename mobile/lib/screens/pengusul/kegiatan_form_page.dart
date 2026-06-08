@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/chatbot_service.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sigap_logo.dart';
 
@@ -48,6 +50,10 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
   void initState() {
     super.initState();
     _loadMasterData();
+    // Hide chatbot when filling KAK/Kegiatan
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatbotService>().setVisible(false);
+    });
   }
 
   Future<void> _loadMasterData() async {
@@ -77,6 +83,12 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
 
   @override
   void dispose() {
+    // Show chatbot again when leaving
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(true);
+      }
+    });
     _namaKegiatanCtrl.dispose();
     _deskripsiCtrl.dispose();
     _metodeCtrl.dispose();

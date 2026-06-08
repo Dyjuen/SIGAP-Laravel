@@ -21,6 +21,11 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/login', [AuthController::class, 'login']);
 
+// Chatbot Route (Public for Landing Page guests)
+Route::post('/chatbot/chat', [App\Http\Controllers\ChatbotController::class, 'chat'])
+    ->name('chatbot.chat')
+    ->middleware('throttle:20,1');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);

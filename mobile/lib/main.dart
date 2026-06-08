@@ -16,7 +16,10 @@ import 'services/master_data_service.dart';
 import 'services/lampiran_service.dart';
 import 'services/lpj_service.dart';
 import 'services/pencairan_service.dart';
+import 'services/chatbot_service.dart';
+import 'widgets/gita_chatbot_widget.dart';
 import 'providers/pencairan_provider.dart';
+import 'core/navigator_key.dart';
 import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
 import 'screens/pengusul/lpj_list_page.dart';
@@ -100,6 +103,7 @@ void main() async {
           create: (context) =>
               PencairanProvider(context.read<PencairanService>()),
         ),
+        ChangeNotifierProvider(create: (_) => ChatbotService()),
       ],
       child: const MyApp(),
     ),
@@ -133,6 +137,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'SIGAP PNJ',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -162,12 +167,18 @@ class _MyAppState extends State<MyApp> {
         '/lpj': (context) => const LpjListPage(),
         '/bendahara/pencairan': (context) => const PencairanPage(),
       },
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            const GitaChatbotWidget(),
+          ],
+        );
+      },
       home: _isCheckingAuth
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : Consumer<AuthProvider>(
               builder: (context, authProvider, _) {
-                // If authenticated, go to Dashboard.
-                // Else, show LandingPage which could have a button to navigate to Login
                 if (authProvider.isAuthenticated) {
                   return const DashboardRouter();
                 }

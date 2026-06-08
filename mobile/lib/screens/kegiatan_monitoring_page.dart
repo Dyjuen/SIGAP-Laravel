@@ -715,18 +715,22 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        step.title,
-                        style: GoogleFonts.figtree(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: step.status == 'pending'
-                              ? colorScheme.onSurfaceVariant.withOpacity(0.6)
-                              : colorScheme.onSurface,
+                      Flexible(
+                        child: Text(
+                          step.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.figtree(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: step.status == 'pending'
+                                ? colorScheme.onSurfaceVariant.withOpacity(0.6)
+                                : colorScheme.onSurface,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      if (step.date != null)
+                      if (step.date != null) ...[
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -748,6 +752,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                             ),
                           ),
                         ),
+                      ],
                     ],
                   ),
                   const SizedBox(height: 4),

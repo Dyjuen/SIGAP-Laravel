@@ -149,61 +149,65 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
-            InkWell(
-              onTap: _isUploading ? null : _pickFile,
-              child: Container(
-                padding: const EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFF33C8DA), width: 2),
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.cyan[50],
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.cloud_upload_outlined,
-                      size: 48,
-                      color: const Color(0xFF33C8DA),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_selectedFileName != null) ...[
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _isUploading ? null : _pickFile,
+                borderRadius: BorderRadius.circular(12),
+                child: Ink(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFF33C8DA), width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.cyan[50],
+                  ),
+                  child: Column(
+                    children: [
                       Icon(
-                        _getFileIcon(_selectedFileName!),
-                        size: 32,
+                        Icons.cloud_upload_outlined,
+                        size: 48,
                         color: const Color(0xFF33C8DA),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _selectedFileName!,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                      const SizedBox(height: 12),
+                      if (_selectedFileName != null) ...[
+                        Icon(
+                          _getFileIcon(_selectedFileName!),
+                          size: 32,
+                          color: const Color(0xFF33C8DA),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Tapped untuk mengubah file',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ] else ...[
-                      Text(
-                        'Tap untuk memilih file',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey[700],
-                          fontSize: 14,
+                        const SizedBox(height: 8),
+                        Text(
+                          _selectedFileName!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Format yang didukung: JPG, PNG, PDF\nUkuran maksimal: 10 MB',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tapped untuk mengubah file',
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ] else ...[
+                        Text(
+                          'Tap untuk memilih file',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Format yang didukung: JPG, PNG, PDF\nUkuran maksimal: 10 MB',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/kak_model.dart';
 import '../../services/kak_service.dart';
 import '../../services/master_data_service.dart';
+import '../../services/chatbot_service.dart';
 import 'kak_create_edit_form.dart';
 
 class KakFormPage extends StatefulWidget {
@@ -32,6 +33,21 @@ class _KakFormPageState extends State<KakFormPage> {
   void initState() {
     super.initState();
     _loadData();
+    // Hide chatbot when filling KAK
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatbotService>().setVisible(false);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Show chatbot again when leaving KAK form
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(true);
+      }
+    });
+    super.dispose();
   }
 
   Future<void> _loadData() async {

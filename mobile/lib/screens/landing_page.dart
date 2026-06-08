@@ -530,38 +530,40 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   Widget _buildFaqTile(Map<String, String> faq, Color primary) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          collapsedIconColor: const Color(0xFF64748B),
-          iconColor: primary,
-          title: Text(
-            faq['q']!,
-            style: GoogleFonts.figtree(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: const Color(0xFF0F172A),
-            ),
-          ),
-          children: [
-            Text(
-              faq['a']!,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            childrenPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            collapsedIconColor: const Color(0xFF64748B),
+            iconColor: primary,
+            title: Text(
+              faq['q']!,
               style: GoogleFonts.figtree(
-                fontSize: 13,
-                color: const Color(0xFF475569),
-                height: 1.5,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: const Color(0xFF0F172A),
               ),
             ),
-          ],
+            children: [
+              Text(
+                faq['a']!,
+                style: GoogleFonts.figtree(
+                  fontSize: 13,
+                  color: const Color(0xFF475569),
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

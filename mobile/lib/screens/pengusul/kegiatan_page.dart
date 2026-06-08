@@ -237,25 +237,27 @@ class _KegiatanPageState extends State<KegiatanPage> {
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              InkWell(
-                                onTap: () async {
-                                  final res = await FilePicker.platform.pickFiles(
-                                    type: FileType.custom,
-                                    allowedExtensions: ['pdf', 'doc', 'docx'],
-                                    withData: true,
-                                  );
-                                  if (res != null && res.files.isNotEmpty) {
-                                    setState(() => pickedFile = res.files.first);
-                                  }
-                                },
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF8FAFC),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                                  ),
+                              Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () async {
+                                    final res = await FilePicker.platform.pickFiles(
+                                      type: FileType.custom,
+                                      allowedExtensions: ['pdf', 'doc', 'docx'],
+                                      withData: true,
+                                    );
+                                    if (res != null && res.files.isNotEmpty) {
+                                      setState(() => pickedFile = res.files.first);
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Ink(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF8FAFC),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    ),
                                   child: Row(
                                     children: [
                                       Icon(
@@ -298,10 +300,11 @@ class _KegiatanPageState extends State<KegiatanPage> {
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
+                    ),
                       
                       // Footer actions
                       Padding(

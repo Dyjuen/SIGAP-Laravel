@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
 import '../providers/dashboard_provider.dart';
 import '../services/dashboard_service.dart';
+import '../services/chatbot_service.dart';
 
 // Screens
 import '../screens/dashboard/pengusul_dashboard_screen.dart';
@@ -19,7 +20,6 @@ import '../screens/kegiatan_monitoring_page.dart';
 import '../screens/ppk/ppk_kegiatan_list_page.dart';
 import '../screens/bendahara/pencairan_page.dart';
 import '../screens/admin/user_management_page.dart';
-import '../screens/help_guide_page.dart';
 import '../screens/profile_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -32,6 +32,26 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    // Move chatbot above navbar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatbotService>().setBottomPadding(100);
+    });
+  }
+
+  @override
+  void dispose() {
+    // Reset chatbot padding when leaving shell
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setBottomPadding(20);
+      }
+    });
+    super.dispose();
+  }
 
   // Build the pages and destinations based on role
   List<Widget> _getPages(BuildContext context) {
@@ -282,13 +302,16 @@ class _AppShellState extends State<AppShell> {
         index: _selectedIndex,
         children: pages,
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: AppTheme.border, width: 1),
+      bottomNavigationBar: Material(
+        color: Colors.white,
+        elevation: 0,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: AppTheme.border, width: 1),
+            ),
           ),
-        ),
-        child: NavigationBarTheme(
+          child: NavigationBarTheme(
           data: NavigationBarThemeData(
             labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
               (Set<WidgetState> states) {
@@ -327,6 +350,7 @@ class _AppShellState extends State<AppShell> {
             },
             destinations: destinations,
           ),
+        ),
         ),
       ),
     );

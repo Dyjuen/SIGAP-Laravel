@@ -10,6 +10,7 @@ import '../../providers/lpj_provider.dart';
 import '../../services/master_data_service.dart';
 
 import '../../providers/auth_provider.dart';
+import '../../services/chatbot_service.dart';
 
 class LpjFormPage extends StatefulWidget {
   final String kegiatanId;
@@ -44,6 +45,10 @@ class _LpjFormPageState extends State<LpjFormPage> {
         await context.read<LpjProvider>().getLpjDetail(widget.kegiatanId);
       }
       await _loadSatuan();
+    });
+    // Hide chatbot when filling LPJ
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatbotService>().setVisible(false);
     });
   }
 
@@ -91,6 +96,12 @@ class _LpjFormPageState extends State<LpjFormPage> {
 
   @override
   void dispose() {
+    // Show chatbot again when leaving
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(true);
+      }
+    });
     _waktuController.dispose();
     for (final row in _rows) {
       row.dispose();

@@ -53,60 +53,62 @@ class _FaqSectionState extends State<FaqSection> {
             final f = entry.value;
             final isOpen = f['isOpen'] as bool;
 
-            return Container(
-              margin: const EdgeInsets.only(bottom: 14.0),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isOpen ? const Color(0xFF33C8DA) : const Color(0xFFE2E8F0),
-                  width: isOpen ? 1.5 : 1,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14.0),
+              child: Material(
+                color: Colors.white.withValues(alpha: 0.9),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(
+                    color: isOpen ? const Color(0xFF33C8DA) : const Color(0xFFE2E8F0),
+                    width: isOpen ? 1.5 : 1,
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                shadowColor: Colors.black.withValues(alpha: 0.02),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    dividerColor: Colors.transparent,
+                    splashColor: const Color(0xFF33C8DA).withValues(alpha: 0.1),
                   ),
-                ],
-              ),
-              child: Theme(
-                data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                child: ExpansionTile(
-                  key: ValueKey(idx),
-                  initiallyExpanded: isOpen,
-                  onExpansionChanged: (expanded) {
-                    setState(() {
-                      f['isOpen'] = expanded;
-                    });
-                  },
-                  title: Text(
-                    f['q'] as String,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: isOpen ? const Color(0xFF0097A7) : const Color(0xFF1E293B),
-                      fontFamily: 'Figtree',
-                    ),
-                  ),
-                  trailing: Icon(
-                    isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: isOpen ? const Color(0xFF33C8DA) : const Color(0xFF64748B),
-                  ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 20.0),
-                      child: Text(
-                        f['a'] as String,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF475569),
-                          height: 1.45,
-                          fontFamily: 'Figtree',
-                        ),
+                  child: ExpansionTile(
+                    key: ValueKey(idx),
+                    initiallyExpanded: isOpen,
+                    backgroundColor: Colors.transparent,
+                    collapsedBackgroundColor: Colors.transparent,
+                    onExpansionChanged: (expanded) {
+                      setState(() {
+                        f['isOpen'] = expanded;
+                      });
+                    },
+                    title: Text(
+                      f['q'] as String,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: isOpen ? const Color(0xFF0097A7) : const Color(0xFF1E293B),
+                        fontFamily: 'Figtree',
                       ),
-                    )
-                  ],
+                    ),
+                    trailing: Icon(
+                      isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      color: isOpen ? const Color(0xFF33C8DA) : const Color(0xFF64748B),
+                    ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 20.0),
+                        child: Text(
+                          f['a'] as String,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF475569),
+                            height: 1.45,
+                            fontFamily: 'Figtree',
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
             );

@@ -273,118 +273,121 @@ class _LpjListPageState extends State<LpjListPage> {
     // Bendahara should not be able to click or see actions if LPJ is not yet submitted (Draft)
     final isBendaharaDraft = roleId == 6 && item.lpjStatus == 'Draft';
 
-    return InkWell(
-      onTap: isBendaharaDraft
-          ? null
-          : () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
-      borderRadius: BorderRadius.circular(22),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x080F172A),
-              blurRadius: 18,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        item.namaKegiatan,
-                        style: GoogleFonts.figtree(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: const Color(0xFF0F172A),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        item.statusNama.isNotEmpty
-                            ? 'Tahap: ${item.statusNama}'
-                            : 'Tahap kegiatan belum tersedia',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                _StatusChip(label: displayStatus, color: themeColor),
-              ],
-            ),
-            const SizedBox(height: 14),
-            _InfoRow(
-              icon: Icons.account_balance_wallet_outlined,
-              label: 'Anggaran',
-              value: _formatCurrency(item.totalAnggaranDiusulkan),
-            ),
-            const SizedBox(height: 8),
-            _InfoRow(
-              icon: Icons.payments_outlined,
-              label: 'Dicairkan',
-              value: _formatCurrency(item.danaDicairkan),
-            ),
-            if (item.tglBatasLpj != null || item.lpjSubmittedAt != null) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (item.tglBatasLpj != null)
-                    _MiniBadge(
-                      icon: Icons.schedule_rounded,
-                      text: 'Batas: ${_formatDate(item.tglBatasLpj!)}',
-                    ),
-                  if (item.lpjSubmittedAt != null)
-                    _MiniBadge(
-                      icon: Icons.cloud_done_outlined,
-                      text: 'Submit: ${_formatDate(item.lpjSubmittedAt!)}',
-                    ),
-                  if (item.tglBatasLpj != null)
-                    _MiniBadge(
-                      icon: Icons.hourglass_bottom_rounded,
-                      text: _countdownText(item.tglBatasLpj!, now),
-                      highlight: _isDeadlineClose(item.tglBatasLpj!, now),
-                    ),
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isBendaharaDraft
+            ? null
+            : () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x080F172A),
+                blurRadius: 18,
+                offset: Offset(0, 6),
               ),
             ],
-            const SizedBox(height: 14),
-            // For Bendahara viewing Draft items, do not show any action button.
-            if (!isBendaharaDraft)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF33C8DA),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.namaKegiatan,
+                          style: GoogleFonts.figtree(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          item.statusNama.isNotEmpty
+                              ? 'Tahap: ${item.statusNama}'
+                              : 'Tahap kegiatan belum tersedia',
+                          style: GoogleFonts.figtree(
+                            fontSize: 12,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Text(
-                    actionLabel,
-                    style: GoogleFonts.figtree(fontWeight: FontWeight.w700),
+                  _StatusChip(label: displayStatus, color: themeColor),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _InfoRow(
+                icon: Icons.account_balance_wallet_outlined,
+                label: 'Anggaran',
+                value: _formatCurrency(item.totalAnggaranDiusulkan),
+              ),
+              const SizedBox(height: 8),
+              _InfoRow(
+                icon: Icons.payments_outlined,
+                label: 'Dicairkan',
+                value: _formatCurrency(item.danaDicairkan),
+              ),
+              if (item.tglBatasLpj != null || item.lpjSubmittedAt != null) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (item.tglBatasLpj != null)
+                      _MiniBadge(
+                        icon: Icons.schedule_rounded,
+                        text: 'Batas: ${_formatDate(item.tglBatasLpj!)}',
+                      ),
+                    if (item.lpjSubmittedAt != null)
+                      _MiniBadge(
+                        icon: Icons.cloud_done_outlined,
+                        text: 'Submit: ${_formatDate(item.lpjSubmittedAt!)}',
+                      ),
+                    if (item.tglBatasLpj != null)
+                      _MiniBadge(
+                        icon: Icons.hourglass_bottom_rounded,
+                        text: _countdownText(item.tglBatasLpj!, now),
+                        highlight: _isDeadlineClose(item.tglBatasLpj!, now),
+                      ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 14),
+              // For Bendahara viewing Draft items, do not show any action button.
+              if (!isBendaharaDraft)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _openDetail(context, item.kegiatanId, item.statusId, item.statusNama),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF33C8DA),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: Text(
+                      actionLabel,
+                      style: GoogleFonts.figtree(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
