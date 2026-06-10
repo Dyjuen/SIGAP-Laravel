@@ -134,6 +134,28 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
+          Text(
+            'Mata Anggaran',
+            style: GoogleFonts.figtree(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF64748B),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            detail.anggaranItems.isNotEmpty 
+                ? detail.anggaranItems.first.mataAnggaranNama 
+                : '-',
+            style: GoogleFonts.figtree(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 12),
           Row(
             children: [
               _buildCompactStat(
@@ -392,6 +414,16 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                   maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  item.mataAnggaranNama,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey.shade500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],

@@ -50,19 +50,22 @@ class LpjRealization {
         'LpjRealization: Anggaran ${json['anggaran_id']} received note: $catatan',
       );
     }
+    final uraianVal = (json['uraian'] ?? json['nama_item'] ?? json['keterangan'])?.toString() ?? '';
+    debugPrint('DEBUG LPJ ITEM: ID=${json['anggaran_id']}, URAIAN=$uraianVal, RAW=${json['uraian']}');
+    
     return LpjRealization(
       anggaranId: json['anggaran_id']?.toString() ?? '',
       kakId: json['kak_id']?.toString() ?? '',
-      mataAnggaranNama: json['mata_anggaran_nama'] ?? '',
-      uraian: json['uraian'] ?? '',
+      mataAnggaranNama: json['mata_anggaran_nama']?.toString() ?? '',
+      uraian: uraianVal,
       kategoriBelanjaId: json['kategori_belanja_id'] != null 
           ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1 
           : 1,
       kategoriNama: json['kategori_belanja'] != null 
           ? json['kategori_belanja']['nama'] ?? json['kategori_belanja']['nama_kategori_belanja']
           : null,
-      volume: _parseDouble(json['volume']),
-      satuanId: json['satuan_id']?.toString(),
+      volume: _parseDouble(json['volume1'] ?? json['volume']),
+      satuanId: (json['satuan1_id'] ?? json['satuan_id'])?.toString(),
       hargaSatuan: _parseDouble(json['harga_satuan']),
       jumlahDiusulkan: _parseDouble(json['jumlah_diusulkan']),
       realisasiVolume1: json['realisasi_volume1'] != null

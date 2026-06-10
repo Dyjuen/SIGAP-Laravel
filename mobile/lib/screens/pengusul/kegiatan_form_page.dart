@@ -228,6 +228,11 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
           .toList(),
     };
 
+    print('Kategori Belanja IDs being sent:');
+    for (var rabItem in body['rab']) {
+      print('  - Uraian: ${rabItem['uraian']}, Kategori ID: ${rabItem['kategori_belanja_id']}');
+    }
+
     try {
       final res = await ApiService.post('/kak', body);
       if (!mounted) return;

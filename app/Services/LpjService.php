@@ -509,7 +509,7 @@ class LpjService
                 'pengusul_user_id',
                 'mata_anggaran_id',
                 'tipe_kegiatan_id',
-            ]),
+            ])->withSum('anggaran', 'jumlah_diusulkan'),
             'kak.pengusul' => fn ($q) => $q->select(['user_id', 'nama_lengkap']),
             'kak.mataAnggaran' => fn ($q) => $q->select(['mata_anggaran_id', 'nama_sumber_dana']),
             'kak.tipeKegiatan' => fn ($q) => $q->select(['tipe_kegiatan_id', 'nama_tipe']),
@@ -527,14 +527,6 @@ class LpjService
         }
 
         $kegiatans = $query->get();
-        $kegiatans->load(['kak' => fn ($q) => $q->select([
-            'kak_id',
-            'nama_kegiatan',
-            'status_id',
-            'pengusul_user_id',
-            'mata_anggaran_id',
-            'tipe_kegiatan_id',
-        ])->withSum('anggaran', 'jumlah_diusulkan')]);
 
         return $kegiatans->map(function (Kegiatan $kegiatan) {
             $totalAnggaran = (float) ($kegiatan->kak?->anggaran_sum_jumlah_diusulkan ?? 0);

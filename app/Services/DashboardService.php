@@ -298,7 +298,7 @@ class DashboardService
 
             $isLpjVerification = $kegiatan->approvals
                 ->where('approval_level', 'Bendahara-LPJ')
-                ->where('status', 'Aktif')
+                ->whereIn('status', ['Aktif', 'Revisi'])
                 ->isNotEmpty();
 
             if ($isWaitingDisbursement) {

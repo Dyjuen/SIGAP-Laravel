@@ -505,7 +505,7 @@ class _LpjListPageState extends State<LpjListPage> {
     if (s.contains('draft')) return const Color(0xFF3B82F6);
     if (s.contains('menunggu') || s.contains('review') || s.contains('submitted')) return const Color(0xFFF59E0B);
     if (s.contains('disetujui') || s.contains('approved')) return const Color(0xFF10B981);
-    if (s.contains('revisi') || s.contains('revisi')) return const Color(0xFFF97316);
+    if (s.contains('revisi') || s.contains('revision')) return const Color(0xFFF97316);
     if (s.contains('setor')) return const Color(0xFF8B5CF6);
     if (s.contains('selesai') || s.contains('completed')) return const Color(0xFF8B5CF6);
     return const Color(0xFF64748B);

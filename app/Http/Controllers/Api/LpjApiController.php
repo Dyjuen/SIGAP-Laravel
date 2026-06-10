@@ -73,8 +73,11 @@ class LpjApiController extends Controller
 
             $kegiatan->load([
                 'kak.pengusul',
-                'kak.anggaran',
                 'kak.mataAnggaran',
+                'kak.anggaran.kategoriBelanja',
+                'kak.anggaran.satuan1',
+                'kak.anggaran.satuan2',
+                'kak.anggaran.satuan3',
                 'approvals',
             ]);
 
@@ -93,14 +96,25 @@ class LpjApiController extends Controller
                     'user_id' => $kegiatan->kak->pengusul->user_id,
                     'nama_lengkap' => $kegiatan->kak->pengusul->nama_lengkap,
                 ] : null,
-                'anggaran_items' => $kegiatan->kak?->anggaran->map(function ($item) {
+                'anggaran_items' => ($kegiatan->kak?->anggaran ?? collect())->map(function ($item) use ($kegiatan) {
                     return [
                         'anggaran_id' => $item->anggaran_id,
                         'kak_id' => $item->kak_id,
-                        'mata_anggaran_nama' => $item->mataAnggaran?->nama_mata_anggaran ?? '-',
-                        'uraian' => $item->uraian,
-                        'volume' => $item->volume,
-                        'satuan_id' => $item->satuan_id,
+                        'kategori_belanja_id' => $item->kategori_belanja_id,
+                        'kategori_belanja' => [
+                            'id' => $item->kategori_belanja_id,
+                            'nama' => $item->kategoriBelanja?->nama_kategori_belanja ?? $item->kategoriBelanja?->nama ?? '-',
+                        ],
+                        'mata_anggaran_nama' => $kegiatan->kak?->mataAnggaran 
+                            ? "{$kegiatan->kak->mataAnggaran->kode_anggaran} - {$kegiatan->kak->mataAnggaran->nama_sumber_dana}"
+                            : '-',
+                        'uraian' => $item->uraian ?? '-',
+                        'volume1' => $item->volume1,
+                        'satuan1_id' => $item->satuan1_id,
+                        'volume2' => $item->volume2,
+                        'satuan2_id' => $item->satuan2_id,
+                        'volume3' => $item->volume3,
+                        'satuan3_id' => $item->satuan3_id,
                         'harga_satuan' => (float) $item->harga_satuan,
                         'jumlah_diusulkan' => (float) $item->jumlah_diusulkan,
                         // Realization fields
@@ -114,7 +128,7 @@ class LpjApiController extends Controller
                         'realisasi_jumlah' => (float) $item->realisasi_jumlah,
                         'catatan_reviewer' => $item->catatan_verifikator,
                     ];
-                })->toArray() ?? [],
+                })->toArray(),
                 'approval_status' => $kegiatan->approvals->where('approval_level', 'Bendahara-LPJ')->first()?->status ?? 'Pending',
                 'approval_notes' => $kegiatan->approvals->where('approval_level', 'Bendahara-LPJ')->first()?->catatan ?? null,
             ];

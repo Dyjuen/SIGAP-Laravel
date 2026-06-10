@@ -21,9 +21,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     super.initState();
     // Fetch LPJ detail
     Future.microtask(() {
-      context.read<LpjProvider>().selectedLpj != null
-          ? {}
-          : context.read<LpjProvider>().fetchLpjList();
+      context.read<LpjProvider>().getLpjDetail(widget.kegiatanId.toString());
     });
   }
 
@@ -498,7 +496,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                   SizedBox(
                     width: 150,
                     child: Text(
-                      item.mataAnggaranNama ?? 'N/A',
+                      item.uraian.isEmpty ? '-' : item.uraian,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.figtree(fontSize: 12),

@@ -121,10 +121,10 @@ class KakApiController extends Controller
     {
         $user = $request->user();
         $kak = KAK::with([
-            'status', 'tipeKegiatan', 'pengusul',
+            'status', 'tipeKegiatan', 'pengusul', 'mataAnggaran',
             'manfaat', 'tahapan', 'targets',
             'ikus.iku', 'ikus.satuan',
-            'anggaran',
+            'anggaran.kategoriBelanja',
             'approvals.approver',
         ])->findOrFail($id);
 
@@ -143,6 +143,10 @@ class KakApiController extends Controller
             'lokasi' => $kak->lokasi,
             'sasaran_utama' => $kak->sasaran_utama,
             'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
+            'mata_anggaran_id' => $kak->mata_anggaran_id,
+            'mata_anggaran_nama' => $kak->mataAnggaran 
+                ? "{$kak->mataAnggaran->kode_anggaran} - {$kak->mataAnggaran->nama_sumber_dana}"
+                : '-',
             'catatan_nama_kegiatan' => $kak->catatan_nama_kegiatan,
             'catatan_deskripsi_kegiatan' => $kak->catatan_deskripsi_kegiatan,
             'catatan_tipe_kegiatan' => $kak->catatan_tipe_kegiatan,
@@ -186,6 +190,11 @@ class KakApiController extends Controller
             'rab' => $kak->anggaran->map(fn ($a) => [
                 'anggaran_id' => $a->anggaran_id,
                 'uraian' => $a->uraian,
+                'kategori_belanja_id' => $a->kategori_belanja_id,
+                'kategori_belanja' => [
+                    'id' => $a->kategori_belanja_id,
+                    'nama' => $a->kategoriBelanja?->nama_kategori_belanja ?? '-',
+                ],
                 'volume1' => $a->volume1,
                 'volume2' => $a->volume2,
                 'volume3' => $a->volume3,

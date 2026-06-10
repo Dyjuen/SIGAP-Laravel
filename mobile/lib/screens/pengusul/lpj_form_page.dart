@@ -761,16 +761,28 @@ class _LpjFormPageState extends State<LpjFormPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item.uraian,
-                            style: GoogleFonts.figtree(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: hasRevision
-                                  ? const Color(0xFF991B1B)
-                                  : const Color(0xFF0F172A),
+                          Container(
+                            color: Colors.yellow.withOpacity(0.3),
+                            child: Text(
+                              item.uraian.isEmpty ? 'KOSONG' : item.uraian,
+                              style: GoogleFonts.figtree(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: hasRevision
+                                    ? const Color(0xFF991B1B)
+                                    : const Color(0xFF0F172A),
+                              ),
                             ),
                           ),
+                          if (item.mataAnggaranNama.isNotEmpty && item.mataAnggaranNama != '-')
+                            Text(
+                              item.mataAnggaranNama,
+                              style: GoogleFonts.figtree(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
                           Text(
                             'Usulan: ${_formatCurrency(item.jumlahDiusulkan)}',
                             style: TextStyle(
