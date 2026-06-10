@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "672912357626",
+    "project_id": "sigap-pnj",
+    "storage_bucket": "sigap-pnj.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672912357626:android:3545c8128359bf389af143",
+        "android_client_info": {
+          "package_name": "com.sigap.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBtNlYpvzbzkAIv1WpFf1398YtkYFrOA4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

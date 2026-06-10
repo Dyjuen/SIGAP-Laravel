@@ -132,14 +132,14 @@ void main() {
     await tester.tap(find.text('Coba Lagi'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Kegiatan Test'), findsOneWidget);
+    expect(find.text('Kegiatan Test'), findsNWidgets(2));
   });
 
   testWidgets('shows details and buttons when loaded successfully', (WidgetTester tester) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 
-    expect(find.text('Kegiatan Test'), findsOneWidget);
+    expect(find.text('Kegiatan Test'), findsNWidgets(2));
     expect(find.text('Setujui KAK'), findsOneWidget);
     expect(find.text('Minta Revisi'), findsOneWidget);
     expect(find.text('Tolak KAK'), findsOneWidget);

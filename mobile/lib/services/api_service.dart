@@ -63,10 +63,17 @@ class ApiService {
         .timeout(const Duration(seconds: 15));
   }
 
-  static Future<http.Response> delete(String endpoint) async {
+  static Future<http.Response> delete(
+    String endpoint, {
+    Map<String, dynamic>? body,
+  }) async {
     final headers = await _getHeaders();
     return http
-        .delete(Uri.parse('$baseUrl$endpoint'), headers: headers)
+        .delete(
+          Uri.parse('$baseUrl$endpoint'),
+          headers: headers,
+          body: body != null ? jsonEncode(body) : null,
+        )
         .timeout(const Duration(seconds: 15));
   }
 }

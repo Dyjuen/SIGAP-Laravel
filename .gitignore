@@ -40,3 +40,6 @@ public/images/
 
 # Newman (Postman) CLI default export folders
 /automation-testing/postman/newman
+
+# Private application storage (contains Firebase credentials)
+/storage/app/private/

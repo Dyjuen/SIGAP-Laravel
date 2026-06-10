@@ -19,8 +19,8 @@ void main() {
 
     // Verify fields are present
     expect(find.byType(TextField), findsNWidgets(2));
-    expect(find.text('Email atau NIP'), findsOneWidget);
+    expect(find.text('Nama Pengguna'), findsOneWidget);
     expect(find.text('Kata Sandi'), findsOneWidget);
-    expect(find.text('Masuk Sekarang'), findsOneWidget);
+    expect(find.text('Masuk'), findsOneWidget);
   });
 }

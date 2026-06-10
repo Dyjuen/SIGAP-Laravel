@@ -21,9 +21,11 @@ function broadcastLog(msg, type = 'info') {
   logClients.forEach(client => {
     try {
       client.write(`data: ${data}\n\n`);
-    } catch (e) {}
+    } catch (e) { }
   });
 }
+
+const IS_WINDOWS = process.platform === 'win32';
 
 // Robust kill function
 async function killCurrentProcess() {
@@ -31,11 +33,23 @@ async function killCurrentProcess() {
     return new Promise((resolve) => {
       const pid = currentProcess.pid;
       broadcastLog(`⚠️ Menghentikan proses sebelumnya (PID: ${pid})...`, 'warn');
-      // Use taskkill on Windows to ensure child processes are also killed
-      exec(`taskkill /F /T /PID ${pid}`, (err) => {
+
+      if (IS_WINDOWS) {
+        // Use taskkill on Windows to ensure child processes are also killed
+        exec(`taskkill /F /T /PID ${pid}`, (err) => {
+          currentProcess = null;
+          resolve();
+        });
+      } else {
+        // On Unix, kill the process group (assuming detached: true was used)
+        try {
+          process.kill(-pid, 'SIGKILL');
+        } catch (e) {
+          try { process.kill(pid, 'SIGKILL'); } catch (err) { }
+        }
         currentProcess = null;
         resolve();
-      });
+      }
     });
   }
 }
@@ -55,15 +69,18 @@ function checkPortActive(port, host = '127.0.0.1') {
 // Spawner without blocking
 async function ensureServersRunning() {
   console.log('[SIGAP] Memeriksa status port server Laravel & Vite...');
-  
+
   const isLaravelActive = await checkPortActive(8000);
   if (!isLaravelActive) {
     console.log('[SIGAP] ⚠️ Server Laravel belum aktif! Mencoba memulai...');
-    const laravelProcess = spawn('php', ['artisan', 'serve'], { 
-        cwd: ROOT_DIR, 
-        detached: true, 
-        stdio: 'ignore',
-        shell: true 
+    const laravelProcess = spawn('php', ['artisan', 'serve'], {
+      cwd: ROOT_DIR,
+      detached: true,
+      stdio: 'inherit',
+      shell: true
+    });
+    laravelProcess.on('error', (err) => {
+      console.error('[SIGAP] ❌ Gagal memulai Laravel:', err.message);
     });
     laravelProcess.unref();
   }
@@ -71,10 +88,15 @@ async function ensureServersRunning() {
   const isViteActive = await checkPortActive(5173);
   if (!isViteActive) {
     console.log('[SIGAP] ⚠️ Server Vite belum aktif! Mencoba memulai...');
-    const viteProcess = spawn('cmd.exe', ['/c', 'npm run dev'], { 
-        cwd: ROOT_DIR, 
-        detached: true, 
-        stdio: 'ignore' 
+    const command = IS_WINDOWS ? 'npm.cmd' : 'npm';
+    const viteProcess = spawn(command, ['run', 'dev'], {
+      cwd: ROOT_DIR,
+      detached: true,
+      stdio: 'inherit',
+      shell: IS_WINDOWS ? false : true
+    });
+    viteProcess.on('error', (err) => {
+      console.error('[SIGAP] ❌ Gagal memulai Vite:', err.message);
     });
     viteProcess.unref();
   }
@@ -138,7 +160,7 @@ const server = http.createServer((req, res) => {
   if (pathname === '/clear-artifacts' && req.method === 'POST') {
     try {
       const playwrightDir = path.join(__dirname, 'playwright');
-      const dirs = [ path.join(playwrightDir, 'test-results'), path.join(__dirname, 'reports'), path.join(playwrightDir, 'reports') ];
+      const dirs = [path.join(playwrightDir, 'test-results'), path.join(__dirname, 'reports'), path.join(playwrightDir, 'reports')];
       dirs.forEach(dir => {
         if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
         fs.mkdirSync(dir, { recursive: true });
@@ -152,13 +174,18 @@ const server = http.createServer((req, res) => {
   // Force Kill All Endpoint
   if (pathname === '/force-kill' && req.method === 'POST') {
     broadcastLog('⚠️ Menerima perintah Force Kill All. Mematikan semua proses Node & PHP...', 'warn');
-    // Kill Node and PHP processes. 
-    // We don't kill the current process (server.js) until the very end if needed,
-    // but usually killing other nodes is enough to free ports.
-    exec('taskkill /F /IM node.exe /T & taskkill /F /IM php.exe /T', (err) => {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ success: true, message: 'Processes killed.' }));
-    });
+
+    if (IS_WINDOWS) {
+      exec('taskkill /F /IM node.exe /T & taskkill /F /IM php.exe /T', (err) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Processes killed.' }));
+      });
+    } else {
+      exec('pkill -f node || true && pkill -f php || true', (err) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, message: 'Processes killed.' }));
+      });
+    }
     return;
   }
 
@@ -178,7 +205,15 @@ const server = http.createServer((req, res) => {
     killCurrentProcess().then(() => {
       const reportPath = path.join(__dirname, 'reports', 'phpunit-report.xml');
       if (!fs.existsSync(path.dirname(reportPath))) fs.mkdirSync(path.dirname(reportPath), { recursive: true });
-      currentProcess = spawn('vendor\\bin\\phpunit', ['--log-junit', 'automation-testing\\reports\\phpunit-report.xml'], { cwd: ROOT_DIR, shell: true });
+
+      const phpunitBin = IS_WINDOWS ? 'vendor\\bin\\phpunit' : './vendor/bin/phpunit';
+      const logArg = IS_WINDOWS ? 'automation-testing\\reports\\phpunit-report.xml' : 'automation-testing/reports/phpunit-report.xml';
+
+      currentProcess = spawn(phpunitBin, ['--log-junit', logArg], {
+        cwd: ROOT_DIR,
+        shell: true,
+        detached: !IS_WINDOWS
+      });
       const child = currentProcess;
       child.stdout.on('data', d => broadcastLog(d.toString()));
       child.stderr.on('data', d => broadcastLog(d.toString(), 'error'));
@@ -196,9 +231,9 @@ const server = http.createServer((req, res) => {
             if (ids && !Array.isArray(ids)) ids = [ids];
             if (ids) ids.forEach(id => {
               const status = (inner.includes('<failure') || inner.includes('<error')) ? 'Fail' : (inner.includes('<skipped') ? 'Skip' : 'Pass');
-              results[id] = { 
-                status, 
-                actual: status === 'Pass' ? 'Verified via PHPUnit (Backend Logic).' : 'Logic verification failed in PHPUnit.' 
+              results[id] = {
+                status,
+                actual: status === 'Pass' ? 'Verified via PHPUnit (Backend Logic).' : 'Logic verification failed in PHPUnit.'
               };
             });
           }
@@ -215,7 +250,7 @@ const server = http.createServer((req, res) => {
     let body = ''; req.on('data', c => body += c);
     req.on('end', async () => {
       await killCurrentProcess();
-      let params = {}; try { params = JSON.parse(body); } catch(e) {}
+      let params = {}; try { params = JSON.parse(body); } catch (e) { }
       const playwrightDir = path.join(__dirname, 'playwright');
       const testIds = params.testIds || [];
       const workers = params.workers || 1;
@@ -228,33 +263,38 @@ const server = http.createServer((req, res) => {
       const sendEvent = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       const reportPath = path.join(playwrightDir, 'reports', 'playwright-report.json');
       if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
-      const playwrightBin = path.join(playwrightDir, 'node_modules', '.bin', 'playwright.cmd');
+
+      const playwrightBin = IS_WINDOWS
+        ? path.join(playwrightDir, 'node_modules', '.bin', 'playwright.cmd')
+        : path.join(playwrightDir, 'node_modules', '.bin', 'playwright');
+
       const cmd = fs.existsSync(playwrightBin) ? `"${playwrightBin}"` : 'npx playwright';
 
       let grepFlag = '';
       // Only use grep if the resulting regex isn't too long for the command line
       // Windows CMD has a limit of ~8192 characters.
       if (testIds.length > 0) {
-          const regex = testIds.map(id => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-          const potentialGrepFlag = `--grep "${regex}"`;
-          
-          if (potentialGrepFlag.length < 5000) {
-              grepFlag = potentialGrepFlag;
-          } else {
-              broadcastLog(`⚠️ Filter terlalu panjang (${testIds.length} ID, ${potentialGrepFlag.length} karakter), menjalankan seluruh suite tanpa grep untuk menghindari limit command line.`, 'warn');
-          }
+        const regex = testIds.map(id => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+        const potentialGrepFlag = `--grep "${regex}"`;
+
+        if (potentialGrepFlag.length < 5000) {
+          grepFlag = potentialGrepFlag;
+        } else {
+          broadcastLog(`⚠️ Filter terlalu panjang (${testIds.length} ID, ${potentialGrepFlag.length} karakter), menjalankan seluruh suite tanpa grep untuk menghindari limit command line.`, 'warn');
+        }
       }
 
       const fullCmd = `${cmd} test ${target} ${grepFlag} --reporter=line,json --workers=${workers}`;
       broadcastLog(`Executing Playwright: ${fullCmd}`);
-      currentProcess = spawn(fullCmd, [], { 
-          cwd: playwrightDir, 
-          shell: true, 
-          env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: 'reports/playwright-report.json' } 
+      currentProcess = spawn(fullCmd, [], {
+        cwd: playwrightDir,
+        shell: true,
+        detached: !IS_WINDOWS,
+        env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_NAME: 'reports/playwright-report.json' }
       });
       const child = currentProcess;
 
-      let buffer = ''; 
+      let buffer = '';
       const regex = /\[(\d+)\/(\d+)\]\s+\[\w+\].*?([A-Z]{2,5}(?:-[A-Z0-9]{1,4}){1,3})/;
 
       child.stdout.on('data', d => {
@@ -273,10 +313,10 @@ const server = http.createServer((req, res) => {
               if (s.specs) s.specs.forEach(spec => {
                 const idMatch = spec.title.match(/([A-Z]{2,5}(?:-[A-Z0-9]{1,4}){1,3})/i);
                 if (idMatch) {
-                  const id = idMatch[1].toUpperCase(); 
+                  const id = idMatch[1].toUpperCase();
                   const testResult = spec.tests?.[0]?.results?.[0];
                   const pass = testResult?.status === 'passed';
-                  
+
                   let screenshot = '';
                   let video = '';
 
@@ -308,8 +348,8 @@ const server = http.createServer((req, res) => {
                     }
                   }
 
-                  results[id] = { 
-                    status: pass ? 'Pass' : 'Fail', 
+                  results[id] = {
+                    status: pass ? 'Pass' : 'Fail',
                     actual: pass ? 'Verified by UI (Playwright).' : 'UI failed.',
                     screenshot,
                     video
@@ -319,7 +359,7 @@ const server = http.createServer((req, res) => {
               if (s.suites) s.suites.forEach(traverse);
             };
             report.suites?.forEach(traverse);
-          } catch(e) {}
+          } catch (e) { }
         }
         sendEvent('test-complete', { results }); res.end();
       });
@@ -334,21 +374,30 @@ const server = http.createServer((req, res) => {
       const col = path.join(postmanDir, 'modules', 'FullSystem_collection.json');
       const env = path.join(postmanDir, 'SIGAP-Local.postman_environment.json');
       broadcastLog('Executing Newman...');
-      currentProcess = exec(`newman run "${col}" -e "${env}" --reporters cli,json --reporter-json-export reports/postman-report.json`, { cwd: postmanDir }, (err, stdout) => {
-        currentProcess = null;
-        broadcastLog(stdout);
+
+      currentProcess = spawn('newman', ['run', col, '-e', env, '--reporters', 'cli,json', '--reporter-json-export', 'reports/postman-report.json'], {
+        cwd: postmanDir,
+        shell: true,
+        detached: !IS_WINDOWS
+      });
+      const child = currentProcess;
+      child.stdout.on('data', d => broadcastLog(d.toString()));
+      child.stderr.on('data', d => broadcastLog(d.toString(), 'error'));
+
+      child.on('close', () => {
+        if (currentProcess === child) currentProcess = null;
         const results = {}; const rep = path.join(postmanDir, 'reports', 'postman-report.json');
         if (fs.existsSync(rep)) {
           try {
             const data = JSON.parse(fs.readFileSync(rep, 'utf8'));
             data.run?.executions?.forEach(e => {
               const m = e.item.name.match(/([a-zA-Z0-9-]{3,15})/i);
-              if (m) results[m[1].toUpperCase()] = { 
-                status: (e.assertions?.every(a => !a.error) ? 'Pass' : 'Fail'), 
-                actual: 'Verified via Postman (API Integration).' 
+              if (m) results[m[1].toUpperCase()] = {
+                status: (e.assertions?.every(a => !a.error) ? 'Pass' : 'Fail'),
+                actual: 'Verified via Postman (API Integration).'
               };
             });
-          } catch(e) {}
+          } catch (e) { }
         }
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, results }));
@@ -362,17 +411,26 @@ const server = http.createServer((req, res) => {
     killCurrentProcess().then(() => {
       const script = path.join(__dirname, 'k6', 'modules', 'Common', 'full-load.js');
       broadcastLog('Executing k6...');
-      currentProcess = exec(`k6 run "${script}"`, (err, stdout) => {
-        currentProcess = null;
-        if (err) { 
+
+      currentProcess = spawn('k6', ['run', script], {
+        cwd: __dirname,
+        shell: true,
+        detached: !IS_WINDOWS
+      });
+      const child = currentProcess;
+      child.stdout.on('data', d => broadcastLog(d.toString()));
+      child.stderr.on('data', d => broadcastLog(d.toString(), 'error'));
+
+      child.on('close', (code) => {
+        if (currentProcess === child) currentProcess = null;
+        if (code !== 0 && code !== null) {
           broadcastLog(`Error k6: ${err.message}`, 'error');
           broadcastLog('💡 Pastikan k6 sudah terinstal dan tersedia di PATH. (Unduh: https://k6.io/)', 'warn');
-          res.writeHead(200, { 'Content-Type': 'application/json' }); 
-          res.end(JSON.stringify({ success: false, error: 'k6 not found. Pastikan k6 terinstal.' })); 
-          return; 
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, error: 'k6 not found. Pastikan k6 terinstal.' }));
+          return;
         }
-        broadcastLog(stdout);
-        
+
         const results = {};
         const p = path.join(__dirname, 'test-cases.json');
         try {
@@ -382,9 +440,9 @@ const server = http.createServer((req, res) => {
               results[tc.id.toUpperCase()] = { status: 'Pass', actual: 'Load test verified via k6.' };
             }
           });
-        } catch(e) {}
+        } catch (e) { }
 
-        res.writeHead(200, { 'Content-Type': 'application/json' }); 
+        res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ success: true, results }));
       });
     });

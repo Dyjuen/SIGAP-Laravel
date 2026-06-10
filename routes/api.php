@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdminApiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardApiController;
+use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\KakApiController;
 use App\Http\Controllers\Api\KegiatanApiController;
 use App\Http\Controllers\Api\LpjApiController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Api\MasterDataApiController;
 use App\Http\Controllers\Api\NotificationApiController;
 use App\Http\Controllers\Api\PencairanApiController;
 use App\Http\Controllers\Api\ProfileApiController;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\LampiranController;
 use App\Http\Controllers\MasterDataController;
 use Illuminate\Http\Request;
@@ -22,7 +24,7 @@ Route::get('/user', function (Request $request) {
 Route::post('/login', [AuthController::class, 'login']);
 
 // Chatbot Route (Public for Landing Page guests)
-Route::post('/chatbot/chat', [App\Http\Controllers\ChatbotController::class, 'chat'])
+Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])
     ->name('chatbot.chat')
     ->middleware('throttle:20,1');
 
@@ -115,6 +117,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/notifications', [NotificationApiController::class, 'index']);
     Route::post('/notifications/{notification}/read', [NotificationApiController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationApiController::class, 'markAllAsRead']);
+
+    // Device Token API Routes
+    Route::post('/device-token', [DeviceTokenController::class, 'store']);
+    Route::delete('/device-token', [DeviceTokenController::class, 'destroy']);
 
     // Profile API Routes
     Route::get('/profile', [ProfileApiController::class, 'show']);

@@ -8,12 +8,23 @@ use App\Events\KakSubmitted;
 use App\Mail\KAKWorkflowMail;
 use App\Models\Notifikasi;
 use App\Models\User;
+use App\Services\FcmService;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 
 class SendKakWorkflowEmail
 {
     use InteractsWithQueue;
+
+    protected FcmService $fcmService;
+
+    /**
+     * Create the event listener.
+     */
+    public function __construct(FcmService $fcmService)
+    {
+        $this->fcmService = $fcmService;
+    }
 
     /**
      * Handle the event.
@@ -50,10 +61,18 @@ class SendKakWorkflowEmail
                 // Create database notification for Verifikator
                 Notifikasi::create([
                     'penerima_user_id' => $verifikator->user_id,
-                    'pesan' => "KAK '{$kak->nama_kegiatan}' oleh {$kak->pengusul->nama_lengkap} ".($isResubmit ? 'telah direvisi.' : 'menunggu verifikasi.'),
+                    'pesan' => $pesan = "KAK '{$kak->nama_kegiatan}' oleh {$kak->pengusul->nama_lengkap} ".($isResubmit ? 'telah direvisi.' : 'menunggu verifikasi.'),
                     'link_tujuan' => "/kak/{$kak->kak_id}",
                     'is_read' => 0,
                 ]);
+
+                // Send push notification
+                $this->fcmService->sendToUser(
+                    $verifikator->user_id,
+                    $isResubmit ? '🔄 KAK Sudah Direvisi' : '🔔 KAK Baru Menunggu Verifikasi',
+                    $pesan,
+                    ['click_action' => 'FLUTTER_NOTIFICATION_CLICK', 'link_tujuan' => "/kak/{$kak->kak_id}"]
+                );
             }
         } else {
             // Approved, Rejected, Revised are sent to Pengusul
@@ -113,10 +132,18 @@ class SendKakWorkflowEmail
                     // Create database notification for Pengusul
                     Notifikasi::create([
                         'penerima_user_id' => $pengusul->user_id,
-                        'pesan' => "KAK '{$kak->nama_kegiatan}' Anda telah {$c['notif_verb']}.",
+                        'pesan' => $pesan = "KAK '{$kak->nama_kegiatan}' Anda telah {$c['notif_verb']}.",
                         'link_tujuan' => "/kak/{$kak->kak_id}",
                         'is_read' => 0,
                     ]);
+
+                    // Send push notification
+                    $this->fcmService->sendToUser(
+                        $pengusul->user_id,
+                        $c['title'],
+                        $pesan,
+                        ['click_action' => 'FLUTTER_NOTIFICATION_CLICK', 'link_tujuan' => "/kak/{$kak->kak_id}"]
+                    );
                 }
             }
         }

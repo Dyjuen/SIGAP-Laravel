@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/screens/landing_page.dart';
+import 'package:mobile/widgets/sigap_logo.dart';
 
 void main() {
   testWidgets('LandingPage displays title and main sections', (WidgetTester tester) async {
@@ -8,7 +9,7 @@ void main() {
     await tester.pump(); // allow animation frame
 
     // Navbar brand
-    expect(find.text('SIGAP PNJ'), findsWidgets);
+    expect(find.byType(SigapLogo), findsWidgets);
 
     // Hero headline (new text)
     expect(
@@ -17,8 +18,8 @@ void main() {
     );
 
     // Sections exist
-    expect(find.text('Semua Proses, Satu Sistem.'), findsOneWidget);
+    expect(find.text('LAYANAN UNGGULAN'), findsOneWidget);
     expect(find.text('Frequently Asked Questions'), findsOneWidget);
-    expect(find.text('Hubungi Tim SIGAP'), findsOneWidget);
+    expect(find.text('TANYA JAWAB'), findsOneWidget);
   });
 }

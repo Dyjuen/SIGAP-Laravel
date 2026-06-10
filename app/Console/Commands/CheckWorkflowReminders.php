@@ -8,6 +8,7 @@ use App\Models\KegiatanApproval;
 use App\Models\Notifikasi;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\FcmService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
@@ -27,6 +28,14 @@ class CheckWorkflowReminders extends Command
      * @var string
      */
     protected $description = 'Check for stale workflows and LPJ deadlines to send reminders.';
+
+    protected FcmService $fcmService;
+
+    public function __construct(FcmService $fcmService)
+    {
+        parent::__construct();
+        $this->fcmService = $fcmService;
+    }
 
     /**
      * Execute the console command.
@@ -150,6 +159,14 @@ class CheckWorkflowReminders extends Command
                 'action_text' => 'Lihat Sekarang',
             ]));
         }
+
+        // 3. Push Notification
+        $this->fcmService->sendToUser(
+            $user->user_id,
+            $subject,
+            $message,
+            ['click_action' => 'FLUTTER_NOTIFICATION_CLICK', 'link_tujuan' => $link]
+        );
     }
 
     private function getLink($kegiatan, $approval)

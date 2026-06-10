@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
+import '../services/fcm_service.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -47,6 +48,10 @@ class AuthProvider with ChangeNotifier {
 
         _isLoading = false;
         notifyListeners();
+        
+        // Register device token for push notifications asynchronously
+        FcmService().registerToken();
+        
         return null; // Success
       } else {
         final data = jsonDecode(response.body);
@@ -64,6 +69,13 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
+
+    // Unregister device token from server before logging out
+    try {
+      await FcmService().unregisterToken();
+    } catch (e) {
+      // Ignore errors so user can still log out locally
+    }
 
     try {
       await ApiService.post('/logout', {});

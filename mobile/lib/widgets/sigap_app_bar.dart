@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/app_theme.dart';
+import '../providers/notification_provider.dart';
+import '../screens/notifications_page.dart';
 import 'sigap_logo.dart';
 
 class SigapAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -16,6 +19,66 @@ class SigapAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Build actions list with notification bell
+    final List<Widget> appBarActions = [];
+    
+    appBarActions.add(
+      Consumer<NotificationProvider>(
+        builder: (context, notificationProvider, _) {
+          return IconButton(
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(
+                  Icons.notifications_outlined,
+                  color: AppTheme.textPrimary,
+                  size: 24,
+                ),
+                if (notificationProvider.unreadCount > 0)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${notificationProvider.unreadCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+
+    if (actions != null) {
+      appBarActions.addAll(actions!);
+    }
+
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
@@ -56,7 +119,7 @@ class SigapAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ],
       ),
-      actions: actions,
+      actions: appBarActions,
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(

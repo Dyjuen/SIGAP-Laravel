@@ -33,5 +33,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="FILESYSTEM_DISK" value="public"/>
+        <env name="FIREBASE_PROJECT_ID" value="sigap-pnj"/>
+        <env name="FIREBASE_CREDENTIALS" value="storage/app/private/sigap-pnj-firebase-adminsdk-fbsvc-1f11e81092.json"/>
     </php>
 </phpunit>

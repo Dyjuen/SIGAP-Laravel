@@ -10,6 +10,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:mobile/main.dart';
 import 'package:mobile/providers/auth_provider.dart';
+import 'package:mobile/services/chatbot_service.dart';
+
+class FakeChatbotService extends ChangeNotifier implements ChatbotService {
+  @override
+  List<Map<String, String>> get messages => [];
+  @override
+  bool get isLoading => false;
+  @override
+  bool get isVisible => false;
+  @override
+  double get bottomPadding => 20.0;
+
+  @override
+  void setVisible(bool visible) {}
+  @override
+  void setBottomPadding(double padding) {}
+  @override
+  Future<void> sendMessage(String text) async {}
+  @override
+  void clearHistory() {}
+}
 
 void main() {
   testWidgets('MyApp renders loading state initially', (WidgetTester tester) async {
@@ -17,6 +38,7 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider<ChatbotService>(create: (_) => FakeChatbotService()),
         ],
         child: const MyApp(),
       ),

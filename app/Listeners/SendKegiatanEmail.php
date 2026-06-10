@@ -5,12 +5,23 @@ namespace App\Listeners;
 use App\Events\KegiatanApproved;
 use App\Mail\KAKWorkflowMail;
 use App\Models\Notifikasi;
+use App\Services\FcmService;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Mail;
 
 class SendKegiatanEmail
 {
     use InteractsWithQueue;
+
+    protected FcmService $fcmService;
+
+    /**
+     * Create the event listener.
+     */
+    public function __construct(FcmService $fcmService)
+    {
+        $this->fcmService = $fcmService;
+    }
 
     /**
      * Handle the event.
@@ -50,9 +61,17 @@ class SendKegiatanEmail
         // In-app notification
         Notifikasi::create([
             'penerima_user_id' => $pengusul->user_id,
-            'pesan' => "Kegiatan '{$kak->nama_kegiatan}' Anda telah disetujui oleh {$role}.",
+            'pesan' => $pesan = "Kegiatan '{$kak->nama_kegiatan}' Anda telah disetujui oleh {$role}.",
             'link_tujuan' => "/kegiatan/{$kegiatan->kegiatan_id}",
             'is_read' => 0,
         ]);
+
+        // Send push notification
+        $this->fcmService->sendToUser(
+            $pengusul->user_id,
+            '✅ Kegiatan Disetujui',
+            $pesan,
+            ['click_action' => 'FLUTTER_NOTIFICATION_CLICK', 'link_tujuan' => "/kegiatan/{$kegiatan->kegiatan_id}"]
+        );
     }
 }

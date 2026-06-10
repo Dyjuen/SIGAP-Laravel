@@ -4,6 +4,10 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
+import 'services/fcm_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/monitoring_provider.dart';
 import 'providers/kak_detail_provider.dart';
@@ -24,6 +28,8 @@ import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
 import 'screens/pengusul/lpj_list_page.dart';
 import 'screens/bendahara/pencairan_page.dart';
+import 'services/notification_service.dart';
+import 'providers/notification_provider.dart';
 
 String _getBaseUrl() {
   // Gunakan URL produksi langsung
@@ -32,6 +38,16 @@ String _getBaseUrl() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    debugPrint("Gagal menginisialisasi Firebase: $e");
+  }
+
   await initializeDateFormatting('id_ID', null);
 
   // Initialize Dio with base options
@@ -85,6 +101,9 @@ void main() async {
         Provider<PencairanService>(
           create: (context) => PencairanService(context.read<Dio>()),
         ),
+        Provider<NotificationService>(
+          create: (context) => NotificationService(context.read<Dio>()),
+        ),
         ChangeNotifierProvider<MonitoringProvider>(
           create: (context) =>
               MonitoringProvider(context.read<MonitoringService>()),
@@ -102,6 +121,9 @@ void main() async {
         ChangeNotifierProvider<PencairanProvider>(
           create: (context) =>
               PencairanProvider(context.read<PencairanService>()),
+        ),
+        ChangeNotifierProvider<NotificationProvider>(
+          create: (context) => NotificationProvider(context.read<NotificationService>()),
         ),
         ChangeNotifierProvider(create: (_) => ChatbotService()),
       ],
@@ -129,6 +151,14 @@ class _MyAppState extends State<MyApp> {
   void _checkAuth() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.checkAuthStatus();
+    
+    // Inisialisasi FcmService setelah status auth diketahui
+    final fcm = FcmService();
+    await fcm.initialize();
+    if (authProvider.isAuthenticated) {
+      await fcm.registerToken();
+    }
+    
     setState(() {
       _isCheckingAuth = false;
     });
