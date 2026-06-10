@@ -13,6 +13,7 @@ use App\Services\LpjService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class LpjApiController extends Controller
 {
@@ -78,6 +79,9 @@ class LpjApiController extends Controller
                 'kak.anggaran.satuan1',
                 'kak.anggaran.satuan2',
                 'kak.anggaran.satuan3',
+                'kak.anggaran.lampiran' => function ($query) {
+                    $query->where('status_lampiran', '!=', 'archived');
+                },
                 'approvals',
             ]);
 
@@ -127,6 +131,16 @@ class LpjApiController extends Controller
                         'realisasi_harga_satuan' => (float) $item->realisasi_harga_satuan,
                         'realisasi_jumlah' => (float) $item->realisasi_jumlah,
                         'catatan_reviewer' => $item->catatan_verifikator,
+                        'lampiran' => $item->lampiran->map(function ($lampiran) {
+                            return [
+                                'lampiran_id' => $lampiran->lampiran_id,
+                                'nama_file_asli' => $lampiran->nama_file_asli,
+                                'url' => Storage::disk('supabase')->temporaryUrl($lampiran->path_file_disimpan, now()->addMinutes(60)),
+                                'status' => $lampiran->status_lampiran,
+                                'catatan_reviewer' => $lampiran->catatan_reviewer,
+                                'uploaded_at' => $lampiran->created_at,
+                            ];
+                        }),
                     ];
                 })->toArray(),
                 'approval_status' => $kegiatan->approvals->where('approval_level', 'Bendahara-LPJ')->first()?->status ?? 'Pending',

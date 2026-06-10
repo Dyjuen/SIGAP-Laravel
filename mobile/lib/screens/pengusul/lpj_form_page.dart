@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/lpj_model.dart';
 import '../../providers/lpj_provider.dart';
@@ -210,7 +211,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
       }
 
       final realizasiData = <Map<String, dynamic>>[];
-      final buktiFilesMap = <String, List<String>>{};
+      final buktiFilesMap = <String, List<PlatformFile>>{};
 
       for (var index = 0; index < _rows.length; index++) {
         final row = _rows[index];
@@ -236,10 +237,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
 
         final files = _selectedFilesMap[item.anggaranId];
         if (files != null && files.isNotEmpty) {
-          buktiFilesMap[item.anggaranId] = files
-              .map((f) => f.path)
-              .whereType<String>()
-              .toList();
+          buktiFilesMap[item.anggaranId] = files;
         }
       }
 
@@ -761,17 +759,14 @@ class _LpjFormPageState extends State<LpjFormPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            color: Colors.yellow.withOpacity(0.3),
-                            child: Text(
-                              item.uraian.isEmpty ? 'KOSONG' : item.uraian,
-                              style: GoogleFonts.figtree(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: hasRevision
-                                    ? const Color(0xFF991B1B)
-                                    : const Color(0xFF0F172A),
-                              ),
+                          Text(
+                            item.uraian.isEmpty ? 'KOSONG' : item.uraian,
+                            style: GoogleFonts.figtree(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: hasRevision
+                                  ? const Color(0xFF991B1B)
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                           if (item.mataAnggaranNama.isNotEmpty && item.mataAnggaranNama != '-')
@@ -942,7 +937,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                _buildEvidenceList(item.anggaranId, isEditable),
+                _buildEvidenceList(item.anggaranId, isEditable, item.lampiran),
               ],
             ),
           ),
@@ -1121,11 +1116,27 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Widget _buildEvidenceList(String anggaranId, bool isEditable) {
-    final files = _selectedFilesMap[anggaranId] ?? [];
-    if (files.isEmpty) {
+  Widget _buildEvidenceList(
+    String anggaranId,
+    bool isEditable,
+    List<LpjLampiran>? existingLampiran,
+  ) {
+    final List<dynamic> allFiles = [];
+
+    // Add newly selected files
+    final selected = _selectedFilesMap[anggaranId];
+    if (selected != null) {
+      allFiles.addAll(selected);
+    }
+
+    // Add existing uploaded files from backend
+    if (existingLampiran != null) {
+      allFiles.addAll(existingLampiran);
+    }
+
+    if (allFiles.isEmpty) {
       return const Text(
-        'Belum ada file dipilih.',
+        'Belum ada dokumen bukti.',
         style: TextStyle(
           fontSize: 11,
           color: Colors.grey,
@@ -1137,31 +1148,67 @@ class _LpjFormPageState extends State<LpjFormPage> {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: files.map((file) {
+      children: allFiles.map((file) {
+        String fileName;
+        String? fileUrl;
+        if (file is PlatformFile) {
+          fileName = file.name;
+          // For newly selected files, there's no URL yet, they are just local files
+          fileUrl = null;
+        } else if (file is LpjLampiran) {
+          fileName = file.namaFileAsli;
+          fileUrl = file.url;
+        } else {
+          fileName = 'Unknown File';
+        }
+
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(
+              color: fileUrl != null
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFFE2E8F0), // Green border for uploaded files
+              width: fileUrl != null ? 1.5 : 1,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.file_present,
+              Icon(
+                fileUrl != null
+                    ? Icons.check_circle_outline
+                    : Icons.file_present,
                 size: 14,
-                color: Color(0xFF33C8DA),
+                color: fileUrl != null
+                    ? const Color(0xFF10B981)
+                    : const Color(0xFF33C8DA),
               ),
               const SizedBox(width: 6),
               Flexible(
-                child: Text(
-                  file.name,
-                  style: const TextStyle(fontSize: 11),
-                  overflow: TextOverflow.ellipsis,
+                child: GestureDetector(
+                  onTap: fileUrl != null
+                      ? () => _launchURL(fileUrl!)
+                      : null,
+                  child: Text(
+                    fileName,
+                    style: TextStyle(
+                      fontSize: 11,
+                      decoration: fileUrl != null
+                          ? TextDecoration.underline
+                          : TextDecoration.none,
+                      color: fileUrl != null
+                          ? const Color(0xFF33C8DA)
+                          : Colors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-              if (isEditable) ...[
+              if (isEditable && file is PlatformFile) ...[
+                // Only allow deleting newly selected files
                 const SizedBox(width: 4),
                 GestureDetector(
                   onTap: () => setState(
@@ -1170,11 +1217,39 @@ class _LpjFormPageState extends State<LpjFormPage> {
                   child: const Icon(Icons.close, size: 14, color: Colors.red),
                 ),
               ],
+              if (isEditable && file is LpjLampiran) ...[
+                // Add a delete icon for existing uploaded files
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () {
+                    // TODO: Implement logic to mark existing file for deletion
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('Delete existing file not yet implemented'),
+                      ),
+                    );
+                  },
+                  child:
+                      const Icon(Icons.delete_outline, size: 14, color: Colors.red),
+                ),
+              ],
             ],
           ),
         );
       }).toList(),
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Tidak bisa membuka $url')),
+      );
+    }
   }
 
   Widget _buildSpkSection(LpjDetail detail, bool isEditable) {

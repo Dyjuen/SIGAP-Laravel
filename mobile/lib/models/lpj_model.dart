@@ -1,5 +1,43 @@
 import 'package:flutter/foundation.dart';
 
+class LpjLampiran {
+  final int lampiranId;
+  final String namaFileAsli;
+  final String url;
+  final String status;
+  final String? catatanReviewer;
+  final DateTime uploadedAt;
+
+  LpjLampiran({
+    required this.lampiranId,
+    required this.namaFileAsli,
+    required this.url,
+    required this.status,
+    this.catatanReviewer,
+    required this.uploadedAt,
+  });
+
+  factory LpjLampiran.fromJson(Map<String, dynamic> json) {
+    return LpjLampiran(
+      lampiranId: json['lampiran_id'] as int,
+      namaFileAsli: json['nama_file_asli'] as String,
+      url: json['url'] as String,
+      status: json['status'] as String,
+      catatanReviewer: json['catatan_reviewer'] as String?,
+      uploadedAt: DateTime.parse(json['uploaded_at'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'lampiran_id': lampiranId,
+        'nama_file_asli': namaFileAsli,
+        'url': url,
+        'status': status,
+        'catatan_reviewer': catatanReviewer,
+        'uploaded_at': uploadedAt.toIso8601String(),
+      };
+}
+
 class LpjRealization {
   final String anggaranId;
   final String kakId;
@@ -20,6 +58,7 @@ class LpjRealization {
   final double? realisasiHargaSatuan;
   final double realisasiJumlah;
   final String? catatanReviewer;
+  final List<LpjLampiran>? lampiran;
 
   LpjRealization({
     required this.anggaranId,
@@ -41,6 +80,7 @@ class LpjRealization {
     this.realisasiHargaSatuan,
     required this.realisasiJumlah,
     this.catatanReviewer,
+    this.lampiran,
   });
 
   factory LpjRealization.fromJson(Map<String, dynamic> json) {
@@ -50,19 +90,27 @@ class LpjRealization {
         'LpjRealization: Anggaran ${json['anggaran_id']} received note: $catatan',
       );
     }
-    final uraianVal = (json['uraian'] ?? json['nama_item'] ?? json['keterangan'])?.toString() ?? '';
-    debugPrint('DEBUG LPJ ITEM: ID=${json['anggaran_id']}, URAIAN=$uraianVal, RAW=${json['uraian']}');
-    
+    final uraianVal =
+        (json['uraian'] ?? json['nama_item'] ?? json['keterangan'])?.toString() ?? '';
+    debugPrint(
+        'DEBUG LPJ ITEM: ID=${json['anggaran_id']}, URAIAN=$uraianVal, RAW=${json['uraian']}');
+
+    final List<LpjLampiran> lampiranList = (json['lampiran'] as List<dynamic>?)
+            ?.map((e) => LpjLampiran.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+
     return LpjRealization(
       anggaranId: json['anggaran_id']?.toString() ?? '',
       kakId: json['kak_id']?.toString() ?? '',
       mataAnggaranNama: json['mata_anggaran_nama']?.toString() ?? '',
       uraian: uraianVal,
-      kategoriBelanjaId: json['kategori_belanja_id'] != null 
-          ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1 
+      kategoriBelanjaId: json['kategori_belanja_id'] != null
+          ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1
           : 1,
-      kategoriNama: json['kategori_belanja'] != null 
-          ? json['kategori_belanja']['nama'] ?? json['kategori_belanja']['nama_kategori_belanja']
+      kategoriNama: json['kategori_belanja'] != null
+          ? json['kategori_belanja']['nama'] ??
+              json['kategori_belanja']['nama_kategori_belanja']
           : null,
       volume: _parseDouble(json['volume1'] ?? json['volume']),
       satuanId: (json['satuan1_id'] ?? json['satuan_id'])?.toString(),
@@ -85,29 +133,31 @@ class LpjRealization {
           : null,
       realisasiJumlah: _parseDouble(json['realisasi_jumlah']),
       catatanReviewer: catatan,
+      lampiran: lampiranList.isEmpty ? null : lampiranList,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'anggaran_id': anggaranId,
-    'kak_id': kakId,
-    'mata_anggaran_nama': mataAnggaranNama,
-    'uraian': uraian,
-    'kategori_belanja_id': kategoriBelanjaId,
-    'volume': volume,
-    'satuan_id': satuanId,
-    'harga_satuan': hargaSatuan,
-    'jumlah_diusulkan': jumlahDiusulkan,
-    'realisasi_volume1': realisasiVolume1,
-    'realisasi_satuan1_id': realisasiSatuan1Id,
-    'realisasi_volume2': realisasiVolume2,
-    'realisasi_satuan2_id': realisasiSatuan2Id,
-    'realisasi_volume3': realisasiVolume3,
-    'realisasi_satuan3_id': realisasiSatuan3Id,
-    'realisasi_harga_satuan': realisasiHargaSatuan,
-    'realisasi_jumlah': realisasiJumlah,
-    'catatan_reviewer': catatanReviewer,
-  };
+        'anggaran_id': anggaranId,
+        'kak_id': kakId,
+        'mata_anggaran_nama': mataAnggaranNama,
+        'uraian': uraian,
+        'kategori_belanja_id': kategoriBelanjaId,
+        'volume': volume,
+        'satuan_id': satuanId,
+        'harga_satuan': hargaSatuan,
+        'jumlah_diusulkan': jumlahDiusulkan,
+        'realisasi_volume1': realisasiVolume1,
+        'realisasi_satuan1_id': realisasiSatuan1Id,
+        'realisasi_volume2': realisasiVolume2,
+        'realisasi_satuan2_id': realisasiSatuan2Id,
+        'realisasi_volume3': realisasiVolume3,
+        'realisasi_satuan3_id': realisasiSatuan3Id,
+        'realisasi_harga_satuan': realisasiHargaSatuan,
+        'realisasi_jumlah': realisasiJumlah,
+        'catatan_reviewer': catatanReviewer,
+        'lampiran': lampiran?.map((e) => e.toJson()).toList(),
+      };
 
   double get percentageRealized {
     return jumlahDiusulkan > 0 ? (realisasiJumlah / jumlahDiusulkan) * 100 : 0;
@@ -154,8 +204,7 @@ class LpjDetail {
   });
 
   factory LpjDetail.fromJson(Map<String, dynamic> json) {
-    final anggaranList =
-        (json['anggaran_items'] as List<dynamic>?)
+    final anggaranList = (json['anggaran_items'] as List<dynamic>?)
             ?.map(
               (item) => LpjRealization.fromJson(item as Map<String, dynamic>),
             )
@@ -192,23 +241,23 @@ class LpjDetail {
   }
 
   Map<String, dynamic> toJson() => {
-    'kegiatan_id': kegiatanId,
-    'kak_id': kakId,
-    'nama_kegiatan': namaKegiatan,
-    'lpj_status': lpjStatus,
-    'lpj_submitted_at': lpjSubmittedAt,
-    'lpj_approved_at': lpjApprovedAt,
-    'lpj_completed_at': lpjCompletedAt,
-    'tgl_batas_lpj': tglBatasLpj,
-    'spk_kesesuaian_waktu': spkKesesuaianWaktu,
-    'spk_kesesuaian_output': spkKesesuaianOutput,
-    'spk_ketepatan_anggaran': spkKetepatanAnggaran,
-    'spk_ketepatan_waktu_lpj': spkKetepatanWaktuLpj,
-    'pengusul': {'nama_lengkap': pengusulNama, 'user_id': pengusulId},
-    'anggaran_items': anggaranItems.map((i) => i.toJson()).toList(),
-    'approval_status': approvalStatus,
-    'approval_notes': approvalNotes,
-  };
+        'kegiatan_id': kegiatanId,
+        'kak_id': kakId,
+        'nama_kegiatan': namaKegiatan,
+        'lpj_status': lpjStatus,
+        'lpj_submitted_at': lpjSubmittedAt,
+        'lpj_approved_at': lpjApprovedAt,
+        'lpj_completed_at': lpjCompletedAt,
+        'tgl_batas_lpj': tglBatasLpj,
+        'spk_kesesuaian_waktu': spkKesesuaianWaktu,
+        'spk_kesesuaian_output': spkKesesuaianOutput,
+        'spk_ketepatan_anggaran': spkKetepatanAnggaran,
+        'spk_ketepatan_waktu_lpj': spkKetepatanWaktuLpj,
+        'pengusul': {'nama_lengkap': pengusulNama, 'user_id': pengusulId},
+        'anggaran_items': anggaranItems.map((i) => i.toJson()).toList(),
+        'approval_status': approvalStatus,
+        'approval_notes': approvalNotes,
+      };
 
   bool get isDraft => lpjStatus == 'Draft';
   bool get isSubmitted => lpjStatus == 'Submitted';
@@ -298,17 +347,17 @@ class LpjListItem {
   }
 
   Map<String, dynamic> toJson() => {
-    'kegiatan_id': kegiatanId,
-    'kak_id': kakId,
-    'nama_kegiatan': namaKegiatan,
-    'status_nama': statusNama,
-    'lpj_status': lpjStatus,
-    'lpj_submitted_at': lpjSubmittedAt,
-    'tgl_batas_lpj': tglBatasLpj,
-    'total_anggaran_diusulkan': totalAnggaranDiusulkan,
-    'dana_dicairkan': danaDicairkan,
-    'sisa_dana': sisaDana,
-  };
+        'kegiatan_id': kegiatanId,
+        'kak_id': kakId,
+        'nama_kegiatan': namaKegiatan,
+        'status_nama': statusNama,
+        'lpj_status': lpjStatus,
+        'lpj_submitted_at': lpjSubmittedAt,
+        'tgl_batas_lpj': tglBatasLpj,
+        'total_anggaran_diusulkan': totalAnggaranDiusulkan,
+        'dana_dicairkan': danaDicairkan,
+        'sisa_dana': sisaDana,
+      };
 
   String get lpjStatusDisplay {
     // If KAK status indicates 'Setor Fisik Dokumen' (status_id == 13),
@@ -340,3 +389,4 @@ double _parseDouble(dynamic value) {
   }
   return 0.0;
 }
+

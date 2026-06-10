@@ -1,3 +1,6 @@
+import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/lpj_model.dart';
 import '../services/lpj_service.dart';
@@ -63,19 +66,51 @@ class LpjProvider with ChangeNotifier {
     required List<Map<String, dynamic>> realizasiData,
     int? spkKesesuaianWaktu,
     int? spkKesesuaianOutput,
-    Map<String, List<String>>? buktiFiles,
+    Map<String, List<PlatformFile>>? buktiFiles,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
+      final multipartFiles = <String, List<MultipartFile>>{};
+
+      if (buktiFiles != null) {
+        for (final entry in buktiFiles.entries) {
+          final files = <MultipartFile>[];
+          for (final f in entry.value) {
+            if (kIsWeb) {
+              if (f.bytes != null) {
+                files.add(
+                  MultipartFile.fromBytes(
+                    f.bytes!,
+                    filename: f.name,
+                  ),
+                );
+              }
+            } else {
+              if (f.path != null) {
+                files.add(
+                  await MultipartFile.fromFile(
+                    f.path!,
+                    filename: f.name,
+                  ),
+                );
+              }
+            }
+          }
+          if (files.isNotEmpty) {
+            multipartFiles[entry.key] = files;
+          }
+        }
+      }
+
       await _lpjService.submitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
         spkKesesuaianWaktu: spkKesesuaianWaktu,
         spkKesesuaianOutput: spkKesesuaianOutput,
-        buktiFiles: buktiFiles,
+        buktiFiles: multipartFiles.isEmpty ? null : multipartFiles,
       );
 
       _errorMessage = null;
@@ -153,19 +188,51 @@ class LpjProvider with ChangeNotifier {
     required List<Map<String, dynamic>> realizasiData,
     int? spkKesesuaianWaktu,
     int? spkKesesuaianOutput,
-    Map<String, List<String>>? buktiFiles,
+    Map<String, List<PlatformFile>>? buktiFiles,
   }) async {
     _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
+      final multipartFiles = <String, List<MultipartFile>>{};
+
+      if (buktiFiles != null) {
+        for (final entry in buktiFiles.entries) {
+          final files = <MultipartFile>[];
+          for (final f in entry.value) {
+            if (kIsWeb) {
+              if (f.bytes != null) {
+                files.add(
+                  MultipartFile.fromBytes(
+                    f.bytes!,
+                    filename: f.name,
+                  ),
+                );
+              }
+            } else {
+              if (f.path != null) {
+                files.add(
+                  await MultipartFile.fromFile(
+                    f.path!,
+                    filename: f.name,
+                  ),
+                );
+              }
+            }
+          }
+          if (files.isNotEmpty) {
+            multipartFiles[entry.key] = files;
+          }
+        }
+      }
+
       await _lpjService.resubmitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
         spkKesesuaianWaktu: spkKesesuaianWaktu,
         spkKesesuaianOutput: spkKesesuaianOutput,
-        buktiFiles: buktiFiles,
+        buktiFiles: multipartFiles.isEmpty ? null : multipartFiles,
       );
 
       _errorMessage = null;

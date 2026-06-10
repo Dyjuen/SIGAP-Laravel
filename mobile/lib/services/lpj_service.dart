@@ -61,7 +61,7 @@ class LpjService {
     required List<Map<String, dynamic>> realizasiData,
     int? spkKesesuaianWaktu,
     int? spkKesesuaianOutput,
-    Map<String, List<String>>? buktiFiles,
+    Map<String, List<MultipartFile>>? buktiFiles,
   }) async {
     try {
       final formData = FormData();
@@ -129,12 +129,8 @@ class LpjService {
       if (buktiFiles != null && buktiFiles.isNotEmpty) {
         for (final entry in buktiFiles.entries) {
           final anggaranId = entry.key;
-          final paths = entry.value;
-          for (final path in paths) {
-            final file = await MultipartFile.fromFile(
-              path,
-              filename: path.split('/').last,
-            );
+          final files = entry.value;
+          for (final file in files) {
             formData.files.add(MapEntry('bukti[$anggaranId][]', file));
           }
         }
@@ -213,7 +209,7 @@ class LpjService {
     required List<Map<String, dynamic>> realizasiData,
     int? spkKesesuaianWaktu,
     int? spkKesesuaianOutput,
-    Map<String, List<String>>? buktiFiles,
+    Map<String, List<MultipartFile>>? buktiFiles,
   }) async {
     try {
       final formData = FormData();
@@ -281,12 +277,8 @@ class LpjService {
       if (buktiFiles != null && buktiFiles.isNotEmpty) {
         for (final entry in buktiFiles.entries) {
           final anggaranId = entry.key;
-          final paths = entry.value;
-          for (final path in paths) {
-            final file = await MultipartFile.fromFile(
-              path,
-              filename: path.split('/').last,
-            );
+          final files = entry.value;
+          for (final file in files) {
             formData.files.add(MapEntry('bukti[$anggaranId][]', file));
           }
         }
