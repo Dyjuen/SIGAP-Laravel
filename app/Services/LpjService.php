@@ -92,9 +92,12 @@ class LpjService
                 $oldStatus = $kak->status_id;
                 $newStatus = 11; // Review LPJ
 
+                $kegiatan->load('kak');
                 $kegiatan->update([
                     'lpj_submitted_at' => now(),
-                    'spk_kesesuaian_waktu' => $spkInputs['spk_kesesuaian_waktu'] ?? null,
+                    'realisasi_tgl_mulai' => $spkInputs['realisasi_tgl_mulai'] ?? null,
+                    'realisasi_tgl_selesai' => $spkInputs['realisasi_tgl_selesai'] ?? null,
+                    'spk_kesesuaian_waktu' => $this->calculateWaktuScore($kegiatan, $spkInputs['realisasi_tgl_mulai'] ?? null, $spkInputs['realisasi_tgl_selesai'] ?? null),
                     'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? null,
                     'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
                     'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
@@ -209,9 +212,12 @@ class LpjService
                 $oldStatus = $kak->status_id;
                 $newStatus = 11;
 
+                $kegiatan->load('kak');
                 $kegiatan->update([
                     'lpj_submitted_at' => now(),
-                    'spk_kesesuaian_waktu' => $spkInputs['spk_kesesuaian_waktu'] ?? $kegiatan->spk_kesesuaian_waktu,
+                    'realisasi_tgl_mulai' => $spkInputs['realisasi_tgl_mulai'] ?? $kegiatan->realisasi_tgl_mulai,
+                    'realisasi_tgl_selesai' => $spkInputs['realisasi_tgl_selesai'] ?? $kegiatan->realisasi_tgl_selesai,
+                    'spk_kesesuaian_waktu' => $this->calculateWaktuScore($kegiatan, $spkInputs['realisasi_tgl_mulai'] ?? $kegiatan->realisasi_tgl_mulai, $spkInputs['realisasi_tgl_selesai'] ?? $kegiatan->realisasi_tgl_selesai),
                     'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? $kegiatan->spk_kesesuaian_output,
                     'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
                     'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
@@ -458,6 +464,32 @@ class LpjService
             'spk_ketepatan_anggaran' => $ketepatanAnggaran,
             'spk_ketepatan_lpj' => $ketepatanLpj,
         ];
+    }
+
+    /**
+     * Calculate SPK kesesuaian waktu score from date diff vs KAK original dates.
+     */
+    private function calculateWaktuScore(Kegiatan $kegiatan, $realisasiMulaiStr, $realisasiSelesaiStr): ?int
+    {
+        if (empty($realisasiMulaiStr) || empty($realisasiSelesaiStr)) {
+            return null;
+        }
+
+        $config = SpkConfig::getActive();
+        if (! $kegiatan->kak) {
+            return $config->waktu_max;
+        }
+
+        $kakMulai = Carbon::parse($kegiatan->kak->tanggal_mulai);
+        $kakSelesai = Carbon::parse($kegiatan->kak->tanggal_selesai);
+        $realisasiMulai = Carbon::parse($realisasiMulaiStr);
+        $realisasiSelesai = Carbon::parse($realisasiSelesaiStr);
+
+        $diffStart = abs($realisasiMulai->diffInDays($kakMulai));
+        $diffEnd = abs($realisasiSelesai->diffInDays($kakSelesai));
+        $totalDiff = $diffStart + $diffEnd;
+
+        return (int) max($config->waktu_min, min($config->waktu_max, $config->waktu_max - $totalDiff));
     }
 
     /**

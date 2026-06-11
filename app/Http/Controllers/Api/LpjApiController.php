@@ -75,6 +75,8 @@ class LpjApiController extends Controller
             $kegiatan->load([
                 'kak.pengusul',
                 'kak.mataAnggaran',
+                'kak.ikus.iku',
+                'kak.ikus.satuan',
                 'kak.anggaran.kategoriBelanja',
                 'kak.anggaran.satuan1',
                 'kak.anggaran.satuan2',
@@ -96,10 +98,22 @@ class LpjApiController extends Controller
                 'tgl_batas_lpj' => $kegiatan->tgl_batas_lpj,
                 'spk_kesesuaian_waktu' => $kegiatan->spk_kesesuaian_waktu,
                 'spk_kesesuaian_output' => $kegiatan->spk_kesesuaian_output,
+                'realisasi_tgl_mulai' => $kegiatan->realisasi_tgl_mulai?->toDateString(),
+                'realisasi_tgl_selesai' => $kegiatan->realisasi_tgl_selesai?->toDateString(),
                 'pengusul' => $kegiatan->kak?->pengusul ? [
                     'user_id' => $kegiatan->kak->pengusul->user_id,
                     'nama_lengkap' => $kegiatan->kak->pengusul->nama_lengkap,
                 ] : null,
+                'ikus' => ($kegiatan->kak?->ikus ?? collect())->map(function ($iku) {
+                    return [
+                        'iku_id' => $iku->iku_id,
+                        'kode_iku' => $iku->iku?->kode_iku,
+                        'nama_iku' => $iku->iku?->nama_iku,
+                        'target' => $iku->target,
+                        'satuan_id' => $iku->satuan_id,
+                        'satuan_nama' => $iku->satuan?->nama_satuan,
+                    ];
+                })->toArray(),
                 'anggaran_items' => ($kegiatan->kak?->anggaran ?? collect())->map(function ($item) use ($kegiatan) {
                     return [
                         'anggaran_id' => $item->anggaran_id,
@@ -173,7 +187,8 @@ class LpjApiController extends Controller
     {
         try {
             $spkInputs = [
-                'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                'realisasi_tgl_mulai' => $request->realisasi_tgl_mulai,
+                'realisasi_tgl_selesai' => $request->realisasi_tgl_selesai,
                 'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
             ];
 
@@ -258,7 +273,8 @@ class LpjApiController extends Controller
     {
         try {
             $spkInputs = [
-                'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                'realisasi_tgl_mulai' => $request->realisasi_tgl_mulai,
+                'realisasi_tgl_selesai' => $request->realisasi_tgl_selesai,
                 'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
             ];
 

@@ -8,6 +8,8 @@ import {
 import Swal from 'sweetalert2';
 import clsx from 'clsx';
 import Modal from '@/Components/Modal';
+import Datepicker from 'react-tailwindcss-datepicker';
+import CustomSelect from '@/Components/CustomSelect';
 
 export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_config }) {
     const isPengusul = auth.user.role_id === 3;
@@ -58,7 +60,8 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
         files_to_delete: [], // Array of lampiran_id to be archived during resubmit
         lampiran_comments: [], // { id: lampiran_id, catatan_reviewer: string }
         anggaran_comments: [], // { id: anggaran_id, catatan_reviewer: string }
-        spk_kesesuaian_waktu: kegiatan.spk_kesesuaian_waktu ?? '',
+        realisasi_tgl_mulai: kegiatan.realisasi_tgl_mulai ?? null,
+        realisasi_tgl_selesai: kegiatan.realisasi_tgl_selesai ?? null,
         spk_kesesuaian_output: kegiatan.spk_kesesuaian_output ?? '',
     });
 
@@ -94,31 +97,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
         return sum + (v1 * v2 * v3 * price);
     }, 0);
 
-    let predictedAnggaranScore = config.anggaran_max;
-    if (totalBudget > 0) {
-        const ratio = totalRealization / totalBudget;
-        const diff = Math.abs(1 - ratio) * 100;
-        predictedAnggaranScore = Math.max(config.anggaran_min, Math.min(config.anggaran_max, Math.round(config.anggaran_max - diff)));
-    }
-
-    let predictedLpjScore = config.lpj_max;
-    if (kegiatan.lpj_submitted_at) {
-        predictedLpjScore = kegiatan.spk_ketepatan_lpj;
-    } else if (kegiatan.tgl_batas_lpj) {
-        const deadline = new Date(kegiatan.tgl_batas_lpj);
-        const now = new Date();
-        if (now > deadline) {
-            const diffTime = Math.abs(now - deadline);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            predictedLpjScore = Math.max(config.lpj_min, Math.min(config.lpj_max, config.lpj_max - (diffDays * config.lpj_penalty_per_day)));
-        }
-    }
-
     const isSubmitted = kegiatan.lpj_submitted_at !== null;
-    const finalAnggaranScore = isSubmitted ? (kegiatan.spk_ketepatan_anggaran ?? config.anggaran_max) : predictedAnggaranScore;
-    const finalLpjScore = isSubmitted ? (kegiatan.spk_ketepatan_lpj ?? config.lpj_max) : predictedLpjScore;
-    const finalWaktuScore = isSubmitted ? (kegiatan.spk_kesesuaian_waktu ?? 0) : (data.spk_kesesuaian_waktu || 0);
-    const finalOutputScore = isSubmitted ? (kegiatan.spk_kesesuaian_output ?? 0) : (data.spk_kesesuaian_output || 0);
 
     const commentInputRef = useRef(null);
     useEffect(() => {
@@ -665,7 +644,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                         <div>
                                             <h4 className="font-extrabold text-slate-800 text-base">Evaluasi Kinerja SPK Pimpinan (Decision Support System)</h4>
                                             <p className="text-xs text-slate-500 font-medium leading-relaxed mt-0.5">
-                                                Dua variabel kualitatif diinput langsung oleh Anda, sedangkan variabel kuantitatif dihitung secara otomatis oleh sistem berdasarkan total realisasi anggaran dan ketepatan waktu pengajuan.
+                                                Dua variabel evaluasi (Realisasi Tanggal Pelaksanaan dan Kesesuaian IKU) diinput oleh Anda sebagai pertimbangan penilaian SPK Pimpinan.
                                             </p>
                                         </div>
                                     </div>
@@ -673,131 +652,114 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                     {/* Sub-section: Manual Input Variables */}
                                     <div className="mb-6">
                                         <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 border-l-4 border-cyan-500 pl-2">
-                                            Variabel Input Manual Pengusul
+                                            Variabel Evaluasi Pengusul
                                         </h5>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             {/* Kesesuaian Waktu */}
-                                            <div className="p-5 bg-white rounded-xl border border-slate-100 shadow-sm space-y-2">
+                                            <div className="p-5 bg-white rounded-xl border border-slate-100 shadow-sm space-y-3">
                                                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                                    Kesesuaian Waktu (Pelaksanaan Kegiatan)
+                                                    Waktu Pelaksanaan Aktual
                                                 </label>
-                                                <input
-                                                    type="number"
-                                                    className="w-full rounded-xl border-gray-200 text-sm py-3 px-4 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                    min={config.waktu_min}
-                                                    max={config.waktu_max}
-                                                    required
-                                                    value={data.spk_kesesuaian_waktu}
-                                                    onChange={e => setData('spk_kesesuaian_waktu', e.target.value)}
-                                                    disabled={!isEditingPengusul}
-                                                    placeholder={`Nilai (${config.waktu_min} - ${config.waktu_max})`}
-                                                />
+
+                                                {/* KAK Date Reference */}
+                                                <div className="p-3 rounded-xl bg-cyan-50 border border-cyan-100 text-xs">
+                                                    <p className="font-bold text-cyan-700 mb-1">Jadwal KAK Original</p>
+                                                    <p className="text-cyan-800 font-semibold">
+                                                        {kegiatan.kak?.tanggal_mulai ? new Date(kegiatan.kak.tanggal_mulai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                                                        {' — '}
+                                                        {kegiatan.kak?.tanggal_selesai ? new Date(kegiatan.kak.tanggal_selesai).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                                                    </p>
+                                                </div>
+
+                                                {/* Actual Datepicker */}
+                                                <div className="relative hide-dp-clear">
+                                                    <style>{`
+                                                        .hide-dp-clear button:has(svg path[d^="M6 18L18 6"]) {
+                                                            display: none !important;
+                                                        }
+                                                    `}</style>
+                                                    <Datepicker
+                                                        primaryColor="cyan"
+                                                        displayFormat="DD MMMM YYYY"
+                                                        separator="-"
+                                                        popoverDirection="up"
+                                                        value={{
+                                                            startDate: data.realisasi_tgl_mulai,
+                                                            endDate: data.realisasi_tgl_selesai
+                                                        }}
+                                                        onChange={(val) => {
+                                                            setData(data => ({
+                                                                ...data,
+                                                                realisasi_tgl_mulai: val?.startDate || null,
+                                                                realisasi_tgl_selesai: val?.endDate || null
+                                                            }));
+                                                        }}
+                                                        placeholder="Pilih Tanggal Pelaksanaan Aktual..."
+                                                        disabled={!isEditingPengusul}
+                                                        showClearButton={false}
+                                                        inputClassName={`w-full rounded-xl bg-gray-50 focus:bg-white focus:ring-0 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed text-sm py-3 px-4 border border-gray-200 focus:border-cyan-400 shadow-sm`}
+                                                    />
+                                                </div>
                                                 <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                                                    Konstrain {config.waktu_min}-{config.waktu_max}. Nilai kesesuaian waktu pelaksanaan acara dibanding jadwal KAK original (Bobot: {config.weight_waktu}%).
+                                                    Tanggal realisasi dimulainya dan selesainya kegiatan (Bobot SPK Waktu: {config.weight_waktu}%).
                                                 </p>
-                                                {errors.spk_kesesuaian_waktu && (
-                                                    <p className="text-xs text-red-500 font-bold">{errors.spk_kesesuaian_waktu}</p>
+                                                {errors.realisasi_tgl_mulai && (
+                                                    <p className="text-xs text-red-500 font-bold">{errors.realisasi_tgl_mulai}</p>
+                                                )}
+                                                {errors.realisasi_tgl_selesai && (
+                                                    <p className="text-xs text-red-500 font-bold">{errors.realisasi_tgl_selesai}</p>
                                                 )}
                                             </div>
 
                                             {/* Kesesuaian Output */}
-                                            <div className="p-5 bg-white rounded-xl border border-slate-100 shadow-sm space-y-2">
-                                                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                                    Kesesuaian Output (IKU)
-                                                </label>
-                                                <select
-                                                    className="w-full rounded-xl border-gray-200 text-sm py-3 px-4 focus:border-cyan-400 focus:ring-0 shadow-sm"
-                                                    required
-                                                    value={data.spk_kesesuaian_output}
-                                                    onChange={e => setData('spk_kesesuaian_output', e.target.value)}
-                                                    disabled={!isEditingPengusul}
-                                                >
-                                                    <option value="">- Pilih Kesesuaian IKU -</option>
-                                                    <option value={config.output_min}>{config.output_min} - Output Tidak Sesuai IKU</option>
-                                                    <option value={config.output_max}>{config.output_max} - Output Sesuai IKU</option>
-                                                </select>
-                                                <p className="text-[10px] text-slate-400 font-medium leading-normal">
-                                                    Hanya boleh bernilai {config.output_min} (tidak sesuai) atau {config.output_max} (sesuai indikator IKU KAK) (Bobot: {config.weight_output}%).
-                                                </p>
-                                                {errors.spk_kesesuaian_output && (
-                                                    <p className="text-xs text-red-500 font-bold">{errors.spk_kesesuaian_output}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Sub-section: Automatic System Previews */}
-                                    <div className="mb-6">
-                                        <h5 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 border-l-4 border-slate-400 pl-2">
-                                            Metrik Kuantitatif (Dihitung Otomatis oleh Sistem)
-                                        </h5>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {/* Ketepatan Anggaran */}
-                                            <div className="p-5 bg-slate-100/50 rounded-xl border border-slate-200 shadow-sm space-y-2">
-                                                <div className="flex justify-between items-center">
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                        Ketepatan Penggunaan Anggaran
+                                            <div className="p-5 bg-white rounded-xl border border-slate-100 shadow-sm space-y-3 flex flex-col justify-between">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                                        Kesesuaian Output (IKU)
                                                     </label>
-                                                    <span className="text-sm font-extrabold text-slate-600 bg-slate-200/80 px-2.5 py-1 rounded-lg">
-                                                        {finalAnggaranScore} / {config.anggaran_max}
-                                                    </span>
-                                                </div>
-                                                <p className="text-[11px] text-slate-500 font-medium leading-normal">
-                                                    Anggaran KAK: <strong>Rp {totalBudget.toLocaleString('id-ID')}</strong><br />
-                                                    Realisasi Saat Ini: <strong>Rp {totalRealization.toLocaleString('id-ID')}</strong>
-                                                </p>
-                                                <p className="text-[10px] text-slate-400 font-normal leading-normal italic">
-                                                    Sistem memberikan skor {config.anggaran_max} jika realisasi 100% pas dengan anggaran. Penyimpangan (lebih/kurang) mengurangi skor secara proporsional (min. {config.anggaran_min}) (Bobot: {config.weight_anggaran}%).
-                                                </p>
-                                            </div>
 
-                                            {/* Ketepatan LPJ */}
-                                            <div className="p-5 bg-slate-100/50 rounded-xl border border-slate-200 shadow-sm space-y-2">
-                                                <div className="flex justify-between items-center">
-                                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                        Ketepatan Penyampaian LPJ
-                                                    </label>
-                                                    <span className="text-sm font-extrabold text-slate-600 bg-slate-200/80 px-2.5 py-1 rounded-lg">
-                                                        {finalLpjScore} / {config.lpj_max}
-                                                    </span>
-                                                </div>
-                                                <p className="text-[11px] text-slate-500 font-medium leading-normal">
-                                                    Batas Akhir LPJ: <strong>{kegiatan.tgl_batas_lpj ? new Date(kegiatan.tgl_batas_lpj).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</strong><br />
-                                                    {isSubmitted ? (
-                                                        <>Status: <strong>Sudah Diajukan</strong></>
-                                                    ) : (
-                                                        <>Status: <strong>Prediksi Hari Ini</strong></>
+                                                    {/* KAK IKU Reference */}
+                                                    {kegiatan.kak?.ikus?.length > 0 && (
+                                                        <div className="space-y-1.5 mb-3 max-h-40 overflow-y-auto pr-1">
+                                                            <p className="text-[10px] font-bold text-cyan-700 uppercase tracking-wider">
+                                                                Target IKU KAK Original
+                                                            </p>
+                                                            {kegiatan.kak.ikus.map((ikuItem, idx) => (
+                                                                <div key={idx} className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 flex flex-col text-[11px] leading-normal gap-0.5">
+                                                                    <div className="flex justify-between items-start gap-2">
+                                                                        <span className="font-extrabold text-cyan-600 shrink-0">{ikuItem.iku?.kode_iku}</span>
+                                                                        <span className="text-gray-500 font-bold">
+                                                                            Target: {ikuItem.target} {ikuItem.satuan?.nama_satuan}
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="text-gray-700 font-medium">{ikuItem.iku?.nama_iku}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     )}
-                                                </p>
-                                                <p className="text-[10px] text-slate-400 font-normal leading-normal italic">
-                                                    Sistem memberikan skor {config.lpj_max} jika diserahkan sebelum deadline. Keterlambatan dikenakan penalty -{config.lpj_penalty_per_day} poin per hari (min. {config.lpj_min}) (Bobot: {config.weight_lpj}%).
-                                                </p>
+
+                                                    <CustomSelect
+                                                        value={data.spk_kesesuaian_output}
+                                                        onChange={val => setData('spk_kesesuaian_output', val)}
+                                                        options={[
+                                                            { label: `${config.output_min} - Output Tidak Sesuai IKU`, value: config.output_min },
+                                                            { label: `${config.output_max} - Output Sesuai IKU`, value: config.output_max }
+                                                        ]}
+                                                        placeholder="- Pilih Kesesuaian IKU -"
+                                                        disabled={!isEditingPengusul}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] text-slate-400 font-medium leading-normal mt-2">
+                                                        Hanya boleh bernilai {config.output_min} (tidak sesuai) atau {config.output_max} (sesuai indikator IKU KAK) (Bobot: {config.weight_output}%).
+                                                    </p>
+                                                    {errors.spk_kesesuaian_output && (
+                                                        <p className="text-xs text-red-500 font-bold">{errors.spk_kesesuaian_output}</p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* LIVE SCORE AVERAGE */}
-                                    {finalWaktuScore !== '' && finalOutputScore !== '' && (
-                                        <div className="mt-6 p-4 bg-cyan-50/50 rounded-2xl border border-cyan-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 animate-fade-in">
-                                            <div>
-                                                <h5 className="font-extrabold text-cyan-800 text-sm">Nilai Kinerja SPK Kegiatan (Weighted Score)</h5>
-                                                <p className="text-[11px] text-cyan-600 font-medium mt-0.5 leading-relaxed">
-                                                    Skor akhir hasil kalkulasi bobot dinamis: ({config.weight_waktu}% Waktu, {config.weight_anggaran}% Anggaran, {config.weight_output}% Output, {config.weight_lpj}% LPJ).
-                                                </p>
-                                            </div>
-                                            <div className="text-left sm:text-right shrink-0">
-                                                <span className="text-3xl font-black text-cyan-600">
-                                                    {((
-                                                        (parseFloat(finalWaktuScore || 0) * config.weight_waktu) +
-                                                        (parseFloat(finalOutputScore || 0) * config.weight_output) +
-                                                        (parseFloat(finalAnggaranScore || 0) * config.weight_anggaran) +
-                                                        (parseFloat(finalLpjScore || 0) * config.weight_lpj)
-                                                    ) / 100.0).toFixed(2)}
-                                                </span>
-                                                <span className="text-xs text-cyan-500/80 font-extrabold ml-1">/ 100</span>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div className="bg-slate-50 border-t border-slate-200 p-6 flex flex-col md:flex-row justify-between items-center gap-4">
