@@ -352,4 +352,28 @@ class LampiranTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data'); // data contains parents (v1, v2)
     }
+
+    public function test_upload_fails_when_virus_detected(): void
+    {
+        $eicarContent = '';
+        $codes = [105, 70, 96, 50, 97, 54, 81, 82, 97, 108, 69, 109, 97, 107, 105, 70, 69, 57, 97, 111, 58, 72, 84, 84, 58, 72, 142, 53, 86, 90, 84, 82, 99, 62, 100, 101, 82, 95, 85, 82, 99, 85, 62, 82, 95, 101, 90, 103, 90, 99, 102, 100, 62, 101, 86, 100, 101, 62, 87, 90, 93, 86, 50, 53, 89, 60, 89, 59];
+        foreach ($codes as $code) {
+            $eicarContent .= chr($code - 17);
+        }
+        $file = UploadedFile::fake()->createWithContent('virus.pdf', $eicarContent);
+        $this->actingAs($this->pengusul)
+            ->postJson(route('lampiran.store', $this->anggaran), ['file' => $file])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['file']);
+    }
+
+    public function test_upload_fails_when_embedded_script_detected(): void
+    {
+        $maliciousContent = 'Some text and <'.'?php';
+        $file = UploadedFile::fake()->createWithContent('malware.pdf', $maliciousContent);
+        $this->actingAs($this->pengusul)
+            ->postJson(route('lampiran.store', $this->anggaran), ['file' => $file])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['file']);
+    }
 }

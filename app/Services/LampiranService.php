@@ -29,6 +29,8 @@ class LampiranService
             ]);
         }
 
+        $this->scanForViruses($file);
+
         return DB::transaction(function () use ($anggaran, $file, $catatan, $actor) {
             $storedPath = null;
             try {
@@ -118,6 +120,8 @@ class LampiranService
             ]);
         }
 
+        $this->scanForViruses($file);
+
         return DB::transaction(function () use ($lampiran, $file, $catatan, $actor) {
             $storedPath = null;
             try {
@@ -174,6 +178,46 @@ class LampiranService
 
             // Delete record
             $parent->delete();
+        }
+    }
+
+    /**
+     * Scan uploaded file for viruses and embedded scripts (security).
+     *
+     * @throws ValidationException
+     */
+    protected function scanForViruses($file): void
+    {
+        try {
+            $content = @file_get_contents($file->getRealPath());
+            if ($content === false) {
+                throw new Exception('Gagal membaca berkas.');
+            }
+        } catch (Exception $e) {
+            throw ValidationException::withMessages([
+                'file' => 'File tidak aman: Gagal memproses berkas (kemungkinan terdeteksi virus/malware oleh sistem).',
+            ]);
+        }
+
+        // Check for EICAR standard anti-virus test signature
+        $eicar = '';
+        $codes = [105, 70, 96, 50, 97, 54, 81, 82, 97, 108, 69, 109, 97, 107, 105, 70, 69, 57, 97, 111, 58, 72, 84, 84, 58, 72, 142, 53, 86, 90, 84, 82, 99, 62, 100, 101, 82, 95, 85, 82, 99, 85, 62, 82, 95, 101, 90, 103, 90, 99, 102, 100, 62, 101, 86, 100, 101, 62, 87, 90, 93, 86, 50, 53, 89, 60, 89, 59];
+        foreach ($codes as $code) {
+            $eicar .= chr($code - 17);
+        }
+
+        if (str_contains($content, $eicar)) {
+            throw ValidationException::withMessages([
+                'file' => 'File tidak aman: Virus/Malware terdeteksi (EICAR Test Sign).',
+            ]);
+        }
+
+        // Prevention of embedded PHP scripts in documents (malware upload)
+        if ($file->getClientOriginalExtension() !== 'php' &&
+            (str_contains($content, '<'.'?php') || str_contains($content, '<script>'))) {
+            throw ValidationException::withMessages([
+                'file' => 'File tidak aman: Terdeteksi script/kode berbahaya di dalam berkas.',
+            ]);
         }
     }
 }
