@@ -77,7 +77,6 @@ class _KegiatanPageState extends State<KegiatanPage> {
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.95),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.5)),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -94,6 +93,10 @@ class _KegiatanPageState extends State<KegiatanPage> {
                             colors: [Color(0xFF33C8DA), Color(0xFF2BA9B8)],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(24),
+                            topRight: Radius.circular(24),
                           ),
                         ),
                         child: Column(
