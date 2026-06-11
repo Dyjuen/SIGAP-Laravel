@@ -171,9 +171,10 @@ class KakRab {
       kategoriBelanjaId: json['kategori_belanja_id'] != null 
           ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1 
           : 1,
-      kategoriNama: json['kategori_belanja'] != null 
-          ? json['kategori_belanja']['nama'] 
-          : null,
+      kategoriNama: json['kategori_nama'] ?? 
+          (json['kategori_belanja'] != null 
+              ? (json['kategori_belanja'] is Map ? json['kategori_belanja']['nama'] : json['kategori_belanja'].toString())
+              : null),
       uraian: json['uraian'] ?? '',
       volume1: _parseDoubleOrNull(json['volume1']),
       satuan1Id: json['satuan1_id'] != null ? int.tryParse(json['satuan1_id'].toString()) : null,
