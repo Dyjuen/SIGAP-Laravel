@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +13,6 @@ import '../services/api_service.dart';
 import '../services/master_data_service.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/sigap_bottom_navigation_bar.dart';
-import 'pdf_viewer_page.dart';
 
 class HelpGuidePage extends StatefulWidget {
   const HelpGuidePage({super.key});
@@ -38,7 +39,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
     });
 
     try {
-      final res = await ApiService.get('/admin/panduan');
+      final res = await ApiService.get('/panduan');
       if (res.statusCode == 200) {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
         final userRoleId = authProvider.user?.roleId;
@@ -46,10 +47,17 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
 
         final allGuides = jsonDecode(res.body) as List<dynamic>;
         
+        debugPrint('DEBUG: Current User Role ID: $userRoleId');
+        debugPrint('DEBUG: All Guides: $allGuides');
+        
         setState(() {
           _guides = isAdmin 
               ? allGuides 
-              : allGuides.where((g) => g['target_role_id'] == userRoleId).toList();
+              : allGuides.where((g) {
+                  final targetRoleId = g['target_role_id'];
+                  debugPrint('DEBUG: Comparing Guide ID: ${g['id']}, Target Role ID: $targetRoleId, User Role ID: $userRoleId');
+                  return targetRoleId.toString() == userRoleId.toString();
+                }).toList();
           _filteredGuides = List.from(_guides);
           _isLoading = false;
         });
@@ -59,6 +67,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
         });
       }
     } catch (e) {
+      debugPrint('DEBUG: Error loading guides: $e');
       setState(() {
         _isLoading = false;
       });
@@ -145,6 +154,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
     String selectedType = 'document';
     int? selectedRoleId;
     File? selectedFile;
+    Uint8List? selectedBytes;
 
     showModalBottomSheet(
       context: context,
@@ -200,22 +210,23 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                       children: [
                         ElevatedButton.icon(
                           onPressed: () async {
-                            final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-                            if (result != null && result.files.single.path != null) {
-                              debugPrint('DEBUG: File selected: ${result.files.single.path}');
+                            final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf'], withData: kIsWeb);
+                            if (result != null && result.files.single.name != null) {
                               setDialogState(() {
-                                selectedFile = File(result.files.single.path!);
+                                if (kIsWeb) {
+                                  selectedBytes = result.files.single.bytes;
+                                } else {
+                                  selectedFile = File(result.files.single.path!);
+                                }
                                 pathCtrl.text = result.files.single.name;
                               });
-                            } else {
-                              debugPrint('DEBUG: No file selected');
                             }
                           },
                           icon: const Icon(Icons.upload_file),
                           label: const Text('Pilih File PDF'),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: Colors.black),
                         ),
-                        if (selectedFile != null) ...[
+                        if (selectedFile != null || selectedBytes != null) ...[
                           const SizedBox(height: 8),
                           Text(
                             'File Terpilih: ${pathCtrl.text}',
@@ -244,22 +255,24 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                     child: ElevatedButton(
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
-                          if (selectedType == 'document' && selectedFile == null) {
+                          if (selectedType == 'document' && (selectedFile == null && selectedBytes == null)) {
                             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih file dokumen terlebih dahulu')));
                             return;
                           }
                           Navigator.of(ctx).pop();
                           setState(() => _isLoading = true);
                           try {
-                            // Using Dio for Multipart Upload
                             final dioInstance = Provider.of<dio.Dio>(context, listen: false);
                             final formData = dio.FormData.fromMap({
                               'judul_panduan': titleCtrl.text.trim(),
                               'tipe_media': selectedType,
                               'target_role_id': selectedRoleId,
+                              'path_media': selectedType == 'video' ? pathCtrl.text.trim() : null, // Fix key to path_media
                               'file': selectedType == 'video' 
-                                  ? pathCtrl.text.trim() 
-                                  : await dio.MultipartFile.fromFile(selectedFile!.path, filename: pathCtrl.text),
+                                  ? null 
+                                  : (kIsWeb 
+                                      ? dio.MultipartFile.fromBytes(selectedBytes!, filename: pathCtrl.text)
+                                      : await dio.MultipartFile.fromFile(selectedFile!.path, filename: pathCtrl.text)),
                             });
                             
                             final res = await dioInstance.post('/admin/panduan', data: formData);
@@ -543,16 +556,16 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak dapat membuka link video')));
                                             }
                                           } else {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (_) => PdfViewerPage(
-                                                  url: url.startsWith('http') 
-                                                      ? url 
-                                                      : 'https://sigap-laravel.wattaway.id/storage/$url',
-                                                  title: g['title'],
-                                                ),
-                                              ),
-                                            );
+                                            // Handle document view: Open in external browser
+                                            final urlToLaunch = url.startsWith('http')
+                                                ? url
+                                                : 'https://sigap-laravel.wattaway.id/storage/$url';
+                                            final uri = Uri.parse(urlToLaunch);
+                                            if (await canLaunchUrl(uri)) {
+                                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak dapat membuka dokumen')));
+                                            }
                                           }
                                         },
                                       ),

@@ -56,6 +56,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/admin/master/{type}/{id}', [MasterDataApiController::class, 'destroy']);
     });
 
+    Route::get('/panduan', [AdminApiController::class, 'getPanduan']);
+    
     // KAK API Routes (Pengusul & Admin, role-gated inside controller where specific)
     Route::get('/kak', [KakApiController::class, 'index']);
     Route::post('/kak', [KakApiController::class, 'store']);
