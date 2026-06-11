@@ -538,8 +538,9 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
 
                                 return sortedKategoriIds.expand((katId) {
                                   final entries = groupedRab[katId]!;
-                                  final katNama = kategoriNames[katId] ??
-                                      (katId == 1
+                                  final katNama = entries.first.value.kategoriNama?.isNotEmpty == true 
+                                      ? entries.first.value.kategoriNama!
+                                      : (katId == 1
                                           ? 'Belanja Barang'
                                           : katId == 2
                                               ? 'Belanja Jasa'
