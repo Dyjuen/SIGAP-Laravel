@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../kegiatan_detail_page.dart';
+import '../../widgets/sigap_bottom_navigation_bar.dart';
+import '../../widgets/app_shell.dart';
 
 class PpkKegiatanListPage extends StatefulWidget {
   const PpkKegiatanListPage({super.key});
@@ -118,6 +120,15 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
     });
   }
 
+  void _navigateToDetail(int kegiatanId) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => KegiatanDetailPage(kegiatanId: kegiatanId),
+      ),
+    );
+    _fetchKegiatans();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,7 +145,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
             color: const Color(0xFF0F172A),
           ),
         ),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: Navigator.of(context).canPop(),
         centerTitle: false,
       ),
       body: Column(
@@ -176,6 +187,18 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
           ),
         ],
       ),
+      bottomNavigationBar: Navigator.of(context).canPop()
+          ? SigapBottomNavigationBar(
+              selectedIndex: 1,
+              roleId: Provider.of<AuthProvider>(context, listen: false).user?.roleId ?? 4,
+              onDestinationSelected: (index) {
+                if (AppShellState.activeInstance != null) {
+                  AppShellState.activeInstance!.setSelectedIndex(index);
+                }
+                Navigator.of(context).pop();
+              },
+            )
+          : null,
     );
   }
 
@@ -512,19 +535,5 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
         },
       ),
     );
-  }
-
-  void _navigateToDetail(int kegiatanId) {
-    if (kegiatanId > 0) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => KegiatanDetailPage(kegiatanId: kegiatanId),
-        ),
-      ).then((value) {
-        if (value == true) {
-          _fetchKegiatans();
-        }
-      });
-    }
   }
 }

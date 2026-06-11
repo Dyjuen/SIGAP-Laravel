@@ -119,127 +119,25 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        final colorScheme = Theme.of(context).colorScheme;
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF33C8DA).withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: Color(0xFF33C8DA),
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        'Lampiran KAK',
-                        style: GoogleFonts.figtree(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Salin tautan di bawah ini untuk mengunduh atau membuka dokumen surat pengantar di peramban (browser) Anda:',
-                  style: GoogleFonts.figtree(
-                    fontSize: 13,
-                    height: 1.5,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.2),
-                    ),
-                  ),
-                  child: Text(
-                    urlString,
-                    style: GoogleFonts.figtree(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: const Color(0xFF0E7490),
-                    ),
-                    maxLines: 4,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Batal',
-                        style: GoogleFonts.figtree(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: urlString));
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Tautan berhasil disalin ke papan klip!',
-                            ),
-                            backgroundColor: Color(0xFF2E7D32),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.copy_rounded, size: 16),
-                      label: Text(
-                        'Salin Tautan',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF33C8DA),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    final uri = Uri.tryParse(urlString);
+    if (uri == null) return;
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      // Fallback: copy to clipboard
+      if (mounted) {
+        Clipboard.setData(ClipboardData(text: urlString));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Tidak bisa membuka browser. Tautan telah disalin ke papan klip.',
             ),
+            backgroundColor: Color(0xFF2E7D32),
           ),
         );
-      },
-    );
+      }
+    }
   }
 
   Future<void> _submitApprove() async {
@@ -512,7 +410,6 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
               color: const Color(0xFF0F172A),
             ),
           ),
-          automaticallyImplyLeading: false,
           centerTitle: false,
           bottom: const TabBar(
             labelColor: Color(0xFF33C8DA),
@@ -609,8 +506,12 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
     final String metodePelaksanaan = kak['metode_pelaksanaan'] ?? '-';
     final String sasaranUtama = kak['sasaran_utama'] ?? '-';
 
-    final pj = _kegiatan['penanggung_jawab_manual'] ?? kak['penanggung_jawab_manual'] ?? '-';
-    final pelaksana = _kegiatan['pelaksana_manual'] ?? kak['pelaksana_manual'] ?? '-';
+    final pj =
+        _kegiatan['penanggung_jawab_manual'] ??
+        kak['penanggung_jawab_manual'] ??
+        '-';
+    final pelaksana =
+        _kegiatan['pelaksana_manual'] ?? kak['pelaksana_manual'] ?? '-';
 
     // Grouping anggaran by kategori belanja
     final List<dynamic> anggaran = kak['anggaran'] as List? ?? [];
@@ -630,14 +531,19 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
     );
 
     // Public URL for surat pengantar
-    final String? suratPengantarUrl =
-        _kegiatan['surat_pengantar_url'] as String?;
+    final String? rawUrl =
+        _kegiatan['surat_pengantar_url'] as String? ??
+        _kegiatan['surat_pengantar_path'] as String?;
+    final String? suratPengantarUrl = (rawUrl != null && rawUrl.isNotEmpty)
+        ? rawUrl
+        : null;
 
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
 
     // Target IKU
-    final List<dynamic> targets = (kak['target_iku'] as List? ?? kak['ikus'] as List?) ?? [];
+    final List<dynamic> targets =
+        (kak['target_iku'] as List? ?? kak['ikus'] as List?) ?? [];
 
     return Stack(
       children: [
@@ -649,7 +555,12 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
               color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(16, 16, 16, isPendingMyApproval ? 110 : 24),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  isPendingMyApproval ? 110 : 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -675,10 +586,15 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF1F5F9),
                                   borderRadius: BorderRadius.circular(8),
@@ -692,9 +608,11 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFE0F7FA),
                                   borderRadius: BorderRadius.circular(8),
@@ -706,6 +624,7 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF0E7490),
                                   ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -740,7 +659,10 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                       title: 'INFORMASI PELAKSANAAN',
                       icon: Icons.calendar_today_outlined,
                       children: [
-                        _buildCompactInfoRow('Waktu', '${_formatDate(tglMulai)} s/d ${_formatDate(tglSelesai)}'),
+                        _buildCompactInfoRow(
+                          'Waktu',
+                          '${_formatDate(tglMulai)} s/d ${_formatDate(tglSelesai)}',
+                        ),
                         const SizedBox(height: 12),
                         _buildCompactInfoRow('Lokasi', lokasi),
                         const SizedBox(height: 12),
@@ -753,22 +675,35 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                           const SizedBox(height: 12),
                           _buildCompactInfoRow(
                             'Target IKU',
-                            targets.map((t) {
-                              final kode = t['kode_iku'] ?? t['iku']?['kode_iku'] ?? '-';
-                              final targetValue = t['target'] ?? '-';
-                              final formattedTarget = () {
-                                if (targetValue == null) return '-';
-                                final parsed = double.tryParse(targetValue.toString());
-                                if (parsed == null) return targetValue.toString();
-                                if (parsed == parsed.roundToDouble()) {
-                                  return parsed.round().toString();
-                                }
-                                return parsed.toString();
-                              }();
-                              final satuan = t['nama_satuan'] ?? t['satuan']?['nama_satuan'] ?? t['satuan_nama'] ?? '';
-                              
-                              return '$kode: $formattedTarget $satuan'.trim();
-                            }).join('\n'),
+                            targets
+                                .map((t) {
+                                  final kode =
+                                      t['kode_iku'] ??
+                                      t['iku']?['kode_iku'] ??
+                                      '-';
+                                  final targetValue = t['target'] ?? '-';
+                                  final formattedTarget = () {
+                                    if (targetValue == null) return '-';
+                                    final parsed = double.tryParse(
+                                      targetValue.toString(),
+                                    );
+                                    if (parsed == null)
+                                      return targetValue.toString();
+                                    if (parsed == parsed.roundToDouble()) {
+                                      return parsed.round().toString();
+                                    }
+                                    return parsed.toString();
+                                  }();
+                                  final satuan =
+                                      t['nama_satuan'] ??
+                                      t['satuan']?['nama_satuan'] ??
+                                      t['satuan_nama'] ??
+                                      '';
+
+                                  return '$kode: $formattedTarget $satuan'
+                                      .trim();
+                                })
+                                .join('\n'),
                           ),
                         ],
                       ],
@@ -786,19 +721,32 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                             icon: Icons.track_changes_rounded,
                             children: [
                               ...targets.map((t) {
-                                final kode = t['kode_iku'] ?? t['iku']?['kode_iku'] ?? 'IKU';
-                                final nama = t['nama_iku'] ?? t['iku']?['nama_iku'] ?? '-';
+                                final kode =
+                                    t['kode_iku'] ??
+                                    t['iku']?['kode_iku'] ??
+                                    'IKU';
+                                final nama =
+                                    t['nama_iku'] ??
+                                    t['iku']?['nama_iku'] ??
+                                    '-';
                                 final targetValue = t['target'] ?? '-';
                                 final formattedTarget = () {
                                   if (targetValue == null) return '-';
-                                  final parsed = double.tryParse(targetValue.toString());
-                                  if (parsed == null) return targetValue.toString();
+                                  final parsed = double.tryParse(
+                                    targetValue.toString(),
+                                  );
+                                  if (parsed == null)
+                                    return targetValue.toString();
                                   if (parsed == parsed.roundToDouble()) {
                                     return parsed.round().toString();
                                   }
                                   return parsed.toString();
                                 }();
-                                final satuan = t['nama_satuan'] ?? t['satuan']?['nama_satuan'] ?? t['satuan_nama'] ?? '';
+                                final satuan =
+                                    t['nama_satuan'] ??
+                                    t['satuan']?['nama_satuan'] ??
+                                    t['satuan_nama'] ??
+                                    '';
 
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 12),
@@ -806,7 +754,9 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.grey.shade200),
+                                    border: Border.all(
+                                      color: Colors.grey.shade200,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.grey.shade50,
@@ -816,7 +766,8 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                     ],
                                   ),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(8),
@@ -824,12 +775,17 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                           color: Colors.cyan.shade50,
                                           shape: BoxShape.circle,
                                         ),
-                                        child: Icon(Icons.star, color: Colors.cyan.shade700, size: 16),
+                                        child: Icon(
+                                          Icons.star,
+                                          color: Colors.cyan.shade700,
+                                          size: 16,
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               kode,
@@ -947,24 +903,75 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                               ],
                             ),
                             const SizedBox(height: 16),
-                            SizedBox(
-                              height: 48,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _launchUrl(suratPengantarUrl),
-                                icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
-                                label: Text(
-                                  'Buka Surat Pengantar (PDF)',
-                                  style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF33C8DA),
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () =>
+                                          _launchUrl(suratPengantarUrl),
+                                      icon: const Icon(
+                                        Icons.picture_as_pdf_rounded,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        'Buka Surat Pengantar (PDF)',
+                                        style: GoogleFonts.figtree(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFF33C8DA,
+                                        ),
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(width: 12),
+                                Container(
+                                  height: 48,
+                                  width: 48,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: const Color(0xFF33C8DA),
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.copy_rounded,
+                                      color: Color(0xFF33C8DA),
+                                      size: 18,
+                                    ),
+                                    onPressed: () {
+                                      Clipboard.setData(
+                                        ClipboardData(
+                                          text: suratPengantarUrl ?? '',
+                                        ),
+                                      );
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Tautan berhasil disalin ke papan klip!',
+                                          ),
+                                          backgroundColor: Color(0xFF2E7D32),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -1012,18 +1019,30 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                   child: SizedBox(
                                     height: 48,
                                     child: ElevatedButton.icon(
-                                      onPressed: () => _openKakPdf('preview', kakId.toString()),
-                                      icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                                      onPressed: () => _openKakPdf(
+                                        'preview',
+                                        kakId.toString(),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.remove_red_eye_outlined,
+                                        size: 18,
+                                      ),
                                       label: Text(
                                         'Preview',
-                                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                                        style: GoogleFonts.figtree(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF33C8DA),
+                                        backgroundColor: const Color(
+                                          0xFF33C8DA,
+                                        ),
                                         foregroundColor: Colors.white,
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1034,18 +1053,32 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                   child: SizedBox(
                                     height: 48,
                                     child: OutlinedButton.icon(
-                                      onPressed: () => _openKakPdf('download', kakId.toString()),
-                                      icon: const Icon(Icons.download_outlined, size: 18),
+                                      onPressed: () => _openKakPdf(
+                                        'download',
+                                        kakId.toString(),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.download_outlined,
+                                        size: 18,
+                                      ),
                                       label: Text(
                                         'Unduh KAK',
-                                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                                        style: GoogleFonts.figtree(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Color(0xFF33C8DA)),
-                                        foregroundColor: const Color(0xFF33C8DA),
+                                        side: const BorderSide(
+                                          color: Color(0xFF33C8DA),
+                                        ),
+                                        foregroundColor: const Color(
+                                          0xFF33C8DA,
+                                        ),
                                         elevation: 0,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1068,7 +1101,12 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
               color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(16, 16, 16, isPendingMyApproval ? 110 : 24),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  isPendingMyApproval ? 110 : 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1152,35 +1190,57 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                   const SizedBox(height: 8),
                                   ...entry.value.map((item) {
                                     final List<String> vols = [];
-                                    final double v1 = double.tryParse(item['volume1']?.toString() ?? '0') ?? 0;
-                                    final String s1 = item['satuan1']?['nama_satuan'] ?? '';
+                                    final double v1 =
+                                        double.tryParse(
+                                          item['volume1']?.toString() ?? '0',
+                                        ) ??
+                                        0;
+                                    final String s1 =
+                                        item['satuan1']?['nama_satuan'] ?? '';
                                     if (v1 > 0) vols.add('${v1.toInt()} $s1');
 
-                                    final double v2 = double.tryParse(item['volume2']?.toString() ?? '0') ?? 0;
-                                    final String s2 = item['satuan2']?['nama_satuan'] ?? '';
+                                    final double v2 =
+                                        double.tryParse(
+                                          item['volume2']?.toString() ?? '0',
+                                        ) ??
+                                        0;
+                                    final String s2 =
+                                        item['satuan2']?['nama_satuan'] ?? '';
                                     if (v2 > 0) vols.add('${v2.toInt()} $s2');
 
-                                    final double v3 = double.tryParse(item['volume3']?.toString() ?? '0') ?? 0;
-                                    final String s3 = item['satuan3']?['nama_satuan'] ?? '';
+                                    final double v3 =
+                                        double.tryParse(
+                                          item['volume3']?.toString() ?? '0',
+                                        ) ??
+                                        0;
+                                    final String s3 =
+                                        item['satuan3']?['nama_satuan'] ?? '';
                                     if (v3 > 0) vols.add('${v3.toInt()} $s3');
 
                                     final String volumeText = vols.join(' x ');
 
                                     return Container(
                                       margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 10,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFF8FAFC),
                                         borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                                        border: Border.all(
+                                          color: const Color(0xFFE2E8F0),
+                                        ),
                                       ),
                                       child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Expanded(
                                             flex: 3,
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   item['uraian'] ?? '',
@@ -1204,10 +1264,13 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                           Expanded(
                                             flex: 2,
                                             child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
                                               children: [
                                                 Text(
-                                                  _formatCurrency(item['jumlah_diusulkan']),
+                                                  _formatCurrency(
+                                                    item['jumlah_diusulkan'],
+                                                  ),
                                                   style: const TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.bold,
@@ -1272,7 +1335,12 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
               color: const Color(0xFF33C8DA),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(16, 16, 16, isPendingMyApproval ? 110 : 24),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  isPendingMyApproval ? 110 : 24,
+                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -1321,7 +1389,8 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                             final app = approvals[idx];
                             final roleName = app['approval_level'] ?? '-';
                             final status = app['status'] ?? '-';
-                            final userName = app['approver']?['nama_lengkap'] ?? '-';
+                            final userName =
+                                app['approver']?['nama_lengkap'] ?? '-';
                             final dateStr = _formatDate(app['updated_at']);
 
                             Color statusColor = Colors.orange;
@@ -1338,7 +1407,8 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                               padding: const EdgeInsets.only(bottom: 16.0),
                               child: IntrinsicHeight(
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     Column(
                                       children: [
@@ -1346,8 +1416,8 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                           status == 'Disetujui'
                                               ? Icons.check_circle
                                               : status == 'Ditolak'
-                                                  ? Icons.cancel
-                                                  : Icons.pending,
+                                              ? Icons.cancel
+                                              : Icons.pending,
                                           color: statusColor,
                                           size: 20,
                                         ),
@@ -1363,7 +1433,8 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             'Persetujuan: $roleName',
@@ -1390,22 +1461,36 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                             ),
                                           ),
                                           if (app['catatan'] != null &&
-                                              app['catatan'].toString().trim().isNotEmpty) ...[
+                                              app['catatan']
+                                                  .toString()
+                                                  .trim()
+                                                  .isNotEmpty) ...[
                                             const SizedBox(height: 6),
                                             Container(
                                               width: double.infinity,
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 8,
+                                                  ),
                                               decoration: BoxDecoration(
                                                 color: const Color(0xFFF8FAFC),
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xFFE2E8F0,
+                                                  ),
+                                                ),
                                               ),
                                               child: Text(
                                                 'Catatan: "${app['catatan']}"',
                                                 style: GoogleFonts.figtree(
                                                   fontSize: 11,
                                                   fontStyle: FontStyle.italic,
-                                                  color: const Color(0xFF475569),
+                                                  color: const Color(
+                                                    0xFF475569,
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -1417,10 +1502,15 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                     Align(
                                       alignment: Alignment.topRight,
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: statusBg,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           status.toUpperCase(),

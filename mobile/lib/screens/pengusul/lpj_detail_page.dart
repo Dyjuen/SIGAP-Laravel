@@ -657,6 +657,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                                     content: Text('LPJ berhasil disetujui'),
                                   ),
                                 );
+                                Navigator.pop(context, true);
                               }
                             }
                           },
@@ -703,6 +704,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('LPJ berhasil diselesaikan')),
                             );
+                            Navigator.pop(context, true);
                           }
                         }
                       },
@@ -928,6 +930,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 setState(() {
                   _itemComments.clear();
                 });
+                Navigator.pop(context, true);
               }
             },
             child: const Text('Kirim Catatan'),

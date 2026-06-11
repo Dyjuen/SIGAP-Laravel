@@ -55,7 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/master/{type}/{id}', [MasterDataApiController::class, 'update']);
         Route::delete('/admin/master/{type}/{id}', [MasterDataApiController::class, 'destroy']);
     });
-    
+
     // KAK API Routes (Pengusul & Admin, role-gated inside controller where specific)
     Route::get('/kak', [KakApiController::class, 'index']);
     Route::post('/kak', [KakApiController::class, 'store']);
@@ -152,7 +152,6 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::get('/panduan', [AdminApiController::class, 'getPanduan']);
-
 
 // Master Data Routes (public, used for KAK form dropdowns, with throttle)
 Route::middleware('throttle:60,1')->group(function () {

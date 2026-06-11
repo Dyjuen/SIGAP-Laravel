@@ -162,9 +162,9 @@ class AdminApiController extends Controller
                 // The path stored in DB is usually 'panduan/filename.pdf'
                 // The public URL should be: <AWS_URL>/<path>
                 $baseUrl = config('filesystems.disks.supabase.url');
-                $path = $baseUrl . '/' . $path;
+                $path = $baseUrl.'/'.$path;
             }
-            
+
             return [
                 'id' => $p->panduan_id,
                 'title' => $p->judul_panduan,

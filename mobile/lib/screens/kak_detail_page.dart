@@ -145,7 +145,9 @@ class _KakDetailPageState extends State<KakDetailPage> {
                           )
                         : Text(
                             'Simpan Perubahan',
-                            style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                            style: GoogleFonts.figtree(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                   ),
                 ),
@@ -172,7 +174,9 @@ class _KakDetailPageState extends State<KakDetailPage> {
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           'Kembali',
-                          style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -189,7 +193,8 @@ class _KakDetailPageState extends State<KakDetailPage> {
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PengajuanCreatePage(kak: kak),
+                              builder: (context) =>
+                                  PengajuanCreatePage(kak: kak),
                             ),
                           );
                           if (result == true && mounted) {
@@ -198,7 +203,9 @@ class _KakDetailPageState extends State<KakDetailPage> {
                         },
                         child: Text(
                           'Ajukan Kegiatan',
-                          style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
@@ -223,7 +230,8 @@ class _KakDetailPageState extends State<KakDetailPage> {
       return;
     }
 
-    final url = '${ApiService.baseUrl}/kak/${widget.kakId}/pdf/$type?token=$token';
+    final url =
+        '${ApiService.baseUrl}/kak/${widget.kakId}/pdf/$type?token=$token';
     final uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -251,12 +259,32 @@ class _KakDetailPageState extends State<KakDetailPage> {
         final colorScheme = Theme.of(context).colorScheme;
 
         if (provider.isLoading || isLoadingMaster) {
+          // When embedded, return a plain loading indicator (no Scaffold)
+          if (widget.embedMode) {
+            return const Center(child: CircularProgressIndicator());
+          }
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         if (kak == null) {
+          // When embedded, return a plain error widget (no Scaffold)
+          if (widget.embedMode) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(provider.errorMessage ?? 'KAK tidak ditemukan'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadAllData,
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            );
+          }
           return Scaffold(
             appBar: AppBar(title: const Text('Detail KAK')),
             body: Center(
@@ -272,6 +300,23 @@ class _KakDetailPageState extends State<KakDetailPage> {
                 ],
               ),
             ),
+          );
+        }
+
+        // When in embedMode, return just the form content — no Scaffold or AppBar.
+        // The parent page (e.g. VerifikatorApprovalPage) provides its own Scaffold.
+        if (widget.embedMode) {
+          return KakCreateEditForm(
+            key: ValueKey('${kak.kakId}_readOnly'),
+            initialData: kak,
+            tipeKegiatanOptions: tipeKegiatanOptions,
+            ikuOptions: ikuOptions,
+            satuanOptions: satuanOptions,
+            kategoriBelanjaOptions: kategoriBelanjaOptions,
+            readOnly: true,
+            onSubmit: _saveKak,
+            isLoading: provider.isLoading,
+            onFormChange: _handleFormChange,
           );
         }
 
@@ -309,7 +354,9 @@ class _KakDetailPageState extends State<KakDetailPage> {
             children: [
               Expanded(
                 child: KakCreateEditForm(
-                  key: ValueKey('${kak.kakId}_${_isEditing ? 'edit' : 'readOnly'}'),
+                  key: ValueKey(
+                    '${kak.kakId}_${_isEditing ? 'edit' : 'readOnly'}',
+                  ),
                   initialData: kak,
                   tipeKegiatanOptions: tipeKegiatanOptions,
                   ikuOptions: ikuOptions,
@@ -321,12 +368,11 @@ class _KakDetailPageState extends State<KakDetailPage> {
                   onFormChange: _handleFormChange,
                 ),
               ),
-              if (!widget.embedMode)
-                _buildActionsSection(
-                  kak: kak,
-                  provider: provider,
-                  colorScheme: colorScheme,
-                ),
+              _buildActionsSection(
+                kak: kak,
+                provider: provider,
+                colorScheme: colorScheme,
+              ),
             ],
           ),
         );
