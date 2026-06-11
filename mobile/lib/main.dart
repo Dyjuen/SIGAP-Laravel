@@ -34,7 +34,7 @@ import 'providers/notification_provider.dart';
 
 String _getBaseUrl() {
   // Gunakan URL produksi langsung
-  return 'https://sigap-laravel.wattaway.id/api';
+  return 'https://sigap.laravel.wattaway.id/api';
 }
 
 void main() async {

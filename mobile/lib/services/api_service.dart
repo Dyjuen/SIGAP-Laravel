@@ -14,7 +14,7 @@ class ApiService {
   // ─────────────────────────────────────────────────────────────────────────
   static String get baseUrl {
     // Gunakan URL produksi langsung
-    return 'https://sigap-laravel.wattaway.id/api';
+    return 'https://sigap.laravel.wattaway.id/api';
   }
 
   static Future<Map<String, String>> _getHeaders() async {
