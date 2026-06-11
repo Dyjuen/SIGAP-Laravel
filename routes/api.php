@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanApiController::class, 'approve']);
     });
 
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Verifikator,Direktur')->group(function () {
         Route::get('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'show']);
     });
 

@@ -601,6 +601,9 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
     // Approval history
     final List<dynamic> approvals = _kegiatan['approvals'] as List? ?? [];
 
+    // Target IKU
+    final List<dynamic> targets = (kak['target_iku'] as List? ?? kak['ikus'] as List?) ?? [];
+
     return Stack(
       children: [
         TabBarView(
@@ -711,13 +714,16 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                         _buildCompactInfoRow('Pelaksana', pelaksana),
                         const SizedBox(height: 12),
                         _buildCompactInfoRow('Sasaran', sasaranUtama),
+                        if (targets.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _buildCompactInfoRow('IKU', targets.map((t) => t['iku']?['kode_iku'] ?? '-').join(', ')),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 16),
 
                     // IKU Card
                     () {
-                      final List<dynamic> targets = kak['target_iku'] as List? ?? [];
                       if (targets.isEmpty) return const SizedBox.shrink();
 
                       return Column(
