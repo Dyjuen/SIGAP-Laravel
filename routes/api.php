@@ -31,6 +31,7 @@ Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::get('/panduan', [AdminApiController::class, 'getPanduan']);
 
     // Admin API Routes
     Route::middleware('role:Admin')->group(function () {
@@ -55,8 +56,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/admin/master/{type}/{id}', [MasterDataApiController::class, 'update']);
         Route::delete('/admin/master/{type}/{id}', [MasterDataApiController::class, 'destroy']);
     });
-
-    Route::get('/panduan', [AdminApiController::class, 'getPanduan']);
     
     // KAK API Routes (Pengusul & Admin, role-gated inside controller where specific)
     Route::get('/kak', [KakApiController::class, 'index']);
