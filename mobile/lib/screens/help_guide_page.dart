@@ -1,11 +1,17 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart' as dio;
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../services/master_data_service.dart';
 import '../widgets/app_shell.dart';
 import '../widgets/sigap_bottom_navigation_bar.dart';
+import 'pdf_viewer_page.dart';
 
 class HelpGuidePage extends StatefulWidget {
   const HelpGuidePage({super.key});
@@ -34,8 +40,16 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
     try {
       final res = await ApiService.get('/admin/panduan');
       if (res.statusCode == 200) {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final userRoleId = authProvider.user?.roleId;
+        final isAdmin = userRoleId == 1;
+
+        final allGuides = jsonDecode(res.body) as List<dynamic>;
+        
         setState(() {
-          _guides = jsonDecode(res.body);
+          _guides = isAdmin 
+              ? allGuides 
+              : allGuides.where((g) => g['target_role_id'] == userRoleId).toList();
           _filteredGuides = List.from(_guides);
           _isLoading = false;
         });
@@ -124,11 +138,13 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
     }
   }
 
-  void _showAddGuideDialog() {
+  void _showAddGuideDialog(List<dynamic> roles) {
     final formKey = GlobalKey<FormState>();
     final titleCtrl = TextEditingController();
     final pathCtrl = TextEditingController();
-    String selectedType = 'document'; // Default document
+    String selectedType = 'document';
+    int? selectedRoleId;
+    File? selectedFile;
 
     showModalBottomSheet(
       context: context,
@@ -152,142 +168,117 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Tambah Panduan Baru',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0F172A),
-                      fontFamily: 'Figtree',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+                  const Text('Tambah Panduan Baru', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A), fontFamily: 'Figtree'), textAlign: TextAlign.center),
                   const SizedBox(height: 20),
-
-                  // Judul Panduan
                   TextFormField(
                     controller: titleCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Judul Panduan',
-                      prefixIcon: Icon(Icons.description_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) => v == null || v.isEmpty
-                        ? 'Judul panduan wajib diisi'
-                        : null,
+                    decoration: const InputDecoration(labelText: 'Judul Panduan', prefixIcon: Icon(Icons.description_outlined), border: OutlineInputBorder()),
+                    validator: (v) => v == null || v.isEmpty ? 'Judul panduan wajib diisi' : null,
                   ),
                   const SizedBox(height: 16),
-
-                  // Tipe Media
                   DropdownButtonFormField<String>(
                     value: selectedType,
-                    decoration: const InputDecoration(
-                      labelText: 'Tipe Media',
-                      prefixIcon: Icon(Icons.perm_media_outlined),
-                      border: OutlineInputBorder(),
-                    ),
+                    decoration: const InputDecoration(labelText: 'Tipe Media', prefixIcon: Icon(Icons.perm_media_outlined), border: OutlineInputBorder()),
                     items: const [
-                      DropdownMenuItem(
-                        value: 'document',
-                        child: Text('Dokumen PDF'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'video',
-                        child: Text('Video Tutorial'),
-                      ),
+                      DropdownMenuItem(value: 'document', child: Text('Dokumen PDF')),
+                      DropdownMenuItem(value: 'video', child: Text('Video Tutorial')),
                     ],
                     onChanged: (val) {
-                      if (val != null) {
-                        setDialogState(() {
-                          selectedType = val;
-                        });
-                      }
+                      if (val != null) setDialogState(() => selectedType = val);
                     },
                   ),
                   const SizedBox(height: 16),
-
-                  // Path Media / URL
-                  TextFormField(
-                    controller: pathCtrl,
-                    decoration: InputDecoration(
-                      labelText: selectedType == 'video'
-                          ? 'URL Video (YouTube / Drive)'
-                          : 'Path File Dokumen',
-                      prefixIcon: const Icon(Icons.link_outlined),
-                      border: const OutlineInputBorder(),
+                  
+                  if (selectedType == 'video')
+                    TextFormField(
+                      controller: pathCtrl,
+                      decoration: const InputDecoration(labelText: 'URL Video (YouTube / Drive)', prefixIcon: Icon(Icons.link_outlined), border: OutlineInputBorder()),
+                      validator: (v) => v == null || v.isEmpty ? 'Alamat link wajib diisi' : null,
+                    )
+                  else
+                    Column(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+                            if (result != null && result.files.single.path != null) {
+                              debugPrint('DEBUG: File selected: ${result.files.single.path}');
+                              setDialogState(() {
+                                selectedFile = File(result.files.single.path!);
+                                pathCtrl.text = result.files.single.name;
+                              });
+                            } else {
+                              debugPrint('DEBUG: No file selected');
+                            }
+                          },
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Pilih File PDF'),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[200], foregroundColor: Colors.black),
+                        ),
+                        if (selectedFile != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'File Terpilih: ${pathCtrl.text}',
+                            style: const TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ],
                     ),
-                    validator: (v) => v == null || v.isEmpty
-                        ? 'Alamat link wajib diisi'
-                        : null,
+                  
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    value: selectedRoleId,
+                    decoration: const InputDecoration(labelText: 'Target Role', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder()),
+                    items: roles.map((role) {
+                      return DropdownMenuItem<int>(
+                        value: role['role_id'] as int,
+                        child: Text(role['nama_role'] as String),
+                      );
+                    }).toList(),
+                    onChanged: (val) => setDialogState(() => selectedRoleId = val),
+                    validator: (v) => v == null ? 'Role wajib dipilih' : null,
                   ),
                   const SizedBox(height: 24),
-
-                  // Submit button
                   SizedBox(
                     height: 50,
                     child: ElevatedButton(
                       onPressed: () async {
                         if (formKey.currentState!.validate()) {
+                          if (selectedType == 'document' && selectedFile == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih file dokumen terlebih dahulu')));
+                            return;
+                          }
                           Navigator.of(ctx).pop();
-
-                          setState(() {
-                            _isLoading = true;
-                          });
-
+                          setState(() => _isLoading = true);
                           try {
-                            final res =
-                                await ApiService.post('/admin/panduan', {
-                                  'title': titleCtrl.text.trim(),
-                                  'type': selectedType,
-                                  'path': pathCtrl.text.trim(),
-                                });
-
+                            // Using Dio for Multipart Upload
+                            final dioInstance = Provider.of<dio.Dio>(context, listen: false);
+                            final formData = dio.FormData.fromMap({
+                              'judul_panduan': titleCtrl.text.trim(),
+                              'tipe_media': selectedType,
+                              'target_role_id': selectedRoleId,
+                              'file': selectedType == 'video' 
+                                  ? pathCtrl.text.trim() 
+                                  : await dio.MultipartFile.fromFile(selectedFile!.path, filename: pathCtrl.text),
+                            });
+                            
+                            final res = await dioInstance.post('/admin/panduan', data: formData);
+                            
                             if (res.statusCode == 201) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Panduan berhasil disimpan.'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Panduan berhasil disimpan.'), backgroundColor: Colors.green));
                               _loadGuides();
                             } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Gagal menambahkan panduan.'),
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                              );
-                              setState(() {
-                                _isLoading = false;
-                              });
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal menambahkan panduan.'), backgroundColor: Colors.redAccent));
+                              setState(() => _isLoading = false);
                             }
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Terjadi kesalahan koneksi.'),
-                                backgroundColor: Colors.redAccent,
-                              ),
-                            );
-                            setState(() {
-                              _isLoading = false;
-                            });
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Terjadi kesalahan koneksi.'), backgroundColor: Colors.redAccent));
+                            setState(() => _isLoading = false);
                           }
                         }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF33C8DA),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Simpan Panduan',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF33C8DA), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                      child: const Text('Simpan Panduan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                     ),
                   ),
                 ],
@@ -333,7 +324,6 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
             )
           : Column(
               children: [
-                // Top Banner "Butuh Bantuan"
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Container(
@@ -383,7 +373,21 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                         ),
                         if (isAdmin)
                           ElevatedButton(
-                            onPressed: _showAddGuideDialog,
+                            onPressed: () async {
+                              setState(() => _isLoading = true);
+                              try {
+                                final roles = await Provider.of<MasterDataService>(context, listen: false).getRoles();
+                                if (mounted) {
+                                  setState(() => _isLoading = false);
+                                  _showAddGuideDialog(roles);
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  setState(() => _isLoading = false);
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat role: $e')));
+                                }
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: const Color(0xFF33C8DA),
@@ -400,8 +404,6 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                     ),
                   ),
                 ),
-
-                // Search field
                 Padding(
                   padding: const EdgeInsets.only(
                     left: 16.0,
@@ -448,8 +450,6 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                     ),
                   ),
                 ),
-
-                // Guides List
                 Expanded(
                   child: _filteredGuides.isEmpty
                       ? const Center(
@@ -477,7 +477,6 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                               ),
                               child: Row(
                                 children: [
-                                  // Icon inside circle
                                   Container(
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
@@ -497,7 +496,6 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                     ),
                                   ),
                                   const SizedBox(width: 16),
-                                  // Text Description
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
@@ -525,28 +523,37 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                       ],
                                     ),
                                   ),
-                                  // Action icons
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(
-                                          Icons.cloud_download_outlined,
-                                          color: Color(0xFF33C8DA),
+                                        icon: Icon(
+                                          isVideo
+                                              ? Icons.open_in_new
+                                              : Icons.remove_red_eye_outlined,
+                                          color: const Color(0xFF33C8DA),
                                         ),
-                                        onPressed: () {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Mengunduh ${g['title']}...',
+                                        onPressed: () async {
+                                          final url = g['path'] as String;
+                                          if (isVideo) {
+                                            final uri = Uri.parse(url);
+                                            if (await canLaunchUrl(uri)) {
+                                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                            } else {
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak dapat membuka link video')));
+                                            }
+                                          } else {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) => PdfViewerPage(
+                                                  url: url.startsWith('http') 
+                                                      ? url 
+                                                      : 'https://sigap-laravel.wattaway.id/storage/$url',
+                                                  title: g['title'],
+                                                ),
                                               ),
-                                              backgroundColor: const Color(
-                                                0xFF33C8DA,
-                                              ),
-                                            ),
-                                          );
+                                            );
+                                          }
                                         },
                                       ),
                                       if (isAdmin)

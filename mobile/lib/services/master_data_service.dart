@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class MasterDataService {
   final Dio dio;
@@ -105,6 +106,36 @@ class MasterDataService {
         return data as List<dynamic>;
       }
       throw Exception('Failed to load IKU');
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  /// Fetch Roles
+  Future<List<dynamic>> getRoles() async {
+    try {
+      final response = await dio.get(
+        '/admin/master/roles',
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        debugPrint('DEBUG: API Roles Response: $data');
+        
+        // Structure is: { "items": { "data": [...] } }
+        if (data is Map<String, dynamic> && 
+            data.containsKey('items') && 
+            data['items'] is Map<String, dynamic> && 
+            (data['items'] as Map<String, dynamic>).containsKey('data')) {
+          return (data['items'] as Map<String, dynamic>)['data'] as List<dynamic>;
+        }
+        
+        // Fallback for unexpected structures
+        debugPrint('DEBUG: Unexpected API structure. Cannot extract list of roles.');
+        return [];
+      }
+      throw Exception('Failed to load roles');
     } on DioException catch (e) {
       throw _handleDioException(e);
     }
