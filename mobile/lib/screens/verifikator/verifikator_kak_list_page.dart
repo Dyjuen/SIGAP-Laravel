@@ -127,14 +127,16 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           'Daftar Verifikasi KAK',
           style: GoogleFonts.figtree(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
           ),
         ),
       ),

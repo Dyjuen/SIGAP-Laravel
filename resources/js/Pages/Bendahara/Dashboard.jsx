@@ -63,7 +63,7 @@ function StatCard({ label, title, value, unit, isCurrency, isActive, onClick, de
         new Intl.NumberFormat('id-ID', {
             style: 'currency', currency: 'IDR',
             minimumFractionDigits: 0, maximumFractionDigits: 0,
-        }).format(amount);
+        }).format(amount || 0);
 
     return (
         <div

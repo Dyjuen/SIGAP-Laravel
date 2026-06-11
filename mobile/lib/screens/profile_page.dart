@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../providers/auth_provider.dart';
 import 'landing_page.dart';
-import '../widgets/sigap_logo.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   String _roleTitle(String roleName) {
     switch (roleName.toLowerCase()) {
@@ -120,17 +135,20 @@ class ProfilePage extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-              onPressed: () => Navigator.of(context).pop(),
+            automaticallyImplyLeading: false,
+            centerTitle: false,
+            title: Text(
+              'Profil Saya',
+              style: GoogleFonts.figtree(
+                fontSize: 20,
+                color: const Color(0xFF0F172A),
+                fontWeight: FontWeight.w800,
+              ),
             ),
-            title: const SigapLogo(
-              width: 90,
-              height: 24,
-            ),
+            iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
             actions: [
               IconButton(
-                icon: const Icon(Icons.edit, color: Color(0xFF00BCD4)),
+                icon: const Icon(Icons.edit, color: Color(0xFF33C8DA)),
                 onPressed: () {},
               ),
             ],

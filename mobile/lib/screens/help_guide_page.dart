@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
-import '../widgets/sigap_logo.dart';
 
 class HelpGuidePage extends StatefulWidget {
   const HelpGuidePage({super.key});
@@ -307,30 +307,20 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-          onPressed: () => Navigator.of(context).pop(),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          'Pusat Panduan',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            color: const Color(0xFF0F172A),
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            SigapLogo(
-              width: 90,
-              height: 24,
-            ),
-            Text(
-              'Pusat Bantuan & Panduan',
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 12,
-                fontFamily: 'Figtree',
-              ),
-            ),
-          ],
-        ),
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Color(0xFF33C8DA)),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: _loadGuides,
           ),
         ],
@@ -369,7 +359,7 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
-                                'Pusat Panduan Ril',
+                                'Pusat Panduan',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
@@ -523,8 +513,8 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                                         const SizedBox(height: 4),
                                         Text(
                                           isVideo
-                                              ? 'Video Tutorial • Ril dari database'
-                                              : 'Dokumen PDF • Ril dari database',
+                                              ? 'Video Tutorial'
+                                              : 'Dokumen PDF',
                                           style: const TextStyle(
                                             color: Color(0xFF64748B),
                                             fontSize: 12,

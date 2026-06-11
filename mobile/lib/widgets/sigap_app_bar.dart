@@ -85,17 +85,9 @@ class SigapAppBar extends StatelessWidget implements PreferredSizeWidget {
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
-      titleSpacing: showBackButton ? 0 : 20,
-      leading: showBackButton
-          ? IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: AppTheme.textPrimary,
-                size: 20,
-              ),
-              onPressed: () => Navigator.of(context).pop(),
-            )
-          : null,
+      centerTitle: false,
+      titleSpacing: 20,
+      leading: null,
       title: Row(
         children: [
           const SigapLogo(width: 80, height: 24),

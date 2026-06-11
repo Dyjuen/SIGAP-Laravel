@@ -469,23 +469,16 @@ class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
           backgroundColor: Colors.white,
           elevation: 0,
           scrolledUnderElevation: 0,
-          title: const Text(
+          title: Text(
             'Detail Kegiatan',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF0F172A),
-              fontFamily: 'Figtree',
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios_new,
-              color: Color(0xFF0F172A),
-              size: 20,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          automaticallyImplyLeading: false,
+          centerTitle: false,
           bottom: const TabBar(
             labelColor: Color(0xFF33C8DA),
             unselectedLabelColor: Color(0xFF64748B),

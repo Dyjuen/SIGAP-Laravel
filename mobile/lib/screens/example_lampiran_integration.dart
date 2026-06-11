@@ -2,6 +2,7 @@
 // This shows how to integrate the lampiran widgets into your existing pages
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/lampiran_provider.dart';
 import '../screens/lampiran_upload_page.dart';
@@ -91,7 +92,16 @@ class _ExampleKakDetailWithLampiranState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('KAK Detail dengan Lampiran'),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          'KAK Detail dengan Lampiran',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: const Color(0xFF33C8DA),
       ),
       body: SingleChildScrollView(

@@ -13,9 +13,9 @@ use Throwable;
 
 class FcmService
 {
-    protected Messaging $messaging;
+    protected ?Messaging $messaging;
 
-    public function __construct(Messaging $messaging)
+    public function __construct(?Messaging $messaging = null)
     {
         $this->messaging = $messaging;
     }
@@ -41,6 +41,12 @@ class FcmService
      */
     public function sendToToken(string $token, string $title, string $body, array $data = []): void
     {
+        if (! $this->messaging) {
+            Log::warning('FCM message not sent: Firebase Messaging not initialized.');
+
+            return;
+        }
+
         try {
             // Ensure all values in data payload are strings (FCM requirement)
             $stringData = [];

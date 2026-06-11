@@ -60,9 +60,18 @@ class _PengajuanCreatePageState extends State<PengajuanCreatePage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         backgroundColor: colorScheme.surface,
         elevation: 0,
-        title: Text('Ajukan Kegiatan', style: GoogleFonts.figtree()),
+        title: Text(
+          'Ajukan Kegiatan',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

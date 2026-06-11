@@ -730,22 +730,24 @@ class _KegiatanPageState extends State<KegiatanPage> {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0.5,
-        shadowColor: const Color(0xFFE2E8F0),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1F2937), size: 18),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         title: Text(
           'Manajemen Kegiatan',
           style: GoogleFonts.figtree(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            color: darkColor,
-            letterSpacing: -0.5,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
           ),
         ),
-        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _loadApprovedKaks,
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

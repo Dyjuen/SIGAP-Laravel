@@ -49,11 +49,14 @@ class _LpjListPageState extends State<LpjListPage> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
           backgroundColor: Colors.white,
           elevation: 0,
           title: Text(
             'Daftar LPJ',
             style: GoogleFonts.figtree(
+              fontSize: 20,
               color: const Color(0xFF0F172A),
               fontWeight: FontWeight.w800,
             ),

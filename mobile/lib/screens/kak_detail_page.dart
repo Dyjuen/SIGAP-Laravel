@@ -268,16 +268,14 @@ class _KakDetailPageState extends State<KakDetailPage> {
         appBar: AppBar(
           backgroundColor: colorScheme.surface,
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
-            onPressed: () => Navigator.pop(context),
-          ),
+          automaticallyImplyLeading: false,
+          centerTitle: false,
           title: Text(
             'Detail KAK',
             style: GoogleFonts.figtree(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: colorScheme.onSurface,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
             ),
           ),
         ),

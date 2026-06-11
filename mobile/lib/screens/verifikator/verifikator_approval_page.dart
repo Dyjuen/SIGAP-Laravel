@@ -977,9 +977,15 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     if (provider.isLoading) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
           title: Text(
             'Review KAK',
-            style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -989,9 +995,15 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     if (provider.isError) {
       return Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
           title: Text(
             'Review KAK',
-            style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
           ),
         ),
         body: Center(
@@ -1012,9 +1024,15 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         title: Text(
           'Review KAK',
-          style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
         ),
       ),
       body: Column(

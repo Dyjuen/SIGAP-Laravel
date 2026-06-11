@@ -105,10 +105,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         title: Text(
           'Notifikasi',
           style: GoogleFonts.figtree(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             fontSize: 20,
             color: const Color(0xFF0F172A),
           ),

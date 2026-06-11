@@ -143,7 +143,18 @@ class _KakFormPageState extends State<KakFormPage> {
 
     if (isLoadingData) {
       return Scaffold(
-        appBar: AppBar(title: Text(title, style: GoogleFonts.figtree())),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            title,
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -151,7 +162,18 @@ class _KakFormPageState extends State<KakFormPage> {
     if (errorMessage != null && isEdit && kakDetail == null) {
       // Show error only if it's an initial load error
       return Scaffold(
-        appBar: AppBar(title: Text(title, style: GoogleFonts.figtree())),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            title,
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -169,7 +191,18 @@ class _KakFormPageState extends State<KakFormPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(title, style: GoogleFonts.figtree())),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          title,
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
+      ),
       body: KakCreateEditForm(
         initialData: kakDetail,
         tipeKegiatanOptions: tipeKegiatanOptions,

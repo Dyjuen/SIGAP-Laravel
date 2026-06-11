@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/sigap_app_bar.dart';
+import '../../services/chatbot_service.dart';
 import '../help_guide_page.dart';
 import '../pengusul/kak_list_page.dart';
 import '../pengusul/kegiatan_page.dart';

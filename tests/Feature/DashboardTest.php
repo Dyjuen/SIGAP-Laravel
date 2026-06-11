@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\KAK;
+use App\Models\KAKAnggaran;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\Panduan;
@@ -172,6 +173,15 @@ class DashboardTest extends TestCase
 
         // 1. Waiting
         $kak1 = KAK::factory()->create(['status_id' => 8]);
+        KAKAnggaran::create([
+            'kak_id' => $kak1->kak_id,
+            'kategori_belanja_id' => 1,
+            'uraian' => 'Test Anggaran 1',
+            'volume1' => 1,
+            'satuan1_id' => 1,
+            'harga_satuan' => 3000000,
+            'jumlah_diusulkan' => 3000000,
+        ]);
         $keg1 = Kegiatan::create(['kak_id' => $kak1->kak_id]);
         KegiatanApproval::create(['kegiatan_id' => $keg1->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Disetujui']);
         KegiatanApproval::create(['kegiatan_id' => $keg1->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Disetujui']);
@@ -179,6 +189,15 @@ class DashboardTest extends TestCase
 
         // 2. Disbursed
         $kak2 = KAK::factory()->create(['status_id' => 10]);
+        KAKAnggaran::create([
+            'kak_id' => $kak2->kak_id,
+            'kategori_belanja_id' => 1,
+            'uraian' => 'Test Anggaran 2',
+            'volume1' => 1,
+            'satuan1_id' => 1,
+            'harga_satuan' => 5000000,
+            'jumlah_diusulkan' => 5000000,
+        ]);
         $keg2 = Kegiatan::create(['kak_id' => $kak2->kak_id]);
         KegiatanApproval::create(['kegiatan_id' => $keg2->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Disetujui']);
         KegiatanApproval::create(['kegiatan_id' => $keg2->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Disetujui']);
@@ -187,6 +206,15 @@ class DashboardTest extends TestCase
 
         // 3. LPJ Submitted
         $kak3 = KAK::factory()->create(['status_id' => 11]);
+        KAKAnggaran::create([
+            'kak_id' => $kak3->kak_id,
+            'kategori_belanja_id' => 1,
+            'uraian' => 'Test Anggaran 3',
+            'volume1' => 1,
+            'satuan1_id' => 1,
+            'harga_satuan' => 2000000,
+            'jumlah_diusulkan' => 2000000,
+        ]);
         $keg3 = Kegiatan::create(['kak_id' => $kak3->kak_id, 'lpj_submitted_at' => now()]);
         KegiatanApproval::create(['kegiatan_id' => $keg3->kegiatan_id, 'approval_level' => 'PPK', 'status' => 'Disetujui']);
         KegiatanApproval::create(['kegiatan_id' => $keg3->kegiatan_id, 'approval_level' => 'Wadir2', 'status' => 'Disetujui']);
@@ -202,6 +230,8 @@ class DashboardTest extends TestCase
                 ->where('kegiatans.0.status', 'waiting')
                 ->where('kegiatans.1.status', 'disbursed')
                 ->where('kegiatans.2.status', 'lpj_submitted')
+                ->where('stats.total_undisbursed_amount', 3000000)
+                ->where('stats.total_disbursed_amount', 7000000)
             );
     }
 

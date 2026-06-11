@@ -144,7 +144,7 @@ class KakApiController extends Controller
             'sasaran_utama' => $kak->sasaran_utama,
             'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
             'mata_anggaran_id' => $kak->mata_anggaran_id,
-            'mata_anggaran_nama' => $kak->mataAnggaran 
+            'mata_anggaran_nama' => $kak->mataAnggaran
                 ? "{$kak->mataAnggaran->kode_anggaran} - {$kak->mataAnggaran->nama_sumber_dana}"
                 : '-',
             'catatan_nama_kegiatan' => $kak->catatan_nama_kegiatan,

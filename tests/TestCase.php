@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Services\FcmService;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -36,6 +37,6 @@ abstract class TestCase extends BaseTestCase
         $this->withoutMiddleware(ValidateCsrfToken::class);
 
         // Globally mock FcmService to avoid Firebase credentials dependency in tests
-        $this->app->instance(\App\Services\FcmService::class, $this->createMock(\App\Services\FcmService::class));
+        $this->app->instance(FcmService::class, $this->createMock(FcmService::class));
     }
 }

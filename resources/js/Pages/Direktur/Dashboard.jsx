@@ -39,7 +39,9 @@ import {
     Title,
     Tooltip,
     Legend,
-    ArcElement
+    ArcElement,
+    LineController,
+    BarController
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
 
@@ -53,7 +55,9 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    ArcElement
+    ArcElement,
+    LineController,
+    BarController
 );
 
 ChartJS.defaults.font.family = "'Inter', sans-serif";

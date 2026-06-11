@@ -88,21 +88,6 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    IconButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      icon: Icon(
-                                        Icons.arrow_back_rounded,
-                                        color: Theme.of(
-                                          context,
-                                        ).primaryTextTheme.bodyLarge?.color,
-                                        size: 24,
-                                      ),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(
-                                        minWidth: 40,
-                                        minHeight: 40,
-                                      ),
-                                    ),
                                     Column(
                                       mainAxisSize: MainAxisSize.min,
                                       mainAxisAlignment:

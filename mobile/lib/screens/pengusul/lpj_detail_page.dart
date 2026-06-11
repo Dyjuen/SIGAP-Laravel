@@ -45,12 +45,18 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: const Color(0xFF0F172A),
         title: Text(
           'Detail LPJ',
-          style: GoogleFonts.figtree(fontWeight: FontWeight.w800),
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
         ),
       ),
       body: Consumer2<AuthProvider, LpjProvider>(
