@@ -348,6 +348,8 @@ class DashboardService
                 'lpj_approved' => $disbursedCount, // Placeholder for approved LPJ count if available
                 'total_dana_diusulkan' => $totalUndisbursedAmount + $totalDisbursedAmount,
                 'total_dana_dicairkan' => $totalDisbursedAmount,
+                'total_disbursed_amount' => (float) $totalDisbursedAmount,
+                'total_undisbursed_amount' => (float) $totalUndisbursedAmount,
             ],
             'pending_lpjs' => $pendingLpjs,
             'kegiatans' => $mappedKegiatans->toArray(),
