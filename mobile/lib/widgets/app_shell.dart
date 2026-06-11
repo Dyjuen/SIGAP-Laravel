@@ -4,6 +4,7 @@ import '../core/app_theme.dart';
 import '../providers/dashboard_provider.dart';
 import '../services/dashboard_service.dart';
 import '../services/chatbot_service.dart';
+import 'sigap_bottom_navigation_bar.dart';
 
 // Screens
 import '../screens/dashboard/pengusul_dashboard_screen.dart';
@@ -27,15 +28,26 @@ class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.roleId});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  State<AppShell> createState() => AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class AppShellState extends State<AppShell> {
+  static AppShellState? activeInstance;
   int _selectedIndex = 0;
+
+  int get selectedIndex => _selectedIndex;
+
+  void setSelectedIndex(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _updateChatbotVisibility(index);
+  }
 
   @override
   void initState() {
     super.initState();
+    activeInstance = this;
     // Move chatbot above navbar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chatbotService = context.read<ChatbotService>();
@@ -71,6 +83,9 @@ class _AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    if (activeInstance == this) {
+      activeInstance = null;
+    }
     // Reset chatbot padding when leaving shell
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -102,7 +117,7 @@ class _AppShellState extends State<AppShell> {
             child: const VerifikatorDashboardScreen(),
           ),
           const VerifikatorKakListPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 4: // PPK
@@ -112,7 +127,7 @@ class _AppShellState extends State<AppShell> {
             child: const PpkDashboardScreen(),
           ),
           const PpkKegiatanListPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 5: // Wadir
@@ -122,7 +137,7 @@ class _AppShellState extends State<AppShell> {
             child: const PpkDashboardScreen(),
           ),
           const PpkKegiatanListPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 6: // Bendahara
@@ -141,14 +156,14 @@ class _AppShellState extends State<AppShell> {
             create: (_) => DirektorDashboardProvider(DashboardService(context.read())),
             child: const DirektorDashboardScreen(),
           ),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 1: // Admin
         return [
           const AdminDashboardPage(),
           const UserManagementPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       default:
@@ -319,7 +334,6 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final pages = _getPages(context);
-    final destinations = _getDestinations();
 
     if (_selectedIndex >= pages.length) {
       _selectedIndex = 0;
@@ -330,58 +344,12 @@ class _AppShellState extends State<AppShell> {
         index: _selectedIndex,
         children: pages,
       ),
-      bottomNavigationBar: Material(
-        color: Colors.white,
-        elevation: 0,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            border: Border(
-              top: BorderSide(color: AppTheme.border, width: 1),
-            ),
-          ),
-          child: NavigationBarTheme(
-          data: NavigationBarThemeData(
-            labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.selected)) {
-                  return AppTheme.label.copyWith(
-                    color: AppTheme.primary,
-                    fontWeight: FontWeight.w900,
-                  );
-                }
-                return AppTheme.label.copyWith(
-                  color: AppTheme.textTertiary,
-                  fontWeight: FontWeight.w600,
-                );
-              },
-            ),
-            iconTheme: WidgetStateProperty.resolveWith<IconThemeData>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.selected)) {
-                  return const IconThemeData(color: AppTheme.primary, size: 24);
-                }
-                return const IconThemeData(color: AppTheme.textTertiary, size: 24);
-              },
-            ),
-          ),
-          child: NavigationBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            height: 64,
-            indicatorColor: AppTheme.primaryLight,
-            selectedIndex: _selectedIndex,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            onDestinationSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-              
-              _updateChatbotVisibility(index);
-            },
-            destinations: destinations,
-          ),
-        ),
-        ),
+      bottomNavigationBar: SigapBottomNavigationBar(
+        selectedIndex: _selectedIndex,
+        roleId: widget.roleId,
+        onDestinationSelected: (index) {
+          setSelectedIndex(index);
+        },
       ),
     );
   }

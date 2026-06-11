@@ -167,38 +167,71 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     catatanController.clear();
 
     final parentNotes = <String, TextEditingController>{
-      'nama_kegiatan': TextEditingController(),
-      'tipe_kegiatan_id': TextEditingController(),
-      'deskripsi_kegiatan': TextEditingController(),
-      'metode_pelaksanaan': TextEditingController(),
-      'tanggal': TextEditingController(),
-      'lokasi': TextEditingController(),
-      'sasaran_utama': TextEditingController(),
+      'nama_kegiatan': TextEditingController(text: kak.catatanNamaKegiatan),
+      'tipe_kegiatan_id': TextEditingController(text: kak.catatanTipeKegiatan),
+      'deskripsi_kegiatan': TextEditingController(text: kak.catatanDeskripsiKegiatan),
+      'metode_pelaksanaan': TextEditingController(text: kak.catatanMetodePelaksanaan),
+      'tanggal': TextEditingController(text: kak.catatanTanggal),
+      'lokasi': TextEditingController(text: kak.catatanLokasi),
+      'sasaran_utama': TextEditingController(text: kak.catatanSasaranUtama),
     };
 
     final childNotes = <String, List<TextEditingController>>{
       't_kak_manfaat': List.generate(
         kak.manfaat.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.manfaat[index].catatan),
       ),
       't_kak_tahapan': List.generate(
         kak.tahapan.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.tahapan[index].catatanVerifikator),
       ),
       't_kak_target': List.generate(
         kak.indikatorKinerja.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.indikatorKinerja[index].catatanVerifikator),
       ),
       't_kak_iku': List.generate(
         kak.targetIku.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.targetIku[index].catatanVerifikator),
       ),
       't_kak_anggaran': List.generate(
         kak.rab.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.rab[index].catatanVerifikator),
       ),
     };
     final expandedNoteKeys = <String>{};
+    if (kak.catatanNamaKegiatan?.isNotEmpty ?? false) expandedNoteKeys.add('nama_kegiatan');
+    if (kak.catatanTipeKegiatan?.isNotEmpty ?? false) expandedNoteKeys.add('tipe_kegiatan_id');
+    if (kak.catatanDeskripsiKegiatan?.isNotEmpty ?? false) expandedNoteKeys.add('deskripsi_kegiatan');
+    if (kak.catatanMetodePelaksanaan?.isNotEmpty ?? false) expandedNoteKeys.add('metode_pelaksanaan');
+    if (kak.catatanTanggal?.isNotEmpty ?? false) expandedNoteKeys.add('tanggal');
+    if (kak.catatanLokasi?.isNotEmpty ?? false) expandedNoteKeys.add('lokasi');
+    if (kak.catatanSasaranUtama?.isNotEmpty ?? false) expandedNoteKeys.add('sasaran_utama');
+
+    for (int i = 0; i < kak.manfaat.length; i++) {
+      if (kak.manfaat[i].catatan?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_manfaat:$i');
+      }
+    }
+    for (int i = 0; i < kak.tahapan.length; i++) {
+      if (kak.tahapan[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_tahapan:$i');
+      }
+    }
+    for (int i = 0; i < kak.indikatorKinerja.length; i++) {
+      if (kak.indikatorKinerja[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_target:$i');
+      }
+    }
+    for (int i = 0; i < kak.targetIku.length; i++) {
+      if (kak.targetIku[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_iku:$i');
+      }
+    }
+    for (int i = 0; i < kak.rab.length; i++) {
+      if (kak.rab[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_anggaran:$i');
+      }
+    }
 
     void disposeAll() {
       catatanController.clear();
@@ -501,7 +534,14 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   title: 'Target IKU ${index + 1}',
                                   details: [
                                     'IKU: ${item.ikuNama}',
-                                    'Target: ${item.target}',
+                                    'Target: ${(() {
+                                      final parsed = double.tryParse(item.target);
+                                      if (parsed == null) return item.target;
+                                      if (parsed == parsed.roundToDouble()) {
+                                        return parsed.round().toString();
+                                      }
+                                      return parsed.toString();
+                                    })()}',
                                     'Satuan: ${item.satuanNama ?? '-'}',
                                   ],
                                   noteController:
@@ -518,29 +558,98 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                             if (kak.rab.isEmpty)
                               _buildRevisionEmptyState('Tidak ada data RAB.')
                             else
-                              ...kak.rab.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final item = entry.value;
-                                final key = 't_kak_anggaran:$index';
-                                return _buildChildRevisionCard(
-                                  title: 'RAB ${index + 1}',
-                                  details: [
-                                    'Uraian: ${item.uraian}',
-                                    'Volume 1: ${_formatNumber(item.volume1)}',
-                                    'Volume 2: ${_formatNumber(item.volume2)}',
-                                    'Volume 3: ${_formatNumber(item.volume3)}',
-                                    'Harga Satuan: ${_formatCurrency(item.hargaSatuan)}',
-                                    'Jumlah Diusulkan: ${_formatCurrency(item.jumlahDiusulkan)}',
-                                  ],
-                                  noteController:
-                                      childNotes['t_kak_anggaran']![index],
-                                  hintText: 'Catatan untuk RAB ${index + 1}...',
-                                  fieldKey: key,
-                                  isExpanded: expandedNoteKeys.contains(key),
-                                  onToggle: () => toggleNote(key),
-                                );
-                              }),
-                            const SizedBox(height: 8),
+                              ...() {
+                                final groupedRab = <int, List<MapEntry<int, KakRab>>>{};
+                                final kategoriNames = <int, String>{};
+
+                                for (int i = 0; i < kak.rab.length; i++) {
+                                  final item = kak.rab[i];
+                                  groupedRab
+                                      .putIfAbsent(item.kategoriBelanjaId, () => [])
+                                      .add(MapEntry(i, item));
+                                  if (item.kategoriNama != null) {
+                                    kategoriNames[item.kategoriBelanjaId] =
+                                        item.kategoriNama!;
+                                  }
+                                }
+
+                                final sortedKategoriIds = groupedRab.keys.toList()
+                                  ..sort();
+
+                                return sortedKategoriIds.expand((katId) {
+                                  final entries = groupedRab[katId]!;
+                                  
+                                  // Debug log
+                                  debugPrint('DEBUG: katId=$katId, firstItemNama=${entries.first.value.kategoriNama}');
+                                  
+                                  final katNama = (entries.first.value.kategoriNama != null &&
+                                          entries.first.value.kategoriNama!
+                                              .isNotEmpty &&
+                                          entries.first.value.kategoriNama !=
+                                              '-')
+                                      ? entries.first.value.kategoriNama!
+                                      : (katId == 1
+                                          ? 'Belanja Barang'
+                                          : katId == 2
+                                              ? 'Belanja Jasa'
+                                              : katId == 3
+                                                  ? 'Belanja Perjalanan'
+                                                  : katId == 4
+                                                      ? 'Belanja Modal'
+                                                      : 'Kategori Belanja #$katId');
+
+                                  return [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 12,
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E7D32)
+                                              .withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          katNama,
+                                          style: GoogleFonts.figtree(
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 13,
+                                            color: const Color(0xFF2E7D32),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    ...entries.map((entry) {
+                                      final index = entry.key;
+                                      final item = entry.value;
+                                      final key = 't_kak_anggaran:$index';
+                                      return _buildChildRevisionCard(
+                                        title: 'RAB ${index + 1}',
+                                        details: [
+                                          'Uraian: ${item.uraian}',
+                                          'Volume 1: ${_formatNumber(item.volume1)}',
+                                          'Volume 2: ${_formatNumber(item.volume2)}',
+                                          'Volume 3: ${_formatNumber(item.volume3)}',
+                                          'Harga Satuan: ${_formatCurrency(item.hargaSatuan)}',
+                                          'Jumlah Diusulkan: ${_formatCurrency(item.jumlahDiusulkan)}',
+                                        ],
+                                        noteController:
+                                            childNotes['t_kak_anggaran']![index],
+                                        hintText:
+                                            'Catatan untuk RAB ${index + 1}...',
+                                        fieldKey: key,
+                                        isExpanded: expandedNoteKeys.contains(key),
+                                        onToggle: () => toggleNote(key),
+                                      );
+                                    }),
+                                  ];
+                                }).toList();
+                            }(),
                           ],
                         ),
                       ),

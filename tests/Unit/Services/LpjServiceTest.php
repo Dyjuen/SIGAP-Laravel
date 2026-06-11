@@ -119,7 +119,8 @@ class LpjServiceTest extends TestCase
         ];
 
         $spkInputs = [
-            'spk_kesesuaian_waktu' => 85,
+            'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
+            'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
             'spk_kesesuaian_output' => 100,
         ];
 
@@ -127,7 +128,7 @@ class LpjServiceTest extends TestCase
 
         $kegiatan->refresh();
         $this->assertNotNull($kegiatan->lpj_submitted_at);
-        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
 
         $this->assertDatabaseHas('t_kak', [
@@ -196,14 +197,15 @@ class LpjServiceTest extends TestCase
         ];
 
         $spkInputs = [
-            'spk_kesesuaian_waktu' => 90,
+            'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
+            'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
             'spk_kesesuaian_output' => 100,
         ];
 
         $this->service->resubmit($kegiatan, $realisasi, $files, [$lampiran->lampiran_id], $spkInputs, $this->pengusul);
 
         $kegiatan->refresh();
-        $this->assertEquals(90, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals('archived', $lampiran->fresh()->status_lampiran);
 
         $this->assertDatabaseHas('t_kak', [

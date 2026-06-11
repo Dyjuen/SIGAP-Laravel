@@ -61,17 +61,13 @@ class DashboardApiController extends Controller
 
     /**
      * Direktur Dashboard
-     * GET /api/direktur/dashboard
+     * GET /api/direktur/dashboard?period=year
      */
     public function direktur(Request $request)
     {
-        $stats = $this->dashboardService->getDirekturStats();
-        $details = $this->dashboardService->getDirekturDashboardData('year');
+        $period = $request->query('period', 'year');
+        $data = $this->dashboardService->getDirekturFullDashboard($period);
 
-        return response()->json([
-            'stats' => $stats,
-            'by_jurusan' => $details['by_jurusan'] ?? [],
-            'recent_activities' => $details['recent_activities'] ?? [],
-        ]);
+        return response()->json($data);
     }
 }

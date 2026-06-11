@@ -102,7 +102,26 @@ class DashboardService {
     }
   }
 
-  /// Fetch Direktur Dashboard
+  /// Fetch Direktur Dashboard (full payload with TOPSIS, trends, overview)
+  Future<DirektorDashboardData> getDirektorDashboardFull(String period) async {
+    try {
+      final response = await dio.get(
+        '/direktur/dashboard',
+        queryParameters: {'period': period},
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+
+      if (response.statusCode == 200) {
+        return DirektorDashboardData.fromJson(
+            response.data as Map<String, dynamic>);
+      }
+      throw Exception('Failed to load Direktur dashboard');
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  /// Fetch Direktur Dashboard (legacy — returns DashboardResponse for compat)
   Future<DashboardResponse> getDirektorDashboard() async {
     try {
       final response = await dio.get(

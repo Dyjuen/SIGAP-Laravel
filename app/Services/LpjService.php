@@ -48,9 +48,9 @@ class LpjService
                         $anggaran->update([
                             'realisasi_volume1' => $data['volume1'] === '' ? null : $data['volume1'],
                             'realisasi_satuan1_id' => $data['satuan1_id'] === '' ? null : $data['satuan1_id'],
-                            'realisasi_volume2' => $data['volume2'] === '' ? null : $data['volume2'],
+                            'realisasi_volume2' => ($data['volume2'] === '' || $data['volume2'] === '0' || $data['volume2'] === 0 || $data['volume2'] === 0.0) ? null : $data['volume2'],
                             'realisasi_satuan2_id' => $data['satuan2_id'] === '' ? null : $data['satuan2_id'],
-                            'realisasi_volume3' => $data['volume3'] === '' ? null : $data['volume3'],
+                            'realisasi_volume3' => ($data['volume3'] === '' || $data['volume3'] === '0' || $data['volume3'] === 0 || $data['volume3'] === 0.0) ? null : $data['volume3'],
                             'realisasi_satuan3_id' => $data['satuan3_id'] === '' ? null : $data['satuan3_id'],
                             'realisasi_harga_satuan' => ($data['harga_satuan'] ?? '') === '' ? null : preg_replace('/[^0-9]/', '', $data['harga_satuan']),
                             'realisasi_jumlah' => $this->calculateTotal($data),
@@ -92,9 +92,12 @@ class LpjService
                 $oldStatus = $kak->status_id;
                 $newStatus = 11; // Review LPJ
 
+                $kegiatan->load('kak');
                 $kegiatan->update([
                     'lpj_submitted_at' => now(),
-                    'spk_kesesuaian_waktu' => $spkInputs['spk_kesesuaian_waktu'] ?? null,
+                    'realisasi_tgl_mulai' => $spkInputs['realisasi_tgl_mulai'] ?? null,
+                    'realisasi_tgl_selesai' => $spkInputs['realisasi_tgl_selesai'] ?? null,
+                    'spk_kesesuaian_waktu' => $this->calculateWaktuScore($kegiatan, $spkInputs['realisasi_tgl_mulai'] ?? null, $spkInputs['realisasi_tgl_selesai'] ?? null),
                     'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? null,
                     'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
                     'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
@@ -164,9 +167,9 @@ class LpjService
                             $anggaran->update([
                                 'realisasi_volume1' => array_key_exists('volume1', $data) ? ($data['volume1'] === '' ? null : $data['volume1']) : $anggaran->realisasi_volume1,
                                 'realisasi_satuan1_id' => array_key_exists('satuan1_id', $data) ? ($data['satuan1_id'] === '' ? null : $data['satuan1_id']) : $anggaran->realisasi_satuan1_id,
-                                'realisasi_volume2' => array_key_exists('volume2', $data) ? ($data['volume2'] === '' ? null : $data['volume2']) : $anggaran->realisasi_volume2,
+                                'realisasi_volume2' => array_key_exists('volume2', $data) ? (($data['volume2'] === '' || $data['volume2'] === '0' || $data['volume2'] === 0 || $data['volume2'] === 0.0) ? null : $data['volume2']) : $anggaran->realisasi_volume2,
                                 'realisasi_satuan2_id' => array_key_exists('satuan2_id', $data) ? ($data['satuan2_id'] === '' ? null : $data['satuan2_id']) : $anggaran->realisasi_satuan2_id,
-                                'realisasi_volume3' => array_key_exists('volume3', $data) ? ($data['volume3'] === '' ? null : $data['volume3']) : $anggaran->realisasi_volume3,
+                                'realisasi_volume3' => array_key_exists('volume3', $data) ? (($data['volume3'] === '' || $data['volume3'] === '0' || $data['volume3'] === 0 || $data['volume3'] === 0.0) ? null : $data['volume3']) : $anggaran->realisasi_volume3,
                                 'realisasi_satuan3_id' => array_key_exists('satuan3_id', $data) ? ($data['satuan3_id'] === '' ? null : $data['satuan3_id']) : $anggaran->realisasi_satuan3_id,
                                 'realisasi_harga_satuan' => array_key_exists('harga_satuan', $data) ? (($data['harga_satuan'] ?? '') === '' ? null : preg_replace('/[^0-9]/', '', $data['harga_satuan'])) : $anggaran->realisasi_harga_satuan,
                                 'realisasi_jumlah' => $this->calculateTotal($data),
@@ -209,9 +212,12 @@ class LpjService
                 $oldStatus = $kak->status_id;
                 $newStatus = 11;
 
+                $kegiatan->load('kak');
                 $kegiatan->update([
                     'lpj_submitted_at' => now(),
-                    'spk_kesesuaian_waktu' => $spkInputs['spk_kesesuaian_waktu'] ?? $kegiatan->spk_kesesuaian_waktu,
+                    'realisasi_tgl_mulai' => $spkInputs['realisasi_tgl_mulai'] ?? $kegiatan->realisasi_tgl_mulai,
+                    'realisasi_tgl_selesai' => $spkInputs['realisasi_tgl_selesai'] ?? $kegiatan->realisasi_tgl_selesai,
+                    'spk_kesesuaian_waktu' => $this->calculateWaktuScore($kegiatan, $spkInputs['realisasi_tgl_mulai'] ?? $kegiatan->realisasi_tgl_mulai, $spkInputs['realisasi_tgl_selesai'] ?? $kegiatan->realisasi_tgl_selesai),
                     'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? $kegiatan->spk_kesesuaian_output,
                     'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
                     'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
@@ -461,13 +467,39 @@ class LpjService
     }
 
     /**
+     * Calculate SPK kesesuaian waktu score from date diff vs KAK original dates.
+     */
+    private function calculateWaktuScore(Kegiatan $kegiatan, $realisasiMulaiStr, $realisasiSelesaiStr): ?int
+    {
+        if (empty($realisasiMulaiStr) || empty($realisasiSelesaiStr)) {
+            return null;
+        }
+
+        $config = SpkConfig::getActive();
+        if (! $kegiatan->kak) {
+            return $config->waktu_max;
+        }
+
+        $kakMulai = Carbon::parse($kegiatan->kak->tanggal_mulai);
+        $kakSelesai = Carbon::parse($kegiatan->kak->tanggal_selesai);
+        $realisasiMulai = Carbon::parse($realisasiMulaiStr);
+        $realisasiSelesai = Carbon::parse($realisasiSelesaiStr);
+
+        $diffStart = abs($realisasiMulai->diffInDays($kakMulai));
+        $diffEnd = abs($realisasiSelesai->diffInDays($kakSelesai));
+        $totalDiff = $diffStart + $diffEnd;
+
+        return (int) max($config->waktu_min, min($config->waktu_max, $config->waktu_max - $totalDiff));
+    }
+
+    /**
      * Helper to calculate a single budget line total.
      */
     public function calculateTotal(array $data): float
     {
         $v1 = (float) ($data['volume1'] ?? 0);
-        $v2 = (float) (isset($data['volume2']) && $data['volume2'] !== '' ? $data['volume2'] : 1);
-        $v3 = (float) (isset($data['volume3']) && $data['volume3'] !== '' ? $data['volume3'] : 1);
+        $v2 = (float) (isset($data['volume2']) && $data['volume2'] !== '' && (float) $data['volume2'] !== 0.0 ? $data['volume2'] : 1);
+        $v3 = (float) (isset($data['volume3']) && $data['volume3'] !== '' && (float) $data['volume3'] !== 0.0 ? $data['volume3'] : 1);
         $price = (float) (isset($data['harga_satuan']) ? preg_replace('/[^0-9]/', '', $data['harga_satuan']) : 0);
 
         return $v1 * $v2 * $v3 * $price;

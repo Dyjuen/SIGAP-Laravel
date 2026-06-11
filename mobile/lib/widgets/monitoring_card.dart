@@ -35,7 +35,7 @@ class MonitoringCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: colorScheme.outline, width: 1),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -99,7 +99,7 @@ class MonitoringCardWidget extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Divider(height: 0, thickness: 1, color: colorScheme.outline),
+              Divider(height: 0, thickness: 1, color: const Color(0xFFE2E8F0)),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -167,6 +167,12 @@ class MonitoringCardWidget extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: onDetailTap,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                       child: Text(
                         'Lihat Detail',
                         style: GoogleFonts.figtree(

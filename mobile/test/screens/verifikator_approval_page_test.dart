@@ -38,6 +38,7 @@ class FakeKakService extends KakService {
       tanggalSelesai: '2026-06-05',
       lokasi: 'Lobi Utama PNJ',
       sasaranUtama: 'Mahasiswa',
+      outputKegiatan: 'Output Test',
       kurunWaktuPelaksanaan: '6 Hari',
       statusId: 2,
       statusNama: 'Review Verifikator',
@@ -132,14 +133,14 @@ void main() {
     await tester.tap(find.text('Coba Lagi'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Kegiatan Test'), findsNWidgets(2));
+    expect(find.text('Kegiatan Test'), findsOneWidget);
   });
 
   testWidgets('shows details and buttons when loaded successfully', (WidgetTester tester) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 
-    expect(find.text('Kegiatan Test'), findsNWidgets(2));
+    expect(find.text('Kegiatan Test'), findsOneWidget);
     expect(find.text('Setujui KAK'), findsOneWidget);
     expect(find.text('Minta Revisi'), findsOneWidget);
     expect(find.text('Tolak KAK'), findsOneWidget);

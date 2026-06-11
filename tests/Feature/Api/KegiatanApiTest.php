@@ -683,38 +683,35 @@ class KegiatanApiTest extends TestCase
         $bendahara = User::factory()->create(['role_id' => 6]);
         $rektorat = User::factory()->create(['role_id' => 7]);
 
-        $verifToken = $verifikator->createToken('test-token')->plainTextToken;
-        $bendaharaToken = $bendahara->createToken('test-token')->plainTextToken;
-        $rektoratToken = $rektorat->createToken('test-token')->plainTextToken;
+        // Verifikator, Bendahara cannot access GET /api/kegiatan
+        $this->actingAs($verifikator)->getJson('/api/kegiatan')->assertStatus(403);
+        $this->actingAs($bendahara)->getJson('/api/kegiatan')->assertStatus(403);
 
-        // Verifikator, Bendahara, Rektorat cannot access GET /api/kegiatan
-        $this->withHeaders(['Authorization' => 'Bearer '.$verifToken, 'Accept' => 'application/json'])
-            ->getJson('/api/kegiatan')->assertStatus(403);
-        $this->withHeaders(['Authorization' => 'Bearer '.$bendaharaToken, 'Accept' => 'application/json'])
-            ->getJson('/api/kegiatan')->assertStatus(403);
-        $this->withHeaders(['Authorization' => 'Bearer '.$rektoratToken, 'Accept' => 'application/json'])
-            ->getJson('/api/kegiatan')->assertStatus(403);
+        // Rektorat can access GET /api/kegiatan
+        $this->actingAs($rektorat)->getJson('/api/kegiatan')->assertStatus(200);
 
         // Create a kegiatan
         $kak = $this->createApprovedKak($this->pengusul);
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
 
-        // Verifikator and Rektorat cannot access GET /api/kegiatan/{kegiatan}
-        $this->withHeaders(['Authorization' => 'Bearer '.$verifToken, 'Accept' => 'application/json'])
-            ->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(403);
-        $this->withHeaders(['Authorization' => 'Bearer '.$rektoratToken, 'Accept' => 'application/json'])
-            ->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(403);
+        // Rektorat can access GET /api/kegiatan/{kegiatan}
+        $this->actingAs($rektorat)->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(200);
     }
 
-    public function test_api_bendahara_can_access_kegiatan_show_route()
+    public function test_api_bendahara_and_verifikator_can_access_kegiatan_show_route()
     {
         $bendahara = User::factory()->create(['role_id' => 6]);
+        $verifikator = User::factory()->create(['role_id' => 2, 'username' => 'verifikator1']);
         $kak = $this->createApprovedKak($this->pengusul);
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
 
         $bendaharaToken = $bendahara->createToken('test-token')->plainTextToken;
+        $verifToken = $verifikator->createToken('test-token')->plainTextToken;
 
         $this->withHeaders(['Authorization' => 'Bearer '.$bendaharaToken, 'Accept' => 'application/json'])
+            ->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(200);
+
+        $this->withHeaders(['Authorization' => 'Bearer '.$verifToken, 'Accept' => 'application/json'])
             ->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(200);
     }
 }

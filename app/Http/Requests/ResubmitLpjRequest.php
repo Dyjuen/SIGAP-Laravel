@@ -47,7 +47,8 @@ class ResubmitLpjRequest extends FormRequest
             'bukti' => ['nullable', 'array'],
             'bukti.*' => ['nullable', 'array'],
             'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
-            'spk_kesesuaian_waktu' => ['required', 'integer', "between:{$config->waktu_min},{$config->waktu_max}"],
+            'realisasi_tgl_mulai' => ['required', 'date'],
+            'realisasi_tgl_selesai' => ['required', 'date', 'after_or_equal:realisasi_tgl_mulai'],
             'spk_kesesuaian_output' => ['required', 'integer', "in:{$config->output_min},{$config->output_max}"],
         ];
     }
@@ -64,6 +65,7 @@ class ResubmitLpjRequest extends FormRequest
             'max' => ':attribute maksimal :max KB.',
             'between' => ':attribute harus bernilai antara :min dan :max.',
             'in' => ':attribute harus bernilai :values.',
+            'after_or_equal' => ':attribute harus sama dengan atau setelah :date.',
         ];
     }
 
@@ -74,7 +76,8 @@ class ResubmitLpjRequest extends FormRequest
             'realisasi.*.satuan1_id' => 'Satuan 1',
             'realisasi.*.harga_satuan' => 'Harga Satuan',
             'bukti.*.*' => 'Bukti Dokumen',
-            'spk_kesesuaian_waktu' => 'Kesesuaian Waktu',
+            'realisasi_tgl_mulai' => 'Tanggal Mulai Realisasi',
+            'realisasi_tgl_selesai' => 'Tanggal Selesai Realisasi',
             'spk_kesesuaian_output' => 'Kesesuaian Output (IKU)',
         ];
     }

@@ -9,7 +9,7 @@ import 'package:mime/mime.dart';
 import '../../services/chatbot_service.dart';
 import '../../services/api_service.dart';
 import 'kak_edit_page.dart';
-import 'kak_detail_page.dart';
+import '../kak_detail_page.dart';
 import 'kak_create_page.dart';
 import '../../widgets/sigap_logo.dart';
 
@@ -225,7 +225,7 @@ class _KakListPageState extends State<KakListPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: pelaksanaCtrl,
-                    decoration: const InputDecoration(labelText: 'Pelaksana'),
+                    decoration: const InputDecoration(labelText: 'Ketua Pelaksana'),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
@@ -702,7 +702,7 @@ class _KakListPageState extends State<KakListPage> {
                         Navigator.of(context)
                             .push(
                               MaterialPageRoute(
-                                builder: (_) => KakDetailPage(kakId: kakId),
+                                builder: (_) => KakDetailPage(kakId: kakId.toString()),
                               ),
                             )
                             .then((_) => _loadKaks());

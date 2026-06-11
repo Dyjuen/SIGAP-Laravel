@@ -82,8 +82,6 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                       _buildHeader(detail),
                       _buildTableSection(detail, authProvider.user?.roleId),
                   const SizedBox(height: 16),
-                  _buildSpkSection(detail),
-                  const SizedBox(height: 16),
                   _buildTimeline(detail),
                   const SizedBox(height: 16),
                   _buildApprovalCard(detail),
@@ -204,123 +202,38 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     );
   }
 
-  Widget _buildSpkSection(LpjDetail detail) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDetailRow(String label, String value, {Color? valueColor, Widget? trailing}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Text(
+            label,
+            style: GoogleFonts.figtree(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF33C8DA).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.analytics_outlined,
-                  color: Color(0xFF33C8DA),
-                  size: 20,
+              Text(
+                value,
+                style: GoogleFonts.figtree(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Evaluasi Kinerja SPK',
-                      style: GoogleFonts.figtree(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF0F172A),
-                      ),
-                    ),
-                    Text(
-                      'Decision Support System',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: const Color(0xFF64748B),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 8),
+                trailing,
+              ],
             ],
-          ),
-          const SizedBox(height: 20),
-          _buildSpkItem(
-            'Kesesuaian Waktu',
-            detail.spkKesesuaianWaktu?.toString() ?? '-',
-            'Variabel Kualitatif (Input Pengusul)',
-          ),
-          const SizedBox(height: 16),
-          _buildSpkItem(
-            'Kesesuaian Output (IKU)',
-            detail.spkKesesuaianOutput == 100
-                ? 'Sesuai'
-                : (detail.spkKesesuaianOutput == 0 ? 'Tidak Sesuai' : '-'),
-            'Variabel Kualitatif (Input Pengusul)',
-          ),
-          const SizedBox(height: 16),
-          _buildSpkItem(
-            'Ketepatan Anggaran',
-            detail.spkKetepatanAnggaran?.toString() ?? '-',
-            'Variabel Kuantitatif (Otomatis Sistem)',
-          ),
-          const SizedBox(height: 16),
-          _buildSpkItem(
-            'Ketepatan Waktu LPJ',
-            detail.spkKetepatanWaktuLpj?.toString() ?? '-',
-            'Variabel Kuantitatif (Otomatis Sistem)',
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSpkItem(String label, String value, String description) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.figtree(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF475569),
-              ),
-            ),
-            Text(
-              value,
-              style: GoogleFonts.figtree(
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF0F172A),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          description,
-          style: GoogleFonts.figtree(
-            fontSize: 11,
-            color: const Color(0xFF94A3B8),
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ],
     );
   }
 
@@ -354,7 +267,7 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                'Tabel Rincian Realisasi',
+                'Rincian Realisasi Anggaran',
                 style: GoogleFonts.figtree(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
@@ -365,134 +278,117 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
           ),
         ),
         const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: DataTable(
-              columnSpacing: 24,
-              horizontalMargin: 20,
-              headingRowHeight: 56,
-              columns: [
-                const DataColumn(label: Text('Uraian')),
-                const DataColumn(label: Text('Diusulkan'), numeric: true),
-                const DataColumn(label: Text('Realisasi')),
-                const DataColumn(label: Text('Persentase'), numeric: true),
-                if (isBendahara && detail.isSubmitted)
-                  const DataColumn(label: Text('Review')),
-              ],
-              rows: [
-                for (var katId in sortedKategoriIds) ...[
-                  DataRow(
-                    color: WidgetStatePropertyAll(Colors.blueGrey.withOpacity(0.05)),
-                    cells: [
-                      DataCell(
-                        Text(
-                          kategoriNames[katId] ?? (katId == 1 ? 'Belanja Barang' : katId == 2 ? 'Belanja Jasa' : katId == 3 ? 'Belanja Perjalanan' : 'Lainnya'),
-                          style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF33C8DA), fontSize: 12),
-                        ),
+        ...sortedKategoriIds.map((katId) {
+          final items = groupedItems[katId]!;
+          final katNama = kategoriNames[katId] ??
+              (katId == 1
+                  ? 'Belanja Barang'
+                  : katId == 2
+                      ? 'Belanja Jasa'
+                      : katId == 3
+                          ? 'Belanja Perjalanan'
+                          : 'Lainnya');
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 16, 8),
+                child: Text(
+                  katNama,
+                  style: GoogleFonts.figtree(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: const Color(0xFF33C8DA),
+                  ),
+                ),
+              ),
+              ...items.map((item) {
+                final hasComment = _itemComments.containsKey(item.anggaranId);
+                return Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(
+                      color: hasComment ? Colors.orange : const Color(0xFFE2E8F0),
+                      width: hasComment ? 2.0 : 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
-                      const DataCell(SizedBox.shrink()),
-                      const DataCell(SizedBox.shrink()),
-                      const DataCell(SizedBox.shrink()),
-                      if (isBendahara && detail.isSubmitted)
-                        const DataCell(SizedBox.shrink()),
                     ],
                   ),
-                  ...groupedItems[katId]!.map((item) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          SizedBox(
-                            width: 150,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  item.uraian,
-                                  style: const TextStyle(
+                                  item.uraian.isEmpty ? '-' : item.uraian,
+                                  style: GoogleFonts.figtree(
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: const Color(0xFF0F172A),
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                Text(
-                                  item.mataAnggaranNama,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey.shade500,
-                                    fontStyle: FontStyle.italic,
+                                if (item.mataAnggaranNama.isNotEmpty && item.mataAnggaranNama != '-')
+                                  Text(
+                                    item.mataAnggaranNama,
+                                    style: GoogleFonts.figtree(
+                                      fontSize: 10,
+                                      color: Colors.grey.shade500,
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
                               ],
                             ),
                           ),
-                        ),
-                        DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
-                        DataCell(
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _formatCurrency(item.realisasiJumlah),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF10B981),
-                                ),
-                              ),
-                              Text(
-                                '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            '${item.percentageRealized.toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: item.percentageRealized > 100
-                                  ? Colors.red
-                                  : Colors.blueGrey,
-                            ),
-                          ),
-                        ),
-                        if (isBendahara && detail.isSubmitted)
-                          DataCell(
+                          if (isBendahara && detail.isSubmitted)
                             IconButton(
                               icon: Icon(
-                                _itemComments.containsKey(item.anggaranId)
-                                    ? Icons.comment
-                                    : Icons.add_comment_outlined,
-                                color: _itemComments.containsKey(item.anggaranId)
-                                    ? Colors.orange
-                                    : Colors.grey,
+                                hasComment ? Icons.comment : Icons.add_comment_outlined,
+                                color: hasComment ? Colors.orange : Colors.grey,
                                 size: 20,
                               ),
                               onPressed: () => _showItemCommentDialog(item),
+                              constraints: const BoxConstraints(),
+                              padding: EdgeInsets.zero,
                             ),
-                          ),
-                      ],
-                    );
-                  }),
-                ],
-              ],
-            ),
-          ),
-        ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildDetailRow('Diusulkan', 'Rp ${_formatCurrency(item.jumlahDiusulkan)}'),
+                      _buildDetailRow(
+                        'Realisasi',
+                        'Rp ${_formatCurrency(item.realisasiJumlah)}',
+                        valueColor: const Color(0xFF10B981),
+                      ),
+                      _buildDetailRow(
+                        'Volume Realisasi',
+                        '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
+                      ),
+                      _buildDetailRow(
+                        'Persentase',
+                        '${item.percentageRealized.toStringAsFixed(1)}%',
+                        valueColor: item.percentageRealized > 100 ? Colors.red : null,
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          );
+        }),
       ],
     );
   }

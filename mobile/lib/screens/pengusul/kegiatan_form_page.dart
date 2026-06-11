@@ -62,18 +62,25 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       final kategoriRes = await ApiService.get('/master/kategori-belanja');
       if (tipeRes.statusCode == 200 && kategoriRes.statusCode == 200) {
         setState(() {
-          _tipeKegiatanList = List<Map<String, dynamic>>.from(
-            jsonDecode(tipeRes.body),
-          );
-          _kategoriBelanja = List<Map<String, dynamic>>.from(
-            jsonDecode(kategoriRes.body),
-          );
+          final tipeData = jsonDecode(tipeRes.body);
+          final List<dynamic> tipeList = (tipeData is Map && tipeData.containsKey('data'))
+              ? tipeData['data']
+              : (tipeData is List ? tipeData : []);
+          _tipeKegiatanList = List<Map<String, dynamic>>.from(tipeList);
+
+          final kategoriData = jsonDecode(kategoriRes.body);
+          final List<dynamic> kategoriList = (kategoriData is Map && kategoriData.containsKey('data'))
+              ? kategoriData['data']
+              : (kategoriData is List ? kategoriData : []);
+          _kategoriBelanja = List<Map<String, dynamic>>.from(kategoriList);
+
           if (_tipeKegiatanList.isNotEmpty) {
-            _tipeKegiatanId = _tipeKegiatanList[0]['tipe_kegiatan_id'] as int;
+            final firstTipe = _tipeKegiatanList[0];
+            _tipeKegiatanId = int.tryParse((firstTipe['tipe_kegiatan_id'] ?? firstTipe['id'] ?? '').toString()) ?? 1;
           }
           if (_kategoriBelanja.isNotEmpty) {
-            _rabItems[0]['kategori_belanja_id'] =
-                _kategoriBelanja[0]['kategori_belanja_id'] as int;
+            final firstKat = _kategoriBelanja[0];
+            _rabItems[0]['kategori_belanja_id'] = int.tryParse((firstKat['kategori_belanja_id'] ?? firstKat['id'] ?? '').toString()) ?? 1;
           }
           _masterLoaded = true;
         });
@@ -476,8 +483,10 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
 
           // Tipe Kegiatan Dropdown
           if (_masterLoaded && _tipeKegiatanList.isNotEmpty) ...[
-            DropdownButtonFormField<int>(
-              initialValue: _tipeKegiatanId,
+            DropdownButtonFormField<int?>(
+              value: _tipeKegiatanList.any((t) => int.tryParse((t['tipe_kegiatan_id'] ?? t['id'] ?? '').toString()) == _tipeKegiatanId)
+                  ? _tipeKegiatanId
+                  : null,
               decoration: InputDecoration(
                 labelText: 'Tipe Kegiatan',
                 prefixIcon: const Icon(
@@ -503,10 +512,11 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                 ),
               ),
               items: _tipeKegiatanList
-                  .map(
-                    (t) => DropdownMenuItem<int>(
-                      value: t['tipe_kegiatan_id'] as int,
-                      child: Text(t['nama_tipe'] ?? '-'),
+                  .where((t) => int.tryParse((t['tipe_kegiatan_id'] ?? t['id'] ?? '').toString()) != null)
+                  .map<DropdownMenuItem<int?>>(
+                    (t) => DropdownMenuItem<int?>(
+                      value: int.tryParse((t['tipe_kegiatan_id'] ?? t['id']).toString()),
+                      child: Text(t['nama_tipe'] ?? t['nama'] ?? '-'),
                     ),
                   )
                   .toList(),
@@ -752,8 +762,10 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                   ),
                   if (_masterLoaded && _kategoriBelanja.isNotEmpty) ...[
                     const SizedBox(height: 10),
-                    DropdownButtonFormField<int>(
-                      initialValue: r['kategori_belanja_id'] as int,
+                    DropdownButtonFormField<int?>(
+                      value: _kategoriBelanja.any((k) => int.tryParse((k['kategori_belanja_id'] ?? k['id'] ?? '').toString()) == int.tryParse((r['kategori_belanja_id'] ?? '').toString()))
+                          ? int.tryParse((r['kategori_belanja_id'] ?? '').toString())
+                          : null,
                       decoration: InputDecoration(
                         labelText: 'Kategori Belanja',
                         prefixIcon: const Icon(
@@ -774,19 +786,19 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
                         ),
                       ),
                       items: _kategoriBelanja
-                          .map(
-                            (k) => DropdownMenuItem<int>(
-                              value: k['kategori_belanja_id'] as int,
+                          .where((k) => int.tryParse((k['kategori_belanja_id'] ?? k['id'] ?? '').toString()) != null)
+                          .map<DropdownMenuItem<int?>>(
+                            (k) => DropdownMenuItem<int?>(
+                              value: int.tryParse((k['kategori_belanja_id'] ?? k['id']).toString()),
                               child: Text(
-                                k['nama_kategori'] ?? '-',
+                                k['nama_kategori'] ?? k['nama'] ?? k['nama_kategori_belanja'] ?? '-',
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           )
                           .toList(),
                       onChanged: (val) => setState(
-                        () => r['kategori_belanja_id'] =
-                            val ?? r['kategori_belanja_id'],
+                        () => r['kategori_belanja_id'] = val,
                       ),
                     ),
                   ],

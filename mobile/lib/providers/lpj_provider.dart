@@ -64,7 +64,8 @@ class LpjProvider with ChangeNotifier {
   Future<bool> submitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    int? spkKesesuaianWaktu,
+    String? realisasiTglMulai,
+    String? realisasiTglSelesai,
     int? spkKesesuaianOutput,
     Map<String, List<PlatformFile>>? buktiFiles,
   }) async {
@@ -108,7 +109,8 @@ class LpjProvider with ChangeNotifier {
       await _lpjService.submitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
-        spkKesesuaianWaktu: spkKesesuaianWaktu,
+        realisasiTglMulai: realisasiTglMulai,
+        realisasiTglSelesai: realisasiTglSelesai,
         spkKesesuaianOutput: spkKesesuaianOutput,
         buktiFiles: multipartFiles.isEmpty ? null : multipartFiles,
       );
@@ -186,7 +188,8 @@ class LpjProvider with ChangeNotifier {
   Future<bool> resubmitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    int? spkKesesuaianWaktu,
+    String? realisasiTglMulai,
+    String? realisasiTglSelesai,
     int? spkKesesuaianOutput,
     Map<String, List<PlatformFile>>? buktiFiles,
   }) async {
@@ -230,7 +233,8 @@ class LpjProvider with ChangeNotifier {
       await _lpjService.resubmitLpj(
         kegiatanId: kegiatanId,
         realizasiData: realizasiData,
-        spkKesesuaianWaktu: spkKesesuaianWaktu,
+        realisasiTglMulai: realisasiTglMulai,
+        realisasiTglSelesai: realisasiTglSelesai,
         spkKesesuaianOutput: spkKesesuaianOutput,
         buktiFiles: multipartFiles.isEmpty ? null : multipartFiles,
       );

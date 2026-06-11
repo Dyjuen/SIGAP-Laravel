@@ -171,9 +171,10 @@ class KakRab {
       kategoriBelanjaId: json['kategori_belanja_id'] != null 
           ? int.tryParse(json['kategori_belanja_id'].toString()) ?? 1 
           : 1,
-      kategoriNama: json['kategori_belanja'] != null 
-          ? json['kategori_belanja']['nama'] 
-          : null,
+      kategoriNama: json['kategori_nama'] ?? 
+          (json['kategori_belanja'] != null 
+              ? (json['kategori_belanja'] is Map ? json['kategori_belanja']['nama'] : json['kategori_belanja'].toString())
+              : null),
       uraian: json['uraian'] ?? '',
       volume1: _parseDoubleOrNull(json['volume1']),
       satuan1Id: json['satuan1_id'] != null ? int.tryParse(json['satuan1_id'].toString()) : null,
@@ -247,6 +248,7 @@ class KakDetail {
   final String tanggalSelesai;
   final String lokasi;
   final String sasaranUtama;
+  final String outputKegiatan; // Added this
   final String kurunWaktuPelaksanaan;
 
   // Status & Type
@@ -283,6 +285,7 @@ class KakDetail {
     required this.tanggalSelesai,
     required this.lokasi,
     required this.sasaranUtama,
+    required this.outputKegiatan, // Added this
     required this.kurunWaktuPelaksanaan,
     required this.statusId,
     required this.statusNama,
@@ -315,6 +318,7 @@ class KakDetail {
       tanggalSelesai: json['tanggal_selesai'] ?? '',
       lokasi: json['lokasi'] ?? '',
       sasaranUtama: json['sasaran_utama'] ?? '',
+      outputKegiatan: json['output_kegiatan'] ?? '', // Added this
       kurunWaktuPelaksanaan: json['kurun_waktu_pelaksanaan'] ?? '',
       statusId: json['status_id'] ?? 0,
       statusNama: json['status_nama'] ?? 'Draft',
@@ -376,6 +380,7 @@ class KakDetail {
     'tanggal_selesai': tanggalSelesai,
     'lokasi': lokasi,
     'sasaran_utama': sasaranUtama,
+    'output_kegiatan': outputKegiatan, // Added this
     'kurun_waktu_pelaksanaan': kurunWaktuPelaksanaan,
     'status_id': statusId,
     'status_nama': statusNama,

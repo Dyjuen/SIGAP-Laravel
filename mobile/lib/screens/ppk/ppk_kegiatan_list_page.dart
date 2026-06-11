@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import '../../providers/auth_provider.dart';
-import 'ppk_kegiatan_detail_page.dart';
+import '../kegiatan_detail_page.dart';
 
 class PpkKegiatanListPage extends StatefulWidget {
   const PpkKegiatanListPage({super.key});
@@ -439,7 +439,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
     if (kegiatanId > 0) {
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => PpkKegiatanDetailPage(kegiatanId: kegiatanId),
+          builder: (_) => KegiatanDetailPage(kegiatanId: kegiatanId),
         ),
       ).then((value) {
         if (value == true) {

@@ -34,6 +34,7 @@ class StoreKakRequest extends FormRequest
                 'lokasi' => 'required|string|max:255',
                 'tipe_kegiatan_id' => 'required|exists:m_tipe_kegiatan,tipe_kegiatan_id',
                 'sasaran_utama' => 'required|string|max:255',
+                'output_kegiatan' => 'required|string|max:1000',
 
                 // Child: Manfaat
                 'manfaat' => 'required|array|min:1',

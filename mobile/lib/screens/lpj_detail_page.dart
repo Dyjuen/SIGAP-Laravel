@@ -169,12 +169,6 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                       _buildRealizationTable(lpj),
                       const SizedBox(height: 32),
 
-                      // SPK Evaluation
-                      _buildSectionHeader('Evaluasi Kinerja SPK'),
-                      const SizedBox(height: 12),
-                      _buildSpkSection(lpj),
-                      const SizedBox(height: 32),
-
                       // Approval Status
                       _buildSectionHeader('Status Persetujuan'),
                       const SizedBox(height: 12),
@@ -377,61 +371,25 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     );
   }
 
-  Widget _buildSpkSection(LpjDetail lpj) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          _buildSpkRow(
-            'Kesesuaian Waktu',
-            lpj.spkKesesuaianWaktu?.toString() ?? '-',
-          ),
-          const Divider(),
-          _buildSpkRow(
-            'Kesesuaian Output (IKU)',
-            lpj.spkKesesuaianOutput == 100
-                ? 'Sesuai'
-                : (lpj.spkKesesuaianOutput == 0 ? 'Tidak Sesuai' : '-'),
-          ),
-          const Divider(),
-          _buildSpkRow(
-            'Ketepatan Anggaran',
-            lpj.spkKetepatanAnggaran?.toString() ?? '-',
-          ),
-          const Divider(),
-          _buildSpkRow(
-            'Ketepatan Waktu LPJ',
-            lpj.spkKetepatanWaktuLpj?.toString() ?? '-',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpkRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             label,
             style: GoogleFonts.figtree(
-              fontSize: 13,
-              color: Theme.of(context).primaryTextTheme.bodySmall?.color,
+              fontSize: 12,
+              color: Colors.grey.shade600,
             ),
           ),
           Text(
             value,
             style: GoogleFonts.figtree(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryTextTheme.bodyLarge?.color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor,
             ),
           ),
         ],
@@ -440,77 +398,83 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
   }
 
   Widget _buildRealizationTable(LpjDetail lpj) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: [
-            DataColumn(
-              label: Text(
-                'Item',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+    // Group realizations by category
+    final groupedRealizations = <int, List<LpjRealization>>{};
+    final kategoriNames = <int, String>{};
+
+    for (var item in lpj.anggaranItems) {
+      groupedRealizations.putIfAbsent(item.kategoriBelanjaId, () => []).add(item);
+      if (item.kategoriNama != null) {
+        kategoriNames[item.kategoriBelanjaId] = item.kategoriNama!;
+      }
+    }
+
+    final sortedKategoriIds = groupedRealizations.keys.toList()..sort();
+
+    return Column(
+      children: sortedKategoriIds.map((katId) {
+        final items = groupedRealizations[katId]!;
+        final katNama = kategoriNames[katId] ??
+            (katId == 1
+                ? 'Belanja Barang'
+                : katId == 2
+                    ? 'Belanja Jasa'
+                    : katId == 3
+                        ? 'Belanja Perjalanan'
+                        : 'Lainnya');
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              child: Text(
+                katNama,
+                style: GoogleFonts.figtree(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
             ),
-            DataColumn(
-              label: Text(
-                'Diusulkan',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                'Realisasi',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '%',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-          rows: (lpj.anggaranItems).map((item) {
-            return DataRow(
-              cells: [
-                DataCell(
-                  SizedBox(
-                    width: 150,
-                    child: Text(
+            ...items.map((item) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
                       item.uraian.isEmpty ? '-' : item.uraian,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.figtree(fontSize: 12),
+                      style: GoogleFonts.figtree(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('Diusulkan', 'Rp ${_formatCurrency(item.jumlahDiusulkan)}'),
+                    _buildDetailRow('Realisasi', 'Rp ${_formatCurrency(item.realisasiJumlah)}', valueColor: const Color(0xFF10B981)),
+                    _buildDetailRow(
+                      'Volume Realisasi',
+                      '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
+                    ),
+                    _buildDetailRow(
+                      'Persentase',
+                      '${item.percentageRealized.toStringAsFixed(1)}%',
+                      valueColor: item.percentageRealized > 100 ? Colors.red : null,
+                    ),
+                  ],
                 ),
-                DataCell(
-                  Text(
-                    'Rp ${_formatCurrency(item.jumlahDiusulkan)}',
-                    style: GoogleFonts.figtree(fontSize: 12),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    'Rp ${_formatCurrency(item.realisasiJumlah)}',
-                    style: GoogleFonts.figtree(fontSize: 12),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    '${item.percentageRealized.toStringAsFixed(1)}%',
-                    style: GoogleFonts.figtree(fontSize: 12),
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
+              );
+            }),
+          ],
+        );
+      }).toList(),
     );
   }
 

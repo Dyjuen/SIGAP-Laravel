@@ -59,7 +59,8 @@ class LpjController extends Controller
             }
 
             $spkInputs = [
-                'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                'realisasi_tgl_mulai' => $request->realisasi_tgl_mulai,
+                'realisasi_tgl_selesai' => $request->realisasi_tgl_selesai,
                 'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
             ];
 
@@ -92,9 +93,9 @@ class LpjController extends Controller
             abort(403, 'Anda tidak memiliki akses ke LPJ ini.');
         }
 
-        $kegiatan->load(['kak.pengusul', 'kak.mataAnggaran', 'approvals']);
+        $kegiatan->load(['kak.pengusul', 'kak.mataAnggaran', 'kak.ikus.iku', 'kak.ikus.satuan', 'approvals']);
 
-        $anggaran = KAKAnggaran::with(['kategoriBelanja', 'lampiran.uploader'])
+        $anggaran = KAKAnggaran::with(['kategoriBelanja', 'lampiran.uploader', 'satuan1', 'satuan2', 'satuan3'])
             ->where('kak_id', $kegiatan->kak_id)
             ->get();
 
@@ -152,7 +153,8 @@ class LpjController extends Controller
             }
 
             $spkInputs = [
-                'spk_kesesuaian_waktu' => $request->spk_kesesuaian_waktu,
+                'realisasi_tgl_mulai' => $request->realisasi_tgl_mulai,
+                'realisasi_tgl_selesai' => $request->realisasi_tgl_selesai,
                 'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
             ];
 

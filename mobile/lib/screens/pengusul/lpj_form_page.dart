@@ -31,7 +31,8 @@ class _LpjFormPageState extends State<LpjFormPage> {
   final List<_SatuanOption> _satuanOptions = [];
 
   // SPK fields
-  late TextEditingController _waktuController;
+  DateTime? _tglMulai;
+  DateTime? _tglSelesai;
   int? _selectedOutput;
 
   bool _initialized = false;
@@ -40,7 +41,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
   @override
   void initState() {
     super.initState();
-    _waktuController = TextEditingController();
     Future.microtask(() async {
       if (widget.kegiatanId.isNotEmpty) {
         await context.read<LpjProvider>().getLpjDetail(widget.kegiatanId);
@@ -103,7 +103,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
         context.read<ChatbotService>().setVisible(true);
       }
     });
-    _waktuController.dispose();
     for (final row in _rows) {
       row.dispose();
     }
@@ -144,10 +143,90 @@ class _LpjFormPageState extends State<LpjFormPage> {
     }
 
     // Initialize SPK fields
-    _waktuController.text = detail.spkKesesuaianWaktu?.toString() ?? '';
+    _tglMulai = detail.realisasiTglMulai != null
+        ? DateTime.tryParse(detail.realisasiTglMulai!)
+        : null;
+    _tglSelesai = detail.realisasiTglSelesai != null
+        ? DateTime.tryParse(detail.realisasiTglSelesai!)
+        : null;
     _selectedOutput = detail.spkKesesuaianOutput;
 
     _initialized = true;
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isMulai) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: (isMulai ? _tglMulai : _tglSelesai) ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+      locale: const Locale('id', 'ID'),
+      confirmText: 'Oke',
+    );
+    if (picked != null) {
+      setState(() {
+        if (isMulai) {
+          _tglMulai = picked;
+        } else {
+          _tglSelesai = picked;
+        }
+      });
+    }
+  }
+
+  Widget _buildDateField({
+    required String label,
+    required DateTime? value,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.figtree(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF475569),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: enabled ? onTap : null,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: enabled ? Colors.white : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value != null
+                      ? DateFormat('dd MMMM yyyy', 'id_ID').format(value)
+                      : 'Pilih Tanggal',
+                  style: GoogleFonts.figtree(
+                    fontSize: 14,
+                    fontWeight:
+                        value != null ? FontWeight.bold : FontWeight.normal,
+                    color: value != null ? Colors.black : Colors.grey,
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: enabled ? const Color(0xFF33C8DA) : Colors.grey,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _pickFiles(String anggaranId) async {
@@ -196,6 +275,20 @@ class _LpjFormPageState extends State<LpjFormPage> {
         return;
       }
 
+      // Add validation for dates
+      final detailModel = provider.selectedLpj;
+      final roleId = context.read<AuthProvider>().user?.roleId;
+      final isEditable = detailModel?.canEditPengusul == true && roleId == 3;
+
+      if (isEditable && (_tglMulai == null || _tglSelesai == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Mohon pilih tanggal mulai dan selesai realisasi.'),
+          ),
+        );
+        return;
+      }
+
       if (_rows.length != detail.anggaranItems.length) {
         debugPrint(
           'LpjFormPage: Row count mismatch! _rows: ${_rows.length}, detail: ${detail.anggaranItems.length}',
@@ -216,6 +309,18 @@ class _LpjFormPageState extends State<LpjFormPage> {
       for (var index = 0; index < _rows.length; index++) {
         final row = _rows[index];
         final item = detail.anggaranItems[index];
+
+        final newFiles = _selectedFilesMap[item.anggaranId] ?? [];
+        final existing = item.lampiran ?? [];
+        if (newFiles.isEmpty && existing.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Item "${item.uraian}" wajib melampirkan minimal 1 dokumen bukti.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
 
         final vol1 = _parseDouble(row.volume1Controller.text);
         final harga = _parseDouble(row.hargaSatuanController.text);
@@ -256,14 +361,24 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ? await provider.resubmitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
-              spkKesesuaianWaktu: int.tryParse(_waktuController.text),
+              realisasiTglMulai: _tglMulai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglMulai!)
+                  : null,
+              realisasiTglSelesai: _tglSelesai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglSelesai!)
+                  : null,
               spkKesesuaianOutput: _selectedOutput,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
             )
           : await provider.submitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
-              spkKesesuaianWaktu: int.tryParse(_waktuController.text),
+              realisasiTglMulai: _tglMulai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglMulai!)
+                  : null,
+              realisasiTglSelesai: _tglSelesai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglSelesai!)
+                  : null,
               spkKesesuaianOutput: _selectedOutput,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
             );
@@ -474,107 +589,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
             fontSize: 14,
             fontWeight: FontWeight.w800,
             color: const Color(0xFF0F172A),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTableSection(LpjDetail detail, bool isEditable) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.table_chart_outlined,
-                size: 20,
-                color: Color(0xFF33C8DA),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Tabel Realisasi Anggaran',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: DataTable(
-              columnSpacing: 24,
-              horizontalMargin: 20,
-              headingRowHeight: 56,
-              dataRowMinHeight: 120, // Enough for multi-volume inputs
-              dataRowMaxHeight:
-                  280, // Expandable for Evidence row? No, DataTable rows are fixed height.
-              // Let's use a custom approach instead of DataTable for better flexibility
-              columns: const [
-                DataColumn(label: Text('Uraian')),
-                DataColumn(label: Text('Diusulkan'), numeric: true),
-                DataColumn(label: Text('Realisasi Volume & Satuan')),
-                DataColumn(label: Text('Harga Satuan (Real)'), numeric: true),
-                DataColumn(label: Text('Total (Real)'), numeric: true),
-              ],
-              rows: List.generate(detail.anggaranItems.length, (index) {
-                final item = detail.anggaranItems[index];
-                final row = _rows[index];
-
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      SizedBox(
-                        width: 150,
-                        child: Text(
-                          item.uraian,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
-                    DataCell(_buildVolumeInputs(row, isEditable)),
-                    DataCell(_buildHargaInput(row, isEditable)),
-                    DataCell(
-                      Text(
-                        _formatCurrency(_calculateRowTotal(row)),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            '* Geser tabel ke samping untuk melihat detail realisasi.',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
-              fontStyle: FontStyle.italic,
-            ),
           ),
         ),
       ],
@@ -867,39 +881,196 @@ class _LpjFormPageState extends State<LpjFormPage> {
             ),
           ),
 
-          // Horizontal Form Row (The "Web Table" feeling)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildColumnInput(
-                  'Volume 1',
-                  row.volume1Controller,
-                  60,
-                  required: true,
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: row.volume1Controller,
+                        decoration: InputDecoration(
+                          labelText: 'Vol 1',
+                          hintText: '0',
+                          filled: true,
+                          fillColor: Colors.white,
+                          helperText: 'KAK: ${_formatDouble(item.volume)}',
+                          helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: !isEditable,
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Wajib isi';
+                          if (double.tryParse(v.replaceAll(',', '.')) == null) return 'Harus angka';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSatuanDropdown(
+                        label: 'Satuan 1',
+                        value: row.satuan1Id,
+                        onChanged: isEditable
+                            ? (v) => setState(() => row.satuan1Id = v)
+                            : null,
+                        validator: (v) => (v == null || v.isEmpty) ? 'Wajib isi' : null,
+                        kakValue: item.satuan1Nama ?? '-',
+                      ),
+                    ),
+                  ],
                 ),
-                _buildColumnSatuan('Satuan 1', row, 1, isEditable),
-                const _Divider(),
-                _buildColumnInput('Volume 2', row.volume2Controller, 60),
-                _buildColumnSatuan('Satuan 2', row, 2, isEditable),
-                const _Divider(),
-                _buildColumnInput('Volume 3', row.volume3Controller, 60),
-                _buildColumnSatuan('Satuan 3', row, 3, isEditable),
-                const _Divider(),
-                _buildColumnInput(
-                  'Harga Satuan',
-                  row.hargaSatuanController,
-                  120,
-                  prefix: 'Rp',
-                  required: true,
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: row.volume2Controller,
+                        decoration: InputDecoration(
+                          labelText: 'Vol 2 (opsional)',
+                          hintText: '0',
+                          filled: true,
+                          fillColor: Colors.white,
+                          helperText: 'KAK: ${item.volume2 != null ? _formatDouble(item.volume2!) : "-"}',
+                          helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: !isEditable,
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty && double.tryParse(v.replaceAll(',', '.')) == null) {
+                            return 'Harus angka';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSatuanDropdown(
+                        label: 'Satuan 2',
+                        value: row.satuan2Id,
+                        onChanged: isEditable
+                            ? (v) => setState(() => row.satuan2Id = v)
+                            : null,
+                        validator: (v) {
+                          final vol2Text = row.volume2Controller.text;
+                          final vol2Val = double.tryParse(vol2Text.replaceAll(',', '.')) ?? 0;
+                          if (vol2Val > 0 && (v == null || v.isEmpty)) {
+                            return 'Wajib isi';
+                          }
+                          return null;
+                        },
+                        kakValue: item.satuan2Nama ?? '-',
+                      ),
+                    ),
+                  ],
                 ),
-                const _Divider(),
-                _buildColumnDisplay(
-                  'Total Realisasi',
-                  _formatCurrency(_calculateRowTotal(row)),
-                  isBold: true,
-                  color: const Color(0xFF10B981),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: row.volume3Controller,
+                        decoration: InputDecoration(
+                          labelText: 'Vol 3 (opsional)',
+                          hintText: '0',
+                          filled: true,
+                          fillColor: Colors.white,
+                          helperText: 'KAK: ${item.volume3 != null ? _formatDouble(item.volume3!) : "-"}',
+                          helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: !isEditable,
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty && double.tryParse(v.replaceAll(',', '.')) == null) {
+                            return 'Harus angka';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSatuanDropdown(
+                        label: 'Satuan 3',
+                        value: row.satuan3Id,
+                        onChanged: isEditable
+                            ? (v) => setState(() => row.satuan3Id = v)
+                            : null,
+                        validator: (v) {
+                          final vol3Text = row.volume3Controller.text;
+                          final vol3Val = double.tryParse(vol3Text.replaceAll(',', '.')) ?? 0;
+                          if (vol3Val > 0 && (v == null || v.isEmpty)) {
+                            return 'Wajib isi';
+                          }
+                          return null;
+                        },
+                        kakValue: item.satuan3Nama ?? '-',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: row.hargaSatuanController,
+                  decoration: InputDecoration(
+                    labelText: 'Harga Satuan (Rp)',
+                    hintText: '0',
+                    prefixIcon: const Icon(Icons.paid_outlined, size: 18),
+                    filled: true,
+                    fillColor: Colors.white,
+                    helperText: 'KAK: ${_formatCurrency(item.hargaSatuan)}',
+                    helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                  ),
+                  keyboardType: TextInputType.number,
+                  readOnly: !isEditable,
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Wajib isi';
+                    if (double.tryParse(v.replaceAll(',', '.')) == null) return 'Harus angka';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF33C8DA),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF33C8DA).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Realisasi',
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      ),
+                      Text(
+                        _formatCurrency(_calculateRowTotal(row)),
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -953,173 +1124,42 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Widget _buildColumnInput(
-    String label,
-    TextEditingController controller,
-    double width, {
-    String? prefix,
-    bool required = false,
+  Widget _buildSatuanDropdown({
+    required String label,
+    required String? value,
+    required ValueChanged<String?>? onChanged,
+    String? Function(String?)? validator,
+    required String kakValue,
   }) {
-    return Container(
-      width: width,
-      margin: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 50, // Increased height to accommodate error text if needed
-            child: TextFormField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                prefixText: prefix,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF33C8DA)),
-                ),
-                errorStyle: const TextStyle(
-                  fontSize: 0,
-                  height: 0,
-                ), // Hide error text but keep red border
-              ),
-              validator: required
-                  ? (val) {
-                      if (val == null || val.isEmpty) return '';
-                      if (double.tryParse(val.replaceAll(',', '.')) == null)
-                        return '';
-                      return null;
-                    }
-                  : null,
-            ),
-          ),
-        ],
+    return DropdownButtonFormField<String>(
+      isExpanded: true,
+      value: _satuanOptions.any((s) => s.id == value) ? value : null,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        helperText: 'KAK: $kakValue',
+        helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+        ),
       ),
-    );
-  }
-
-  Widget _buildColumnSatuan(
-    String label,
-    _RealisasiRowControllers row,
-    int volIdx,
-    bool enabled,
-  ) {
-    String? currentVal;
-    if (volIdx == 1) currentVal = row.satuan1Id;
-    if (volIdx == 2) currentVal = row.satuan2Id;
-    if (volIdx == 3) currentVal = row.satuan3Id;
-
-    return Container(
-      width: 100,
-      margin: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 50,
-            child: DropdownButtonFormField<String>(
-              value: _satuanOptions.any((s) => s.id == currentVal)
-                  ? currentVal
-                  : null,
-              onChanged: enabled
-                  ? (val) {
-                      setState(() {
-                        if (volIdx == 1) row.satuan1Id = val;
-                        if (volIdx == 2) row.satuan2Id = val;
-                        if (volIdx == 3) row.satuan3Id = val;
-                      });
-                    }
-                  : null,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                errorStyle: const TextStyle(fontSize: 0, height: 0),
-              ),
-              items: _satuanOptions
-                  .map(
-                    (s) => DropdownMenuItem(
-                      value: s.id,
-                      child: Text(s.name, overflow: TextOverflow.ellipsis),
-                    ),
-                  )
-                  .toList(),
-              validator: (val) {
-                if (volIdx == 1 && (val == null || val.isEmpty)) return '';
-                return null;
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildColumnDisplay(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color? color,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? Colors.black87,
-            ),
-          ),
-        ],
-      ),
+      items: [
+        const DropdownMenuItem<String>(
+          value: null,
+          child: Text('Satuan'),
+        ),
+        ..._satuanOptions.map((s) => DropdownMenuItem<String>(
+              value: s.id,
+              child: Text(s.name, overflow: TextOverflow.ellipsis),
+            )),
+      ],
+      onChanged: onChanged,
+      validator: validator,
     );
   }
 
@@ -1313,57 +1353,74 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ),
           const SizedBox(height: 20),
 
-          // Kesesuaian Waktu
-          Text(
-            'KESESUAIAN WAKTU (PELAKSANAAN KEGIATAN)',
-            style: GoogleFonts.figtree(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF475569),
-              letterSpacing: 0.5,
+          // Tanggal Realisasi
+          if (detail.kakTanggalMulai != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'RENCANA KAK: ${DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.parse(detail.kakTanggalMulai!))} s/d ${detail.kakTanggalSelesai != null ? DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.parse(detail.kakTanggalSelesai!)) : "-"}',
+                style: GoogleFonts.figtree(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0891B2),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _waktuController,
+          _buildDateField(
+            label: 'TANGGAL MULAI REALISASI',
+            value: _tglMulai,
+            onTap: () => _selectDate(context, true),
             enabled: isEditable,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            decoration: InputDecoration(
-              hintText: 'Nilai (50 - 100)',
-              filled: true,
-              fillColor: isEditable ? Colors.white : Colors.grey.shade50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Kesesuaian waktu harus diisi';
-              }
-              final val = int.tryParse(value);
-              if (val == null || val < 50 || val > 100) {
-                return 'Nilai harus antara 50 - 100';
-              }
-              return null;
-            },
+          ),
+          const SizedBox(height: 16),
+          _buildDateField(
+            label: 'TANGGAL SELESAI REALISASI',
+            value: _tglSelesai,
+            onTap: () => _selectDate(context, false),
+            enabled: isEditable,
           ),
           const SizedBox(height: 6),
           const Text(
-            'Konstrain 50-100. Nilai kesesuaian waktu acara dibanding jadwal original.',
+            'Pilih tanggal mulai dan selesai realisasi pelaksanaan kegiatan.',
             style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.4),
           ),
 
           const SizedBox(height: 20),
+
+          // IKU Targets display
+          if (detail.ikus != null && detail.ikus!.isNotEmpty) ...[
+            Text(
+              'TARGET IKU (REFERENSI KAK)',
+              style: GoogleFonts.figtree(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF475569),
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...detail.ikus!.map((iku) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle,
+                          size: 12, color: Color(0xFF0891B2)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${iku.namaIku ?? "IKU"}: Target ${_formatDouble(iku.target)} ${iku.satuanNama ?? ""}',
+                          style: GoogleFonts.figtree(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0891B2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+            const SizedBox(height: 16),
+          ],
 
           // Kesesuaian Output
           Text(
@@ -1542,6 +1599,13 @@ class _LpjFormPageState extends State<LpjFormPage> {
       symbol: 'Rp ',
       decimalDigits: 0,
     ).format(value);
+  }
+
+  String _formatDouble(double val) {
+    if (val == val.toInt()) {
+      return val.toInt().toString();
+    }
+    return val.toString();
   }
 
   double _parseDouble(String value) {
@@ -1751,21 +1815,32 @@ class _RealisasiRowControllers {
     this.satuan3Id,
   });
 
+  static String _formatVal(double val) {
+    if (val == val.toInt()) {
+      return val.toInt().toString();
+    }
+    return val.toString();
+  }
+
   factory _RealisasiRowControllers.fromItem(LpjRealization item) {
     return _RealisasiRowControllers(
       volume1Controller: TextEditingController(
-        text: item.realisasiVolume1?.toString() ?? item.volume.toString(),
+        text: (() {
+          final val = item.realisasiVolume1 ?? item.volume;
+          return val == 0 ? '' : _formatVal(val);
+        })(),
       ),
       volume2Controller: TextEditingController(
-        text: item.realisasiVolume2?.toString() ?? '',
+        text: (item.realisasiVolume2 == null || item.realisasiVolume2 == 0) ? '' : _formatVal(item.realisasiVolume2!),
       ),
       volume3Controller: TextEditingController(
-        text: item.realisasiVolume3?.toString() ?? '',
+        text: (item.realisasiVolume3 == null || item.realisasiVolume3 == 0) ? '' : _formatVal(item.realisasiVolume3!),
       ),
       hargaSatuanController: TextEditingController(
-        text:
-            item.realisasiHargaSatuan?.toString() ??
-            item.hargaSatuan.toString(),
+        text: (() {
+          final val = item.realisasiHargaSatuan ?? item.hargaSatuan;
+          return val == 0 ? '' : val.toStringAsFixed(0);
+        })(),
       ),
       satuan1Id: item.realisasiSatuan1Id ?? item.satuanId,
       satuan2Id: item.realisasiSatuan2Id,
@@ -1808,19 +1883,6 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  const _Divider();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey.withOpacity(0.2),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
     );
   }
 }

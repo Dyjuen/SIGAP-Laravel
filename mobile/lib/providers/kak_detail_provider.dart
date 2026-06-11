@@ -36,6 +36,27 @@ class KakDetailProvider extends ChangeNotifier {
     }
   }
 
+  /// Update KAK details
+  Future<bool> updateKak(String kakId, Map<String, dynamic> kakData) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _kakDetail = await kakService.updateKak(kakId, kakData);
+      _errorMessage = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// Submit KAK for review (change status)
   Future<bool> submitKak() async {
     if (_kakDetail == null) return false;

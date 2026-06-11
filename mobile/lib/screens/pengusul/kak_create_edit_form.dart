@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -83,8 +84,8 @@ class RabItem {
   });
 
   double getTotal() {
-    double v2 = volume2 ?? 1;
-    double v3 = volume3 ?? 1;
+    double v2 = (volume2 == null || volume2 == 0) ? 1 : volume2!;
+    double v3 = (volume3 == null || volume3 == 0) ? 1 : volume3!;
     return volume1 * v2 * v3 * hargaSatuan;
   }
 }
@@ -114,18 +115,22 @@ class KakCreateEditForm extends StatefulWidget {
   });
 
   @override
-  State<KakCreateEditForm> createState() => _KakCreateEditFormState();
+  State<KakCreateEditForm> createState() => KakCreateEditFormState();
 }
 
-class _KakCreateEditFormState extends State<KakCreateEditForm> {
+class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerProviderStateMixin {
   late TextEditingController namaController;
   late TextEditingController deskripsiController;
   late TextEditingController metodeController;
   late TextEditingController lokasiController;
   late TextEditingController sasaranController;
+  late TextEditingController outputKegiatanController; // Added this
+  late TabController _tabController;
 
   DateTime? tanggalMulai;
   DateTime? tanggalSelesai;
+  DateTime? _initialTanggalMulai;
+  DateTime? _initialTanggalSelesai;
   int? selectedTipeKegiatan;
 
   List<ManfaatItem> manfaatList = [];
@@ -144,11 +149,21 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     metodeController = TextEditingController();
     lokasiController = TextEditingController();
     sasaranController = TextEditingController();
+    outputKegiatanController = TextEditingController(); // Added this
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
 
     if (widget.initialData != null) {
       _initializeFromData(widget.initialData!);
     }
   }
+
+  bool get showRevisionNotes =>
+      widget.initialData?.statusId == 5 ||
+      widget.initialData?.statusNama?.toLowerCase() == 'revisi' ||
+      widget.initialData?.statusNama?.toLowerCase() == 'perlu revisi';
 
   void _initializeFromData(KakDetail data) {
     namaController.text = data.namaKegiatan;
@@ -156,10 +171,19 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     metodeController.text = data.metodePelaksanaan;
     lokasiController.text = data.lokasi;
     sasaranController.text = data.sasaranUtama;
+    outputKegiatanController.text = data.outputKegiatan; // Added this
 
     tanggalMulai = DateTime.tryParse(data.tanggalMulai);
     tanggalSelesai = DateTime.tryParse(data.tanggalSelesai);
+    _initialTanggalMulai = tanggalMulai;
+    _initialTanggalSelesai = tanggalSelesai;
     selectedTipeKegiatan = data.tipeKegiatanId;
+    if (selectedTipeKegiatan != null &&
+        !widget.tipeKegiatanOptions.any(
+          (option) => int.tryParse((option['tipe_kegiatan_id'] ?? option['id'] ?? '').toString()) == selectedTipeKegiatan,
+        )) {
+      selectedTipeKegiatan = null; // Reset if not found
+    }
 
     manfaatList = data.manfaat
         .map((m) => ManfaatItem(id: m.manfaatId.toString(), value: m.manfaat))
@@ -192,11 +216,29 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
             id: r.anggaranId.toString(),
             uraian: r.uraian,
             volume1: r.volume1?.toDouble() ?? 0,
-            satuan1Id: r.satuan1Id,
+            satuan1Id:
+                (r.satuan1Id != null &&
+                    widget.satuanOptions.any(
+                      (option) => int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) == r.satuan1Id,
+                    ))
+                ? r.satuan1Id
+                : null,
             volume2: r.volume2?.toDouble(),
-            satuan2Id: r.satuan2Id,
+            satuan2Id:
+                (r.satuan2Id != null &&
+                    widget.satuanOptions.any(
+                      (option) => int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) == r.satuan2Id,
+                    ))
+                ? r.satuan2Id
+                : null,
             volume3: r.volume3?.toDouble(),
-            satuan3Id: r.satuan3Id,
+            satuan3Id:
+                (r.satuan3Id != null &&
+                    widget.satuanOptions.any(
+                      (option) => int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) == r.satuan3Id,
+                    ))
+                ? r.satuan3Id
+                : null,
             hargaSatuan: r.hargaSatuan?.toDouble() ?? 0,
             kategoriBelanjaId: r.kategoriBelanjaId,
           ),
@@ -227,11 +269,24 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
         .map(
           (t) => TargetIkuItem(
             id: t.ikuId.toString(),
-            ikuId: int.tryParse(t.ikuId.toString()) ?? 0,
+            ikuId:
+                (int.tryParse(t.ikuId) != null &&
+                    widget.ikuOptions.any(
+                      (option) =>
+                          int.tryParse((option['iku_id'] ?? option['id'] ?? '').toString()) == int.tryParse(t.ikuId),
+                    ))
+                ? int.tryParse(t.ikuId)!
+                : 0,
             ikuNama: t.ikuNama,
             target: t.target.toString(),
-            satuanId: t.satuanId != null
-                ? int.tryParse(t.satuanId.toString())
+            satuanId:
+                (t.satuanId != null &&
+                    widget.satuanOptions.any(
+                      (option) =>
+                          int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) ==
+                          int.tryParse(t.satuanId ?? ''),
+                    ))
+                ? int.tryParse(t.satuanId ?? '')
                 : null,
             note: t.catatanVerifikator,
           ),
@@ -246,34 +301,61 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
       'metode_pelaksanaan': metodeController.text,
       'lokasi': lokasiController.text,
       'sasaran_utama': sasaranController.text,
+      'output_kegiatan': outputKegiatanController.text, // Added this
       'tanggal_mulai': tanggalMulai?.toIso8601String().split('T')[0] ?? '',
       'tanggal_selesai': tanggalSelesai?.toIso8601String().split('T')[0] ?? '',
       'tipe_kegiatan_id': selectedTipeKegiatan ?? '',
-      'manfaat': manfaatList.map((m) => {'value': m.value}).toList(),
+      'manfaat': manfaatList
+          .map((m) {
+            final map = <String, dynamic>{'value': m.value};
+            if (!m.id.startsWith('new_')) {
+              map['manfaat_id'] = m.id;
+            }
+            return map;
+          })
+          .toList(),
       'tahapan_pelaksanaan': tahapanList
-          .map((t) => {'nama_tahapan': t.nama})
+          .map((t) {
+            final map = <String, dynamic>{'nama_tahapan': t.nama};
+            if (!t.id.startsWith('new_')) {
+              map['tahapan_id'] = t.id;
+            }
+            return map;
+          })
           .toList(),
       'indikator_kinerja': indikatorKinerjaList
           .map(
-            (i) => {
-              'bulan_indikator': i.bulanIndikator,
-              'deskripsi_target': i.deskripsiTarget,
-              'persentase_target': i.persentaseTarget,
+            (i) {
+              final map = <String, dynamic>{
+                'bulan_indikator': i.bulanIndikator,
+                'deskripsi_target': i.deskripsiTarget,
+                'persentase_target': i.persentaseTarget,
+              };
+              if (!i.id.startsWith('new_')) {
+                map['target_id'] = i.id;
+              }
+              return map;
             },
           )
           .toList(),
       'rab': rabList
           .map(
-            (r) => {
-              'uraian': r.uraian,
-              'volume1': r.volume1,
-              'satuan1_id': r.satuan1Id,
-              'volume2': r.volume2,
-              'satuan2_id': r.satuan2Id,
-              'volume3': r.volume3,
-              'satuan3_id': r.satuan3Id,
-              'harga_satuan': r.hargaSatuan,
-              'kategori_belanja_id': r.kategoriBelanjaId,
+            (r) {
+              final map = <String, dynamic>{
+                'uraian': r.uraian,
+                'volume1': r.volume1,
+                'satuan1_id': r.satuan1Id,
+                'volume2': r.volume2,
+                'satuan2_id': r.satuan2Id,
+                'volume3': r.volume3,
+                'satuan3_id': r.satuan3Id,
+                'harga_satuan': r.hargaSatuan,
+                'kategori_belanja_id': r.kategoriBelanjaId,
+              };
+              if (!r.id.startsWith('new_')) {
+                map['anggaran_id'] = r.id;
+              }
+              return map;
             },
           )
           .toList(),
@@ -293,7 +375,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     setState(() {
       manfaatList.add(
         ManfaatItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           value: '',
         ),
       );
@@ -310,7 +392,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     setState(() {
       tahapanList.add(
         TahapanItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           nama: '',
           urutan: tahapanList.length + 1,
         ),
@@ -332,7 +414,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     setState(() {
       indikatorKinerjaList.add(
         IndikatorKinerjaItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           bulanIndikator: '',
           deskripsiTarget: '',
           persentaseTarget: null,
@@ -351,7 +433,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     setState(() {
       targetIkuList.add(
         TargetIkuItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           ikuId: 0,
           ikuNama: '',
           target: '',
@@ -370,9 +452,11 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     setState(() {
       rabList.add(
         RabItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           uraian: '',
           volume1: 1,
+          volume2: 0,
+          volume3: 0,
           hargaSatuan: 0,
           kategoriBelanjaId: kategoriId,
         ),
@@ -386,7 +470,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     });
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+  Future<void> _selectDate(BuildContext context, bool isStartDate, FormFieldState<DateTime> state) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStartDate
@@ -394,6 +478,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           : (tanggalSelesai ?? DateTime.now()),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      confirmText: 'Oke',
     );
     if (picked != null) {
       setState(() {
@@ -402,6 +487,8 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
         } else {
           tanggalSelesai = picked;
         }
+        state.didChange(picked);
+        widget.onFormChange(getFormData());
       });
     }
   }
@@ -410,1505 +497,1483 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     required String label,
     required int? value,
     required ValueChanged<int?> onChanged,
+    String? Function(int?)? validator,
   }) {
-    return DropdownButtonFormField<int>(
-      value:
-          widget.satuanOptions.any((s) => (s['satuan_id'] ?? s['id']) == value)
+    if (widget.readOnly) {
+      final satuan = widget.satuanOptions.firstWhere(
+        (s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value,
+        orElse: () => null,
+      );
+      final satuanNama = satuan != null ? (satuan['nama_satuan'] ?? satuan['nama'] ?? '-').toString() : '-';
+      return TextFormField(
+        initialValue: satuanNama,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: const Color(0xFFF1F5F9),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabled: false,
+        ),
+      );
+    }
+    return DropdownButtonFormField<int?>(
+      isExpanded: true,
+      value: widget.satuanOptions.any((s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value)
           ? value
           : null,
       decoration: InputDecoration(
         labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border:
+            OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+        ),
       ),
-      items: widget.satuanOptions.map<DropdownMenuItem<int>>((satuan) {
-        return DropdownMenuItem<int>(
-          value: satuan['satuan_id'] ?? satuan['id'],
-          child: Text(satuan['nama_satuan'] ?? satuan['name'] ?? ''),
-        );
-      }).toList(),
+      items: [
+        const DropdownMenuItem<int?>(
+          value: null,
+          child: Text('Satuan'),
+        ),
+        ...widget.satuanOptions
+            .where((o) => int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()) != null)
+            .map<DropdownMenuItem<int?>>((o) => DropdownMenuItem<int?>(
+                  value: int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()),
+                  child: Text((o['nama_satuan'] ?? o['nama'] ?? '').toString()),
+                )),
+      ],
       onChanged: widget.readOnly ? null : onChanged,
+      validator: validator,
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Form(
-      key: _formKey,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
+  // ─── helpers ─────────────────────────────────────────────────────────────
+  Widget _sectionCard({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+    Color iconColor = const Color(0xFF33C8DA),
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Informasi Umum
-          Text(
-            'Informasi Umum',
-            style: GoogleFonts.figtree(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, size: 17, color: iconColor),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  title,
+                  style: GoogleFonts.figtree(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Nama Kegiatan
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanNamaKegiatan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: namaController,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Kegiatan',
-                      hintText: 'Contoh: Workshop Digital Marketing',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : colorScheme.primary,
-                          width: hasNote ? 1.4 : 1.2,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.redAccent,
-                          width: 1.2,
-                        ),
-                      ),
-
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nama kegiatan harus diisi';
-                      }
-                      if (value.length < 5) {
-                        return 'Minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
+          const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: children,
+            ),
           ),
-          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-          // Tipe Kegiatan
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanTipeKegiatan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButtonFormField<int>(
-                    value: selectedTipeKegiatan,
-                    decoration: InputDecoration(
-                      labelText: 'Tipe Kegiatan',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : colorScheme.primary,
-                          width: hasNote ? 1.4 : 1.2,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.redAccent,
-                          width: 1.2,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    items: widget.tipeKegiatanOptions
-                        .map<DropdownMenuItem<int>>(
-                          (tipe) => DropdownMenuItem<int>(
-                            value: tipe['tipe_kegiatan_id'] ?? tipe['id'],
-                            child: Text(
-                              tipe['nama_tipe'] ?? tipe['name'] ?? '',
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: widget.readOnly
-                        ? null
-                        : (value) {
-                            setState(() {
-                              selectedTipeKegiatan = value;
-                            });
-                            widget.onFormChange(getFormData());
-                          },
-                    validator: (value) {
-                      if (value == null) return 'Tipe kegiatan harus dipilih';
-                      return null;
-                    },
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
+  Widget _addItemButton({
+    required String label,
+    required VoidCallback onPressed,
+    IconData icon = Icons.add_circle_outline,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 16),
+      label: Text(label, style: GoogleFonts.figtree(fontSize: 13)),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF33C8DA),
+        side: const BorderSide(color: Color(0xFF33C8DA), width: 1.2),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  // ─── helper for revision notes ───────────────────────────────────────────
+  Widget _buildNoteDisplay(String? note) {
+    if (!showRevisionNotes || note == null || note.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED), // Light orange background
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFFCC80)), // Orange border
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline,
+            color: Color(0xFFE65100), // Dark orange icon
+            size: 18,
           ),
-
-          // Deskripsi
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanDeskripsiKegiatan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: deskripsiController,
-                    decoration: InputDecoration(
-                      labelText: 'Gambaran Umum Kegiatan',
-                      hintText: 'Jelaskan kegiatan ini...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Deskripsi harus diisi';
-                      }
-                      if (value.length < 5) {
-                        return 'Minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Sasaran Utama
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanSasaranUtama;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: sasaranController,
-                    decoration: InputDecoration(
-                      labelText: 'Sasaran Utama',
-                      hintText: 'Siapa target peserta?',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Sasaran utama harus diisi';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Manfaat
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Output/Manfaat Kegiatan',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Catatan Verifikator: $note',
+              style: GoogleFonts.figtree(
+                fontSize: 12,
+                color: const Color(0xFFE65100), // Dark orange text
+                fontWeight: FontWeight.w500,
               ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addManfaat,
-                  icon: const Icon(Icons.add_circle),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Tab 1: Kerangka Acuan Kerja ─────────────────────────────────────────
+  Widget _buildKerangkaAcuanKerjaForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Informasi Dasar ──────────────────────────────────────────────
+          _sectionCard(
+            icon: Icons.info_outline,
+            title: 'Informasi Dasar',
+            children: [
+              TextFormField(
+                controller: namaController,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Kegiatan',
+                  prefixIcon: Icon(Icons.event_note_outlined, size: 20),
                 ),
+                readOnly: widget.readOnly,
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Nama kegiatan wajib diisi' : null,
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanNamaKegiatan),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<int?>(
+                value: widget.tipeKegiatanOptions.any((o) => int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()) == selectedTipeKegiatan)
+                    ? selectedTipeKegiatan
+                    : null,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Tipe Kegiatan',
+                  prefixIcon: const Icon(Icons.category_outlined, size: 20),
+                ),
+                items: [
+                  const DropdownMenuItem<int?>(
+                    value: null,
+                    child: Text('Pilih Tipe Kegiatan'),
+                  ),
+                  ...widget.tipeKegiatanOptions
+                      .where((o) => int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()) != null)
+                      .map<DropdownMenuItem<int?>>((o) => DropdownMenuItem<int?>(
+                            value: int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()),
+                            child: Text(
+                              (o['nama_tipe'] ?? o['nama'] ?? '').toString(),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          )),
+                ],
+                onChanged: widget.readOnly
+                    ? null
+                    : (v) => setState(() => selectedTipeKegiatan = v),
+                validator: (v) =>
+                    (v == null) ? 'Tipe kegiatan wajib dipilih' : null,
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanTipeKegiatan),
             ],
           ),
-          const SizedBox(height: 8),
-          ...manfaatList.asMap().entries.map((entry) {
-            int index = entry.key;
-            ManfaatItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
+
+          // ── Kurun Waktu ──────────────────────────────────────────────────
+          _sectionCard(
+            icon: Icons.calendar_today_outlined,
+            title: 'Kurun Waktu Pelaksanaan',
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          initialValue: item.value,
-                          decoration: InputDecoration(
-                            labelText: 'Manfaat ${index + 1}',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? Colors.redAccent
-                                    : const Color(0xFFE2E8F0),
-                                width:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? 1.2
-                                    : 0.5,
+                    child: FormField<DateTime>(
+                      initialValue: tanggalMulai,
+                      validator: (val) {
+                        if (tanggalMulai == null) {
+                          return 'Wajib diisi';
+                        }
+                        final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+                        final isNew = widget.initialData == null;
+                        final dateChanged = tanggalMulai != _initialTanggalMulai;
+                        if ((isNew || dateChanged) && tanggalMulai!.isBefore(today)) {
+                          return 'Tidak boleh sebelum hari ini';
+                        }
+                        return null;
+                      },
+                      builder: (FormFieldState<DateTime> state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              onTap: widget.readOnly
+                                  ? null
+                                  : () => _selectDate(context, true, state),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Tanggal Mulai',
+                                  errorText: state.errorText,
+                                  prefixIcon: const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 20,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                ),
+                                child: Text(
+                                  tanggalMulai == null
+                                      ? 'Pilih Tanggal'
+                                      : DateFormat('dd/MM/yyyy').format(tanggalMulai!),
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 14,
+                                    color: tanggalMulai == null
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
                               ),
                             ),
-                            filled:
-                                (item.note != null &&
-                                item.note!.trim().isNotEmpty),
-                            fillColor:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? const Color(0xFFFFF1F0)
-                                : null,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Manfaat tidak boleh kosong';
-                            }
-                            return null;
-                          },
-                          onChanged: widget.readOnly
-                              ? null
-                              : (value) {
-                                  setState(() {
-                                    item.value = value;
-                                  });
-                                },
-                          enabled: !widget.readOnly,
-                        ),
-                        if (item.note != null &&
-                            item.note!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            'Catatan Verifikator: ${item.note}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              color: Colors.redAccent,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () => _removeManfaat(index),
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                  ),
-                ],
-              ),
-            );
-          }),
-          if (manfaatList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah manfaat',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Metode Pelaksanaan
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanMetodePelaksanaan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: metodeController,
-                    decoration: InputDecoration(
-                      labelText: 'Metode Pelaksanaan',
-                      hintText: 'Jelaskan cara pelaksanaannya...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Metode harus diisi';
-                      }
-                      if (value.length < 5) {
-                        return 'Minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Tahapan
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Tahapan Kegiatan',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addTahapan,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...tahapanList.asMap().entries.map((entry) {
-            int index = entry.key;
-            TahapanItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: GoogleFonts.figtree(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          initialValue: item.nama,
-                          decoration: InputDecoration(
-                            labelText: 'Tahapan ${index + 1}',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? Colors.redAccent
-                                    : const Color(0xFFE2E8F0),
-                                width:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? 1.2
-                                    : 0.5,
-                              ),
-                            ),
-                            filled:
-                                (item.note != null &&
-                                item.note!.trim().isNotEmpty),
-                            fillColor:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? const Color(0xFFFFF1F0)
-                                : null,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Tahapan tidak boleh kosong';
-                            }
-                            return null;
-                          },
-                          onChanged: widget.readOnly
-                              ? null
-                              : (value) {
-                                  setState(() {
-                                    item.nama = value;
-                                  });
-                                },
-                          enabled: !widget.readOnly,
-                        ),
-                        if (item.note != null &&
-                            item.note!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            'Catatan Verifikator: ${item.note}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              color: Colors.redAccent,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (!widget.readOnly)
-                    IconButton(
-                      onPressed: () => _removeTahapan(index),
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                    ),
-                ],
-              ),
-            );
-          }),
-          if (tahapanList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah tahapan',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Indikator Kinerja
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Indikator Kinerja',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addIndikatorKinerja,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...indikatorKinerjaList.asMap().entries.map((entry) {
-            int index = entry.key;
-            IndikatorKinerjaItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: (item.note != null && item.note!.trim().isNotEmpty)
-                        ? Colors.redAccent
-                        : colorScheme.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  color: (item.note != null && item.note!.trim().isNotEmpty)
-                      ? const Color(0xFFFFF1F0)
-                      : null,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Indikator ${index + 1}',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (!widget.readOnly)
-                          IconButton(
-                            onPressed: () => _removeIndikatorKinerja(index),
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.bulanIndikator,
-                      decoration: InputDecoration(
-                        labelText: 'Bulan Indikator',
-                        hintText: 'Contoh: Januari',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.bulanIndikator = value;
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.deskripsiTarget,
-                      decoration: InputDecoration(
-                        labelText: 'Deskripsi Target',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? Colors.redAccent
-                                : const Color(0xFFE2E8F0),
-                            width:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? 1.2
-                                : 0.5,
-                          ),
-                        ),
-                        filled:
-                            (item.note != null && item.note!.trim().isNotEmpty),
-                        fillColor:
-                            (item.note != null && item.note!.trim().isNotEmpty)
-                            ? const Color(0xFFFFF1F0)
-                            : null,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Deskripsi target tidak boleh kosong';
+                    child: FormField<DateTime>(
+                      initialValue: tanggalSelesai,
+                      validator: (val) {
+                        if (tanggalSelesai == null) {
+                          return 'Wajib diisi';
+                        }
+                        if (tanggalMulai != null && tanggalSelesai!.isBefore(tanggalMulai!)) {
+                          return 'Tidak boleh sebelum tanggal mulai';
                         }
                         return null;
                       },
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.deskripsiTarget = value;
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Catatan Verifikator: ${item.note}',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.persentaseTarget?.toString() ?? '',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'Persentase Target (%)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.persentaseTarget = double.tryParse(value);
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-          if (indikatorKinerjaList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah indikator kinerja',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Tanggal
-          Text(
-            'Periode Pelaksanaan',
-            style: GoogleFonts.figtree(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: widget.readOnly
-                      ? null
-                      : () => _selectDate(context, true),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tanggal Mulai',
-                          style: GoogleFonts.figtree(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tanggalMulai != null
-                              ? DateFormat(
-                                  'dd MMM yyyy',
-                                  'id_ID',
-                                ).format(tanggalMulai!)
-                              : 'Pilih tanggal',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: InkWell(
-                  onTap: widget.readOnly
-                      ? null
-                      : () => _selectDate(context, false),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tanggal Selesai',
-                          style: GoogleFonts.figtree(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tanggalSelesai != null
-                              ? DateFormat(
-                                  'dd MMM yyyy',
-                                  'id_ID',
-                                ).format(tanggalSelesai!)
-                              : 'Pilih tanggal',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Lokasi
-          TextFormField(
-            controller: lokasiController,
-            decoration: InputDecoration(
-              labelText: 'Lokasi',
-              hintText: 'Contoh: Aula Utama Gedung A',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color:
-                      (widget.initialData?.catatanLokasi != null &&
-                          widget.initialData!.catatanLokasi!.trim().isNotEmpty)
-                      ? Colors.redAccent
-                      : const Color(0xFFE2E8F0),
-                  width:
-                      (widget.initialData?.catatanLokasi != null &&
-                          widget.initialData!.catatanLokasi!.trim().isNotEmpty)
-                      ? 1.2
-                      : 0.5,
-                ),
-              ),
-              filled:
-                  (widget.initialData?.catatanLokasi != null &&
-                  widget.initialData!.catatanLokasi!.trim().isNotEmpty),
-              fillColor:
-                  (widget.initialData?.catatanLokasi != null &&
-                      widget.initialData!.catatanLokasi!.trim().isNotEmpty)
-                  ? const Color(0xFFFFF1F0)
-                  : null,
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Lokasi harus diisi';
-              }
-              return null;
-            },
-            onChanged: widget.readOnly
-                ? null
-                : (_) => widget.onFormChange(getFormData()),
-            enabled: !widget.readOnly,
-          ),
-          if (widget.initialData?.catatanLokasi != null &&
-              widget.initialData!.catatanLokasi!.trim().isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Catatan Verifikator: ${widget.initialData!.catatanLokasi!}',
-              style: GoogleFonts.figtree(
-                fontSize: 12,
-                color: Colors.redAccent,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-
-          // Indikator Kinerja Utama (IKU)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Indikator Kinerja Utama (IKU)',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addTargetIku,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...targetIkuList.asMap().entries.map((entry) {
-            int index = entry.key;
-            TargetIkuItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: (item.note != null && item.note!.trim().isNotEmpty)
-                        ? Colors.redAccent
-                        : colorScheme.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  color: (item.note != null && item.note!.trim().isNotEmpty)
-                      ? const Color(0xFFFFF1F0)
-                      : null,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Target IKU ${index + 1}',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (!widget.readOnly)
-                          IconButton(
-                            onPressed: () => _removeTargetIku(index),
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // IKU Selection
-                    DropdownButtonFormField<int>(
-                      value: widget.ikuOptions.any(
-                                (i) => (i['iku_id'] ?? i['id']) == item.ikuId,
-                              )
-                          ? item.ikuId
-                          : null,
-                      decoration: InputDecoration(
-                        labelText: 'Pilih IKU',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      items: widget.ikuOptions.map<DropdownMenuItem<int>>((
-                        iku,
-                      ) {
-                        return DropdownMenuItem<int>(
-                          value: iku['iku_id'] ?? iku['id'],
-                          child: Text(
-                            '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.ikuId = value ?? 0;
-                              });
-                              widget.onFormChange(getFormData());
-                            },
-                    ),
-                    const SizedBox(height: 12),
-                    // Target Input
-                    TextFormField(
-                      initialValue: item.target,
-                      decoration: InputDecoration(
-                        labelText: 'Target Capaian',
-                        hintText: 'Contoh: 100',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      keyboardType: TextInputType.text,
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.target = value;
-                              });
-                              widget.onFormChange(getFormData());
-                            },
-                    ),
-                    const SizedBox(height: 12),
-                    // Satuan Selection
-                    _buildSatuanDropdown(
-                      label: 'Satuan Target',
-                      value: item.satuanId,
-                      onChanged: (val) {
-                        setState(() {
-                          item.satuanId = val;
-                        });
-                        widget.onFormChange(getFormData());
-                      },
-                    ),
-                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Catatan Verifikator: ${item.note}',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          }),
-          if (targetIkuList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah target IKU',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-
-          // RAB Grouped by Category
-          ...widget.kategoriBelanjaOptions.map((kategori) {
-            final kategoriId = kategori['kategori_belanja_id'] ?? kategori['id'];
-            final kategoriNama = kategori['nama'] ?? kategori['name'] ?? '';
-            final categoryItems = rabList.where((item) => item.kategoriBelanjaId == kategoriId).toList();
-            final categoryTotal = categoryItems.fold<double>(0, (sum, item) => sum + item.getTotal());
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        kategoriNama,
-                        style: GoogleFonts.figtree(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                    if (!widget.readOnly)
-                      IconButton(
-                        onPressed: () => _addRab(kategoriId),
-                        icon: const Icon(Icons.add_circle),
-                      ),
-                  ],
-                ),
-                if (categoryTotal > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Text(
-                      'Subtotal: Rp ${NumberFormat("#,##0", "id_ID").format(categoryTotal.toInt())}',
-                      style: GoogleFonts.figtree(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                if (categoryItems.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      'Klik + untuk menambah $kategoriNama',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: colorScheme.outline,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                ...categoryItems.map((item) {
-                  final indexInMainList = rabList.indexOf(item);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: (item.note != null && item.note!.trim().isNotEmpty)
-                              ? Colors.redAccent
-                              : colorScheme.outline,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: (item.note != null && item.note!.trim().isNotEmpty)
-                            ? const Color(0xFFFFF1F0)
-                            : null,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Item RAB',
-                                style: GoogleFonts.figtree(
-                                  fontWeight: FontWeight.w600,
+                      builder: (FormFieldState<DateTime> state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              onTap: widget.readOnly
+                                  ? null
+                                  : () => _selectDate(context, false, state),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Tanggal Selesai',
+                                  errorText: state.errorText,
+                                  prefixIcon: const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 20,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
                                 ),
-                              ),
-                              if (!widget.readOnly)
-                                IconButton(
-                                  onPressed: () => _removeRab(indexInMainList),
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  iconSize: 20,
+                                child: Text(
+                                  tanggalSelesai == null
+                                      ? 'Pilih Tanggal'
+                                      : DateFormat('dd/MM/yyyy').format(tanggalSelesai!),
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 14,
+                                    color: tanggalSelesai == null
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF0F172A),
+                                  ),
                                 ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: item.uraian,
-                            decoration: InputDecoration(
-                              labelText: 'Uraian',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Uraian tidak boleh kosong';
-                              }
-                              return null;
-                            },
-                            onChanged: widget.readOnly
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      item.uraian = value;
-                                    });
-                                  },
-                            enabled: !widget.readOnly,
-                          ),
-                          if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              'Catatan Verifikator: ${item.note!}',
-                              style: GoogleFonts.figtree(
-                                fontSize: 12,
-                                color: Colors.redAccent,
-                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ],
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      initialValue: item.volume1.toString(),
-                                      decoration: InputDecoration(
-                                        labelText: 'Vol 1',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                item.volume1 =
-                                                    double.tryParse(value) ?? 0;
-                                              });
-                                            },
-                                      enabled: !widget.readOnly,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _buildSatuanDropdown(
-                                      label: 'Satuan 1',
-                                      value: item.satuan1Id,
-                                      onChanged: (val) =>
-                                          setState(() => item.satuan1Id = val),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      initialValue: item.volume2?.toString() ?? '',
-                                      decoration: InputDecoration(
-                                        labelText: 'Vol 2',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                item.volume2 = double.tryParse(value);
-                                              });
-                                            },
-                                      enabled: !widget.readOnly,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _buildSatuanDropdown(
-                                      label: 'Satuan 2',
-                                      value: item.satuan2Id,
-                                      onChanged: (val) =>
-                                          setState(() => item.satuan2Id = val),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      initialValue: item.volume3?.toString() ?? '',
-                                      decoration: InputDecoration(
-                                        labelText: 'Vol 3',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                item.volume3 = double.tryParse(value);
-                                              });
-                                            },
-                                      enabled: !widget.readOnly,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _buildSatuanDropdown(
-                                      label: 'Satuan 3',
-                                      value: item.satuan3Id,
-                                      onChanged: (val) =>
-                                          setState(() => item.satuan3Id = val),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: item.hargaSatuan.toString(),
-                            decoration: InputDecoration(
-                              labelText: 'Harga Satuan (Rp)',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Harga satuan harus diisi';
-                              }
-                              return null;
-                            },
-                            onChanged: widget.readOnly
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      item.hargaSatuan = double.tryParse(value) ?? 0;
-                                    });
-                                  },
-                            enabled: !widget.readOnly,
-                          ),
-                          const SizedBox(height: 8),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanTanggal),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: lokasiController,
+                decoration: const InputDecoration(
+                  labelText: 'Lokasi Pelaksanaan',
+                  prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                ),
+                readOnly: widget.readOnly,
+                onChanged: (_) => widget.onFormChange(getFormData()),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Lokasi wajib diisi' : null,
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanLokasi),
+            ],
+          ),
+
+          // ── Deskripsi & Metode ───────────────────────────────────────────
+          _sectionCard(
+            icon: Icons.description_outlined,
+            title: 'Detail Kegiatan',
+            children: [
+              TextFormField(
+                controller: deskripsiController,
+                decoration: const InputDecoration(
+                  labelText: 'Gambaran Umum Kegiatan',
+                  alignLabelWithHint: true,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 52),
+                    child: Icon(Icons.article_outlined, size: 20),
+                  ),
+                ),
+                maxLines: 4,
+                readOnly: widget.readOnly,
+                validator: (v) => (v == null || v.isEmpty)
+                    ? 'Gambaran umum wajib diisi'
+                    : null,
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanDeskripsiKegiatan),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: sasaranController,
+                decoration: const InputDecoration(
+                  labelText: 'Sasaran Utama',
+                  alignLabelWithHint: true,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 24),
+                    child: Icon(Icons.track_changes_outlined, size: 20),
+                  ),
+                ),
+                maxLines: 2,
+                readOnly: widget.readOnly,
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Sasaran utama wajib diisi' : null,
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanSasaranUtama),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: outputKegiatanController,
+                decoration: const InputDecoration(
+                  labelText: 'Output Kegiatan',
+                  alignLabelWithHint: true,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 24),
+                    child: Icon(Icons.output_outlined, size: 20),
+                  ),
+                ),
+                maxLines: 2,
+                readOnly: widget.readOnly,
+                validator: (v) => (v == null || v.isEmpty)
+                    ? 'Output kegiatan wajib diisi'
+                    : null,
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: metodeController,
+                decoration: const InputDecoration(
+                  labelText: 'Metode Pelaksanaan',
+                  alignLabelWithHint: true,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(bottom: 24),
+                    child: Icon(Icons.schema_outlined, size: 20),
+                  ),
+                ),
+                maxLines: 2,
+                readOnly: widget.readOnly,
+                validator: (v) => (v == null || v.isEmpty)
+                    ? 'Metode pelaksanaan wajib diisi'
+                    : null,
+              ),
+              _buildNoteDisplay(widget.initialData?.catatanMetodePelaksanaan),
+            ],
+          ),
+
+          // ── Manfaat ──────────────────────────────────────────────────────
+          _sectionCard(
+            icon: Icons.volunteer_activism_outlined,
+            title: 'Output/Manfaat Kegiatan',
+            children: [
+              if (manfaatList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Belum ada manfaat. Klik tombol di bawah untuk menambahkan.',
+                    style: GoogleFonts.figtree(
+                      fontSize: 13,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+              ...manfaatList.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            width: 28,
+                            height: 28,
                             decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(4),
+                              color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(7),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Total:',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF33C8DA),
                                 ),
-                                Text(
-                                  'Rp ${NumberFormat("#,##0", "id_ID").format(item.getTotal().toInt())}',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.value,
+                              decoration: InputDecoration(
+                                labelText: 'Manfaat ${index + 1}',
+                              ),
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                item.value = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Manfaat tidak boleh kosong'
+                                  : null,
+                            ),
+                          ),
+                          if (!widget.readOnly)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                              onPressed: () => _removeManfaat(index),
+                            ),
+                        ],
+                      ),
+                    ),
+                    _buildNoteDisplay(item.note),
+                  ],
+                );
+              }),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 4),
+                _addItemButton(
+                  label: 'Tambah Manfaat',
+                  onPressed: _addManfaat,
+                ),
+              ],
+            ],
+          ),
+
+          // ── Tahapan ──────────────────────────────────────────────────────
+          _sectionCard(
+            icon: Icons.format_list_numbered_outlined,
+            title: 'Tahapan Kegiatan',
+            children: [
+              if (tahapanList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Belum ada tahapan. Klik tombol di bawah untuk menambahkan.',
+                    style: GoogleFonts.figtree(
+                      fontSize: 13,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+              ...tahapanList.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF33C8DA),
                                 ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.nama,
+                              decoration: InputDecoration(
+                                labelText: 'Tahapan ${index + 1}',
+                              ),
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                item.nama = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Tahapan tidak boleh kosong'
+                                  : null,
+                            ),
+                          ),
+                          if (!widget.readOnly)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                              onPressed: () => _removeTahapan(index),
+                            ),
+                        ],
+                      ),
+                    ),
+                    _buildNoteDisplay(item.note),
+                  ],
+                );
+              }),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 4),
+                _addItemButton(
+                  label: 'Tambah Tahapan',
+                  onPressed: _addTahapan,
+                  icon: Icons.playlist_add_outlined,
+                ),
+              ],
+            ],
+          ),
+
+          // ── Indikator Kinerja ─────────────────────────────────────────────
+          _sectionCard(
+            icon: Icons.trending_up_outlined,
+            title: 'Indikator Kinerja',
+            children: [
+              if (indikatorKinerjaList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Belum ada indikator. Klik tombol di bawah untuk menambahkan.',
+                    style: GoogleFonts.figtree(
+                      fontSize: 13,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+              ...indikatorKinerjaList.asMap().entries.map((entry) {
+                final index = entry.key;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDFF),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: const Color(0xFF33C8DA).withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Indikator ${index + 1}',
+                            style: GoogleFonts.figtree(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF2BA9B8),
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!widget.readOnly)
+                            InkWell(
+                              onTap: () => _removeIndikatorKinerja(index),
+                              borderRadius: BorderRadius.circular(6),
+                              child: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String?>(
+                        isExpanded: true,
+                        value: const [
+                          'Januari',
+                          'Februari',
+                          'Maret',
+                          'April',
+                          'Mei',
+                          'Juni',
+                          'Juli',
+                          'Agustus',
+                          'September',
+                          'Oktober',
+                          'November',
+                          'Desember'
+                        ].contains(indikatorKinerjaList[index].bulanIndikator)
+                            ? indikatorKinerjaList[index].bulanIndikator
+                            : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Bulan Indikator',
+                          prefixIcon:
+                              Icon(Icons.calendar_view_month_outlined, size: 18),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('Pilih Bulan'),
+                          ),
+                          ...[
+                            'Januari',
+                            'Februari',
+                            'Maret',
+                            'April',
+                            'Mei',
+                            'Juni',
+                            'Juli',
+                            'Agustus',
+                            'September',
+                            'Oktober',
+                            'November',
+                            'Desember'
+                          ].map((month) => DropdownMenuItem<String?>(
+                                value: month,
+                                child: Text(month),
+                              )),
+                        ],
+                        onChanged: widget.readOnly
+                            ? null
+                            : (v) {
+                                setState(() {
+                                  indikatorKinerjaList[index].bulanIndikator = v ?? '';
+                                  widget.onFormChange(getFormData());
+                                });
+                              },
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Bulan indikator wajib diisi'
+                            : null,
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        initialValue:
+                            indikatorKinerjaList[index].deskripsiTarget,
+                        decoration: const InputDecoration(
+                          labelText: 'Deskripsi Target',
+                          prefixIcon:
+                              Icon(Icons.subject_outlined, size: 18),
+                        ),
+                        readOnly: widget.readOnly,
+                        onChanged: (v) {
+                          indikatorKinerjaList[index].deskripsiTarget = v;
+                          widget.onFormChange(getFormData());
+                        },
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Deskripsi target wajib diisi'
+                            : null,
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        initialValue: indikatorKinerjaList[index].persentaseTarget
+                            ?.toString(),
+                        decoration: const InputDecoration(
+                          labelText: 'Persentase Target (%)',
+                          prefixIcon: Icon(Icons.percent_outlined, size: 18),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: widget.readOnly,
+                        onChanged: (v) {
+                          indikatorKinerjaList[index].persentaseTarget =
+                              double.tryParse(v);
+                          widget.onFormChange(getFormData());
+                        },
+                        validator: (v) {
+                          if (v == null || v.isEmpty) {
+                            return 'Persentase target wajib diisi';
+                          }
+                          if (double.tryParse(v) == null) return 'Harus angka';
+                          return null;
+                        },
+                      ),
+                      _buildNoteDisplay(indikatorKinerjaList[index].note),
+                    ],
+                  ),
+                );
+              }),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 4),
+                _addItemButton(
+                  label: 'Tambah Indikator Kinerja',
+                  onPressed: _addIndikatorKinerja,
+                  icon: Icons.add_chart_outlined,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Tab 2: Indikator Kinerja Utama ──────────────────────────────────────
+  Widget _buildIndikatorKinerjaUtamaForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionCard(
+            icon: Icons.flag_outlined,
+            title: 'Target IKU',
+            children: [
+              if (targetIkuList.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Belum ada target IKU. Klik tombol di bawah untuk menambahkan.',
+                    style: GoogleFonts.figtree(
+                      fontSize: 13,
+                      color: const Color(0xFF94A3B8),
+                    ),
+                  ),
+                ),
+              ...targetIkuList.asMap().entries.map((entry) {
+                final index = entry.key;
+                final item = entry.value;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDFF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF33C8DA).withValues(alpha: 0.25),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF33C8DA),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'Target IKU ${index + 1}',
+                              style: GoogleFonts.figtree(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          if (!widget.readOnly)
+                            InkWell(
+                              onTap: () => _removeTargetIku(index),
+                              borderRadius: BorderRadius.circular(6),
+                              child: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<int?>(
+                        isExpanded: true,
+                        value: widget.ikuOptions.any((iku) => (iku['iku_id'] ?? iku['id']) == item.ikuId) && item.ikuId != 0
+                            ? item.ikuId
+                            : null,
+                        decoration: const InputDecoration(
+                          labelText: 'Pilih IKU',
+                          prefixIcon: Icon(Icons.flag_circle_outlined, size: 20),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('Pilih IKU'),
+                          ),
+                          ...widget.ikuOptions.map<DropdownMenuItem<int?>>((iku) {
+                            final ikuId = (iku['iku_id'] ?? iku['id']) as int?;
+                            return DropdownMenuItem<int?>(
+                              value: ikuId,
+                              child: Text(
+                                '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }),
+                        ],
+                        onChanged: widget.readOnly
+                            ? null
+                            : (value) {
+                                setState(() {
+                                  targetIkuList[index].ikuId = value ?? 0;
+                                  if (value != null) {
+                                    final found = widget.ikuOptions
+                                        .where((e) =>
+                                            (e['iku_id'] ?? e['id']) == value)
+                                        .toList();
+                                    targetIkuList[index].ikuNama = found.isNotEmpty
+                                        ? (found.first['nama_iku'] ?? '')
+                                        : '';
+                                  } else {
+                                    targetIkuList[index].ikuNama = '';
+                                  }
+                                  widget.onFormChange(getFormData());
+                                });
+                              },
+                        validator: (v) =>
+                            (v == null || v == 0) ? 'IKU wajib dipilih' : null,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.target,
+                              decoration: const InputDecoration(
+                                labelText: 'Target Capaian',
+                                prefixIcon: Icon(Icons.numbers, size: 18),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                targetIkuList[index].target = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return 'Target wajib diisi';
+                                }
+                                if (int.tryParse(v) == null) {
+                                  return 'Harus angka';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: DropdownButtonFormField<int?>(
+                              isExpanded: true,
+                              value: widget.satuanOptions.any((s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == item.satuanId)
+                                  ? item.satuanId
+                                  : null,
+                              decoration: const InputDecoration(
+                                labelText: 'Satuan',
+                                prefixIcon:
+                                    Icon(Icons.straighten_outlined, size: 18),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Pilih Satuan'),
+                                ),
+                                ...widget.satuanOptions
+                                    .where((o) => int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()) != null)
+                                    .map<DropdownMenuItem<int?>>((o) =>
+                                        DropdownMenuItem<int?>(
+                                          value: int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()),
+                                          child: Text((o['nama_satuan'] ?? o['nama'] ?? '').toString()),
+                                        )),
                               ],
+                              onChanged: widget.readOnly
+                                  ? null
+                                  : (v) => setState(() {
+                                        targetIkuList[index].satuanId = v;
+                                        widget.onFormChange(getFormData());
+                                      }),
                             ),
                           ),
                         ],
                       ),
+                      _buildNoteDisplay(item.note),
+                    ],
+                  ),
+                );
+              }),
+              if (!widget.readOnly) ...[
+                const SizedBox(height: 4),
+                _addItemButton(
+                  label: 'Tambah Target IKU',
+                  onPressed: _addTargetIku,
+                  icon: Icons.add_task_outlined,
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Tab 3: Rencana Anggaran Biaya ────────────────────────────────────────
+  Widget _buildRencanaAnggaranBiayaForm() {
+    final currencyFmt =
+        NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...widget.kategoriBelanjaOptions.map<Widget>((kategori) {
+            final int kategoriId = (kategori['kategori_belanja_id'] ?? kategori['id']) ?? 0;
+            final String kategoriNama = (kategori['nama'] ?? kategori['nama_kategori'] ?? 'Unknown').toString();
+            final List<RabItem> items =
+                rabList.where((r) => r.kategoriBelanjaId == kategoriId).toList();
+
+            return _sectionCard(
+              icon: Icons.account_balance_wallet_outlined,
+              title: kategoriNama,
+              children: [
+                if (items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(
+                      'Belum ada item RAB untuk kategori ini.',
+                      style: GoogleFonts.figtree(
+                        fontSize: 13,
+                        color: const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ...items.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final rabItem = entry.value;
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Item ${index + 1}',
+                              style: GoogleFonts.figtree(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF2BA9B8),
+                              ),
+                            ),
+                            const Spacer(),
+                            if (!widget.readOnly)
+                              InkWell(
+                                onTap: () => setState(() {
+                                  rabList.removeWhere((e) => e.id == rabItem.id);
+                                  widget.onFormChange(getFormData());
+                                }),
+                                child: const Icon(
+                                  Icons.delete_outline,
+                                  color: Color(0xFFEF4444),
+                                  size: 18,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          initialValue: rabItem.uraian,
+                          decoration: const InputDecoration(
+                            labelText: 'Uraian',
+                            prefixIcon: Icon(Icons.receipt_long_outlined, size: 18),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          readOnly: widget.readOnly,
+                          onChanged: (v) {
+                            rabItem.uraian = v;
+                            widget.onFormChange(getFormData());
+                          },
+                          validator: (v) => (v == null || v.isEmpty)
+                              ? 'Uraian tidak boleh kosong'
+                              : null,
+                        ),
+                        const SizedBox(height: 8),
+                        // Volume 1 + Satuan 1
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: rabItem.volume1 == 0 ? '' : (rabItem.volume1 == rabItem.volume1.toInt() ? rabItem.volume1.toInt().toString() : rabItem.volume1.toString()),
+                                decoration: const InputDecoration(
+                                  labelText: 'Vol 1',
+                                  hintText: '0',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                keyboardType: TextInputType.number,
+                                readOnly: widget.readOnly,
+                                onChanged: (v) {
+                                  rabItem.volume1 = double.tryParse(v) ?? 0;
+                                  widget.onFormChange(getFormData());
+                                },
+                                validator: (v) =>
+                                    (v == null || double.tryParse(v) == null)
+                                        ? 'Wajib angka'
+                                        : null,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildSatuanDropdown(
+                                label: 'Satuan 1',
+                                value: rabItem.satuan1Id,
+                                onChanged: (v) => setState(() {
+                                  rabItem.satuan1Id = v;
+                                  widget.onFormChange(getFormData());
+                                }),
+                                validator: (v) => v == null ? 'Satuan 1 wajib diisi' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Volume 2 + Satuan 2
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: (rabItem.volume2 == null || rabItem.volume2 == 0) ? '' : (rabItem.volume2 == rabItem.volume2!.toInt() ? rabItem.volume2!.toInt().toString() : rabItem.volume2!.toString()),
+                                decoration: const InputDecoration(
+                                  labelText: 'Vol 2 (opsional)',
+                                  hintText: '0',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                keyboardType: TextInputType.number,
+                                readOnly: widget.readOnly,
+                                onChanged: (v) {
+                                  rabItem.volume2 = double.tryParse(v);
+                                  widget.onFormChange(getFormData());
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildSatuanDropdown(
+                                label: 'Satuan 2',
+                                value: rabItem.satuan2Id,
+                                onChanged: (v) => setState(() {
+                                  rabItem.satuan2Id = v;
+                                  widget.onFormChange(getFormData());
+                                }),
+                                validator: (v) {
+                                  if (rabItem.volume2 != null && rabItem.volume2! > 0 && v == null) {
+                                    return 'Satuan 2 wajib diisi';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Volume 3 + Satuan 3
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                initialValue: (rabItem.volume3 == null || rabItem.volume3 == 0) ? '' : (rabItem.volume3 == rabItem.volume3!.toInt() ? rabItem.volume3!.toInt().toString() : rabItem.volume3!.toString()),
+                                decoration: const InputDecoration(
+                                  labelText: 'Vol 3 (opsional)',
+                                  hintText: '0',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                ),
+                                keyboardType: TextInputType.number,
+                                readOnly: widget.readOnly,
+                                onChanged: (v) {
+                                  rabItem.volume3 = double.tryParse(v);
+                                  widget.onFormChange(getFormData());
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildSatuanDropdown(
+                                label: 'Satuan 3',
+                                value: rabItem.satuan3Id,
+                                onChanged: (v) => setState(() {
+                                  rabItem.satuan3Id = v;
+                                  widget.onFormChange(getFormData());
+                                }),
+                                validator: (v) {
+                                  if (rabItem.volume3 != null && rabItem.volume3! > 0 && v == null) {
+                                    return 'Satuan 3 wajib diisi';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          initialValue: rabItem.hargaSatuan == 0 ? '' : rabItem.hargaSatuan.toStringAsFixed(0),
+                          decoration: const InputDecoration(
+                            labelText: 'Harga Satuan (Rp)',
+                            hintText: '0',
+                            prefixIcon: Icon(Icons.paid_outlined, size: 18),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          keyboardType: TextInputType.number,
+                          readOnly: widget.readOnly,
+                          onChanged: (v) {
+                            rabItem.hargaSatuan = double.tryParse(v) ?? 0;
+                            widget.onFormChange(getFormData());
+                            setState(() {});
+                          },
+                          validator: (v) =>
+                              (v == null || double.tryParse(v) == null)
+                                  ? 'Harga wajib diisi'
+                                  : null,
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF33C8DA),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 13,
+                                  color: Colors.white70,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                currencyFmt.format(rabItem.getTotal()),
+                                style: GoogleFonts.figtree(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        _buildNoteDisplay(rabItem.note),
+                      ],
                     ),
                   );
                 }),
+                if (!widget.readOnly) ...[
+                  const SizedBox(height: 4),
+                  _addItemButton(
+                    label: 'Tambah Item $kategoriNama',
+                    onPressed: () => _addRab(kategoriId),
+                    icon: Icons.add_shopping_cart_outlined,
+                  ),
+                ],
               ],
             );
           }),
-          if (rabList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah item RAB',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Total RAB
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total RAB',
-                  style: GoogleFonts.figtree(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  'Rp ${NumberFormat("#,##0", "id_ID").format(rabList.fold<double>(0, (sum, item) => sum + item.getTotal()).toInt())}',
-                  style: GoogleFonts.figtree(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Submit Button
-          FilledButton(
-            onPressed: widget.isLoading
-                ? null
-                : () {
-                    if (_formKey.currentState!.validate()) {
-                      if (manfaatList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Minimal harus ada 1 manfaat'),
-                          ),
-                        );
-                        return;
-                      }
-                      if (tahapanList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Minimal harus ada 1 tahapan'),
-                          ),
-                        );
-                        return;
-                      }
-                      if (rabList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Minimal harus ada 1 item RAB'),
-                          ),
-                        );
-                        return;
-                      }
-                      widget.onFormChange(getFormData());
-                      widget.onSubmit();
-                    }
-                  },
-            child: widget.isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(
-                    'Simpan',
-                    style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
-                  ),
-          ),
-          const SizedBox(height: 16),
-
-          // Cancel Button
-          OutlinedButton(
-            onPressed: widget.isLoading ? null : () => Navigator.pop(context),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
   @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // ── Premium TabBar ────────────────────────────────────────────────
+        Container(
+          color: Colors.white,
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              labelColor: const Color(0xFF33C8DA),
+              unselectedLabelColor: const Color(0xFF94A3B8),
+              labelStyle: GoogleFonts.figtree(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: GoogleFonts.figtree(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+              indicatorSize: TabBarIndicatorSize.label,
+              indicator: UnderlineTabIndicator(
+                borderSide: const BorderSide(
+                  color: Color(0xFF33C8DA),
+                  width: 2.5,
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(2),
+                ),
+              ),
+              dividerColor: const Color(0xFFE2E8F0),
+              tabs: const [
+                Tab(text: 'Kerangka Acuan'),
+                Tab(text: 'Target IKU'),
+                Tab(text: 'Anggaran (RAB)'),
+              ],
+            ),
+          ),
+
+          // ── Form content ─────────────────────────────────────────────────
+          Expanded(
+            child: Form(
+              key: _formKey,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildKerangkaAcuanKerjaForm(),
+                  _buildIndikatorKinerjaUtamaForm(),
+                  _buildRencanaAnggaranBiayaForm(),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Action Buttons ─────────────────────────────────────────────
+          if (!widget.readOnly)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: widget.isLoading
+                          ? null
+                          : () => Navigator.pop(context),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: Text(
+                        'Batal',
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: Builder(
+                      builder: (context) {
+                        final isLastTab = _tabController.index == 2;
+                        return FilledButton(
+                          onPressed: widget.isLoading
+                              ? null
+                              : () {
+                                  if (isLastTab) {
+                                    if (_formKey.currentState!.validate()) {
+                                      if (manfaatList.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Minimal harus ada 1 manfaat'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (tahapanList.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Minimal harus ada 1 tahapan'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (rabList.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Minimal harus ada 1 item RAB'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      widget.onFormChange(getFormData());
+                                      widget.onSubmit();
+                                    }
+                                  } else {
+                                    _tabController.animateTo(_tabController.index + 1);
+                                  }
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF33C8DA),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: widget.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      isLastTab
+                                          ? Icons.save_outlined
+                                          : Icons.arrow_forward_rounded,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      isLastTab ? 'Simpan KAK' : 'Selanjutnya',
+                                      style: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        );
+                      }
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      );
+  }
+
+  @override
   void dispose() {
+    _tabController.dispose();
     namaController.dispose();
     deskripsiController.dispose();
     metodeController.dispose();
     lokasiController.dispose();
     sasaranController.dispose();
+    outputKegiatanController.dispose();
     super.dispose();
   }
 }
+

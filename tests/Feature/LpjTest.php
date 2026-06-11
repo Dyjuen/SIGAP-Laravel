@@ -104,6 +104,7 @@ class LpjTest extends TestCase
     {
         $anggaran = KAKAnggaran::where('kak_id', $kegiatan->kak_id)->first();
         $satuan = Satuan::first();
+        $kak = $kegiatan->kak;
 
         return [
             'realisasi' => [
@@ -117,10 +118,9 @@ class LpjTest extends TestCase
                     'harga_satuan' => '2000000',
                 ],
             ],
-            'spk_kesesuaian_waktu' => 85,
-            'spk_ketepatan_anggaran' => 90,
+            'realisasi_tgl_mulai' => $kak->tanggal_mulai->toDateString(),
+            'realisasi_tgl_selesai' => $kak->tanggal_selesai->toDateString(),
             'spk_kesesuaian_output' => 100,
-            'spk_ketepatan_lpj' => 95,
         ];
     }
 
@@ -182,10 +182,12 @@ class LpjTest extends TestCase
         // Verify kegiatan was updated
         $kegiatan->refresh();
         $this->assertNotNull($kegiatan->lpj_submitted_at);
-        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
         $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
+        $this->assertEquals($kegiatan->kak->tanggal_mulai->toDateString(), $kegiatan->realisasi_tgl_mulai->toDateString());
+        $this->assertEquals($kegiatan->kak->tanggal_selesai->toDateString(), $kegiatan->realisasi_tgl_selesai->toDateString());
 
         // Verify KAK status updated to 11 (Review LPJ)
         $this->assertDatabaseHas('t_kak', [
@@ -427,10 +429,12 @@ class LpjTest extends TestCase
 
         // Verify kegiatan was updated with SPK
         $kegiatan->refresh();
-        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
         $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
+        $this->assertEquals($kegiatan->kak->tanggal_mulai->toDateString(), $kegiatan->realisasi_tgl_mulai->toDateString());
+        $this->assertEquals($kegiatan->kak->tanggal_selesai->toDateString(), $kegiatan->realisasi_tgl_selesai->toDateString());
 
         // Approval should be back to Aktif
         $this->assertDatabaseHas('t_kegiatan_approval', [

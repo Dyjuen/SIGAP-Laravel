@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mobile/screens/pengusul/kak_list_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:mobile/services/chatbot_service.dart';
 
 class MockHttpClient implements HttpClient {
   @override
@@ -118,8 +120,11 @@ void main() {
 
   testWidgets('KakListPage displays paginated items from backend', (WidgetTester tester) async {
     await tester.pumpWidget(
-      const MaterialApp(
-        home: KakListPage(),
+      ChangeNotifierProvider<ChatbotService>(
+        create: (_) => ChatbotService(),
+        child: const MaterialApp(
+          home: KakListPage(),
+        ),
       ),
     );
 
