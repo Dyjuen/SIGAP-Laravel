@@ -160,6 +160,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     }
   }
 
+  bool get showRevisionNotes =>
+      widget.initialData?.statusId == 5 ||
+      widget.initialData?.statusNama?.toLowerCase() == 'revisi' ||
+      widget.initialData?.statusNama?.toLowerCase() == 'perlu revisi';
+
   void _initializeFromData(KakDetail data) {
     namaController.text = data.namaKegiatan;
     deskripsiController.text = data.deskripsiKegiatan;
@@ -580,6 +585,43 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     );
   }
 
+  // ─── helper for revision notes ───────────────────────────────────────────
+  Widget _buildNoteDisplay(String? note) {
+    if (!showRevisionNotes || note == null || note.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED), // Light orange background
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFFCC80)), // Orange border
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline,
+            color: Color(0xFFE65100), // Dark orange icon
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Catatan Verifikator: $note',
+              style: GoogleFonts.figtree(
+                fontSize: 12,
+                color: const Color(0xFFE65100), // Dark orange text
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── Tab 1: Kerangka Acuan Kerja ─────────────────────────────────────────
   Widget _buildKerangkaAcuanKerjaForm() {
     return SingleChildScrollView(
@@ -602,6 +644,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Nama kegiatan wajib diisi' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanNamaKegiatan),
               const SizedBox(height: 14),
               DropdownButtonFormField<int?>(
                 value: widget.tipeKegiatanOptions.any((o) => int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()) == selectedTipeKegiatan)
@@ -633,6 +676,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null) ? 'Tipe kegiatan wajib dipilih' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanTipeKegiatan),
             ],
           ),
 
@@ -766,6 +810,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                   ),
                 ],
               ),
+              _buildNoteDisplay(widget.initialData?.catatanTanggal),
               const SizedBox(height: 14),
               TextFormField(
                 controller: lokasiController,
@@ -778,6 +823,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Lokasi wajib diisi' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanLokasi),
             ],
           ),
 
@@ -802,6 +848,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                     ? 'Gambaran umum wajib diisi'
                     : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanDeskripsiKegiatan),
               const SizedBox(height: 14),
               TextFormField(
                 controller: sasaranController,
@@ -818,6 +865,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Sasaran utama wajib diisi' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanSasaranUtama),
               const SizedBox(height: 14),
               TextFormField(
                 controller: outputKegiatanController,
@@ -852,6 +900,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                     ? 'Metode pelaksanaan wajib diisi'
                     : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanMetodePelaksanaan),
             ],
           ),
 
@@ -873,56 +922,63 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 ),
               ...manfaatList.asMap().entries.map((entry) {
                 final index = entry.key;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${index + 1}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF33C8DA),
+                final item = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF33C8DA),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: manfaatList[index].value,
-                          decoration: InputDecoration(
-                            labelText: 'Manfaat ${index + 1}',
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.value,
+                              decoration: InputDecoration(
+                                labelText: 'Manfaat ${index + 1}',
+                              ),
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                item.value = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Manfaat tidak boleh kosong'
+                                  : null,
+                            ),
                           ),
-                          readOnly: widget.readOnly,
-                          onChanged: (v) {
-                            manfaatList[index].value = v;
-                            widget.onFormChange(getFormData());
-                          },
-                          validator: (v) => (v == null || v.isEmpty)
-                              ? 'Manfaat tidak boleh kosong'
-                              : null,
-                        ),
+                          if (!widget.readOnly)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                              onPressed: () => _removeManfaat(index),
+                            ),
+                        ],
                       ),
-                      if (!widget.readOnly)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Color(0xFFEF4444),
-                            size: 20,
-                          ),
-                          onPressed: () => _removeManfaat(index),
-                        ),
-                    ],
-                  ),
+                    ),
+                    _buildNoteDisplay(item.note),
+                  ],
                 );
               }),
               if (!widget.readOnly) ...[
@@ -953,56 +1009,63 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 ),
               ...tahapanList.asMap().entries.map((entry) {
                 final index = entry.key;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${index + 1}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF33C8DA),
+                final item = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF33C8DA),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: tahapanList[index].nama,
-                          decoration: InputDecoration(
-                            labelText: 'Tahapan ${index + 1}',
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.nama,
+                              decoration: InputDecoration(
+                                labelText: 'Tahapan ${index + 1}',
+                              ),
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                item.nama = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Tahapan tidak boleh kosong'
+                                  : null,
+                            ),
                           ),
-                          readOnly: widget.readOnly,
-                          onChanged: (v) {
-                            tahapanList[index].nama = v;
-                            widget.onFormChange(getFormData());
-                          },
-                          validator: (v) => (v == null || v.isEmpty)
-                              ? 'Tahapan tidak boleh kosong'
-                              : null,
-                        ),
+                          if (!widget.readOnly)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                              onPressed: () => _removeTahapan(index),
+                            ),
+                        ],
                       ),
-                      if (!widget.readOnly)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Color(0xFFEF4444),
-                            size: 20,
-                          ),
-                          onPressed: () => _removeTahapan(index),
-                        ),
-                    ],
-                  ),
+                    ),
+                    _buildNoteDisplay(item.note),
+                  ],
                 );
               }),
               if (!widget.readOnly) ...[
@@ -1170,6 +1233,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           return null;
                         },
                       ),
+                      _buildNoteDisplay(indikatorKinerjaList[index].note),
                     ],
                   ),
                 );
@@ -1375,6 +1439,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           ),
                         ],
                       ),
+                      _buildNoteDisplay(item.note),
                     ],
                   ),
                 );
@@ -1650,6 +1715,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                             ],
                           ),
                         ),
+                        _buildNoteDisplay(rabItem.note),
                       ],
                     ),
                   );
