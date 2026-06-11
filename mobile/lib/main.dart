@@ -180,6 +180,46 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFFF8FAFC),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.8),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
+          ),
+          labelStyle: const TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 14,
+          ),
+          floatingLabelStyle: const TextStyle(
+            color: Color(0xFF33C8DA),
+            fontWeight: FontWeight.w500,
+          ),
+          errorStyle: const TextStyle(
+            color: Color(0xFFEF4444),
+            fontSize: 12,
+          ),
+        ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
           foregroundColor: Color(0xFF0F172A),
