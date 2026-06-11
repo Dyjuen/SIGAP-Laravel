@@ -1489,7 +1489,9 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume1.toString(),
+                                initialValue: rabItem.volume1 == rabItem.volume1.roundToDouble()
+                                    ? rabItem.volume1.toStringAsFixed(0)
+                                    : rabItem.volume1.toString(),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 1',
                                   filled: true,
@@ -1527,7 +1529,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume2?.toString() ?? '',
+                                initialValue: rabItem.volume2 == null
+                                    ? ''
+                                    : (rabItem.volume2 == rabItem.volume2!.roundToDouble()
+                                        ? rabItem.volume2!.toStringAsFixed(0)
+                                        : rabItem.volume2!.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 2 (opsional)',
                                   filled: true,
@@ -1566,7 +1572,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume3?.toString() ?? '',
+                                initialValue: rabItem.volume3 == null
+                                    ? ''
+                                    : (rabItem.volume3 == rabItem.volume3!.roundToDouble()
+                                        ? rabItem.volume3!.toStringAsFixed(0)
+                                        : rabItem.volume3!.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 3 (opsional)',
                                   filled: true,
@@ -1601,9 +1611,12 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
-                          initialValue: rabItem.hargaSatuan.toStringAsFixed(0),
+                          initialValue: rabItem.hargaSatuan == 0
+                              ? ''
+                              : rabItem.hargaSatuan.toStringAsFixed(0),
                           decoration: const InputDecoration(
                             labelText: 'Harga Satuan (Rp)',
+                            hintText: '0',
                             prefixIcon: Icon(Icons.paid_outlined, size: 18),
                             filled: true,
                             fillColor: Colors.white,
