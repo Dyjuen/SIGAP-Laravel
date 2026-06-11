@@ -54,7 +54,8 @@ class FcmService
                 $stringData[(string) $key] = (string) $value;
             }
 
-            $message = CloudMessage::withTarget('token', $token)
+            $message = CloudMessage::new()
+                ->withToken($token)
                 ->withNotification(Notification::create($title, $body))
                 ->withData($stringData);
 
