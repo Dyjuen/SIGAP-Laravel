@@ -154,13 +154,25 @@ class AdminApiController extends Controller
     public function getPanduan(Request $request)
     {
         // All authenticated users can read panduan (matches web behavior)
-        $guides = Panduan::orderBy('panduan_id', 'desc')->get()->map(fn ($p) => [
-            'id' => $p->panduan_id,
-            'title' => $p->judul_panduan,
-            'type' => $p->tipe_media,
-            'path' => $p->path_media,
-            'target_role_id' => $p->target_role_id,
-        ]);
+        $guides = Panduan::orderBy('panduan_id', 'desc')->get()->map(function ($p) {
+            $path = $p->path_media;
+            if ($p->tipe_media === 'document' && $path) {
+                // Construct the public URL for Supabase storage
+                // AWS_URL in .env: https://amhryhogxzfebcvtozyw.supabase.co/storage/v1/object/public/lampiran
+                // The path stored in DB is usually 'panduan/filename.pdf'
+                // The public URL should be: <AWS_URL>/<path>
+                $baseUrl = config('filesystems.disks.supabase.url');
+                $path = $baseUrl . '/' . $path;
+            }
+            
+            return [
+                'id' => $p->panduan_id,
+                'title' => $p->judul_panduan,
+                'type' => $p->tipe_media,
+                'path' => $path,
+                'target_role_id' => $p->target_role_id,
+            ];
+        });
 
         return response()->json($guides);
     }
