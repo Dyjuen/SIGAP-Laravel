@@ -439,6 +439,32 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
     );
   }
 
+  Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.figtree(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.figtree(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRealizationTable(LpjDetail lpj) {
     // Group realizations by category
     final groupedRealizations = <int, List<LpjRealization>>{};
@@ -479,79 +505,41 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                 ),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Theme.of(context).dividerColor),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: [
-                    DataColumn(
-                      label: Text(
-                        'Item',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+            ...items.map((item) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.uraian.isEmpty ? '-' : item.uraian,
+                      style: GoogleFonts.figtree(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
                       ),
                     ),
-                    DataColumn(
-                      label: Text(
-                        'Diusulkan',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                      ),
+                    const SizedBox(height: 8),
+                    _buildDetailRow('Diusulkan', 'Rp ${_formatCurrency(item.jumlahDiusulkan)}'),
+                    _buildDetailRow('Realisasi', 'Rp ${_formatCurrency(item.realisasiJumlah)}', valueColor: const Color(0xFF10B981)),
+                    _buildDetailRow(
+                      'Volume Realisasi',
+                      '${item.realisasiVolume1 ?? '-'} x ${item.realisasiVolume2 ?? '1'} x ${item.realisasiVolume3 ?? '1'}',
                     ),
-                    DataColumn(
-                      label: Text(
-                        'Realisasi',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        '%',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-                      ),
+                    _buildDetailRow(
+                      'Persentase',
+                      '${item.percentageRealized.toStringAsFixed(1)}%',
+                      valueColor: item.percentageRealized > 100 ? Colors.red : null,
                     ),
                   ],
-                  rows: items.map((item) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          SizedBox(
-                            width: 150,
-                            child: Text(
-                              item.uraian.isEmpty ? '-' : item.uraian,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.figtree(fontSize: 12),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            'Rp ${_formatCurrency(item.jumlahDiusulkan)}',
-                            style: GoogleFonts.figtree(fontSize: 12),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            'Rp ${_formatCurrency(item.realisasiJumlah)}',
-                            style: GoogleFonts.figtree(fontSize: 12),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            '${item.percentageRealized.toStringAsFixed(1)}%',
-                            style: GoogleFonts.figtree(fontSize: 12),
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
                 ),
-              ),
-            ),
+              );
+            }),
           ],
         );
       }).toList(),

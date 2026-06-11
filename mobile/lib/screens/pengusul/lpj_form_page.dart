@@ -480,107 +480,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Widget _buildTableSection(LpjDetail detail, bool isEditable) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.table_chart_outlined,
-                size: 20,
-                color: Color(0xFF33C8DA),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Tabel Realisasi Anggaran',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: DataTable(
-              columnSpacing: 24,
-              horizontalMargin: 20,
-              headingRowHeight: 56,
-              dataRowMinHeight: 120, // Enough for multi-volume inputs
-              dataRowMaxHeight:
-                  280, // Expandable for Evidence row? No, DataTable rows are fixed height.
-              // Let's use a custom approach instead of DataTable for better flexibility
-              columns: const [
-                DataColumn(label: Text('Uraian')),
-                DataColumn(label: Text('Diusulkan'), numeric: true),
-                DataColumn(label: Text('Realisasi Volume & Satuan')),
-                DataColumn(label: Text('Harga Satuan (Real)'), numeric: true),
-                DataColumn(label: Text('Total (Real)'), numeric: true),
-              ],
-              rows: List.generate(detail.anggaranItems.length, (index) {
-                final item = detail.anggaranItems[index];
-                final row = _rows[index];
-
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      SizedBox(
-                        width: 150,
-                        child: Text(
-                          item.uraian,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    DataCell(Text(_formatCurrency(item.jumlahDiusulkan))),
-                    DataCell(_buildVolumeInputs(row, isEditable)),
-                    DataCell(_buildHargaInput(row, isEditable)),
-                    DataCell(
-                      Text(
-                        _formatCurrency(_calculateRowTotal(row)),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            '* Geser tabel ke samping untuk melihat detail realisasi.',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   // Since DataTable is restrictive with dynamic row content like "Bukti Dokumen" sub-rows,
   // let's build a custom table-like structure using Rows and Columns.
 
@@ -867,69 +766,114 @@ class _LpjFormPageState extends State<LpjFormPage> {
             ),
           ),
 
-          // Horizontal Form Row (The "Web Table" feeling)
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          _buildColumnInput(
+                            'Volume 1',
+                            row.volume1Controller,
+                            required: true,
+                            kakValue: _formatDouble(item.volume),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildColumnSatuan(
+                            'Satuan 1',
+                            row,
+                            1,
+                            isEditable,
+                            kakValue: item.satuan1Nama ?? '-',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          _buildColumnInput(
+                            'Volume 2',
+                            row.volume2Controller,
+                            kakValue: item.volume2 != null ? _formatDouble(item.volume2!) : '-',
+                          ),
+                          const SizedBox(height: 8),
+                          _buildColumnSatuan(
+                            'Satuan 2',
+                            row,
+                            2,
+                            isEditable,
+                            kakValue: item.satuan2Nama ?? '-',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          _buildColumnInput(
+                            'Volume 3',
+                            row.volume3Controller,
+                            kakValue: item.volume3 != null ? _formatDouble(item.volume3!) : '-',
+                          ),
+                          const SizedBox(height: 8),
+                          _buildColumnSatuan(
+                            'Satuan 3',
+                            row,
+                            3,
+                            isEditable,
+                            kakValue: item.satuan3Nama ?? '-',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 _buildColumnInput(
-                  'Volume 1',
-                  row.volume1Controller,
-                  60,
-                  required: true,
-                  kakValue: _formatDouble(item.volume),
-                ),
-                _buildColumnSatuan(
-                  'Satuan 1',
-                  row,
-                  1,
-                  isEditable,
-                  kakValue: item.satuan1Nama ?? '-',
-                ),
-                const _Divider(),
-                _buildColumnInput(
-                  'Volume 2',
-                  row.volume2Controller,
-                  60,
-                  kakValue: item.volume2 != null ? _formatDouble(item.volume2!) : '-',
-                ),
-                _buildColumnSatuan(
-                  'Satuan 2',
-                  row,
-                  2,
-                  isEditable,
-                  kakValue: item.satuan2Nama ?? '-',
-                ),
-                const _Divider(),
-                _buildColumnInput(
-                  'Volume 3',
-                  row.volume3Controller,
-                  60,
-                  kakValue: item.volume3 != null ? _formatDouble(item.volume3!) : '-',
-                ),
-                _buildColumnSatuan(
-                  'Satuan 3',
-                  row,
-                  3,
-                  isEditable,
-                  kakValue: item.satuan3Nama ?? '-',
-                ),
-                const _Divider(),
-                _buildColumnInput(
-                  'Harga Satuan',
+                  'Harga Satuan (Rp)',
                   row.hargaSatuanController,
-                  120,
-                  prefix: 'Rp',
                   required: true,
                   kakValue: _formatCurrency(item.hargaSatuan),
                 ),
-                const _Divider(),
-                _buildColumnDisplay(
-                  'Total Realisasi',
-                  _formatCurrency(_calculateRowTotal(row)),
-                  isBold: true,
-                  color: const Color(0xFF10B981),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F7FA),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Realisasi:',
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: const Color(0xFF006064),
+                        ),
+                      ),
+                      Text(
+                        _formatCurrency(_calculateRowTotal(row)),
+                        style: GoogleFonts.figtree(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: const Color(0xFF006064),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -985,15 +929,15 @@ class _LpjFormPageState extends State<LpjFormPage> {
 
   Widget _buildColumnInput(
     String label,
-    TextEditingController controller,
-    double width, {
+    TextEditingController controller, {
+    double? width,
     String? prefix,
     bool required = false,
     String? kakValue,
   }) {
     return Container(
       width: width,
-      margin: const EdgeInsets.only(right: 12),
+      margin: width != null ? const EdgeInsets.only(right: 12) : EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1069,6 +1013,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
     _RealisasiRowControllers row,
     int volIdx,
     bool enabled, {
+    double? width,
     String? kakValue,
   }) {
     String? currentVal;
@@ -1077,8 +1022,8 @@ class _LpjFormPageState extends State<LpjFormPage> {
     if (volIdx == 3) currentVal = row.satuan3Id;
 
     return Container(
-      width: 100,
-      margin: const EdgeInsets.only(right: 12),
+      width: width,
+      margin: width != null ? const EdgeInsets.only(right: 12) : EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1883,19 +1828,6 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  const _Divider();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 30,
-      width: 1,
-      color: Colors.grey.withOpacity(0.2),
-      margin: const EdgeInsets.symmetric(horizontal: 12),
     );
   }
 }
