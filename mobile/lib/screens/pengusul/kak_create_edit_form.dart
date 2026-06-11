@@ -165,7 +165,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     selectedTipeKegiatan = data.tipeKegiatanId;
     if (selectedTipeKegiatan != null &&
         !widget.tipeKegiatanOptions.any(
-          (option) => option['id'] == selectedTipeKegiatan,
+          (option) => int.tryParse((option['tipe_kegiatan_id'] ?? option['id'] ?? '').toString()) == selectedTipeKegiatan,
         )) {
       selectedTipeKegiatan = null; // Reset if not found
     }
@@ -204,7 +204,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
             satuan1Id:
                 (r.satuan1Id != null &&
                     widget.satuanOptions.any(
-                      (option) => option['id'] == r.satuan1Id,
+                      (option) => int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) == r.satuan1Id,
                     ))
                 ? r.satuan1Id
                 : null,
@@ -212,7 +212,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
             satuan2Id:
                 (r.satuan2Id != null &&
                     widget.satuanOptions.any(
-                      (option) => option['id'] == r.satuan2Id,
+                      (option) => int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) == r.satuan2Id,
                     ))
                 ? r.satuan2Id
                 : null,
@@ -220,7 +220,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
             satuan3Id:
                 (r.satuan3Id != null &&
                     widget.satuanOptions.any(
-                      (option) => option['id'] == r.satuan3Id,
+                      (option) => int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) == r.satuan3Id,
                     ))
                 ? r.satuan3Id
                 : null,
@@ -255,12 +255,12 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           (t) => TargetIkuItem(
             id: t.ikuId.toString(),
             ikuId:
-                (int.tryParse(t.ikuId.toString()) != null &&
+                (int.tryParse(t.ikuId) != null &&
                     widget.ikuOptions.any(
                       (option) =>
-                          option['id'] == int.tryParse(t.ikuId.toString()),
+                          int.tryParse((option['iku_id'] ?? option['id'] ?? '').toString()) == int.tryParse(t.ikuId),
                     ))
-                ? int.tryParse(t.ikuId.toString())!
+                ? int.tryParse(t.ikuId)!
                 : 0,
             ikuNama: t.ikuNama,
             target: t.target.toString(),
@@ -268,10 +268,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                 (t.satuanId != null &&
                     widget.satuanOptions.any(
                       (option) =>
-                          option['id'] ==
-                          int.tryParse(t.satuanId.toString() ?? ''),
+                          int.tryParse((option['satuan_id'] ?? option['id'] ?? '').toString()) ==
+                          int.tryParse(t.satuanId ?? ''),
                     ))
-                ? int.tryParse(t.satuanId.toString() ?? '')
+                ? int.tryParse(t.satuanId ?? '')
                 : null,
             note: t.catatanVerifikator,
           ),
@@ -455,7 +455,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
   }) {
     return DropdownButtonFormField<int?>(
       isExpanded: true,
-      value: widget.satuanOptions.any((s) => (s['id'] as int?) == value)
+      value: widget.satuanOptions.any((s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value)
           ? value
           : null,
       decoration: InputDecoration(
@@ -477,10 +477,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           child: Text('Satuan'),
         ),
         ...widget.satuanOptions
-            .where((o) => (o['id'] as int?) != null)
+            .where((o) => int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()) != null)
             .map<DropdownMenuItem<int?>>((o) => DropdownMenuItem<int?>(
-                  value: o['id'] as int?,
-                  child: Text(o['nama'] ?? ''),
+                  value: int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()),
+                  child: Text((o['nama_satuan'] ?? o['nama'] ?? '').toString()),
                 )),
       ],
       onChanged: widget.readOnly ? null : onChanged,
@@ -591,11 +591,13 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<int?>(
-                value: selectedTipeKegiatan,
+                value: widget.tipeKegiatanOptions.any((o) => int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()) == selectedTipeKegiatan)
+                    ? selectedTipeKegiatan
+                    : null,
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Tipe Kegiatan',
-                  prefixIcon: Icon(Icons.category_outlined, size: 20),
+                  prefixIcon: const Icon(Icons.category_outlined, size: 20),
                 ),
                 items: [
                   const DropdownMenuItem<int?>(
@@ -603,11 +605,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                     child: Text('Pilih Tipe Kegiatan'),
                   ),
                   ...widget.tipeKegiatanOptions
-                      .where((o) => (o['id'] as int?) != null)
+                      .where((o) => int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()) != null)
                       .map<DropdownMenuItem<int?>>((o) => DropdownMenuItem<int?>(
-                            value: o['id'] as int?,
+                            value: int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()),
                             child: Text(
-                              o['nama'] ?? '',
+                              (o['nama_tipe'] ?? o['nama'] ?? '').toString(),
                               overflow: TextOverflow.ellipsis,
                             ),
                           )),
@@ -1000,19 +1002,60 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      TextFormField(
-                        initialValue:
-                            indikatorKinerjaList[index].bulanIndikator,
+                      DropdownButtonFormField<String?>(
+                        isExpanded: true,
+                        value: const [
+                          'Januari',
+                          'Februari',
+                          'Maret',
+                          'April',
+                          'Mei',
+                          'Juni',
+                          'Juli',
+                          'Agustus',
+                          'September',
+                          'Oktober',
+                          'November',
+                          'Desember'
+                        ].contains(indikatorKinerjaList[index].bulanIndikator)
+                            ? indikatorKinerjaList[index].bulanIndikator
+                            : null,
                         decoration: const InputDecoration(
                           labelText: 'Bulan Indikator',
                           prefixIcon:
                               Icon(Icons.calendar_view_month_outlined, size: 18),
                         ),
-                        readOnly: widget.readOnly,
-                        onChanged: (v) {
-                          indikatorKinerjaList[index].bulanIndikator = v;
-                          widget.onFormChange(getFormData());
-                        },
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('Pilih Bulan'),
+                          ),
+                          ...[
+                            'Januari',
+                            'Februari',
+                            'Maret',
+                            'April',
+                            'Mei',
+                            'Juni',
+                            'Juli',
+                            'Agustus',
+                            'September',
+                            'Oktober',
+                            'November',
+                            'Desember'
+                          ].map((month) => DropdownMenuItem<String?>(
+                                value: month,
+                                child: Text(month),
+                              )),
+                        ],
+                        onChanged: widget.readOnly
+                            ? null
+                            : (v) {
+                                setState(() {
+                                  indikatorKinerjaList[index].bulanIndikator = v ?? '';
+                                  widget.onFormChange(getFormData());
+                                });
+                              },
                         validator: (v) => (v == null || v.isEmpty)
                             ? 'Bulan indikator wajib diisi'
                             : null,
@@ -1149,22 +1192,31 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<int?>(
                         isExpanded: true,
-                        value: item.ikuId == 0 ? null : item.ikuId,
+                        value: widget.ikuOptions.any((iku) => (iku['iku_id'] ?? iku['id']) == item.ikuId) && item.ikuId != 0
+                            ? item.ikuId
+                            : null,
                         decoration: const InputDecoration(
                           labelText: 'Pilih IKU',
                           prefixIcon: Icon(Icons.flag_circle_outlined, size: 20),
                           filled: true,
                           fillColor: Colors.white,
                         ),
-                        items: widget.ikuOptions.map<DropdownMenuItem<int>>((iku) {
-                          return DropdownMenuItem<int>(
-                            value: iku['iku_id'] ?? iku['id'],
-                            child: Text(
-                              '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          );
-                        }).toList(),
+                        items: [
+                          const DropdownMenuItem<int?>(
+                            value: null,
+                            child: Text('Pilih IKU'),
+                          ),
+                          ...widget.ikuOptions.map<DropdownMenuItem<int?>>((iku) {
+                            final ikuId = (iku['iku_id'] ?? iku['id']) as int?;
+                            return DropdownMenuItem<int?>(
+                              value: ikuId,
+                              child: Text(
+                                '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }),
+                        ],
                         onChanged: widget.readOnly
                             ? null
                             : (value) {
@@ -1214,7 +1266,9 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                           Expanded(
                             child: DropdownButtonFormField<int?>(
                               isExpanded: true,
-                              value: item.satuanId,
+                              value: widget.satuanOptions.any((s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == item.satuanId)
+                                  ? item.satuanId
+                                  : null,
                               decoration: const InputDecoration(
                                 labelText: 'Satuan',
                                 prefixIcon:
@@ -1228,11 +1282,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                                   child: Text('Pilih Satuan'),
                                 ),
                                 ...widget.satuanOptions
-                                    .where((o) => (o['id'] as int?) != null)
+                                    .where((o) => int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()) != null)
                                     .map<DropdownMenuItem<int?>>((o) =>
                                         DropdownMenuItem<int?>(
-                                          value: o['id'] as int?,
-                                          child: Text(o['nama'] ?? ''),
+                                          value: int.tryParse((o['satuan_id'] ?? o['id'] ?? '').toString()),
+                                          child: Text((o['nama_satuan'] ?? o['nama'] ?? '').toString()),
                                         )),
                               ],
                               onChanged: widget.readOnly
@@ -1274,8 +1328,8 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ...widget.kategoriBelanjaOptions.map<Widget>((kategori) {
-            final int kategoriId = kategori['id'] ?? 0;
-            final String kategoriNama = kategori['nama'] ?? 'Unknown';
+            final int kategoriId = (kategori['kategori_belanja_id'] ?? kategori['id']) ?? 0;
+            final String kategoriNama = (kategori['nama'] ?? kategori['nama_kategori'] ?? 'Unknown').toString();
             final List<RabItem> items =
                 rabList.where((r) => r.kategoriBelanjaId == kategoriId).toList();
 
