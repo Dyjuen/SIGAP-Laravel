@@ -10,6 +10,7 @@ import '../models/monitoring_model.dart';
 import '../widgets/monitoring_card.dart';
 import '../widgets/sigap_logo.dart';
 import 'kak_detail_page.dart';
+import 'kegiatan_detail_page.dart';
 
 class KegiatanMonitoringPage extends StatefulWidget {
   const KegiatanMonitoringPage({super.key});
@@ -308,13 +309,25 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                               statusColor: statusColor,
                               title: item.namaKegiatan,
                               onDetailTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        KakDetailPage(kakId: item.kakId),
-                                  ),
-                                );
+                                final kId = int.tryParse(item.kegiatanId) ?? 0;
+                                if (kId > 0) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          KegiatanDetailPage(kegiatanId: kId),
+                                    ),
+                                  );
+                                } else {
+                                  // Fallback to KAK detail if no kegiatan ID
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          KakDetailPage(kakId: item.kakId),
+                                    ),
+                                  );
+                                }
                               },
                               onTrackTap: () {
                                 _showTrackingStepperBottomSheet(context, item);

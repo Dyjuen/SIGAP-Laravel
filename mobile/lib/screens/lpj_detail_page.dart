@@ -440,77 +440,121 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
   }
 
   Widget _buildRealizationTable(LpjDetail lpj) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          columns: [
-            DataColumn(
-              label: Text(
-                'Item',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+    // Group realizations by category
+    final groupedRealizations = <int, List<LpjRealization>>{};
+    final kategoriNames = <int, String>{};
+
+    for (var item in lpj.anggaranItems) {
+      groupedRealizations.putIfAbsent(item.kategoriBelanjaId, () => []).add(item);
+      if (item.kategoriNama != null) {
+        kategoriNames[item.kategoriBelanjaId] = item.kategoriNama!;
+      }
+    }
+
+    final sortedKategoriIds = groupedRealizations.keys.toList()..sort();
+
+    return Column(
+      children: sortedKategoriIds.map((katId) {
+        final items = groupedRealizations[katId]!;
+        final katNama = kategoriNames[katId] ??
+            (katId == 1
+                ? 'Belanja Barang'
+                : katId == 2
+                    ? 'Belanja Jasa'
+                    : katId == 3
+                        ? 'Belanja Perjalanan'
+                        : 'Lainnya');
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              child: Text(
+                katNama,
+                style: GoogleFonts.figtree(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
             ),
-            DataColumn(
-              label: Text(
-                'Diusulkan',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).dividerColor),
+                borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            DataColumn(
-              label: Text(
-                'Realisasi',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
-              ),
-            ),
-            DataColumn(
-              label: Text(
-                '%',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: [
+                    DataColumn(
+                      label: Text(
+                        'Item',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Diusulkan',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Realisasi',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        '%',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                  rows: items.map((item) {
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          SizedBox(
+                            width: 150,
+                            child: Text(
+                              item.uraian.isEmpty ? '-' : item.uraian,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.figtree(fontSize: 12),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            'Rp ${_formatCurrency(item.jumlahDiusulkan)}',
+                            style: GoogleFonts.figtree(fontSize: 12),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            'Rp ${_formatCurrency(item.realisasiJumlah)}',
+                            style: GoogleFonts.figtree(fontSize: 12),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            '${item.percentageRealized.toStringAsFixed(1)}%',
+                            style: GoogleFonts.figtree(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ],
-          rows: (lpj.anggaranItems).map((item) {
-            return DataRow(
-              cells: [
-                DataCell(
-                  SizedBox(
-                    width: 150,
-                    child: Text(
-                      item.uraian.isEmpty ? '-' : item.uraian,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.figtree(fontSize: 12),
-                    ),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    'Rp ${_formatCurrency(item.jumlahDiusulkan)}',
-                    style: GoogleFonts.figtree(fontSize: 12),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    'Rp ${_formatCurrency(item.realisasiJumlah)}',
-                    style: GoogleFonts.figtree(fontSize: 12),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    '${item.percentageRealized.toStringAsFixed(1)}%',
-                    style: GoogleFonts.figtree(fontSize: 12),
-                  ),
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
+        );
+      }).toList(),
     );
   }
 

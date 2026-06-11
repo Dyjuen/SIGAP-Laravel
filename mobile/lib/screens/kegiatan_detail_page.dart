@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
-import '../../providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 
-class PpkKegiatanDetailPage extends StatefulWidget {
+class KegiatanDetailPage extends StatefulWidget {
   final int kegiatanId;
-  const PpkKegiatanDetailPage({super.key, required this.kegiatanId});
+  const KegiatanDetailPage({super.key, required this.kegiatanId});
 
   @override
-  State<PpkKegiatanDetailPage> createState() => _PpkKegiatanDetailPageState();
+  State<KegiatanDetailPage> createState() => _KegiatanDetailPageState();
 }
 
-class _PpkKegiatanDetailPageState extends State<PpkKegiatanDetailPage> {
+class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
   bool _isLoading = true;
   bool _isError = false;
   String _errorMessage = '';

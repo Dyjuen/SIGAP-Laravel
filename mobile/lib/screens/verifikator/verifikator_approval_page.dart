@@ -518,28 +518,87 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                             if (kak.rab.isEmpty)
                               _buildRevisionEmptyState('Tidak ada data RAB.')
                             else
-                              ...kak.rab.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final item = entry.value;
-                                final key = 't_kak_anggaran:$index';
-                                return _buildChildRevisionCard(
-                                  title: 'RAB ${index + 1}',
-                                  details: [
-                                    'Uraian: ${item.uraian}',
-                                    'Volume 1: ${_formatNumber(item.volume1)}',
-                                    'Volume 2: ${_formatNumber(item.volume2)}',
-                                    'Volume 3: ${_formatNumber(item.volume3)}',
-                                    'Harga Satuan: ${_formatCurrency(item.hargaSatuan)}',
-                                    'Jumlah Diusulkan: ${_formatCurrency(item.jumlahDiusulkan)}',
-                                  ],
-                                  noteController:
-                                      childNotes['t_kak_anggaran']![index],
-                                  hintText: 'Catatan untuk RAB ${index + 1}...',
-                                  fieldKey: key,
-                                  isExpanded: expandedNoteKeys.contains(key),
-                                  onToggle: () => toggleNote(key),
-                                );
-                              }),
+                              ...() {
+                                final groupedRab = <int, List<MapEntry<int, KakRab>>>{};
+                                final kategoriNames = <int, String>{};
+
+                                for (int i = 0; i < kak.rab.length; i++) {
+                                  final item = kak.rab[i];
+                                  groupedRab
+                                      .putIfAbsent(item.kategoriBelanjaId, () => [])
+                                      .add(MapEntry(i, item));
+                                  if (item.kategoriNama != null) {
+                                    kategoriNames[item.kategoriBelanjaId] =
+                                        item.kategoriNama!;
+                                  }
+                                }
+
+                                final sortedKategoriIds = groupedRab.keys.toList()
+                                  ..sort();
+
+                                return sortedKategoriIds.expand((katId) {
+                                  final entries = groupedRab[katId]!;
+                                  final katNama = kategoriNames[katId] ??
+                                      (katId == 1
+                                          ? 'Belanja Barang'
+                                          : katId == 2
+                                              ? 'Belanja Jasa'
+                                              : katId == 3
+                                                  ? 'Belanja Perjalanan'
+                                                  : 'Lainnya');
+
+                                  return [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 8,
+                                        bottom: 12,
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E7D32)
+                                              .withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          katNama,
+                                          style: GoogleFonts.figtree(
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 13,
+                                            color: const Color(0xFF2E7D32),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    ...entries.map((entry) {
+                                      final index = entry.key;
+                                      final item = entry.value;
+                                      final key = 't_kak_anggaran:$index';
+                                      return _buildChildRevisionCard(
+                                        title: 'RAB ${index + 1}',
+                                        details: [
+                                          'Uraian: ${item.uraian}',
+                                          'Volume 1: ${_formatNumber(item.volume1)}',
+                                          'Volume 2: ${_formatNumber(item.volume2)}',
+                                          'Volume 3: ${_formatNumber(item.volume3)}',
+                                          'Harga Satuan: ${_formatCurrency(item.hargaSatuan)}',
+                                          'Jumlah Diusulkan: ${_formatCurrency(item.jumlahDiusulkan)}',
+                                        ],
+                                        noteController:
+                                            childNotes['t_kak_anggaran']![index],
+                                        hintText:
+                                            'Catatan untuk RAB ${index + 1}...',
+                                        fieldKey: key,
+                                        isExpanded: expandedNoteKeys.contains(key),
+                                        onToggle: () => toggleNote(key),
+                                      );
+                                    }),
+                                  ];
+                                }).toList();
+                              }(),
                             const SizedBox(height: 8),
                           ],
                         ),
