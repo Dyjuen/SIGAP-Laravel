@@ -31,7 +31,8 @@ class _LpjFormPageState extends State<LpjFormPage> {
   final List<_SatuanOption> _satuanOptions = [];
 
   // SPK fields
-  late TextEditingController _waktuController;
+  DateTime? _tglMulai;
+  DateTime? _tglSelesai;
   int? _selectedOutput;
 
   bool _initialized = false;
@@ -40,7 +41,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
   @override
   void initState() {
     super.initState();
-    _waktuController = TextEditingController();
     Future.microtask(() async {
       if (widget.kegiatanId.isNotEmpty) {
         await context.read<LpjProvider>().getLpjDetail(widget.kegiatanId);
@@ -103,7 +103,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
         context.read<ChatbotService>().setVisible(true);
       }
     });
-    _waktuController.dispose();
     for (final row in _rows) {
       row.dispose();
     }
@@ -144,10 +143,89 @@ class _LpjFormPageState extends State<LpjFormPage> {
     }
 
     // Initialize SPK fields
-    _waktuController.text = detail.spkKesesuaianWaktu?.toString() ?? '';
+    _tglMulai = detail.realisasiTglMulai != null
+        ? DateTime.tryParse(detail.realisasiTglMulai!)
+        : null;
+    _tglSelesai = detail.realisasiTglSelesai != null
+        ? DateTime.tryParse(detail.realisasiTglSelesai!)
+        : null;
     _selectedOutput = detail.spkKesesuaianOutput;
 
     _initialized = true;
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isMulai) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: (isMulai ? _tglMulai : _tglSelesai) ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2101),
+      locale: const Locale('id', 'ID'),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isMulai) {
+          _tglMulai = picked;
+        } else {
+          _tglSelesai = picked;
+        }
+      });
+    }
+  }
+
+  Widget _buildDateField({
+    required String label,
+    required DateTime? value,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.figtree(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF475569),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: enabled ? onTap : null,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: enabled ? Colors.white : Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  value != null
+                      ? DateFormat('dd MMMM yyyy', 'id_ID').format(value)
+                      : 'Pilih Tanggal',
+                  style: GoogleFonts.figtree(
+                    fontSize: 14,
+                    fontWeight:
+                        value != null ? FontWeight.bold : FontWeight.normal,
+                    color: value != null ? Colors.black : Colors.grey,
+                  ),
+                ),
+                Icon(
+                  Icons.calendar_today,
+                  size: 18,
+                  color: enabled ? const Color(0xFF33C8DA) : Colors.grey,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _pickFiles(String anggaranId) async {
@@ -191,6 +269,20 @@ class _LpjFormPageState extends State<LpjFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Mohon lengkapi semua field yang wajib diisi.'),
+          ),
+        );
+        return;
+      }
+
+      // Add validation for dates
+      final detailModel = provider.selectedLpj;
+      final roleId = context.read<AuthProvider>().user?.roleId;
+      final isEditable = detailModel?.canEditPengusul == true && roleId == 3;
+
+      if (isEditable && (_tglMulai == null || _tglSelesai == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Mohon pilih tanggal mulai dan selesai realisasi.'),
           ),
         );
         return;
@@ -256,14 +348,24 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ? await provider.resubmitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
-              spkKesesuaianWaktu: int.tryParse(_waktuController.text),
+              realisasiTglMulai: _tglMulai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglMulai!)
+                  : null,
+              realisasiTglSelesai: _tglSelesai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglSelesai!)
+                  : null,
               spkKesesuaianOutput: _selectedOutput,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
             )
           : await provider.submitLpj(
               kegiatanId: detail.kegiatanId,
               realizasiData: realizasiData,
-              spkKesesuaianWaktu: int.tryParse(_waktuController.text),
+              realisasiTglMulai: _tglMulai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglMulai!)
+                  : null,
+              realisasiTglSelesai: _tglSelesai != null
+                  ? DateFormat('yyyy-MM-dd').format(_tglSelesai!)
+                  : null,
               spkKesesuaianOutput: _selectedOutput,
               buktiFiles: buktiFilesMap.isEmpty ? null : buktiFilesMap,
             );
@@ -1326,53 +1428,23 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ),
           const SizedBox(height: 20),
 
-          // Kesesuaian Waktu
-          Text(
-            'KESESUAIAN WAKTU (PELAKSANAAN KEGIATAN)',
-            style: GoogleFonts.figtree(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: const Color(0xFF475569),
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: _waktuController,
+          // Tanggal Realisasi
+          _buildDateField(
+            label: 'TANGGAL MULAI REALISASI',
+            value: _tglMulai,
+            onTap: () => _selectDate(context, true),
             enabled: isEditable,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            decoration: InputDecoration(
-              hintText: 'Nilai (50 - 100)',
-              filled: true,
-              fillColor: isEditable ? Colors.white : Colors.grey.shade50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Kesesuaian waktu harus diisi';
-              }
-              final val = int.tryParse(value);
-              if (val == null || val < 50 || val > 100) {
-                return 'Nilai harus antara 50 - 100';
-              }
-              return null;
-            },
+          ),
+          const SizedBox(height: 16),
+          _buildDateField(
+            label: 'TANGGAL SELESAI REALISASI',
+            value: _tglSelesai,
+            onTap: () => _selectDate(context, false),
+            enabled: isEditable,
           ),
           const SizedBox(height: 6),
           const Text(
-            'Konstrain 50-100. Nilai kesesuaian waktu acara dibanding jadwal original.',
+            'Pilih tanggal mulai dan selesai realisasi pelaksanaan kegiatan.',
             style: TextStyle(fontSize: 10, color: Colors.grey, height: 1.4),
           ),
 

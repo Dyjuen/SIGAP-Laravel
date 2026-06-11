@@ -59,7 +59,8 @@ class LpjService {
   Future<void> submitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    int? spkKesesuaianWaktu,
+    String? realisasiTglMulai,
+    String? realisasiTglSelesai,
     int? spkKesesuaianOutput,
     Map<String, List<MultipartFile>>? buktiFiles,
   }) async {
@@ -113,12 +114,19 @@ class LpjService {
         );
       }
 
-      // Add SPK fields
-      if (spkKesesuaianWaktu != null) {
+      // Add realization dates
+      if (realisasiTglMulai != null) {
         formData.fields.add(
-          MapEntry('spk_kesesuaian_waktu', spkKesesuaianWaktu.toString()),
+          MapEntry('realisasi_tgl_mulai', realisasiTglMulai),
         );
       }
+      if (realisasiTglSelesai != null) {
+        formData.fields.add(
+          MapEntry('realisasi_tgl_selesai', realisasiTglSelesai),
+        );
+      }
+      
+      // Add SPK fields
       if (spkKesesuaianOutput != null) {
         formData.fields.add(
           MapEntry('spk_kesesuaian_output', spkKesesuaianOutput.toString()),
@@ -207,7 +215,8 @@ class LpjService {
   Future<void> resubmitLpj({
     required String kegiatanId,
     required List<Map<String, dynamic>> realizasiData,
-    int? spkKesesuaianWaktu,
+    String? realisasiTglMulai,
+    String? realisasiTglSelesai,
     int? spkKesesuaianOutput,
     Map<String, List<MultipartFile>>? buktiFiles,
   }) async {
@@ -261,12 +270,19 @@ class LpjService {
         );
       }
 
-      // Add SPK fields
-      if (spkKesesuaianWaktu != null) {
+      // Add realization dates
+      if (realisasiTglMulai != null) {
         formData.fields.add(
-          MapEntry('spk_kesesuaian_waktu', spkKesesuaianWaktu.toString()),
+          MapEntry('realisasi_tgl_mulai', realisasiTglMulai),
         );
       }
+      if (realisasiTglSelesai != null) {
+        formData.fields.add(
+          MapEntry('realisasi_tgl_selesai', realisasiTglSelesai),
+        );
+      }
+
+      // Add SPK fields
       if (spkKesesuaianOutput != null) {
         formData.fields.add(
           MapEntry('spk_kesesuaian_output', spkKesesuaianOutput.toString()),

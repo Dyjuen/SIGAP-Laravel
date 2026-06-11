@@ -210,6 +210,8 @@ class LpjDetail {
   final List<LpjRealization> anggaranItems;
   final String approvalStatus;
   final String? approvalNotes;
+  final String? realisasiTglMulai;
+  final String? realisasiTglSelesai;
 
   LpjDetail({
     required this.kegiatanId,
@@ -229,6 +231,8 @@ class LpjDetail {
     required this.anggaranItems,
     required this.approvalStatus,
     this.approvalNotes,
+    this.realisasiTglMulai,
+    this.realisasiTglSelesai,
   });
 
   factory LpjDetail.fromJson(Map<String, dynamic> json) {
@@ -265,6 +269,8 @@ class LpjDetail {
       anggaranItems: anggaranList,
       approvalStatus: json['approval_status'] ?? 'Pending',
       approvalNotes: json['approval_notes']?.toString(),
+      realisasiTglMulai: json['realisasi_tgl_mulai']?.toString(),
+      realisasiTglSelesai: json['realisasi_tgl_selesai']?.toString(),
     );
   }
 
@@ -285,6 +291,8 @@ class LpjDetail {
         'anggaran_items': anggaranItems.map((i) => i.toJson()).toList(),
         'approval_status': approvalStatus,
         'approval_notes': approvalNotes,
+        'realisasi_tgl_mulai': realisasiTglMulai,
+        'realisasi_tgl_selesai': realisasiTglSelesai,
       };
 
   bool get isDraft => lpjStatus == 'Draft';
