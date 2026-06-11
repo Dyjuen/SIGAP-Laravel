@@ -148,4 +148,15 @@ class KakNotificationTest extends TestCase
         $notif = Notifikasi::where('penerima_user_id', $pengusul->user_id)->first();
         $this->assertStringContainsString('perlu direvisi', $notif->pesan);
     }
+
+    public function test_fcm_service_graceful_failure_when_unconfigured(): void
+    {
+        // Instantiate real FcmService with null (unconfigured state)
+        $fcmService = new FcmService(null);
+
+        // This should not throw any exceptions
+        $fcmService->sendToToken('fake-token', 'Test Title', 'Test Body');
+
+        $this->assertTrue(true);
+    }
 }

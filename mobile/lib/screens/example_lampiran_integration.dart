@@ -2,6 +2,7 @@
 // This shows how to integrate the lampiran widgets into your existing pages
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/lampiran_provider.dart';
 import '../screens/lampiran_upload_page.dart';

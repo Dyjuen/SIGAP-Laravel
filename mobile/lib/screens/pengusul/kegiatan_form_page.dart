@@ -229,8 +229,11 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
     };
 
     print('Kategori Belanja IDs being sent:');
-    for (var rabItem in body['rab']) {
-      print('  - Uraian: ${rabItem['uraian']}, Kategori ID: ${rabItem['kategori_belanja_id']}');
+    final rabList = body['rab'] as List?;
+    if (rabList != null) {
+      for (var rabItem in rabList) {
+        print('  - Uraian: ${rabItem['uraian']}, Kategori ID: ${rabItem['kategori_belanja_id']}');
+      }
     }
 
     try {

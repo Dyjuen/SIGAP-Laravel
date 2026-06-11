@@ -36,7 +36,13 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(Messaging::class, function ($app) {
-            return $app->make('firebase.messaging');
+            try {
+                return $app->make('firebase.messaging');
+            } catch (\Throwable $e) {
+                Log::warning('Firebase Messaging initialization failed: '.$e->getMessage());
+
+                return null;
+            }
         });
     }
 
