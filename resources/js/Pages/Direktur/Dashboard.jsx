@@ -219,9 +219,9 @@ export default function Dashboard({ dashboardData }) {
 
         const topJurusan = activeTopsis.jurusans[0];
         const lowJurusan = activeTopsis.jurusans[activeTopsis.jurusans.length - 1];
-        
+
         let summary = `Unit ${topJurusan.nama_jurusan} memimpin dengan kinerja administrasi terbaik (Indeks: ${topJurusan.avg_score.toFixed(4)}), didukung oleh ketepatan waktu dan LPJ yang sangat tertib.`;
-        
+
         if (lowJurusan && lowJurusan.nama_jurusan !== topJurusan.nama_jurusan) {
             if (lowJurusan.avg_c4 < 70) {
                 summary += ` Sebaliknya, unit ${lowJurusan.nama_jurusan} memerlukan pendampingan intensif karena rendahnya tingkat kepatuhan waktu penyerahan LPJ (rata-rata ${lowJurusan.avg_c4.toFixed(1)}%).`;
@@ -467,7 +467,7 @@ export default function Dashboard({ dashboardData }) {
         const c3d = act.c3_debug || {};
         const c4d = act.c4_debug || {};
 
-        const sourceLabel = (s) => s === 'calculated' ? '🔢 Dihitung otomatis' : s === 'stored' ? '💾 Nilai tersimpan' : '⚠️ Default';
+
         const fmt6 = (n) => (n != null ? parseFloat(n).toFixed(6) : '—');
         const fmt4 = (n) => (n != null ? parseFloat(n).toFixed(4) : '—');
         const fmtRp = (n) => n != null ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n) : '—';
@@ -500,11 +500,10 @@ export default function Dashboard({ dashboardData }) {
                             <button
                                 key={i}
                                 onClick={() => setTopsisModalTab(i)}
-                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-[11px] font-bold transition-all border-b-2 ${
-                                    topsisModalTab === i
+                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-3 text-[11px] font-bold transition-all border-b-2 ${topsisModalTab === i
                                         ? 'border-cyan-500 text-cyan-600 bg-white'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/60'
-                                }`}
+                                    }`}
                             >
                                 {tab.icon} {tab.label}
                             </button>
@@ -526,7 +525,6 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-lg font-black text-cyan-500">{act.c1}</span>
                                     </div>
                                     <div className="text-[11px] text-slate-500 space-y-2">
-                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c1d.source)}</span></div>
                                         {c1d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Rencana ({c1d.tgl_mulai_rencana} → {c1d.tgl_selesai_rencana})</span><span className="font-bold">{c1d.durasi_rencana} hari</span></div>
                                             <div className="flex justify-between"><span>Aktual ({c1d.tgl_mulai_aktual} → {c1d.tgl_selesai_aktual})</span><span className="font-bold">{c1d.durasi_aktual} hari</span></div>
@@ -552,7 +550,6 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-lg font-black text-cyan-500">{act.c2}</span>
                                     </div>
                                     <div className="text-[11px] text-slate-500 space-y-2">
-                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c2d.source)}</span></div>
                                         {c2d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Rencana (KAK)</span><span className="font-bold">{fmtRp(c2d.anggaran_rencana)}</span></div>
                                             <div className="flex justify-between"><span>Realisasi</span><span className="font-bold">{fmtRp(c2d.anggaran_aktual)}</span></div>
@@ -578,7 +575,6 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-lg font-black text-cyan-500">{act.c3}</span>
                                     </div>
                                     <div className="text-[11px] text-slate-500 space-y-2">
-                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c3d.source)}</span></div>
                                         {c3d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Total IKU</span><span className="font-bold">{c3d.total_iku}</span></div>
                                             <div className="flex justify-between"><span>IKU Terpenuhi</span><span className="font-bold text-emerald-600">{c3d.terpenuhi}</span></div>
@@ -612,7 +608,6 @@ export default function Dashboard({ dashboardData }) {
                                         <span className="text-lg font-black text-cyan-500">{act.c4}</span>
                                     </div>
                                     <div className="text-[11px] text-slate-500 space-y-2">
-                                        <div className="flex justify-between"><span>Sumber</span><span className="font-medium">{sourceLabel(c4d.source)}</span></div>
                                         {c4d.source === 'calculated' && (<>
                                             <div className="flex justify-between"><span>Hari di Bendahara-LPJ</span><span className="font-bold">{c4d.hari_di_lpj ?? '—'} hari</span></div>
                                             <div className="flex justify-between"><span>Hari Terlambat (maks 14)</span><span className={`font-bold ${c4d.hari_terlambat > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>{c4d.hari_terlambat ?? 0} hari</span></div>
@@ -636,7 +631,7 @@ export default function Dashboard({ dashboardData }) {
                         {topsisModalTab === 1 && (
                             <div className="space-y-4">
                                 <p className="text-xs text-slate-500 mb-2">Normalisasi matriks keputusan & pembobotan kriteria menggunakan rumus berikut:</p>
-                                
+
                                 <div className="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4">
                                     <div className="flex items-center font-serif text-[13px] text-slate-700">
                                         <span className="font-bold italic">r</span>
@@ -684,9 +679,9 @@ export default function Dashboard({ dashboardData }) {
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
                                             {[['C1 Waktu', act.c1, act.norm_c1, act.r1, act.w1, act.v1],
-                                              ['C2 Anggaran', act.c2, act.norm_c2, act.r2, act.w2, act.v2],
-                                              ['C3 Output', act.c3, act.norm_c3, act.r3, act.w3, act.v3],
-                                              ['C4 LPJ', act.c4, act.norm_c4, act.r4, act.w4, act.v4]].map(([label, c, norm, r, w, v]) => (
+                                            ['C2 Anggaran', act.c2, act.norm_c2, act.r2, act.w2, act.v2],
+                                            ['C3 Output', act.c3, act.norm_c3, act.r3, act.w3, act.v3],
+                                            ['C4 LPJ', act.c4, act.norm_c4, act.r4, act.w4, act.v4]].map(([label, c, norm, r, w, v]) => (
                                                 <tr key={label} className="hover:bg-slate-50/50">
                                                     <td className="px-3 py-2 font-bold text-slate-700">{label}</td>
                                                     <td className="px-3 py-2 text-center">{c}</td>
@@ -706,7 +701,7 @@ export default function Dashboard({ dashboardData }) {
                         {topsisModalTab === 2 && (
                             <div className="space-y-4">
                                 <p className="text-xs text-slate-500 mb-2">Penentuan solusi ideal positif (A⁺) dan solusi ideal negatif (A⁻) per kriteria:</p>
-                                
+
                                 <div className="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4">
                                     <div className="flex items-center font-serif text-[12px] text-slate-700">
                                         <span className="font-bold italic">A</span>
@@ -759,9 +754,9 @@ export default function Dashboard({ dashboardData }) {
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
                                             {[['C1', act.v1, act.ideal_pos?.v1, act.ideal_neg?.v1],
-                                              ['C2', act.v2, act.ideal_pos?.v2, act.ideal_neg?.v2],
-                                              ['C3', act.v3, act.ideal_pos?.v3, act.ideal_neg?.v3],
-                                              ['C4', act.v4, act.ideal_pos?.v4, act.ideal_neg?.v4]].map(([label, v, aPos, aNeg]) => {
+                                            ['C2', act.v2, act.ideal_pos?.v2, act.ideal_neg?.v2],
+                                            ['C3', act.v3, act.ideal_pos?.v3, act.ideal_neg?.v3],
+                                            ['C4', act.v4, act.ideal_pos?.v4, act.ideal_neg?.v4]].map(([label, v, aPos, aNeg]) => {
                                                 const dPos2 = v != null && aPos != null ? Math.pow(v - aPos, 2) : null;
                                                 const dNeg2 = v != null && aNeg != null ? Math.pow(v - aNeg, 2) : null;
                                                 return (
@@ -785,7 +780,7 @@ export default function Dashboard({ dashboardData }) {
                         {topsisModalTab === 3 && (
                             <div className="space-y-4">
                                 <p className="text-xs text-slate-500 mb-2">Jarak Euclidean ke solusi ideal dan skor akhir preferensi TOPSIS:</p>
-                                
+
                                 <div className="flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-100 rounded-xl p-3.5 mb-4 justify-between">
                                     <div className="flex items-center font-serif text-[12.5px] text-slate-700">
                                         <span className="font-bold italic">S</span>
@@ -858,7 +853,7 @@ export default function Dashboard({ dashboardData }) {
                                 </div>
                                 <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 border border-cyan-200 rounded-xl p-5 text-center shadow-sm">
                                     <div className="text-[10px] uppercase font-black text-cyan-600 mb-2">Hasil Akhir Preferensi TOPSIS</div>
-                                    
+
                                     <div className="mt-3 flex items-center justify-center font-serif text-sm text-cyan-800 bg-white py-3 px-5 rounded-xl border border-cyan-200/60 max-w-sm mx-auto shadow-sm">
                                         <span className="font-bold italic">C</span><sub className="text-[9px]">i</sub>
                                         <span className="mx-2.5 font-sans text-slate-400">=</span>
@@ -875,12 +870,11 @@ export default function Dashboard({ dashboardData }) {
                                     </div>
 
                                     <div className="mt-4">
-                                        <span className={`inline-block text-xs font-extrabold px-4 py-1.5 rounded-full border ${
-                                            act.kategori === 'Sangat Baik' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm' :
-                                            act.kategori === 'Baik' ? 'bg-cyan-100 text-cyan-700 border-cyan-200 shadow-sm' :
-                                            act.kategori === 'Cukup' ? 'bg-amber-100 text-amber-700 border-amber-200 shadow-sm' :
-                                            'bg-red-100 text-red-700 border-red-200 shadow-sm'
-                                        }`}>{act.kategori}</span>
+                                        <span className={`inline-block text-xs font-extrabold px-4 py-1.5 rounded-full border ${act.kategori === 'Sangat Baik' ? 'bg-emerald-100 text-emerald-700 border-emerald-200 shadow-sm' :
+                                                act.kategori === 'Baik' ? 'bg-cyan-100 text-cyan-700 border-cyan-200 shadow-sm' :
+                                                    act.kategori === 'Cukup' ? 'bg-amber-100 text-amber-700 border-amber-200 shadow-sm' :
+                                                        'bg-red-100 text-red-700 border-red-200 shadow-sm'
+                                            }`}>{act.kategori}</span>
                                     </div>
                                 </div>
                             </div>
@@ -948,7 +942,7 @@ export default function Dashboard({ dashboardData }) {
                             <Sparkles className="text-cyan-500" size={20} />
                             <h3 className="text-lg font-black text-slate-800 m-0">AI Executive Summary</h3>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             {/* Financial Summary */}
                             <div className={`p-5 rounded-xl border flex gap-4 items-start ${isGood ? 'bg-cyan-50/30 border-cyan-100' : 'bg-amber-50/30 border-amber-100'}`}>
@@ -1092,7 +1086,7 @@ export default function Dashboard({ dashboardData }) {
                                         Evaluasi komprehensif berdasarkan ketepatan waktu, efisiensi anggaran, pencapaian target, dan disiplin LPJ. Klik baris untuk detail audit.
                                     </p>
                                 </div>
-                                
+
                                 {activeTopsis.jurusans.length === 0 ? (
                                     <div className="text-center py-12 text-slate-400">
                                         <AlertTriangle size={36} className="mx-auto mb-2 text-slate-300" />
@@ -1102,11 +1096,11 @@ export default function Dashboard({ dashboardData }) {
                                     <div className="space-y-3">
                                         {activeTopsis.jurusans.map((jur, idx) => {
                                             const isExpanded = expandedJurusan === jur.nama_jurusan;
-                                            
+
                                             // Determine performance status
                                             let performanceBadge = "bg-emerald-50 text-emerald-700 border-emerald-100";
                                             let performanceText = "Kinerja Unggul";
-                                            
+
                                             if (jur.avg_score < 0.5) {
                                                 performanceBadge = "bg-rose-50 text-rose-700 border-rose-100";
                                                 performanceText = "Butuh Akselerasi";
@@ -1116,15 +1110,14 @@ export default function Dashboard({ dashboardData }) {
                                             }
 
                                             return (
-                                                <div 
-                                                    key={idx} 
-                                                    className={`rounded-xl border transition-all duration-300 overflow-hidden ${
-                                                        isExpanded 
-                                                            ? 'border-cyan-300 bg-cyan-50/10 shadow-sm' 
+                                                <div
+                                                    key={idx}
+                                                    className={`rounded-xl border transition-all duration-300 overflow-hidden ${isExpanded
+                                                            ? 'border-cyan-300 bg-cyan-50/10 shadow-sm'
                                                             : 'border-slate-100 hover:border-cyan-200 hover:bg-slate-50/30'
-                                                    }`}
+                                                        }`}
                                                 >
-                                                    <div 
+                                                    <div
                                                         onClick={() => setExpandedJurusan(isExpanded ? null : jur.nama_jurusan)}
                                                         className="flex flex-row justify-between items-center gap-2 p-4 cursor-pointer select-none"
                                                     >
@@ -1348,7 +1341,7 @@ export default function Dashboard({ dashboardData }) {
                                         Datasheet Teknis Perhitungan TOPSIS (Audit Internal)
                                     </h3>
                                     <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                                         Geser ke kanan untuk melihat semua kolom
                                     </span>
                                 </div>
@@ -1453,22 +1446,20 @@ export default function Dashboard({ dashboardData }) {
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setFocusYAxis(!focusYAxis)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${
-                                                focusYAxis
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${focusYAxis
                                                     ? 'bg-cyan-500 text-white border-cyan-500 shadow-sm'
                                                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                            }`}
+                                                }`}
                                         >
                                             <Maximize2 size={12} />
                                             {focusYAxis ? 'Skala Default (0)' : 'Fokus Skala (Zoom)'}
                                         </button>
                                         <button
                                             onClick={() => setShowTrendsTable(!showTrendsTable)}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${
-                                                showTrendsTable
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 border flex items-center gap-1.5 ${showTrendsTable
                                                     ? 'bg-cyan-500 text-white border-cyan-500 shadow-sm'
                                                     : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                                            }`}
+                                                }`}
                                         >
                                             <List size={12} />
                                             {showTrendsTable ? 'Tampilkan Grafik' : 'Lihat Detail Angka'}
