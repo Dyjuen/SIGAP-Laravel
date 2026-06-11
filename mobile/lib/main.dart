@@ -34,7 +34,7 @@ import 'providers/notification_provider.dart';
 
 String _getBaseUrl() {
   // Gunakan URL produksi langsung
-  return 'https://sigap.laravel.wattaway.id/api';
+  return 'https://sigap-laravel.wattaway.id/api';
 }
 
 void main() async {
@@ -124,7 +124,8 @@ void main() async {
               PencairanProvider(context.read<PencairanService>()),
         ),
         ChangeNotifierProvider<NotificationProvider>(
-          create: (context) => NotificationProvider(context.read<NotificationService>()),
+          create: (context) =>
+              NotificationProvider(context.read<NotificationService>()),
         ),
         ChangeNotifierProvider(create: (_) => ChatbotService()),
       ],
@@ -152,14 +153,14 @@ class _MyAppState extends State<MyApp> {
   void _checkAuth() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await authProvider.checkAuthStatus();
-    
+
     // Inisialisasi FcmService setelah status auth diketahui
     final fcm = FcmService();
     await fcm.initialize();
     if (authProvider.isAuthenticated) {
       await fcm.registerToken();
     }
-    
+
     setState(() {
       _isCheckingAuth = false;
     });
@@ -208,18 +209,12 @@ class _MyAppState extends State<MyApp> {
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
           ),
-          labelStyle: const TextStyle(
-            color: Color(0xFF64748B),
-            fontSize: 14,
-          ),
+          labelStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
           floatingLabelStyle: const TextStyle(
             color: Color(0xFF33C8DA),
             fontWeight: FontWeight.w500,
           ),
-          errorStyle: const TextStyle(
-            color: Color(0xFFEF4444),
-            fontSize: 12,
-          ),
+          errorStyle: const TextStyle(color: Color(0xFFEF4444), fontSize: 12),
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
@@ -239,20 +234,14 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('id', 'ID'),
-        Locale('en', 'US'),
-      ],
+      supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
       routes: {
         '/lpj': (context) => const LpjListPage(),
         '/bendahara/pencairan': (context) => const PencairanPage(),
       },
       builder: (context, child) {
         return Stack(
-          children: [
-            if (child != null) child,
-            const GitaChatbotWidget(),
-          ],
+          children: [if (child != null) child, const GitaChatbotWidget()],
         );
       },
       home: _isCheckingAuth
