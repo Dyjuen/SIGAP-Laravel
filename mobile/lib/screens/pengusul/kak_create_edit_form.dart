@@ -1416,6 +1416,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                     const SizedBox(height: 12),
                     // IKU Selection
                     DropdownButtonFormField<int>(
+                      isExpanded: true,
                       value: widget.ikuOptions.any(
                                 (i) => (i['iku_id'] ?? i['id']) == item.ikuId,
                               )
@@ -1434,6 +1435,8 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                           value: iku['iku_id'] ?? iku['id'],
                           child: Text(
                             '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
                         );
                       }).toList(),

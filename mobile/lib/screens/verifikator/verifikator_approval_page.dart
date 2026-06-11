@@ -501,7 +501,14 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   title: 'Target IKU ${index + 1}',
                                   details: [
                                     'IKU: ${item.ikuNama}',
-                                    'Target: ${item.target}',
+                                    'Target: ${(() {
+                                      final parsed = double.tryParse(item.target);
+                                      if (parsed == null) return item.target;
+                                      if (parsed == parsed.roundToDouble()) {
+                                        return parsed.round().toString();
+                                      }
+                                      return parsed.toString();
+                                    })()}',
                                     'Satuan: ${item.satuanNama ?? '-'}',
                                   ],
                                   noteController:

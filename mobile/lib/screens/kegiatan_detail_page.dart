@@ -719,13 +719,20 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                           _buildCompactInfoRow(
                             'Target IKU',
                             targets.map((t) {
-                              final kode = t['iku']?['kode_iku'] ?? '-';
+                              final kode = t['kode_iku'] ?? t['iku']?['kode_iku'] ?? '-';
                               final targetValue = t['target'] ?? '-';
-                              final satuan = t['satuan']?['nama_satuan'] ?? 
-                                             t['satuan_nama'] ?? 
-                                             '';
+                              final formattedTarget = () {
+                                if (targetValue == null) return '-';
+                                final parsed = double.tryParse(targetValue.toString());
+                                if (parsed == null) return targetValue.toString();
+                                if (parsed == parsed.roundToDouble()) {
+                                  return parsed.round().toString();
+                                }
+                                return parsed.toString();
+                              }();
+                              final satuan = t['nama_satuan'] ?? t['satuan']?['nama_satuan'] ?? t['satuan_nama'] ?? '';
                               
-                              return '$kode: $targetValue $satuan'.trim();
+                              return '$kode: $formattedTarget $satuan'.trim();
                             }).join('\n'),
                           ),
                         ],
@@ -744,81 +751,79 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                             icon: Icons.track_changes_rounded,
                             children: [
                               ...targets.map((t) {
+                                final kode = t['kode_iku'] ?? t['iku']?['kode_iku'] ?? 'IKU';
+                                final nama = t['nama_iku'] ?? t['iku']?['nama_iku'] ?? '-';
+                                final targetValue = t['target'] ?? '-';
+                                final formattedTarget = () {
+                                  if (targetValue == null) return '-';
+                                  final parsed = double.tryParse(targetValue.toString());
+                                  if (parsed == null) return targetValue.toString();
+                                  if (parsed == parsed.roundToDouble()) {
+                                    return parsed.round().toString();
+                                  }
+                                  return parsed.toString();
+                                }();
+                                final satuan = t['nama_satuan'] ?? t['satuan']?['nama_satuan'] ?? t['satuan_nama'] ?? '';
+
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF8FAFC),
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    border: Border.all(color: Colors.grey.shade200),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.shade50,
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
-                                  child: Column(
+                                  child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF33C8DA),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              t['iku']?['kode_iku'] ?? 'IKU',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              t['iku']?['nama_iku'] ?? '-',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF1E293B),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.cyan.shade50,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(Icons.star, color: Colors.cyan.shade700, size: 16),
                                       ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                const Text(
-                                                  'Target Capaian',
-                                                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                                                ),
-                                                Text(
-                                                  t['target']?.toString() ?? '-',
-                                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                                ),
-                                              ],
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              kode,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                                color: Colors.grey,
+                                              ),
                                             ),
-                                          ),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                const Text(
-                                                  'Satuan',
-                                                  style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                                                ),
-                                                Text(
-                                                  t['satuan']?['nama_satuan'] ?? '-',
-                                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                                ),
-                                              ],
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              nama,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                                color: Colors.black87,
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Target: $formattedTarget $satuan',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13,
+                                                color: Colors.cyan.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
