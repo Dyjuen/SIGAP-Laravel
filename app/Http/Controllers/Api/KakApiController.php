@@ -404,7 +404,10 @@ class KakApiController extends Controller
 
         // Try token query parameter if guard was empty
         if (! $user && $request->has('token')) {
-            $token = $request->query('token');
+            $token = trim(urldecode($request->query('token')));
+            if (str_starts_with($token, 'Bearer ')) {
+                $token = substr($token, 7);
+            }
             $accessToken = PersonalAccessToken::findToken($token);
             if ($accessToken) {
                 $user = $accessToken->tokenable;
