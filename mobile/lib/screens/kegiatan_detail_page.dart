@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../services/api_service.dart';
 
 class KegiatanDetailPage extends StatefulWidget {
   final int kegiatanId;
@@ -78,6 +80,39 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
       return DateFormat('d MMMM yyyy', 'id_ID').format(date);
     } catch (_) {
       return dateStr;
+    }
+  }
+
+  Future<void> _openKakPdf(String type, String kakId) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sesi aktif tidak ditemukan. Silakan login kembali.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka browser untuk link ini';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat PDF KAK: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
@@ -934,6 +969,94 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                           ],
                         ),
                       ),
+
+                    // KAK Card
+                    () {
+                      final kakId = kak['kak_id'];
+                      if (kakId == null) return const SizedBox.shrink();
+
+                      return Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.picture_as_pdf_outlined,
+                                  color: Color(0xFF33C8DA),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'DOKUMEN KAK',
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF475569),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _openKakPdf('preview', kakId.toString()),
+                                      icon: const Icon(Icons.remove_red_eye_outlined, size: 18),
+                                      label: Text(
+                                        'Preview',
+                                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF33C8DA),
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () => _openKakPdf('download', kakId.toString()),
+                                      icon: const Icon(Icons.download_outlined, size: 18),
+                                      label: Text(
+                                        'Unduh KAK',
+                                        style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(color: Color(0xFF33C8DA)),
+                                        foregroundColor: const Color(0xFF33C8DA),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
+                    }(),
                   ],
                 ),
               ),

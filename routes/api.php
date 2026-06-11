@@ -159,3 +159,8 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/master/kategori-belanja', [MasterDataController::class, 'getKategoriBelanja']);
     Route::get('/master/mata-anggaran', [MasterDataController::class, 'getMataAnggaran']);
 });
+
+// KAK PDF Routes (Public/Manual authentication via token query parameter)
+Route::get('/kak/{id}/pdf/preview-blob', [KakApiController::class, 'previewPdfBlob']);
+Route::get('/kak/{id}/pdf/preview', [KakApiController::class, 'previewPdf']);
+Route::get('/kak/{id}/pdf/download', [KakApiController::class, 'downloadPdf']);
