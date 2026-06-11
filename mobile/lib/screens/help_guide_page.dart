@@ -39,23 +39,24 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
     });
 
     try {
-      final res = await ApiService.get('/panduan');
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final userRoleId = authProvider.user?.roleId;
+      final isAdmin = userRoleId == 1;
+      
+      // Admin uses admin endpoint, others use public endpoint
+      final endpoint = isAdmin ? '/admin/panduan' : '/panduan';
+      
+      final res = await ApiService.get(endpoint);
       if (res.statusCode == 200) {
-        final authProvider = Provider.of<AuthProvider>(context, listen: false);
-        final userRoleId = authProvider.user?.roleId;
-        final isAdmin = userRoleId == 1;
-
         final allGuides = jsonDecode(res.body) as List<dynamic>;
         
         debugPrint('DEBUG: Current User Role ID: $userRoleId');
-        debugPrint('DEBUG: All Guides: $allGuides');
         
         setState(() {
           _guides = isAdmin 
               ? allGuides 
               : allGuides.where((g) {
                   final targetRoleId = g['target_role_id'];
-                  debugPrint('DEBUG: Comparing Guide ID: ${g['id']}, Target Role ID: $targetRoleId, User Role ID: $userRoleId');
                   return targetRoleId.toString() == userRoleId.toString();
                 }).toList();
           _filteredGuides = List.from(_guides);

@@ -31,7 +31,6 @@ Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::get('/panduan', [AdminApiController::class, 'getPanduan']);
 
     // Admin API Routes
     Route::middleware('role:Admin')->group(function () {
@@ -151,6 +150,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/kegiatan/{kegiatan}/lpj/resubmit', [LpjApiController::class, 'resubmit']);
     Route::post('/kegiatan/{kegiatan}/lpj/complete', [LpjApiController::class, 'complete']);
 });
+
+Route::get('/panduan', [AdminApiController::class, 'getPanduan']);
+
 
 // Master Data Routes (public, used for KAK form dropdowns, with throttle)
 Route::middleware('throttle:60,1')->group(function () {
