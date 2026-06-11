@@ -496,6 +496,24 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     required ValueChanged<int?> onChanged,
     String? Function(int?)? validator,
   }) {
+    if (widget.readOnly) {
+      final satuan = widget.satuanOptions.firstWhere(
+        (s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value,
+        orElse: () => null,
+      );
+      final satuanNama = satuan != null ? (satuan['nama_satuan'] ?? satuan['nama'] ?? '-').toString() : '-';
+      return TextFormField(
+        initialValue: satuanNama,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: const Color(0xFFF1F5F9),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabled: false,
+        ),
+      );
+    }
     return DropdownButtonFormField<int?>(
       isExpanded: true,
       value: widget.satuanOptions.any((s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value)

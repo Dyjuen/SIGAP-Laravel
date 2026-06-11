@@ -124,7 +124,7 @@ class KakApiController extends Controller
             'status', 'tipeKegiatan', 'pengusul', 'mataAnggaran',
             'manfaat', 'tahapan', 'targets',
             'ikus.iku', 'ikus.satuan',
-            'anggaran.kategoriBelanja',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1', 'anggaran.satuan2', 'anggaran.satuan3',
             'approvals.approver',
         ])->findOrFail($id);
 
@@ -142,6 +142,7 @@ class KakApiController extends Controller
             'tanggal_selesai' => $kak->tanggal_selesai?->format('Y-m-d'),
             'lokasi' => $kak->lokasi,
             'sasaran_utama' => $kak->sasaran_utama,
+            'output_kegiatan' => $kak->output_kegiatan,
             'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
             'mata_anggaran_id' => $kak->mata_anggaran_id,
             'mata_anggaran_nama' => $kak->mataAnggaran
@@ -196,8 +197,14 @@ class KakApiController extends Controller
                     'nama' => $a->kategoriBelanja?->nama_kategori_belanja ?? '-',
                 ],
                 'volume1' => $a->volume1,
+                'satuan1_id' => $a->satuan1_id,
+                'satuan1_nama' => $a->satuan1?->nama_satuan,
                 'volume2' => $a->volume2,
+                'satuan2_id' => $a->satuan2_id,
+                'satuan2_nama' => $a->satuan2?->nama_satuan,
                 'volume3' => $a->volume3,
+                'satuan3_id' => $a->satuan3_id,
+                'satuan3_nama' => $a->satuan3?->nama_satuan,
                 'harga_satuan' => $a->harga_satuan,
                 'jumlah_diusulkan' => $a->jumlah_diusulkan,
                 'catatan_verifikator' => $a->catatan_verifikator,
