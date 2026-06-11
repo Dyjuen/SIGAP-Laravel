@@ -625,7 +625,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           _sectionCard(
             icon: Icons.calendar_today_outlined,
             title: 'Kurun Waktu Pelaksanaan',
-            iconColor: const Color(0xFF8B5CF6),
             children: [
               Row(
                 children: [
@@ -715,7 +714,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           _sectionCard(
             icon: Icons.description_outlined,
             title: 'Detail Kegiatan',
-            iconColor: const Color(0xFFF59E0B),
             children: [
               TextFormField(
                 controller: deskripsiController,
@@ -790,7 +788,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           _sectionCard(
             icon: Icons.volunteer_activism_outlined,
             title: 'Output/Manfaat Kegiatan',
-            iconColor: const Color(0xFF10B981),
             children: [
               if (manfaatList.isEmpty)
                 Padding(
@@ -813,7 +810,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                          color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: Center(
@@ -822,7 +819,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                             style: GoogleFonts.figtree(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF10B981),
+                              color: const Color(0xFF33C8DA),
                             ),
                           ),
                         ),
@@ -871,7 +868,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           _sectionCard(
             icon: Icons.format_list_numbered_outlined,
             title: 'Tahapan Kegiatan',
-            iconColor: const Color(0xFF3B82F6),
             children: [
               if (tahapanList.isEmpty)
                 Padding(
@@ -894,7 +890,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                          color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: Center(
@@ -903,7 +899,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                             style: GoogleFonts.figtree(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF3B82F6),
+                              color: const Color(0xFF33C8DA),
                             ),
                           ),
                         ),
@@ -953,7 +949,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           _sectionCard(
             icon: Icons.trending_up_outlined,
             title: 'Indikator Kinerja',
-            iconColor: const Color(0xFFEC4899),
             children: [
               if (indikatorKinerjaList.isEmpty)
                 Padding(
@@ -972,10 +967,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFDF4FF),
+                    color: const Color(0xFFF0FDFF),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: const Color(0xFFEC4899).withValues(alpha: 0.2),
+                      color: const Color(0xFF33C8DA).withValues(alpha: 0.25),
                     ),
                   ),
                   child: Column(
@@ -988,7 +983,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                             style: GoogleFonts.figtree(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFFEC4899),
+                              color: const Color(0xFF2BA9B8),
                             ),
                           ),
                           const Spacer(),
@@ -1092,7 +1087,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
           _sectionCard(
             icon: Icons.flag_outlined,
             title: 'Target IKU',
-            iconColor: const Color(0xFF6366F1),
             children: [
               if (targetIkuList.isEmpty)
                 Padding(
@@ -1112,10 +1106,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F3FF),
+                    color: const Color(0xFFF0FDFF),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                      color: const Color(0xFF33C8DA).withValues(alpha: 0.25),
                     ),
                   ),
                   child: Column(
@@ -1127,7 +1121,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1),
+                              color: const Color(0xFF33C8DA),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -1288,7 +1282,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
             return _sectionCard(
               icon: Icons.account_balance_wallet_outlined,
               title: kategoriNama,
-              iconColor: const Color(0xFFF59E0B),
               children: [
                 if (items.isEmpty)
                   Padding(
@@ -1308,10 +1301,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFFBEB),
+                      color: const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
+                        color: const Color(0xFFE2E8F0),
                       ),
                     ),
                     child: Column(
@@ -1324,7 +1317,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                               style: GoogleFonts.figtree(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: const Color(0xFFF59E0B),
+                                color: const Color(0xFF2BA9B8),
                               ),
                             ),
                             const Spacer(),
@@ -1489,7 +1482,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF0F172A),
+                            color: const Color(0xFF33C8DA),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -1508,7 +1501,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                                 style: GoogleFonts.figtree(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF4ADE80),
+                                  color: Colors.white,
                                 ),
                               ),
                             ],
