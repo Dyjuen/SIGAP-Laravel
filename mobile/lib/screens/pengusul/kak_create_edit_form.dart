@@ -149,7 +149,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     metodeController = TextEditingController();
     lokasiController = TextEditingController();
     sasaranController = TextEditingController();
-    outputKegiatanController = TextEditingController(); // Added this
+    outputKegiatanController = TextEditingController(); // Keep initialized to empty
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
@@ -913,23 +913,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                     (v == null || v.isEmpty) ? 'Sasaran utama wajib diisi' : null,
               ),
               _buildNoteDisplay(widget.initialData?.catatanSasaranUtama),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: outputKegiatanController,
-                decoration: const InputDecoration(
-                  labelText: 'Output Kegiatan',
-                  alignLabelWithHint: true,
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.only(bottom: 24),
-                    child: Icon(Icons.output_outlined, size: 20),
-                  ),
-                ),
-                maxLines: 2,
-                readOnly: widget.readOnly,
-                validator: (v) => (v == null || v.isEmpty)
-                    ? 'Output kegiatan wajib diisi'
-                    : null,
-              ),
               const SizedBox(height: 14),
               TextFormField(
                 controller: metodeController,
