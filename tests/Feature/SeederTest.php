@@ -63,7 +63,7 @@ class SeederTest extends TestCase
 
         // 4. Verify Data Count (Master Data)
         $this->assertEquals(7, Role::count(), 'Expected 7 roles, found '.Role::count());
-        $this->assertEquals(16, User::count(), 'Expected 16 users, found '.User::count());
+        $this->assertEquals(17, User::count(), 'Expected 17 users, found '.User::count());
         $this->assertEquals(3, MataAnggaran::count(), 'Expected 3 budget sources, found '.MataAnggaran::count());
 
         // 5. Verify Specific Data

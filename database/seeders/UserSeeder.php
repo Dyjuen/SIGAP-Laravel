@@ -46,6 +46,7 @@ class UserSeeder extends Seeder
             ['user_id' => 15, 'username' => 'bendahara', 'password_hash' => bcrypt('bendahara123'), 'nama_lengkap' => 'Mba Amanah', 'email' => 'bendahara@pnj.ac.id', 'role_id' => $bendaharaRole],
             // 7. Rektorat
             ['user_id' => 16, 'username' => 'rektorat', 'password_hash' => bcrypt('rektorat123'), 'nama_lengkap' => 'Dr. Syamsurizal, S.E., M.M.', 'email' => 'rektorat@pnj.ac.id', 'role_id' => $rektoratRole],
+            ['user_id' => 99, 'username' => 'direktur', 'password_hash' => bcrypt('direktur123'), 'nama_lengkap' => 'Direktur PNJ', 'email' => 'direktur@pnj.ac.id', 'role_id' => $rektoratRole],
         ];
 
         foreach ($users as $row) {

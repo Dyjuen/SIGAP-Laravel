@@ -85,23 +85,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:Bendahara')->group(function () {
         Route::get('/bendahara/dashboard', [DashboardApiController::class, 'bendahara']);
     });
-    Route::middleware('role:Direktur,Admin')->group(function () {
+    Route::middleware('role:Direktur,Rektorat,Admin')->group(function () {
         Route::get('/direktur/dashboard', [DashboardApiController::class, 'direktur']);
     });
 
     // Kegiatan API Routes
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Verifikator')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Verifikator,Direktur,Rektorat')->group(function () {
         Route::get('/kegiatan/monitoring', [KegiatanApiController::class, 'monitoring']);
     });
 
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Direktur,Rektorat')->group(function () {
         Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
+    });
+
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
         Route::post('/kegiatan', [KegiatanApiController::class, 'store'])->middleware('throttle:60,1');
         Route::match(['put', 'patch'], '/kegiatan/{kegiatan}', [KegiatanApiController::class, 'update']);
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanApiController::class, 'approve']);
     });
 
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Verifikator,Direktur')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Verifikator,Direktur,Rektorat')->group(function () {
         Route::get('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'show']);
     });
 

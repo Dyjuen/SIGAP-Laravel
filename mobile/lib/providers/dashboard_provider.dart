@@ -120,15 +120,46 @@ class BendaharaDashboardProvider extends BaseDashboardProvider {
   }
 }
 
-/// Direktur Dashboard Provider
+/// Direktur Dashboard Provider — Full (with TOPSIS, trends, overview, period)
 class DirektorDashboardProvider extends BaseDashboardProvider {
+  String _selectedPeriod = 'year';
+  DirektorDashboardData? _direktorData;
+
   DirektorDashboardProvider(super.dashboardService);
+
+  String get selectedPeriod => _selectedPeriod;
+  DirektorDashboardData? get direktorData => _direktorData;
 
   @override
   Future<void> loadDashboard() async {
-    await _loadFromService(() => dashboardService.getDirektorDashboard());
+    await _loadDirektorFull(_selectedPeriod);
+  }
+
+  Future<void> changePeriod(String period) async {
+    _selectedPeriod = period;
+    await _loadDirektorFull(period);
+  }
+
+  Future<void> _loadDirektorFull(String period) async {
+    _isLoading = true;
+    _isError = false;
+    _errorMessage = '';
+    notifyListeners();
+
+    try {
+      final data = await dashboardService.getDirektorDashboardFull(period);
+      _direktorData = data;
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isError = true;
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }
+
 
 /// Universal Dashboard Provider (loads based on role)
 class UniversalDashboardProvider extends BaseDashboardProvider {
