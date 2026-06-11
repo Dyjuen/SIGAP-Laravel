@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -128,6 +129,8 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
 
   DateTime? tanggalMulai;
   DateTime? tanggalSelesai;
+  DateTime? _initialTanggalMulai;
+  DateTime? _initialTanggalSelesai;
   int? selectedTipeKegiatan;
 
   List<ManfaatItem> manfaatList = [];
@@ -167,6 +170,8 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
 
     tanggalMulai = DateTime.tryParse(data.tanggalMulai);
     tanggalSelesai = DateTime.tryParse(data.tanggalSelesai);
+    _initialTanggalMulai = tanggalMulai;
+    _initialTanggalSelesai = tanggalSelesai;
     selectedTipeKegiatan = data.tipeKegiatanId;
     if (selectedTipeKegiatan != null &&
         !widget.tipeKegiatanOptions.any(
@@ -432,7 +437,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     });
   }
 
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
+  Future<void> _selectDate(BuildContext context, bool isStartDate, FormFieldState<DateTime> state) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: isStartDate
@@ -448,6 +453,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
         } else {
           tanggalSelesai = picked;
         }
+        state.didChange(picked);
         widget.onFormChange(getFormData());
       });
     }
@@ -636,82 +642,126 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
             title: 'Kurun Waktu Pelaksanaan',
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: InkWell(
-                      onTap: widget.readOnly
-                          ? null
-                          : () => _selectDate(context, true),
-                      borderRadius: BorderRadius.circular(10),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'Tanggal Mulai',
-                          prefixIcon: const Icon(
-                            Icons.calendar_month_outlined,
-                            size: 20,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFCBD5E1), width: 1.2),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFCBD5E1), width: 1.2),
-                          ),
-                        ),
-                        child: Text(
-                          tanggalMulai == null
-                              ? 'Pilih Tanggal'
-                              : DateFormat('dd/MM/yyyy').format(tanggalMulai!),
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            color: tanggalMulai == null
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                      ),
+                    child: FormField<DateTime>(
+                      initialValue: tanggalMulai,
+                      validator: (val) {
+                        if (tanggalMulai == null) {
+                          return 'Wajib diisi';
+                        }
+                        final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+                        final isNew = widget.initialData == null;
+                        final dateChanged = tanggalMulai != _initialTanggalMulai;
+                        if ((isNew || dateChanged) && tanggalMulai!.isBefore(today)) {
+                          return 'Tidak boleh sebelum hari ini';
+                        }
+                        return null;
+                      },
+                      builder: (FormFieldState<DateTime> state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              onTap: widget.readOnly
+                                  ? null
+                                  : () => _selectDate(context, true, state),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Tanggal Mulai',
+                                  errorText: state.errorText,
+                                  prefixIcon: const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 20,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                ),
+                                child: Text(
+                                  tanggalMulai == null
+                                      ? 'Pilih Tanggal'
+                                      : DateFormat('dd/MM/yyyy').format(tanggalMulai!),
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 14,
+                                    color: tanggalMulai == null
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: InkWell(
-                      onTap: widget.readOnly
-                          ? null
-                          : () => _selectDate(context, false),
-                      borderRadius: BorderRadius.circular(10),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'Tanggal Selesai',
-                          prefixIcon: const Icon(
-                            Icons.calendar_month_outlined,
-                            size: 20,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFCBD5E1), width: 1.2),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                                color: Color(0xFFCBD5E1), width: 1.2),
-                          ),
-                        ),
-                        child: Text(
-                          tanggalSelesai == null
-                              ? 'Pilih Tanggal'
-                              : DateFormat('dd/MM/yyyy').format(tanggalSelesai!),
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            color: tanggalSelesai == null
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                      ),
+                    child: FormField<DateTime>(
+                      initialValue: tanggalSelesai,
+                      validator: (val) {
+                        if (tanggalSelesai == null) {
+                          return 'Wajib diisi';
+                        }
+                        if (tanggalMulai != null && tanggalSelesai!.isBefore(tanggalMulai!)) {
+                          return 'Tidak boleh sebelum tanggal mulai';
+                        }
+                        return null;
+                      },
+                      builder: (FormFieldState<DateTime> state) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            InkWell(
+                              onTap: widget.readOnly
+                                  ? null
+                                  : () => _selectDate(context, false, state),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Tanggal Selesai',
+                                  errorText: state.errorText,
+                                  prefixIcon: const Icon(
+                                    Icons.calendar_month_outlined,
+                                    size: 20,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                        color: Color(0xFFCBD5E1), width: 1.2),
+                                  ),
+                                ),
+                                child: Text(
+                                  tanggalSelesai == null
+                                      ? 'Pilih Tanggal'
+                                      : DateFormat('dd/MM/yyyy').format(tanggalSelesai!),
+                                  style: GoogleFonts.figtree(
+                                    fontSize: 14,
+                                    color: tanggalSelesai == null
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -1259,14 +1309,21 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                                 fillColor: Colors.white,
                               ),
                               keyboardType: TextInputType.number,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                               readOnly: widget.readOnly,
                               onChanged: (v) {
                                 targetIkuList[index].target = v;
                                 widget.onFormChange(getFormData());
                               },
-                              validator: (v) => (v == null || v.isEmpty)
-                                  ? 'Target wajib diisi'
-                                  : null,
+                              validator: (v) {
+                                if (v == null || v.isEmpty) {
+                                  return 'Target wajib diisi';
+                                }
+                                if (int.tryParse(v) == null) {
+                                  return 'Harus angka';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           const SizedBox(width: 10),
