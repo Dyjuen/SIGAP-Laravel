@@ -45,9 +45,13 @@ class LpjRealization {
   final String uraian;
   final int kategoriBelanjaId;
   final String? kategoriNama;
-  final double volume;
-  final String? satuanId;
-  final double hargaSatuan;
+  final double volume; // KAK volume1
+  final String? satuanId; // KAK satuan1_id
+  final double? volume2; // KAK volume2
+  final String? satuan2Id; // KAK satuan2_id
+  final double? volume3; // KAK volume3
+  final String? satuan3Id; // KAK satuan3_id
+  final double hargaSatuan; // KAK harga_satuan
   final double jumlahDiusulkan;
   final double? realisasiVolume1;
   final String? realisasiSatuan1Id;
@@ -59,6 +63,9 @@ class LpjRealization {
   final double realisasiJumlah;
   final String? catatanReviewer;
   final List<LpjLampiran>? lampiran;
+  final String? satuan1Nama;
+  final String? satuan2Nama;
+  final String? satuan3Nama;
 
   LpjRealization({
     required this.anggaranId,
@@ -69,6 +76,10 @@ class LpjRealization {
     this.kategoriNama,
     required this.volume,
     this.satuanId,
+    this.volume2,
+    this.satuan2Id,
+    this.volume3,
+    this.satuan3Id,
     required this.hargaSatuan,
     required this.jumlahDiusulkan,
     this.realisasiVolume1,
@@ -81,6 +92,9 @@ class LpjRealization {
     required this.realisasiJumlah,
     this.catatanReviewer,
     this.lampiran,
+    this.satuan1Nama,
+    this.satuan2Nama,
+    this.satuan3Nama,
   });
 
   factory LpjRealization.fromJson(Map<String, dynamic> json) {
@@ -114,6 +128,10 @@ class LpjRealization {
           : null,
       volume: _parseDouble(json['volume1'] ?? json['volume']),
       satuanId: (json['satuan1_id'] ?? json['satuan_id'])?.toString(),
+      volume2: json['volume2'] != null ? _parseDouble(json['volume2']) : null,
+      satuan2Id: json['satuan2_id']?.toString(),
+      volume3: json['volume3'] != null ? _parseDouble(json['volume3']) : null,
+      satuan3Id: json['satuan3_id']?.toString(),
       hargaSatuan: _parseDouble(json['harga_satuan']),
       jumlahDiusulkan: _parseDouble(json['jumlah_diusulkan']),
       realisasiVolume1: json['realisasi_volume1'] != null
@@ -134,6 +152,9 @@ class LpjRealization {
       realisasiJumlah: _parseDouble(json['realisasi_jumlah']),
       catatanReviewer: catatan,
       lampiran: lampiranList.isEmpty ? null : lampiranList,
+      satuan1Nama: json['satuan1_nama']?.toString(),
+      satuan2Nama: json['satuan2_nama']?.toString(),
+      satuan3Nama: json['satuan3_nama']?.toString(),
     );
   }
 
@@ -145,6 +166,10 @@ class LpjRealization {
         'kategori_belanja_id': kategoriBelanjaId,
         'volume': volume,
         'satuan_id': satuanId,
+        'volume2': volume2,
+        'satuan2_id': satuan2Id,
+        'volume3': volume3,
+        'satuan3_id': satuan3Id,
         'harga_satuan': hargaSatuan,
         'jumlah_diusulkan': jumlahDiusulkan,
         'realisasi_volume1': realisasiVolume1,
@@ -157,6 +182,9 @@ class LpjRealization {
         'realisasi_jumlah': realisasiJumlah,
         'catatan_reviewer': catatanReviewer,
         'lampiran': lampiran?.map((e) => e.toJson()).toList(),
+        'satuan1_nama': satuan1Nama,
+        'satuan2_nama': satuan2Nama,
+        'satuan3_nama': satuan3Nama,
       };
 
   double get percentageRealized {

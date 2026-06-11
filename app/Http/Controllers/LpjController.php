@@ -94,7 +94,7 @@ class LpjController extends Controller
 
         $kegiatan->load(['kak.pengusul', 'kak.mataAnggaran', 'approvals']);
 
-        $anggaran = KAKAnggaran::with(['kategoriBelanja', 'lampiran.uploader'])
+        $anggaran = KAKAnggaran::with(['kategoriBelanja', 'lampiran.uploader', 'satuan1', 'satuan2', 'satuan3'])
             ->where('kak_id', $kegiatan->kak_id)
             ->get();
 

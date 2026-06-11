@@ -878,14 +878,43 @@ class _LpjFormPageState extends State<LpjFormPage> {
                   row.volume1Controller,
                   60,
                   required: true,
+                  kakValue: _formatDouble(item.volume),
                 ),
-                _buildColumnSatuan('Satuan 1', row, 1, isEditable),
+                _buildColumnSatuan(
+                  'Satuan 1',
+                  row,
+                  1,
+                  isEditable,
+                  kakValue: item.satuan1Nama ?? '-',
+                ),
                 const _Divider(),
-                _buildColumnInput('Volume 2', row.volume2Controller, 60),
-                _buildColumnSatuan('Satuan 2', row, 2, isEditable),
+                _buildColumnInput(
+                  'Volume 2',
+                  row.volume2Controller,
+                  60,
+                  kakValue: item.volume2 != null ? _formatDouble(item.volume2!) : '-',
+                ),
+                _buildColumnSatuan(
+                  'Satuan 2',
+                  row,
+                  2,
+                  isEditable,
+                  kakValue: item.satuan2Nama ?? '-',
+                ),
                 const _Divider(),
-                _buildColumnInput('Volume 3', row.volume3Controller, 60),
-                _buildColumnSatuan('Satuan 3', row, 3, isEditable),
+                _buildColumnInput(
+                  'Volume 3',
+                  row.volume3Controller,
+                  60,
+                  kakValue: item.volume3 != null ? _formatDouble(item.volume3!) : '-',
+                ),
+                _buildColumnSatuan(
+                  'Satuan 3',
+                  row,
+                  3,
+                  isEditable,
+                  kakValue: item.satuan3Nama ?? '-',
+                ),
                 const _Divider(),
                 _buildColumnInput(
                   'Harga Satuan',
@@ -893,6 +922,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                   120,
                   prefix: 'Rp',
                   required: true,
+                  kakValue: _formatCurrency(item.hargaSatuan),
                 ),
                 const _Divider(),
                 _buildColumnDisplay(
@@ -959,6 +989,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
     double width, {
     String? prefix,
     bool required = false,
+    String? kakValue,
   }) {
     return Container(
       width: width,
@@ -966,6 +997,24 @@ class _LpjFormPageState extends State<LpjFormPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (kakValue != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'KAK: $kakValue',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
           Text(
             label,
             style: const TextStyle(
@@ -1019,8 +1068,9 @@ class _LpjFormPageState extends State<LpjFormPage> {
     String label,
     _RealisasiRowControllers row,
     int volIdx,
-    bool enabled,
-  ) {
+    bool enabled, {
+    String? kakValue,
+  }) {
     String? currentVal;
     if (volIdx == 1) currentVal = row.satuan1Id;
     if (volIdx == 2) currentVal = row.satuan2Id;
@@ -1032,6 +1082,24 @@ class _LpjFormPageState extends State<LpjFormPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (kakValue != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'KAK: $kakValue',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
           Text(
             label,
             style: const TextStyle(
@@ -1542,6 +1610,13 @@ class _LpjFormPageState extends State<LpjFormPage> {
       symbol: 'Rp ',
       decimalDigits: 0,
     ).format(value);
+  }
+
+  String _formatDouble(double val) {
+    if (val == val.toInt()) {
+      return val.toInt().toString();
+    }
+    return val.toString();
   }
 
   double _parseDouble(String value) {

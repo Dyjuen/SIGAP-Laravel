@@ -429,10 +429,16 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                                                     </td>
                                                                     {/* Vol 1 */}
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100/50">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5">
+                                                                            KAK: {item.volume1 ?? '-'}
+                                                                        </div>
                                                                         <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.volume1} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume1', e.target.value)} disabled={!isEditingPengusul} min="0" placeholder="-" required />
                                                                     </td>
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5 truncate" title={item.satuan1?.nama_satuan ?? '-'}>
+                                                                            KAK: {item.satuan1?.nama_satuan ?? '-'}
+                                                                        </div>
                                                                         <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.satuan1_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan1_id', e.target.value)} disabled={!isEditingPengusul}>
                                                                             <option value="">-</option>
@@ -441,10 +447,16 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                                                     </td>
                                                                     {/* Vol 2 */}
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100/50">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5">
+                                                                            KAK: {item.volume2 ?? '-'}
+                                                                        </div>
                                                                         <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.volume2} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume2', e.target.value)} disabled={!isEditingPengusul} placeholder="-" min="0" />
                                                                     </td>
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5 truncate" title={item.satuan2?.nama_satuan ?? '-'}>
+                                                                            KAK: {item.satuan2?.nama_satuan ?? '-'}
+                                                                        </div>
                                                                         <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.satuan2_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan2_id', e.target.value)} disabled={!isEditingPengusul}>
                                                                             <option value="">-</option>
@@ -453,10 +465,16 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                                                     </td>
                                                                     {/* Vol 3 */}
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100/50">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5">
+                                                                            KAK: {item.volume3 ?? '-'}
+                                                                        </div>
                                                                         <input type="number" className="w-full rounded-lg border-gray-200 text-xs py-2 text-center focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.volume3} onChange={e => handleRealisasiChange(item.anggaran_id, 'volume3', e.target.value)} disabled={!isEditingPengusul} placeholder="-" min="0" />
                                                                     </td>
                                                                     <td className="px-1 py-2 align-top border-r border-slate-100">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5 truncate" title={item.satuan3?.nama_satuan ?? '-'}>
+                                                                            KAK: {item.satuan3?.nama_satuan ?? '-'}
+                                                                        </div>
                                                                         <select className="w-full rounded-lg border-gray-200 text-xs py-2 focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.satuan3_id} onChange={e => handleRealisasiChange(item.anggaran_id, 'satuan3_id', e.target.value)} disabled={!isEditingPengusul}>
                                                                             <option value="">-</option>
@@ -465,6 +483,9 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                                                     </td>
                                                                     {/* Harga */}
                                                                     <td className="px-2 py-2 align-top border-r border-slate-100">
+                                                                        <div className="text-[10px] text-slate-500 mb-1 text-center font-semibold bg-slate-100 rounded py-0.5 truncate" title={formatCurrency(item.harga_satuan)}>
+                                                                            KAK: {formatCurrency(item.harga_satuan)}
+                                                                        </div>
                                                                         <input type="text" className="w-full rounded-lg border-gray-200 text-xs py-2 text-right focus:border-cyan-400 focus:ring-0 shadow-sm"
                                                                             value={realisasiItem.harga_satuan ? formatInputCurrency(realisasiItem.harga_satuan) : ''} onChange={e => handleRealisasiChange(item.anggaran_id, 'harga_satuan', e.target.value)} disabled={!isEditingPengusul} placeholder="Rp 0" required />
                                                                     </td>

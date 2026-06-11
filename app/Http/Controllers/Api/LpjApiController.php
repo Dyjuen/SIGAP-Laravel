@@ -115,10 +115,13 @@ class LpjApiController extends Controller
                         'uraian' => $item->uraian ?? '-',
                         'volume1' => $item->volume1,
                         'satuan1_id' => $item->satuan1_id,
+                        'satuan1_nama' => $item->satuan1?->nama_satuan,
                         'volume2' => $item->volume2,
                         'satuan2_id' => $item->satuan2_id,
+                        'satuan2_nama' => $item->satuan2?->nama_satuan,
                         'volume3' => $item->volume3,
                         'satuan3_id' => $item->satuan3_id,
+                        'satuan3_nama' => $item->satuan3?->nama_satuan,
                         'harga_satuan' => (float) $item->harga_satuan,
                         'jumlah_diusulkan' => (float) $item->jumlah_diusulkan,
                         // Realization fields
