@@ -30,7 +30,7 @@ class _KakDetailPageState extends State<KakDetailPage> {
   bool _isEditing = false;
   Map<String, dynamic>? _currentFormData;
 
-  final GlobalKey<KakCreateEditFormState> _kakFormKey = GlobalKey<KakCreateEditFormState>();
+  // Removed: final GlobalKey<KakCreateEditFormState> _kakFormKey = GlobalKey<KakCreateEditFormState>();
 
   @override
   void initState() {
@@ -64,15 +64,6 @@ class _KakDetailPageState extends State<KakDetailPage> {
           isLoadingMaster = false;
           _isEditing = false; // Reset editing state on reload
         });
-        
-        // After build, capture initial form data if needed
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _currentFormData = _kakFormKey.currentState?.getFormData();
-            });
-          }
-        });
       }
     } catch (e) {
       if (mounted) {
@@ -89,10 +80,8 @@ class _KakDetailPageState extends State<KakDetailPage> {
   }
 
   Future<void> _saveKak() async {
-    final formData = _kakFormKey.currentState?.getFormData();
+    final formData = _currentFormData; // Use _currentFormData directly
     if (formData != null) {
-      _currentFormData ??= formData;
-      
       if (mounted) {
         final provider = context.read<KakDetailProvider>();
         final success = await provider.updateKak(widget.kakId, formData);
@@ -138,48 +127,81 @@ class _KakDetailPageState extends State<KakDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
-          Column( // Use Column to stack "Kembali" and "Ajukan Kegiatan"
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        'Kembali',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // "Ajukan Kegiatan" button, always shown if statusId == 3
-              if (kak.statusId == 3)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PengajuanCreatePage(kak: kak),
+          if (_isEditing) // Show Save and Cancel buttons only when editing
+            Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: provider.isLoading ? null : _saveKak,
+                    child: provider.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            'Simpan Perubahan',
+                            style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
                           ),
-                        );
-                        if (result == true && mounted) {
-                          provider.loadKakDetail(kak.kakId);
-                        }
-                      },
-                      child: Text(
-                        'Ajukan Kegiatan',
-                        style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
-                      ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: provider.isLoading ? null : _cancelEdit,
+                    child: Text(
+                      'Batal',
+                      style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
-            ],
-          ),
+              ],
+            )
+          else // Show Kembali and Ajukan Kegiatan buttons when not editing
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          'Kembali',
+                          style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // "Ajukan Kegiatan" button, always shown if statusId == 3
+                if (kak.statusId == 3)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PengajuanCreatePage(kak: kak),
+                            ),
+                          );
+                          if (result == true && mounted) {
+                            provider.loadKakDetail(kak.kakId);
+                          }
+                        },
+                        child: Text(
+                          'Ajukan Kegiatan',
+                          style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
         ],
       ),
     );
@@ -223,22 +245,32 @@ class _KakDetailPageState extends State<KakDetailPage> {
               'Detail KAK',
               style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
             ),
+            actions: [
+              if (!widget.embedMode && !_isEditing)
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    setState(() {
+                      _isEditing = true;
+                    });
+                  },
+                ),
+            ],
           ),
           body: Column(
             children: [
               Expanded(
                 child: KakCreateEditForm(
-                  key: ValueKey('${kak.kakId}_readOnly'), // Fixed key for readOnly mode
+                  key: ValueKey('${kak.kakId}_${_isEditing ? 'edit' : 'readOnly'}'),
                   initialData: kak,
                   tipeKegiatanOptions: tipeKegiatanOptions,
                   ikuOptions: ikuOptions,
                   satuanOptions: satuanOptions,
                   kategoriBelanjaOptions: kategoriBelanjaOptions,
-                  readOnly: true, // Always readOnly
-                  onSubmit: () {}, // Not used
-                  isLoading: false,
-                  onFormChange: (_) {}, // Not used
-                  formKey: GlobalKey<FormState>(),
+                  readOnly: !_isEditing,
+                  onSubmit: _saveKak,
+                  isLoading: provider.isLoading,
+                  onFormChange: _handleFormChange,
                 ),
               ),
               if (!widget.embedMode)

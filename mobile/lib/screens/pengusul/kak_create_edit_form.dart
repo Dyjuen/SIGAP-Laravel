@@ -99,7 +99,6 @@ class KakCreateEditForm extends StatefulWidget {
   final VoidCallback onSubmit;
   final bool isLoading;
   final Function(Map<String, dynamic>) onFormChange;
-  final GlobalKey<FormState>? formKey; // Add formKey parameter
 
   const KakCreateEditForm({
     super.key,
@@ -112,7 +111,6 @@ class KakCreateEditForm extends StatefulWidget {
     required this.onSubmit,
     this.isLoading = false,
     required this.onFormChange,
-    this.formKey, // Initialize formKey
   });
 
   @override
@@ -125,6 +123,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
   late TextEditingController metodeController;
   late TextEditingController lokasiController;
   late TextEditingController sasaranController;
+  late TextEditingController outputKegiatanController; // Added this
 
   DateTime? tanggalMulai;
   DateTime? tanggalSelesai;
@@ -136,17 +135,17 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
   List<TargetIkuItem> targetIkuList = [];
   List<RabItem> rabList = [];
 
-  late final GlobalKey<FormState> _formKey;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    _formKey = widget.formKey ?? GlobalKey<FormState>();
     namaController = TextEditingController();
     deskripsiController = TextEditingController();
     metodeController = TextEditingController();
     lokasiController = TextEditingController();
     sasaranController = TextEditingController();
+    outputKegiatanController = TextEditingController(); // Added this
 
     if (widget.initialData != null) {
       _initializeFromData(widget.initialData!);
@@ -159,10 +158,17 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     metodeController.text = data.metodePelaksanaan;
     lokasiController.text = data.lokasi;
     sasaranController.text = data.sasaranUtama;
+    outputKegiatanController.text = data.outputKegiatan; // Added this
 
     tanggalMulai = DateTime.tryParse(data.tanggalMulai);
     tanggalSelesai = DateTime.tryParse(data.tanggalSelesai);
     selectedTipeKegiatan = data.tipeKegiatanId;
+    if (selectedTipeKegiatan != null &&
+        !widget.tipeKegiatanOptions.any(
+          (option) => option['id'] == selectedTipeKegiatan,
+        )) {
+      selectedTipeKegiatan = null; // Reset if not found
+    }
 
     manfaatList = data.manfaat
         .map((m) => ManfaatItem(id: m.manfaatId.toString(), value: m.manfaat))
@@ -195,11 +201,29 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
             id: r.anggaranId.toString(),
             uraian: r.uraian,
             volume1: r.volume1?.toDouble() ?? 0,
-            satuan1Id: r.satuan1Id,
+            satuan1Id:
+                (r.satuan1Id != null &&
+                    widget.satuanOptions.any(
+                      (option) => option['id'] == r.satuan1Id,
+                    ))
+                ? r.satuan1Id
+                : null,
             volume2: r.volume2?.toDouble(),
-            satuan2Id: r.satuan2Id,
+            satuan2Id:
+                (r.satuan2Id != null &&
+                    widget.satuanOptions.any(
+                      (option) => option['id'] == r.satuan2Id,
+                    ))
+                ? r.satuan2Id
+                : null,
             volume3: r.volume3?.toDouble(),
-            satuan3Id: r.satuan3Id,
+            satuan3Id:
+                (r.satuan3Id != null &&
+                    widget.satuanOptions.any(
+                      (option) => option['id'] == r.satuan3Id,
+                    ))
+                ? r.satuan3Id
+                : null,
             hargaSatuan: r.hargaSatuan?.toDouble() ?? 0,
             kategoriBelanjaId: r.kategoriBelanjaId,
           ),
@@ -230,11 +254,24 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
         .map(
           (t) => TargetIkuItem(
             id: t.ikuId.toString(),
-            ikuId: int.tryParse(t.ikuId.toString()) ?? 0,
+            ikuId:
+                (int.tryParse(t.ikuId.toString()) != null &&
+                    widget.ikuOptions.any(
+                      (option) =>
+                          option['id'] == int.tryParse(t.ikuId.toString()),
+                    ))
+                ? int.tryParse(t.ikuId.toString())!
+                : 0,
             ikuNama: t.ikuNama,
             target: t.target.toString(),
-            satuanId: t.satuanId != null
-                ? int.tryParse(t.satuanId.toString())
+            satuanId:
+                (t.satuanId != null &&
+                    widget.satuanOptions.any(
+                      (option) =>
+                          option['id'] ==
+                          int.tryParse(t.satuanId.toString() ?? ''),
+                    ))
+                ? int.tryParse(t.satuanId.toString() ?? '')
                 : null,
             note: t.catatanVerifikator,
           ),
@@ -249,6 +286,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
       'metode_pelaksanaan': metodeController.text,
       'lokasi': lokasiController.text,
       'sasaran_utama': sasaranController.text,
+      'output_kegiatan': outputKegiatanController.text, // Added this
       'tanggal_mulai': tanggalMulai?.toIso8601String().split('T')[0] ?? '',
       'tanggal_selesai': tanggalSelesai?.toIso8601String().split('T')[0] ?? '',
       'tipe_kegiatan_id': selectedTipeKegiatan ?? '',
@@ -389,6 +427,381 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     });
   }
 
+  Widget _buildKerangkaAcuanKerjaForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextFormField(
+            controller: namaController,
+            decoration: const InputDecoration(labelText: 'Nama Kegiatan'),
+            readOnly: widget.readOnly,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Nama kegiatan tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<int?>(
+            value: selectedTipeKegiatan,
+            decoration: const InputDecoration(labelText: 'Tipe Kegiatan'),
+            items: [
+              const DropdownMenuItem<int?>(
+                value: null,
+                child: Text('Pilih Tipe Kegiatan'),
+              ),
+              ...widget.tipeKegiatanOptions
+                  .where(
+                    (option) => (option['id'] as int?) != null,
+                  ) // Filter out options with null IDs from master data
+                  .map<DropdownMenuItem<int?>>((option) {
+                    return DropdownMenuItem<int?>(
+                      value: (option['id'] as int?),
+                      child: Text(option['nama'] ?? ''),
+                    );
+                  })
+                  .toList(),
+            ],
+            onChanged: widget.readOnly
+                ? null
+                : (value) {
+                    setState(() {
+                      selectedTipeKegiatan = value;
+                    });
+                  },
+            validator: (value) {
+              if (value == null) {
+                return 'Tipe kegiatan tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: deskripsiController,
+            decoration: const InputDecoration(
+              labelText: 'Gambaran Umum Kegiatan',
+            ),
+            maxLines: 3,
+            readOnly: widget.readOnly,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Gambaran umum kegiatan tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: sasaranController,
+            decoration: const InputDecoration(labelText: 'Sasaran Utama'),
+            maxLines: 2,
+            readOnly: widget.readOnly,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Sasaran utama tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: outputKegiatanController,
+            decoration: const InputDecoration(labelText: 'Output Kegiatan'),
+            maxLines: 2,
+            readOnly: widget.readOnly,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Output kegiatan tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: metodeController,
+            decoration: const InputDecoration(labelText: 'Metode Pelaksanaan'),
+            maxLines: 2,
+            readOnly: widget.readOnly,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Metode pelaksanaan tidak boleh kosong';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Kurun Waktu Pelaksanaan',
+            style: GoogleFonts.figtree(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: widget.readOnly
+                      ? null
+                      : () => _selectDate(context, true),
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Tanggal Mulai',
+                      border: OutlineInputBorder(),
+                    ),
+                    child: Text(
+                      tanggalMulai == null
+                          ? 'Pilih Tanggal'
+                          : DateFormat('dd/MM/yyyy').format(tanggalMulai!),
+                      style: GoogleFonts.figtree(),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: InkWell(
+                  onTap: widget.readOnly
+                      ? null
+                      : () => _selectDate(context, false),
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Tanggal Selesai',
+                      border: OutlineInputBorder(),
+                    ),
+                    child: Text(
+                      tanggalSelesai == null
+                          ? 'Pilih Tanggal'
+                          : DateFormat('dd/MM/yyyy').format(tanggalSelesai!),
+                      style: GoogleFonts.figtree(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Manfaat Kegiatan',
+            style: GoogleFonts.figtree(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: manfaatList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: manfaatList[index].value,
+                        decoration: InputDecoration(
+                          labelText: 'Manfaat ${index + 1}',
+                        ),
+                        readOnly: widget.readOnly,
+                        onChanged: (value) {
+                          manfaatList[index].value = value;
+                          widget.onFormChange(getFormData());
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Manfaat tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    if (!widget.readOnly)
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle),
+                        onPressed: () => _removeManfaat(index),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+          if (!widget.readOnly)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _addManfaat,
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Manfaat'),
+              ),
+            ),
+          const SizedBox(height: 16),
+          Text(
+            'Tahapan Kegiatan',
+            style: GoogleFonts.figtree(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: tahapanList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        initialValue: tahapanList[index].nama,
+                        decoration: InputDecoration(
+                          labelText: 'Tahapan ${index + 1}',
+                        ),
+                        readOnly: widget.readOnly,
+                        onChanged: (value) {
+                          tahapanList[index].nama = value;
+                          widget.onFormChange(getFormData());
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Tahapan tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    if (!widget.readOnly)
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle),
+                        onPressed: () => _removeTahapan(index),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+          if (!widget.readOnly)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _addTahapan,
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Tahapan'),
+              ),
+            ),
+          const SizedBox(height: 16),
+          Text(
+            'Indikator Kinerja',
+            style: GoogleFonts.figtree(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: indikatorKinerjaList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      initialValue: indikatorKinerjaList[index].bulanIndikator,
+                      decoration: InputDecoration(
+                        labelText: 'Bulan Indikator ${index + 1}',
+                      ),
+                      readOnly: widget.readOnly,
+                      onChanged: (value) {
+                        indikatorKinerjaList[index].bulanIndikator = value;
+                        widget.onFormChange(getFormData());
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Bulan indikator tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      initialValue: indikatorKinerjaList[index].deskripsiTarget,
+                      decoration: InputDecoration(
+                        labelText: 'Deskripsi Target ${index + 1}',
+                      ),
+                      readOnly: widget.readOnly,
+                      onChanged: (value) {
+                        indikatorKinerjaList[index].deskripsiTarget = value;
+                        widget.onFormChange(getFormData());
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Deskripsi target tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      initialValue: indikatorKinerjaList[index].persentaseTarget
+                          ?.toString(),
+                      decoration: InputDecoration(
+                        labelText: 'Persentase Target ${index + 1}',
+                      ),
+                      keyboardType: TextInputType.number,
+                      readOnly: widget.readOnly,
+                      onChanged: (value) {
+                        indikatorKinerjaList[index].persentaseTarget =
+                            double.tryParse(value);
+                        widget.onFormChange(getFormData());
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Persentase target tidak boleh kosong';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Harus angka';
+                        }
+                        return null;
+                      },
+                    ),
+                    if (!widget.readOnly)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          icon: const Icon(Icons.remove_circle),
+                          onPressed: () => _removeIndikatorKinerja(index),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+          if (!widget.readOnly)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _addIndikatorKinerja,
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Indikator Kinerja'),
+              ),
+            ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
   Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final picked = await showDatePicker(
       context: context,
@@ -409,1019 +822,33 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     }
   }
 
-  Widget _buildSatuanDropdown({
-    required String label,
-    required int? value,
-    required ValueChanged<int?> onChanged,
-  }) {
-    return DropdownButtonFormField<int>(
-      value:
-          widget.satuanOptions.any((s) => (s['satuan_id'] ?? s['id']) == value)
-          ? value
-          : null,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      ),
-      items: widget.satuanOptions.map<DropdownMenuItem<int>>((satuan) {
-        return DropdownMenuItem<int>(
-          value: satuan['satuan_id'] ?? satuan['id'],
-          child: Text(satuan['nama_satuan'] ?? satuan['name'] ?? ''),
-        );
-      }).toList(),
-      onChanged: widget.readOnly ? null : onChanged,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Form(
-      key: widget.formKey, // Use the external formKey
-      child: ListView(
-        padding: const EdgeInsets.all(16),
+  Widget _buildIndikatorKinerjaUtamaForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Informasi Umum
           Text(
-            'Informasi Umum',
+            'Target IKU',
             style: GoogleFonts.figtree(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Nama Kegiatan
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanNamaKegiatan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: namaController,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Kegiatan',
-                      hintText: 'Contoh: Workshop Digital Marketing',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : colorScheme.primary,
-                          width: hasNote ? 1.4 : 1.2,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.redAccent,
-                          width: 1.2,
-                        ),
-                      ),
-
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nama kegiatan harus diisi';
-                      }
-                      if (value.length < 5) {
-                        return 'Minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Tipe Kegiatan
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanTipeKegiatan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DropdownButtonFormField<int>(
-                    value: selectedTipeKegiatan,
-                    decoration: InputDecoration(
-                      labelText: 'Tipe Kegiatan',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : colorScheme.primary,
-                          width: hasNote ? 1.4 : 1.2,
-                        ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: Colors.redAccent,
-                          width: 1.2,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    items: widget.tipeKegiatanOptions
-                        .map<DropdownMenuItem<int>>(
-                          (tipe) => DropdownMenuItem<int>(
-                            value: tipe['tipe_kegiatan_id'] ?? tipe['id'],
-                            child: Text(
-                              tipe['nama_tipe'] ?? tipe['name'] ?? '',
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: widget.readOnly
-                        ? null
-                        : (value) {
-                            setState(() {
-                              selectedTipeKegiatan = value;
-                            });
-                            widget.onFormChange(getFormData());
-                          },
-                    validator: (value) {
-                      if (value == null) return 'Tipe kegiatan harus dipilih';
-                      return null;
-                    },
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-
-          // Deskripsi
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanDeskripsiKegiatan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: deskripsiController,
-                    decoration: InputDecoration(
-                      labelText: 'Gambaran Umum Kegiatan',
-                      hintText: 'Jelaskan kegiatan ini...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Deskripsi harus diisi';
-                      }
-                      if (value.length < 5) {
-                        return 'Minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Sasaran Utama
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanSasaranUtama;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: sasaranController,
-                    decoration: InputDecoration(
-                      labelText: 'Sasaran Utama',
-                      hintText: 'Siapa target peserta?',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Sasaran utama harus diisi';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Manfaat
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Output/Manfaat Kegiatan',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addManfaat,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
           const SizedBox(height: 8),
-          ...manfaatList.asMap().entries.map((entry) {
-            int index = entry.key;
-            ManfaatItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          initialValue: item.value,
-                          decoration: InputDecoration(
-                            labelText: 'Manfaat ${index + 1}',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? Colors.redAccent
-                                    : const Color(0xFFE2E8F0),
-                                width:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? 1.2
-                                    : 0.5,
-                              ),
-                            ),
-                            filled:
-                                (item.note != null &&
-                                item.note!.trim().isNotEmpty),
-                            fillColor:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? const Color(0xFFFFF1F0)
-                                : null,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Manfaat tidak boleh kosong';
-                            }
-                            return null;
-                          },
-                          onChanged: widget.readOnly
-                              ? null
-                              : (value) {
-                                  setState(() {
-                                    item.value = value;
-                                  });
-                                },
-                          enabled: !widget.readOnly,
-                        ),
-                        if (item.note != null &&
-                            item.note!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            'Catatan Verifikator: ${item.note}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              color: Colors.redAccent,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () => _removeManfaat(index),
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                  ),
-                ],
-              ),
-            );
-          }),
-          if (manfaatList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah manfaat',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Metode Pelaksanaan
-          Builder(
-            builder: (_) {
-              final note = widget.initialData?.catatanMetodePelaksanaan;
-              final hasNote = note != null && note.trim().isNotEmpty;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: metodeController,
-                    decoration: InputDecoration(
-                      labelText: 'Metode Pelaksanaan',
-                      hintText: 'Jelaskan cara pelaksanaannya...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
-                          color: hasNote
-                              ? Colors.redAccent
-                              : const Color(0xFFE2E8F0),
-                          width: hasNote ? 1.2 : 0.5,
-                        ),
-                      ),
-                      filled: hasNote,
-                      fillColor: hasNote ? const Color(0xFFFFF1F0) : null,
-                    ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Metode harus diisi';
-                      }
-                      if (value.length < 5) {
-                        return 'Minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                    onChanged: widget.readOnly
-                        ? null
-                        : (_) => widget.onFormChange(getFormData()),
-                    enabled: !widget.readOnly,
-                  ),
-                  if (hasNote) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Catatan Verifikator: $note',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: Colors.redAccent,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Tahapan
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Tahapan Kegiatan',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addTahapan,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...tahapanList.asMap().entries.map((entry) {
-            int index = entry.key;
-            TahapanItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: GoogleFonts.figtree(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          initialValue: item.nama,
-                          decoration: InputDecoration(
-                            labelText: 'Tahapan ${index + 1}',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(
-                                color:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? Colors.redAccent
-                                    : const Color(0xFFE2E8F0),
-                                width:
-                                    (item.note != null &&
-                                        item.note!.trim().isNotEmpty)
-                                    ? 1.2
-                                    : 0.5,
-                              ),
-                            ),
-                            filled:
-                                (item.note != null &&
-                                item.note!.trim().isNotEmpty),
-                            fillColor:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? const Color(0xFFFFF1F0)
-                                : null,
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Tahapan tidak boleh kosong';
-                            }
-                            return null;
-                          },
-                          onChanged: widget.readOnly
-                              ? null
-                              : (value) {
-                                  setState(() {
-                                    item.nama = value;
-                                  });
-                                },
-                          enabled: !widget.readOnly,
-                        ),
-                        if (item.note != null &&
-                            item.note!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            'Catatan Verifikator: ${item.note}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              color: Colors.redAccent,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  if (!widget.readOnly)
-                    IconButton(
-                      onPressed: () => _removeTahapan(index),
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                    ),
-                ],
-              ),
-            );
-          }),
-          if (tahapanList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah tahapan',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Indikator Kinerja
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Indikator Kinerja',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addIndikatorKinerja,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...indikatorKinerjaList.asMap().entries.map((entry) {
-            int index = entry.key;
-            IndikatorKinerjaItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: (item.note != null && item.note!.trim().isNotEmpty)
-                        ? Colors.redAccent
-                        : colorScheme.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  color: (item.note != null && item.note!.trim().isNotEmpty)
-                      ? const Color(0xFFFFF1F0)
-                      : null,
-                ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: targetIkuList.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Indikator ${index + 1}',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (!widget.readOnly)
-                          IconButton(
-                            onPressed: () => _removeIndikatorKinerja(index),
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.bulanIndikator,
-                      decoration: InputDecoration(
-                        labelText: 'Bulan Indikator',
-                        hintText: 'Contoh: Januari',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: widget.readOnly
+                    DropdownButtonFormField<int?>(
+                      value: targetIkuList[index].ikuId == 0
                           ? null
-                          : (value) {
-                              setState(() {
-                                item.bulanIndikator = value;
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.deskripsiTarget,
-                      decoration: InputDecoration(
-                        labelText: 'Deskripsi Target',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(
-                            color:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? Colors.redAccent
-                                : const Color(0xFFE2E8F0),
-                            width:
-                                (item.note != null &&
-                                    item.note!.trim().isNotEmpty)
-                                ? 1.2
-                                : 0.5,
-                          ),
-                        ),
-                        filled:
-                            (item.note != null && item.note!.trim().isNotEmpty),
-                        fillColor:
-                            (item.note != null && item.note!.trim().isNotEmpty)
-                            ? const Color(0xFFFFF1F0)
-                            : null,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Deskripsi target tidak boleh kosong';
-                        }
-                        return null;
-                      },
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.deskripsiTarget = value;
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Catatan Verifikator: ${item.note}',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      initialValue: item.persentaseTarget?.toString() ?? '',
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'Persentase Target (%)',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: widget.readOnly
-                          ? null
-                          : (value) {
-                              setState(() {
-                                item.persentaseTarget = double.tryParse(value);
-                              });
-                            },
-                      enabled: !widget.readOnly,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-          if (indikatorKinerjaList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah indikator kinerja',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
-              ),
-            ),
-          const SizedBox(height: 24),
-
-          // Tanggal
-          Text(
-            'Periode Pelaksanaan',
-            style: GoogleFonts.figtree(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: widget.readOnly
-                      ? null
-                      : () => _selectDate(context, true),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tanggal Mulai',
-                          style: GoogleFonts.figtree(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tanggalMulai != null
-                              ? DateFormat(
-                                  'dd MMM yyyy',
-                                  'id_ID',
-                                ).format(tanggalMulai!)
-                              : 'Pilih tanggal',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: InkWell(
-                  onTap: widget.readOnly
-                      ? null
-                      : () => _selectDate(context, false),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: colorScheme.outline),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Tanggal Selesai',
-                          style: GoogleFonts.figtree(fontSize: 12),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          tanggalSelesai != null
-                              ? DateFormat(
-                                  'dd MMM yyyy',
-                                  'id_ID',
-                                ).format(tanggalSelesai!)
-                              : 'Pilih tanggal',
-                          style: GoogleFonts.figtree(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Lokasi
-          TextFormField(
-            controller: lokasiController,
-            decoration: InputDecoration(
-              labelText: 'Lokasi',
-              hintText: 'Contoh: Aula Utama Gedung A',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color:
-                      (widget.initialData?.catatanLokasi != null &&
-                          widget.initialData!.catatanLokasi!.trim().isNotEmpty)
-                      ? Colors.redAccent
-                      : const Color(0xFFE2E8F0),
-                  width:
-                      (widget.initialData?.catatanLokasi != null &&
-                          widget.initialData!.catatanLokasi!.trim().isNotEmpty)
-                      ? 1.2
-                      : 0.5,
-                ),
-              ),
-              filled:
-                  (widget.initialData?.catatanLokasi != null &&
-                  widget.initialData!.catatanLokasi!.trim().isNotEmpty),
-              fillColor:
-                  (widget.initialData?.catatanLokasi != null &&
-                      widget.initialData!.catatanLokasi!.trim().isNotEmpty)
-                  ? const Color(0xFFFFF1F0)
-                  : null,
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Lokasi harus diisi';
-              }
-              return null;
-            },
-            onChanged: widget.readOnly
-                ? null
-                : (_) => widget.onFormChange(getFormData()),
-            enabled: !widget.readOnly,
-          ),
-          if (widget.initialData?.catatanLokasi != null &&
-              widget.initialData!.catatanLokasi!.trim().isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              'Catatan Verifikator: ${widget.initialData!.catatanLokasi!}',
-              style: GoogleFonts.figtree(
-                fontSize: 12,
-                color: Colors.redAccent,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-
-          // Indikator Kinerja Utama (IKU)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Indikator Kinerja Utama (IKU)',
-                style: GoogleFonts.figtree(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              if (!widget.readOnly)
-                IconButton(
-                  onPressed: _addTargetIku,
-                  icon: const Icon(Icons.add_circle),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...targetIkuList.asMap().entries.map((entry) {
-            int index = entry.key;
-            TargetIkuItem item = entry.value;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: (item.note != null && item.note!.trim().isNotEmpty)
-                        ? Colors.redAccent
-                        : colorScheme.outline,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  color: (item.note != null && item.note!.trim().isNotEmpty)
-                      ? const Color(0xFFFFF1F0)
-                      : null,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Target IKU ${index + 1}',
-                          style: GoogleFonts.figtree(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (!widget.readOnly)
-                          IconButton(
-                            onPressed: () => _removeTargetIku(index),
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            iconSize: 20,
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // IKU Selection
-                    DropdownButtonFormField<int>(
-                      isExpanded: true,
-                      value: widget.ikuOptions.any(
-                                (i) => (i['iku_id'] ?? i['id']) == item.ikuId,
-                              )
-                          ? item.ikuId
-                          : null,
+                          : targetIkuList[index].ikuId,
                       decoration: InputDecoration(
                         labelText: 'Pilih IKU',
                         border: OutlineInputBorder(
@@ -1435,8 +862,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                           value: iku['iku_id'] ?? iku['id'],
                           child: Text(
                             '${iku['kode_iku'] ?? ''} - ${iku['nama_iku'] ?? ''}',
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
                           ),
                         );
                       }).toList(),
@@ -1444,465 +869,498 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                           ? null
                           : (value) {
                               setState(() {
-                                item.ikuId = value ?? 0;
+                                targetIkuList[index].ikuId = value ?? 0;
+                                if (value != null) {
+                                  targetIkuList[index].ikuNama =
+                                      widget.ikuOptions.firstWhere(
+                                        (element) => element['id'] == value,
+                                      )['nama'] ??
+                                      '';
+                                } else {
+                                  targetIkuList[index].ikuNama =
+                                      ''; // Or handle appropriately if null
+                                }
+                                widget.onFormChange(getFormData());
                               });
-                              widget.onFormChange(getFormData());
                             },
+                      validator: (value) {
+                        if (value == null || value == 0) {
+                          return 'IKU tidak boleh kosong';
+                        }
+                        return null;
+                      },
                     ),
-                    const SizedBox(height: 12),
-                    // Target Input
+                    const SizedBox(height: 8),
                     TextFormField(
-                      initialValue: item.target,
+                      initialValue: targetIkuList[index].target,
                       decoration: InputDecoration(
-                        labelText: 'Target Capaian',
-                        hintText: 'Contoh: 100',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        labelText: 'Target ${index + 1}',
                       ),
-                      keyboardType: TextInputType.text,
+                      readOnly: widget.readOnly,
+                      onChanged: (value) {
+                        targetIkuList[index].target = value;
+                        widget.onFormChange(getFormData());
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Target tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int?>(
+                      value: targetIkuList[index].satuanId,
+                      decoration: InputDecoration(
+                        labelText: 'Satuan ${index + 1}',
+                      ),
+                      items: [
+                        const DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text('Pilih Satuan'),
+                        ),
+                        ...widget.satuanOptions
+                            .where(
+                              (option) => (option['id'] as int?) != null,
+                            ) // Filter out options with null IDs from master data
+                            .map<DropdownMenuItem<int?>>((option) {
+                              return DropdownMenuItem<int?>(
+                                value: (option['id'] as int?),
+                                child: Text(option['nama'] ?? ''),
+                              );
+                            })
+                            .toList(),
+                      ],
                       onChanged: widget.readOnly
                           ? null
                           : (value) {
                               setState(() {
-                                item.target = value;
+                                targetIkuList[index].satuanId = value;
+                                widget.onFormChange(getFormData());
                               });
-                              widget.onFormChange(getFormData());
                             },
                     ),
-                    const SizedBox(height: 12),
-                    // Satuan Selection
-                    _buildSatuanDropdown(
-                      label: 'Satuan Target',
-                      value: item.satuanId,
-                      onChanged: (val) {
-                        setState(() {
-                          item.satuanId = val;
-                        });
-                        widget.onFormChange(getFormData());
-                      },
-                    ),
-                    if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        'Catatan Verifikator: ${item.note}',
-                        style: GoogleFonts.figtree(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontStyle: FontStyle.italic,
+                    if (!widget.readOnly)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: IconButton(
+                          icon: const Icon(Icons.remove_circle),
+                          onPressed: () => _removeTargetIku(index),
                         ),
                       ),
-                    ],
                   ],
                 ),
-              ),
-            );
-          }),
-          if (targetIkuList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah target IKU',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
-                ),
+              );
+            },
+          ),
+          if (!widget.readOnly)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _addTargetIku,
+                icon: const Icon(Icons.add),
+                label: const Text('Tambah Target IKU'),
               ),
             ),
           const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
 
-          // RAB Grouped by Category
-          ...widget.kategoriBelanjaOptions.map((kategori) {
-            final kategoriId = kategori['kategori_belanja_id'] ?? kategori['id'];
-            final kategoriNama = kategori['nama'] ?? kategori['name'] ?? '';
-            final categoryItems = rabList.where((item) => item.kategoriBelanjaId == kategoriId).toList();
-            final categoryTotal = categoryItems.fold<double>(0, (sum, item) => sum + item.getTotal());
+  Widget _buildRencanaAnggaranBiayaForm() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Rencana Anggaran Biaya',
+            style: GoogleFonts.figtree(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...widget.kategoriBelanjaOptions.expand<Widget>((kategori) {
+            final int kategoriId = kategori['id'] ?? 0;
+            final String kategoriNama = kategori['nama'] ?? 'Unknown';
+            final List<RabItem> rabItemsInCategory = rabList
+                .where((item) => item.kategoriBelanjaId == kategoriId)
+                .toList();
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        kategoriNama,
-                        style: GoogleFonts.figtree(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                    if (!widget.readOnly)
-                      IconButton(
-                        onPressed: () => _addRab(kategoriId),
-                        icon: const Icon(Icons.add_circle),
-                      ),
-                  ],
+            return [
+              const SizedBox(height: 16),
+              Text(
+                kategoriNama,
+                style: GoogleFonts.figtree(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
                 ),
-                if (categoryTotal > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Text(
-                      'Subtotal: Rp ${NumberFormat("#,##0", "id_ID").format(categoryTotal.toInt())}',
-                      style: GoogleFonts.figtree(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                if (categoryItems.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      'Klik + untuk menambah $kategoriNama',
-                      style: GoogleFonts.figtree(
-                        fontSize: 12,
-                        color: colorScheme.outline,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                ...categoryItems.map((item) {
-                  final indexInMainList = rabList.indexOf(item);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: (item.note != null && item.note!.trim().isNotEmpty)
-                              ? Colors.redAccent
-                              : colorScheme.outline,
+              ),
+              const SizedBox(height: 8),
+              ...rabItemsInCategory.map<Widget>((rabItem) {
+                int index = rabItemsInCategory.indexOf(
+                  rabItem,
+                ); // Get index for label
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        initialValue: rabItem.uraian,
+                        decoration: InputDecoration(
+                          labelText: 'Uraian RAB ${index + 1}',
                         ),
-                        borderRadius: BorderRadius.circular(8),
-                        color: (item.note != null && item.note!.trim().isNotEmpty)
-                            ? const Color(0xFFFFF1F0)
-                            : null,
+                        readOnly: widget.readOnly,
+                        onChanged: (value) {
+                          rabItem.uraian = value;
+                          widget.onFormChange(getFormData());
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Uraian tidak boleh kosong';
+                          }
+                          return null;
+                        },
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 8),
+                      Row(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Item RAB',
-                                style: GoogleFonts.figtree(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: rabItem.volume1.toString(),
+                              decoration: InputDecoration(
+                                labelText: 'Volume 1',
                               ),
-                              if (!widget.readOnly)
-                                IconButton(
-                                  onPressed: () => _removeRab(indexInMainList),
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  iconSize: 20,
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: item.uraian,
-                            decoration: InputDecoration(
-                              labelText: 'Uraian',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                              keyboardType: TextInputType.number,
+                              readOnly: widget.readOnly,
+                              onChanged: (value) {
+                                rabItem.volume1 = double.tryParse(value) ?? 0;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Volume 1 tidak boleh kosong';
+                                }
+                                if (double.tryParse(value) == null) {
+                                  return 'Harus angka';
+                                }
+                                return null;
+                              },
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Uraian tidak boleh kosong';
-                              }
-                              return null;
-                            },
-                            onChanged: widget.readOnly
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      item.uraian = value;
-                                    });
-                                  },
-                            enabled: !widget.readOnly,
                           ),
-                          if (item.note != null && item.note!.trim().isNotEmpty) ...[
-                            const SizedBox(height: 6),
-                            Text(
-                              'Catatan Verifikator: ${item.note!}',
-                              style: GoogleFonts.figtree(
-                                fontSize: 12,
-                                color: Colors.redAccent,
-                                fontStyle: FontStyle.italic,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonFormField<int?>(
+                              value: rabItem.satuan1Id,
+                              decoration: InputDecoration(
+                                labelText: 'Satuan 1',
                               ),
-                            ),
-                          ],
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      initialValue: item.volume1.toString(),
-                                      decoration: InputDecoration(
-                                        labelText: 'Vol 1',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                item.volume1 =
-                                                    double.tryParse(value) ?? 0;
-                                              });
-                                            },
-                                      enabled: !widget.readOnly,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _buildSatuanDropdown(
-                                      label: 'Satuan 1',
-                                      value: item.satuan1Id,
-                                      onChanged: (val) =>
-                                          setState(() => item.satuan1Id = val),
-                                    ),
-                                  ],
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Pilih Satuan'),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      initialValue: item.volume2?.toString() ?? '',
-                                      decoration: InputDecoration(
-                                        labelText: 'Vol 2',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                item.volume2 = double.tryParse(value);
-                                              });
-                                            },
-                                      enabled: !widget.readOnly,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _buildSatuanDropdown(
-                                      label: 'Satuan 2',
-                                      value: item.satuan2Id,
-                                      onChanged: (val) =>
-                                          setState(() => item.satuan2Id = val),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      initialValue: item.volume3?.toString() ?? '',
-                                      decoration: InputDecoration(
-                                        labelText: 'Vol 3',
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      onChanged: widget.readOnly
-                                          ? null
-                                          : (value) {
-                                              setState(() {
-                                                item.volume3 = double.tryParse(value);
-                                              });
-                                            },
-                                      enabled: !widget.readOnly,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    _buildSatuanDropdown(
-                                      label: 'Satuan 3',
-                                      value: item.satuan3Id,
-                                      onChanged: (val) =>
-                                          setState(() => item.satuan3Id = val),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            initialValue: item.hargaSatuan.toString(),
-                            decoration: InputDecoration(
-                              labelText: 'Harga Satuan (Rp)',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Harga satuan harus diisi';
-                              }
-                              return null;
-                            },
-                            onChanged: widget.readOnly
-                                ? null
-                                : (value) {
-                                    setState(() {
-                                      item.hargaSatuan = double.tryParse(value) ?? 0;
-                                    });
-                                  },
-                            enabled: !widget.readOnly,
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Total:',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                Text(
-                                  'Rp ${NumberFormat("#,##0", "id_ID").format(item.getTotal().toInt())}',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                ...widget.satuanOptions
+                                    .where(
+                                      (option) =>
+                                          (option['id'] as int?) != null,
+                                    ) // Filter out options with null IDs from master data
+                                    .map<DropdownMenuItem<int?>>((option) {
+                                      return DropdownMenuItem<int?>(
+                                        value: (option['id'] as int?),
+                                        child: Text(option['nama'] ?? ''),
+                                      );
+                                    })
+                                    .toList(),
                               ],
+                              onChanged: widget.readOnly
+                                  ? null
+                                  : (value) {
+                                      setState(() {
+                                        rabItem.satuan1Id = value;
+                                        widget.onFormChange(getFormData());
+                                      });
+                                    },
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  );
-                }),
-              ],
-            );
-          }),
-          if (rabList.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Text(
-                'Klik + untuk menambah item RAB',
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: colorScheme.outline,
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: rabItem.volume2?.toString() ?? '',
+                              decoration: InputDecoration(
+                                labelText: 'Volume 2 (Opsional)',
+                              ),
+                              keyboardType: TextInputType.number,
+                              readOnly: widget.readOnly,
+                              onChanged: (value) {
+                                rabItem.volume2 = double.tryParse(value);
+                                widget.onFormChange(getFormData());
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonFormField<int?>(
+                              value: rabItem.satuan2Id,
+                              decoration: InputDecoration(
+                                labelText: 'Satuan 2 (Opsional)',
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Pilih Satuan'),
+                                ),
+                                ...widget.satuanOptions
+                                    .where(
+                                      (option) =>
+                                          (option['id'] as int?) != null,
+                                    ) // Filter out options with null IDs from master data
+                                    .map<DropdownMenuItem<int?>>((option) {
+                                      return DropdownMenuItem<int?>(
+                                        value: (option['id'] as int?),
+                                        child: Text(option['nama'] ?? ''),
+                                      );
+                                    })
+                                    .toList(),
+                              ],
+                              onChanged: widget.readOnly
+                                  ? null
+                                  : (value) {
+                                      setState(() {
+                                        rabItem.satuan2Id = value;
+                                        widget.onFormChange(getFormData());
+                                      });
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: rabItem.volume3?.toString() ?? '',
+                              decoration: InputDecoration(
+                                labelText: 'Volume 3 (Opsional)',
+                              ),
+                              keyboardType: TextInputType.number,
+                              readOnly: widget.readOnly,
+                              onChanged: (value) {
+                                rabItem.volume3 = double.tryParse(value);
+                                widget.onFormChange(getFormData());
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: DropdownButtonFormField<int?>(
+                              value: rabItem.satuan3Id,
+                              decoration: InputDecoration(
+                                labelText: 'Satuan 3 (Opsional)',
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Pilih Satuan'),
+                                ),
+                                ...widget.satuanOptions
+                                    .where(
+                                      (option) =>
+                                          (option['id'] as int?) != null,
+                                    ) // Filter out options with null IDs from master data
+                                    .map<DropdownMenuItem<int?>>((option) {
+                                      return DropdownMenuItem<int?>(
+                                        value: (option['id'] as int?),
+                                        child: Text(option['nama'] ?? ''),
+                                      );
+                                    })
+                                    .toList(),
+                              ],
+                              onChanged: widget.readOnly
+                                  ? null
+                                  : (value) {
+                                      setState(() {
+                                        rabItem.satuan3Id = value;
+                                        widget.onFormChange(getFormData());
+                                      });
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: rabItem.hargaSatuan.toString(),
+                        decoration: InputDecoration(labelText: 'Harga Satuan'),
+                        keyboardType: TextInputType.number,
+                        readOnly: widget.readOnly,
+                        onChanged: (value) {
+                          rabItem.hargaSatuan = double.tryParse(value) ?? 0;
+                          widget.onFormChange(getFormData());
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Harga satuan tidak boleh kosong';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Harus angka';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total: ${NumberFormat.currency(locale: 'id', symbol: 'Rp ').format(rabItem.getTotal())}',
+                        style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                      ),
+                      if (!widget.readOnly)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: IconButton(
+                            icon: const Icon(Icons.remove_circle),
+                            onPressed: () {
+                              setState(() {
+                                rabList.removeWhere(
+                                  (element) => element.id == rabItem.id,
+                                );
+                                widget.onFormChange(getFormData());
+                              });
+                            },
+                          ),
+                        ),
+                      const Divider(),
+                    ],
+                  ),
+                );
+              }).toList(),
+              if (!widget.readOnly)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => _addRab(kategoriId),
+                    icon: const Icon(Icons.add),
+                    label: Text('Tambah RAB untuk ${kategoriNama ?? ''}'),
+                  ),
                 ),
-              ),
-            ),
-          const SizedBox(height: 24),
+            ];
+          }).toList(),
+        ],
+      ),
+    );
+  }
 
-          // Total RAB
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Total RAB',
-                  style: GoogleFonts.figtree(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  'Rp ${NumberFormat("#,##0", "id_ID").format(rabList.fold<double>(0, (sum, item) => sum + item.getTotal()).toInt())}',
-                  style: GoogleFonts.figtree(
-                    color: colorScheme.onPrimary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DefaultTabController(
+      length: 3,
+      child: Column(
+        children: [
+          TabBar(
+            isScrollable: true,
+            labelColor: Theme.of(context).colorScheme.primary,
+            unselectedLabelColor: Theme.of(
+              context,
+            ).colorScheme.onSurfaceVariant,
+            indicatorColor: Theme.of(context).colorScheme.primary,
+            tabs: const [
+              Tab(text: 'Kerangka Acuan Kerja'),
+              Tab(text: 'Indikator Kinerja Utama'),
+              Tab(text: 'Rencana Anggaran Biaya'),
+            ],
+          ),
+          Expanded(
+            child: Form(
+              key: _formKey, // Use the internal _formKey
+              child: TabBarView(
+                children: [
+                  _buildKerangkaAcuanKerjaForm(),
+                  _buildIndikatorKinerjaUtamaForm(),
+                  _buildRencanaAnggaranBiayaForm(),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 32),
-
           // Action Buttons (Only show if not readOnly)
-          if (!widget.readOnly) ...[
-            FilledButton(
-              onPressed: widget.isLoading
-                  ? null
-                  : () {
-                      if (_formKey.currentState!.validate()) {
-                        if (manfaatList.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Minimal harus ada 1 manfaat'),
+          if (!widget.readOnly)
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  FilledButton(
+                    onPressed: widget.isLoading
+                        ? null
+                        : () {
+                            if (_formKey.currentState!.validate()) {
+                              if (manfaatList.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Minimal harus ada 1 manfaat',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (tahapanList.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Minimal harus ada 1 tahapan',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (rabList.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Minimal harus ada 1 item RAB',
+                                    ),
+                                  ),
+                                );
+                                return;
+                              }
+                              widget.onFormChange(getFormData());
+                              widget.onSubmit();
+                            }
+                          },
+                    child: widget.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            'Simpan',
+                            style: GoogleFonts.figtree(
+                              fontWeight: FontWeight.w600,
                             ),
-                          );
-                          return;
-                        }
-                        if (tahapanList.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Minimal harus ada 1 tahapan'),
-                            ),
-                          );
-                          return;
-                        }
-                        if (rabList.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Minimal harus ada 1 item RAB'),
-                            ),
-                          );
-                          return;
-                        }
-                        widget.onFormChange(getFormData());
-                        widget.onSubmit();
-                      }
-                    },
-              child: widget.isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(
-                      'Simpan',
+                          ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton(
+                    onPressed: widget.isLoading
+                        ? null
+                        : () => Navigator.pop(context),
+                    child: Text(
+                      'Batal',
                       style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
                     ),
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton(
-              onPressed: widget.isLoading ? null : () => Navigator.pop(context),
-              child: Text(
-                'Batal',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                  ),
+                ],
               ),
             ),
-          ],
-          const SizedBox(height: 24),
         ],
       ),
     );
@@ -1915,6 +1373,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     metodeController.dispose();
     lokasiController.dispose();
     sasaranController.dispose();
+    outputKegiatanController.dispose(); // Added this
     super.dispose();
   }
 }
