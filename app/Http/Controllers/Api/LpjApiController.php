@@ -100,6 +100,8 @@ class LpjApiController extends Controller
                 'spk_kesesuaian_output' => $kegiatan->spk_kesesuaian_output,
                 'realisasi_tgl_mulai' => $kegiatan->realisasi_tgl_mulai?->toDateString(),
                 'realisasi_tgl_selesai' => $kegiatan->realisasi_tgl_selesai?->toDateString(),
+                'kak_tanggal_mulai' => $kegiatan->kak?->tanggal_mulai?->toDateString(),
+                'kak_tanggal_selesai' => $kegiatan->kak?->tanggal_selesai?->toDateString(),
                 'pengusul' => $kegiatan->kak?->pengusul ? [
                     'user_id' => $kegiatan->kak->pengusul->user_id,
                     'nama_lengkap' => $kegiatan->kak->pengusul->nama_lengkap,

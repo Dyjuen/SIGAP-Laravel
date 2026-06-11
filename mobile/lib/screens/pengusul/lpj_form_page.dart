@@ -1429,6 +1429,18 @@ class _LpjFormPageState extends State<LpjFormPage> {
           const SizedBox(height: 20),
 
           // Tanggal Realisasi
+          if (detail.kakTanggalMulai != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                'RENCANA KAK: ${DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.parse(detail.kakTanggalMulai!))} s/d ${detail.kakTanggalSelesai != null ? DateFormat('dd MMMM yyyy', 'id_ID').format(DateTime.parse(detail.kakTanggalSelesai!)) : "-"}',
+                style: GoogleFonts.figtree(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF0891B2),
+                ),
+              ),
+            ),
           _buildDateField(
             label: 'TANGGAL MULAI REALISASI',
             value: _tglMulai,
@@ -1449,6 +1461,41 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ),
 
           const SizedBox(height: 20),
+
+          // IKU Targets display
+          if (detail.ikus != null && detail.ikus!.isNotEmpty) ...[
+            Text(
+              'TARGET IKU (REFERENSI KAK)',
+              style: GoogleFonts.figtree(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF475569),
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...detail.ikus!.map((iku) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle,
+                          size: 12, color: Color(0xFF0891B2)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '${iku.namaIku ?? "IKU"}: Target ${_formatDouble(iku.target)} ${iku.satuanNama ?? ""}',
+                          style: GoogleFonts.figtree(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF0891B2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+            const SizedBox(height: 16),
+          ],
 
           // Kesesuaian Output
           Text(

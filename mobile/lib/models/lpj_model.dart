@@ -38,6 +38,40 @@ class LpjLampiran {
       };
 }
 
+class LpjIku {
+  final int ikuId;
+  final String? kodeIku;
+  final String? namaIku;
+  final double target;
+  final String? satuanNama;
+
+  LpjIku({
+    required this.ikuId,
+    this.kodeIku,
+    this.namaIku,
+    required this.target,
+    this.satuanNama,
+  });
+
+  factory LpjIku.fromJson(Map<String, dynamic> json) {
+    return LpjIku(
+      ikuId: json['iku_id'] as int,
+      kodeIku: json['kode_iku']?.toString(),
+      namaIku: json['nama_iku']?.toString(),
+      target: _parseDouble(json['target']),
+      satuanNama: json['satuan_nama']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'iku_id': ikuId,
+        'kode_iku': kodeIku,
+        'nama_iku': namaIku,
+        'target': target,
+        'satuan_nama': satuanNama,
+      };
+}
+
 class LpjRealization {
   final String anggaranId;
   final String kakId;
@@ -212,6 +246,9 @@ class LpjDetail {
   final String? approvalNotes;
   final String? realisasiTglMulai;
   final String? realisasiTglSelesai;
+  final String? kakTanggalMulai;
+  final String? kakTanggalSelesai;
+  final List<LpjIku>? ikus;
 
   LpjDetail({
     required this.kegiatanId,
@@ -233,6 +270,9 @@ class LpjDetail {
     this.approvalNotes,
     this.realisasiTglMulai,
     this.realisasiTglSelesai,
+    this.kakTanggalMulai,
+    this.kakTanggalSelesai,
+    this.ikus,
   });
 
   factory LpjDetail.fromJson(Map<String, dynamic> json) {
@@ -242,6 +282,10 @@ class LpjDetail {
             )
             .toList() ??
         [];
+
+    final ikuList = (json['ikus'] as List<dynamic>?)
+        ?.map((e) => LpjIku.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     return LpjDetail(
       kegiatanId: json['kegiatan_id']?.toString() ?? '',
@@ -271,6 +315,9 @@ class LpjDetail {
       approvalNotes: json['approval_notes']?.toString(),
       realisasiTglMulai: json['realisasi_tgl_mulai']?.toString(),
       realisasiTglSelesai: json['realisasi_tgl_selesai']?.toString(),
+      kakTanggalMulai: json['kak_tanggal_mulai']?.toString(),
+      kakTanggalSelesai: json['kak_tanggal_selesai']?.toString(),
+      ikus: ikuList,
     );
   }
 
@@ -293,6 +340,9 @@ class LpjDetail {
         'approval_notes': approvalNotes,
         'realisasi_tgl_mulai': realisasiTglMulai,
         'realisasi_tgl_selesai': realisasiTglSelesai,
+        'kak_tanggal_mulai': kakTanggalMulai,
+        'kak_tanggal_selesai': kakTanggalSelesai,
+        'ikus': ikus?.map((e) => e.toJson()).toList(),
       };
 
   bool get isDraft => lpjStatus == 'Draft';

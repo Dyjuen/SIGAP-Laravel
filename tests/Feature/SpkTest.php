@@ -161,30 +161,30 @@ class SpkTest extends TestCase
      */
     public function test_lpj_submission_uses_dynamic_validation(): void
     {
-        // Adjust the constraints: waktu_min = 70, waktu_max = 100
+        // Adjust the constraints: output_min = 70, output_max = 100
         SpkConfig::getActive()->update([
-            'waktu_min' => 70,
-            'waktu_max' => 100,
+            'output_min' => 70,
+            'output_max' => 100,
         ]);
 
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
         $payload = $this->buildRealisasiPayload($kegiatan);
 
-        // 1. Should fail because 60 is below waktu_min = 70
-        $payload['spk_kesesuaian_waktu'] = 60;
+        // 1. Should fail because 60 is below output_min = 70
+        $payload['spk_kesesuaian_output'] = 60;
 
         $response = $this->actingAs($this->pengusul)
             ->post(route('lpj.submit', $kegiatan->kegiatan_id), $payload);
 
-        $response->assertSessionHasErrors(['spk_kesesuaian_waktu']);
+        $response->assertSessionHasErrors(['spk_kesesuaian_output']);
 
-        // 2. Should pass because 80 is within [70, 100]
-        $payload['spk_kesesuaian_waktu'] = 80;
+        // 2. Should pass because 70 is within [70, 100] (specifically, one of the valid options in:70,100)
+        $payload['spk_kesesuaian_output'] = 70;
 
         $response = $this->actingAs($this->pengusul)
             ->post(route('lpj.submit', $kegiatan->kegiatan_id), $payload);
 
-        $response->assertSessionDoesntHaveErrors(['spk_kesesuaian_waktu']);
+        $response->assertSessionDoesntHaveErrors(['spk_kesesuaian_output']);
     }
 
     // =========================================================================
@@ -258,7 +258,8 @@ class SpkTest extends TestCase
                     'harga_satuan' => '1000000',
                 ],
             ],
-            'spk_kesesuaian_waktu' => 85,
+            'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
+            'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
             'spk_kesesuaian_output' => 100,
         ];
     }

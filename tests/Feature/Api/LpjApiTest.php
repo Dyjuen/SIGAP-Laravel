@@ -109,10 +109,9 @@ class LpjApiTest extends TestCase
                     'harga_satuan' => '2000000',
                 ],
             ],
-            'spk_kesesuaian_waktu' => 85,
-            'spk_ketepatan_anggaran' => 90,
+            'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
+            'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
             'spk_kesesuaian_output' => 100,
-            'spk_ketepatan_lpj' => 95,
         ];
     }
 
@@ -164,7 +163,7 @@ class LpjApiTest extends TestCase
         // Verify kegiatan was updated
         $kegiatan->refresh();
         $this->assertNotNull($kegiatan->lpj_submitted_at);
-        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
         $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
@@ -292,6 +291,22 @@ class LpjApiTest extends TestCase
         $response->assertJsonPath('success', true);
     }
 
+    public function test_lpj_show_includes_kak_dates(): void
+    {
+        $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
+
+        $response = $this->actingAs($this->bendahara)
+            ->getJson("/api/lpj/{$kegiatan->kegiatan_id}");
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'data' => [
+                'kak_tanggal_mulai' => $kegiatan->kak->tanggal_mulai->toDateString(),
+                'kak_tanggal_selesai' => $kegiatan->kak->tanggal_selesai->toDateString(),
+            ],
+        ]);
+    }
+
     public function test_pengusul_owner_can_review_lpj(): void
     {
         $kegiatan = $this->createKegiatanAtLpjStage($this->pengusul);
@@ -395,7 +410,7 @@ class LpjApiTest extends TestCase
 
         // Verify kegiatan was updated with SPK
         $kegiatan->refresh();
-        $this->assertEquals(85, $kegiatan->spk_kesesuaian_waktu);
+        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
         $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);

@@ -89,7 +89,8 @@ class LpjMailTest extends TestCase
                     'harga_satuan' => 1000,
                 ],
             ],
-            'spk_kesesuaian_waktu' => 100,
+            'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
+            'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
             'spk_kesesuaian_output' => 100,
         ]);
 

@@ -169,12 +169,6 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                       _buildRealizationTable(lpj),
                       const SizedBox(height: 32),
 
-                      // SPK Evaluation
-                      _buildSectionHeader('Evaluasi Kinerja SPK'),
-                      const SizedBox(height: 12),
-                      _buildSpkSection(lpj),
-                      const SizedBox(height: 32),
-
                       // Approval Status
                       _buildSectionHeader('Status Persetujuan'),
                       const SizedBox(height: 12),
@@ -369,68 +363,6 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
             style: GoogleFonts.figtree(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).primaryTextTheme.bodyLarge?.color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpkSection(LpjDetail lpj) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          _buildSpkRow(
-            'Kesesuaian Waktu',
-            lpj.spkKesesuaianWaktu?.toString() ?? '-',
-          ),
-          const Divider(),
-          _buildSpkRow(
-            'Kesesuaian Output (IKU)',
-            lpj.spkKesesuaianOutput == 100
-                ? 'Sesuai'
-                : (lpj.spkKesesuaianOutput == 0 ? 'Tidak Sesuai' : '-'),
-          ),
-          const Divider(),
-          _buildSpkRow(
-            'Ketepatan Anggaran',
-            lpj.spkKetepatanAnggaran?.toString() ?? '-',
-          ),
-          const Divider(),
-          _buildSpkRow(
-            'Ketepatan Waktu LPJ',
-            lpj.spkKetepatanWaktuLpj?.toString() ?? '-',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpkRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.figtree(
-              fontSize: 13,
-              color: Theme.of(context).primaryTextTheme.bodySmall?.color,
-            ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.figtree(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
               color: Theme.of(context).primaryTextTheme.bodyLarge?.color,
             ),
           ),
