@@ -242,7 +242,7 @@ class _LoginPageState extends State<LoginPage> {
                                       const SizedBox(height: 6),
                                       TextFormField(
                                         controller: _passwordController,
-                                        obscureText: true,
+                                        obscureText: _obscureText,
                                         decoration: InputDecoration(
                                           hintText: 'Masukkan kata sandi Anda',
                                           hintStyle: GoogleFonts.figtree(
@@ -252,6 +252,19 @@ class _LoginPageState extends State<LoginPage> {
                                           prefixIcon: const Icon(
                                             Icons.lock_outline_rounded,
                                             size: 20,
+                                          ),
+                                          suffixIcon: IconButton(
+                                            icon: Icon(
+                                              _obscureText
+                                                  ? Icons.visibility
+                                                  : Icons.visibility_off,
+                                              color: Colors.grey,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                _obscureText = !_obscureText;
+                                              });
+                                            },
                                           ),
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(16),
