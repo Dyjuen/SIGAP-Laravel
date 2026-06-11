@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Package lock & generated plugin files
+pubspec.lock
+**/generated_plugins.cmake
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.dart
