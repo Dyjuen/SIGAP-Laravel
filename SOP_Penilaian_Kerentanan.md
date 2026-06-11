@@ -142,8 +142,8 @@ graph TD
 ---
 
 ### D. Dokumentasi dan Catatan
-1.  **Dokumen Penilaian**: Laporan Analisis Kerentanan ([Vulnerability_Analysis_Report.md](file:///c:/xampp/htdocs/SIGAP-Laravel/Vulnerability_Analysis_Report.md)).
-2.  **Catatan Temuan**: Hasil log audit SQL Injection ([SQL_Injection_Audit.md](file:///c:/xampp/htdocs/SIGAP-Laravel/SQL_Injection_Audit.md)).
+1.  **Dokumen Penilaian**: Laporan Analisis Kerentanan (dapat dilihat pada **Lampiran A** di akhir dokumen ini).
+2.  **Catatan Temuan**: Hasil log audit SQL Injection (dapat dilihat pada **Lampiran B** di akhir dokumen ini).
 3.  **Laporan Mitigasi**: Laporan Uji Coba Unit Test Pasca Patch.
 4.  **Penyimpanan Dokumentasi**:
     *   **Lokasi**: Server Dokumentasi Keamanan Internal (Folder `c:/xampp/htdocs/SIGAP-Laravel/`).
@@ -160,3 +160,99 @@ graph TD
     *   **Nama**: Dr. Ir. Koordinator IT Politeknik, M.T.
     *   **Jabatan**: Kepala UPT Sistem Informasi
     *   **Tanggal**: 11 Juni 2026
+
+---
+
+## LAMPIRAN-LAMPIRAN
+
+### LAMPIRAN A: Laporan Analisa Kerentanan (Vulnerability Analysis Report)
+
+#### 1. Ringkasan Eksekutif
+Analisa kerentanan dilakukan untuk memindai pustaka/dependensi pihak ketiga pada backend (PHP/Composer) dan frontend (JS/NPM). Pemindaian dilakukan menggunakan perkakas audit bawaan:
+*   `composer audit` (Backend)
+*   `npm audit` (Frontend)
+
+Hasil perbaikan audit menunjukkan penurunan kerentanan yang signifikan, menyisakan masing-masing hanya 1 temuan tersisa pada backend dan frontend yang telah dianalisis memiliki tingkat risiko rendah/dapat diterima (*acceptable low-risk*).
+
+#### 2. Status Kerentanan Backend (Composer Audit)
+
+##### A. Kerentanan yang Berhasil Diperbaiki
+Kami memperbarui komponen Symfony ke versi patch terbaru, yang berhasil menyelesaikan kerentanan-kerentanan berikut:
+*   **symfony/mailer** (CVE-2026-45068): Argument Injection in SendmailTransport.
+*   **symfony/mime** (CVE-2026-45070 & CVE-2026-45067): Email Header / SMTP Command Injection.
+*   **symfony/routing** (CVE-2026-48784 & CVE-2026-45065): UrlGenerator Route Bypass / Off-Site URL Injection.
+*   **symfony/polyfill-intl-idn** (CVE-2026-46644): Punycode label validation bypass.
+*   **symfony/http-foundation** (CVE-2026-48736): SSRF Bypass.
+*   **symfony/http-kernel** (CVE-2026-45075): HEAD Request Method Bypass.
+
+##### B. Temuan Tersisa (Belum Diperbaiki)
+*   **Package**: `laravel/framework` (Versi: `v11.x` terinstal).
+*   **Kerentanan**: CVE-2026-48019 - Laravel CRLF injection in default email rule.
+*   **Dampak**: Celah ini terjadi pada aturan validasi email default di framework.
+*   **Mitigasi**: Kerentanan ini memiliki keparahan rendah dalam konteks SIGAP karena aplikasi melakukan validasi email tambahan di tingkat Controller/Form Request dan tidak mengekspos pengiriman email massal yang dapat dimanipulasi dengan CRLF oleh pengguna eksternal. Kami merekomendasikan pembaruan framework secara berkala saat Laravel merilis patch resmi berikutnya untuk versi 11.
+
+#### 3. Status Kerentanan Frontend (NPM Audit)
+
+##### A. Kerentanan yang Berhasil Diperbaiki (via `npm audit fix`)
+*   **axios** (GHSA-pjwm-pj3p-43mv, GHSA-898c-q2cr-xwhg, dll.): Berhasil diperbarui ke versi yang aman untuk menangkal Prototype Pollution, SSRF Bypass, dan Denial of Service (DoS).
+*   **qs** (GHSA-q8mj-m7cp-5q26): Diperbarui untuk mencegah crash tipe data/DoS pada konversi array.
+
+##### B. Temuan Tersisa (Belum Diperbaiki)
+*   **Package**: `shell-quote` (melalui dependensi `concurrently`).
+*   **Kerentanan**: GHSA-w7jw-789q-3m8p - shell-quote quote() does not escape newlines.
+*   **Dampak**: Kerentanan ini terjadi pada pustaka parsing string ke shell argument.
+*   **Mitigasi**: `concurrently` hanya digunakan di lingkungan pengembangan lokal (*development/devDependencies*) untuk menjalankan server Vite dan Laravel secara bersamaan di terminal pengembang. Paket ini **tidak dibundel atau dijalankan pada server produksi (production environment)**. Dengan demikian, tingkat risikonya adalah 0 (tidak berdampak pada keamanan aplikasi saat di-deploy).
+
+#### 4. Kebijakan Keamanan Berkelanjutan
+Untuk menjaga keamanan sistem SIGAP ke depan, direkomendasikan prosedur berikut:
+1.  **Audit Otomatis**: Jalankan `composer audit` dan `npm audit` setiap kali melakukan instalasi paket baru atau minimal satu kali setiap bulan.
+2.  **Pembaruan Dependensi**: Lakukan `composer update` dan `npm update` secara berkala untuk mendapatkan patch keamanan terbaru dari komunitas open-source.
+
+---
+
+### LAMPIRAN B: Laporan Audit Keamanan - Proteksi SQL Injection
+
+#### 1. Ringkasan Eksekutif
+Audit keamanan kode sumber (*source code audit*) telah dilakukan pada seluruh modul interaksi database aplikasi SIGAP-Laravel. Fokus utama audit adalah memastikan tidak adanya celah kerentanan SQL Injection (SQLi), baik melalui penggunaan Eloquent ORM, Query Builder, maupun query mentah (*raw queries*).
+
+Berdasarkan hasil analisis, **SIGAP-Laravel dinyatakan AMAN dari kerentanan SQL Injection** karena mematuhi praktik terbaik penggunaan parameter binding PDO.
+
+#### 2. Metodologi Audit
+Pencarian dilakukan secara komprehensif pada folder `app/` untuk mendeteksi penggunaan fungsi database berisiko tinggi:
+1.  **Fungsi Raw Query**: `DB::raw`, `whereRaw`, `selectRaw`, `havingRaw`, `orderByRaw`.
+2.  **Konkatenasi Input Langsung**: Memastikan tidak adanya penggabungan variabel input user (misalnya `$request->input(...)`) langsung ke dalam string query SQL tanpa binding.
+
+#### 3. Temuan & Analisis Audit Kode
+
+##### A. Analisis `whereRaw`
+Ditemukan beberapa penggunaan fungsi `whereRaw` di dalam kode program:
+1.  **Statis / Hardcoded Conditions**:
+    *   `whereRaw('1 = 0')` di [AuthorizesKakAccess.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Traits/AuthorizesKakAccess.php#L120) dan [KakService.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Services/KakService.php#L245) digunakan untuk memblokir query jika otorisasi gagal. Hal ini sepenuhnya aman.
+    *   `whereRaw('is_active = true')` di [MasterDataController.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Http/Controllers/MasterDataController.php#L45) dan [KakController.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Http/Controllers/KakController.php#L69). Query ini statis tanpa parameter dinamis, sehingga sepenuhnya aman.
+2.  **Pencarian Dinamis dengan Parameter Binding**:
+    *   Di [KakController.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Http/Controllers/KakController.php#L41):
+        ```php
+        $query->whereRaw('LOWER(nama_kegiatan) LIKE ?', ["%{$search}%"]);
+        ```
+        *Analisis*: Variabel `$search` diikat menggunakan penanda tanya (`?`) sebagai parameter binding. Nilai `$search` tidak langsung dimasukkan ke dalam sintaks SQL, melainkan dikirimkan terpisah ke database engine melalui PDO. Ini adalah penanganan yang aman dan direkomendasikan.
+
+##### B. Analisis `DB::raw`
+Ditemukan beberapa penggunaan `DB::raw` untuk agregasi data statistik pada Dashboard:
+1.  **DashboardService & DashboardDirekturController**:
+    *   `DB::raw(1)` di dalam klausa `whereExists`.
+    *   `DB::raw('count(distinct k.kegiatan_id) as total')`
+    *   `DB::raw('sum(tka.jumlah_diusulkan) as total')`
+    *   `DB::raw('sum(COALESCE(tka.realisasi_volume1, 1) * ... * COALESCE(tka.realisasi_harga_satuan, 0)) as total')`
+    *   *Analisis*: Seluruh penggunaan `DB::raw` di atas hanya berisi nama kolom, konstanta angka, atau perhitungan logika bawaan SQL (COALESCE/perkalian). Tidak ada input dari form pengguna yang disisipkan ke dalam fungsi `DB::raw` tersebut, sehingga tidak ada celah eksploitasi SQLi.
+
+#### 4. Mekanisme Proteksi Bawaan Laravel yang Aktif
+Aplikasi SIGAP-Laravel memanfaatkan fitur keamanan bawaan framework Laravel 11:
+1.  **Eloquent ORM**: Seluruh pencarian data berbasis model seperti `User::where('username', $username)->first()` menggunakan PDO Parameter Binding secara otomatis di latar belakang.
+2.  **Query Builder**: Pemanggilan database via `DB::table('t_kak')->where('status_id', $statusId)` aman secara otomatis.
+3.  **Strict Data Typing**: Parameter routing (misalnya `{id}`) divalidasi bertipe integer sebelum diproses ke database.
+
+#### 5. Kesimpulan & Rekomendasi
+*   **Status**: **LULUS AUDIT (Aman)**.
+*   **Rekomendasi Berkelanjutan**:
+    *   Selalu gunakan placeholder `?` atau named bindings `:name` jika terpaksa menggunakan `DB::raw` atau `whereRaw` di masa depan.
+    *   Hindari interpolasi string langsung (contoh salah: `whereRaw("name = '$input'")`).
