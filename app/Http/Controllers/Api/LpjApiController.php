@@ -109,7 +109,7 @@ class LpjApiController extends Controller
                             'id' => $item->kategori_belanja_id,
                             'nama' => $item->kategoriBelanja?->nama_kategori_belanja ?? $item->kategoriBelanja?->nama ?? '-',
                         ],
-                        'mata_anggaran_nama' => $kegiatan->kak?->mataAnggaran 
+                        'mata_anggaran_nama' => $kegiatan->kak?->mataAnggaran
                             ? "{$kegiatan->kak->mataAnggaran->kode_anggaran} - {$kegiatan->kak->mataAnggaran->nama_sumber_dana}"
                             : '-',
                         'uraian' => $item->uraian ?? '-',

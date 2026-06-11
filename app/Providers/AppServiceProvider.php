@@ -18,7 +18,11 @@ use App\Listeners\SendKegiatanEmail;
 use App\Listeners\SendLpjEmail;
 use App\Listeners\SendPasswordResetEmail;
 use App\Listeners\SendPencairanEmail;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -67,8 +71,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Audit Trail untuk Login
-        Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
-            \Illuminate\Support\Facades\Log::info('[AUTH_AUDIT] Login Sukses', [
+        Event::listen(Login::class, function ($event) {
+            Log::info('[AUTH_AUDIT] Login Sukses', [
                 'user_id' => $event->user->user_id ?? $event->user->id,
                 'username' => $event->user->username ?? $event->user->email,
                 'ip_address' => request()->ip(),
@@ -78,9 +82,9 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Audit Trail untuk Logout
-        Event::listen(\Illuminate\Auth\Events\Logout::class, function ($event) {
+        Event::listen(Logout::class, function ($event) {
             if ($event->user) {
-                \Illuminate\Support\Facades\Log::info('[AUTH_AUDIT] Logout', [
+                Log::info('[AUTH_AUDIT] Logout', [
                     'user_id' => $event->user->user_id ?? $event->user->id,
                     'username' => $event->user->username ?? $event->user->email,
                     'ip_address' => request()->ip(),
@@ -91,8 +95,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Audit Trail untuk Percobaan Login Gagal
-        Event::listen(\Illuminate\Auth\Events\Failed::class, function ($event) {
-            \Illuminate\Support\Facades\Log::warning('[AUTH_AUDIT] Login Gagal', [
+        Event::listen(Failed::class, function ($event) {
+            Log::warning('[AUTH_AUDIT] Login Gagal', [
                 'username_attempted' => $event->credentials['username'] ?? $event->credentials['email'] ?? 'unknown',
                 'ip_address' => request()->ip(),
                 'user_agent' => request()->userAgent(),
