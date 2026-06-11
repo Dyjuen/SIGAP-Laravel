@@ -117,13 +117,14 @@ class KakCreateEditForm extends StatefulWidget {
   State<KakCreateEditForm> createState() => KakCreateEditFormState();
 }
 
-class KakCreateEditFormState extends State<KakCreateEditForm> {
+class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerProviderStateMixin {
   late TextEditingController namaController;
   late TextEditingController deskripsiController;
   late TextEditingController metodeController;
   late TextEditingController lokasiController;
   late TextEditingController sasaranController;
   late TextEditingController outputKegiatanController; // Added this
+  late TabController _tabController;
 
   DateTime? tanggalMulai;
   DateTime? tanggalSelesai;
@@ -146,6 +147,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     lokasiController = TextEditingController();
     sasaranController = TextEditingController();
     outputKegiatanController = TextEditingController(); // Added this
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
 
     if (widget.initialData != null) {
       _initializeFromData(widget.initialData!);
@@ -452,6 +457,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
     required String label,
     required int? value,
     required ValueChanged<int?> onChanged,
+    String? Function(int?)? validator,
   }) {
     return DropdownButtonFormField<int?>(
       isExpanded: true,
@@ -484,6 +490,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                 )),
       ],
       onChanged: widget.readOnly ? null : onChanged,
+      validator: validator,
     );
   }
 
@@ -1440,6 +1447,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                                   rabItem.satuan1Id = v;
                                   widget.onFormChange(getFormData());
                                 }),
+                                validator: (v) => v == null ? 'Satuan 1 wajib diisi' : null,
                               ),
                             ),
                           ],
@@ -1473,6 +1481,12 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                                   rabItem.satuan2Id = v;
                                   widget.onFormChange(getFormData());
                                 }),
+                                validator: (v) {
+                                  if (rabItem.volume2 != null && rabItem.volume2! > 0 && v == null) {
+                                    return 'Satuan 2 wajib diisi';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
                           ],
@@ -1506,6 +1520,12 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                                   rabItem.satuan3Id = v;
                                   widget.onFormChange(getFormData());
                                 }),
+                                validator: (v) {
+                                  if (rabItem.volume3 != null && rabItem.volume3! > 0 && v == null) {
+                                    return 'Satuan 3 wajib diisi';
+                                  }
+                                  return null;
+                                },
                               ),
                             ),
                           ],
@@ -1583,15 +1603,14 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Column(
-        children: [
-          // ── Premium TabBar ────────────────────────────────────────────────
-          Container(
-            color: Colors.white,
-            child: TabBar(
-              isScrollable: true,
+    return Column(
+      children: [
+        // ── Premium TabBar ────────────────────────────────────────────────
+        Container(
+          color: Colors.white,
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: true,
               tabAlignment: TabAlignment.start,
               labelColor: const Color(0xFF33C8DA),
               unselectedLabelColor: const Color(0xFF94A3B8),
@@ -1627,6 +1646,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
             child: Form(
               key: _formKey,
               child: TabBarView(
+                controller: _tabController,
                 children: [
                   _buildKerangkaAcuanKerjaForm(),
                   _buildIndikatorKinerjaUtamaForm(),
@@ -1672,84 +1692,95 @@ class KakCreateEditFormState extends State<KakCreateEditForm> {
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
-                    child: FilledButton(
-                      onPressed: widget.isLoading
-                          ? null
-                          : () {
-                              if (_formKey.currentState!.validate()) {
-                                if (manfaatList.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Minimal harus ada 1 manfaat'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (tahapanList.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content:
-                                          Text('Minimal harus ada 1 tahapan'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                if (rabList.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Minimal harus ada 1 item RAB'),
-                                    ),
-                                  );
-                                  return;
-                                }
-                                widget.onFormChange(getFormData());
-                                widget.onSubmit();
-                              }
-                            },
-                      style: FilledButton.styleFrom(
-                        backgroundColor: const Color(0xFF33C8DA),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: widget.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.save_outlined,
-                                    size: 18, color: Colors.white),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Simpan KAK',
-                                  style: GoogleFonts.figtree(
-                                    fontWeight: FontWeight.w600,
+                    child: Builder(
+                      builder: (context) {
+                        final isLastTab = _tabController.index == 2;
+                        return FilledButton(
+                          onPressed: widget.isLoading
+                              ? null
+                              : () {
+                                  if (isLastTab) {
+                                    if (_formKey.currentState!.validate()) {
+                                      if (manfaatList.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Minimal harus ada 1 manfaat'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (tahapanList.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Minimal harus ada 1 tahapan'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      if (rabList.isEmpty) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Minimal harus ada 1 item RAB'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                      widget.onFormChange(getFormData());
+                                      widget.onSubmit();
+                                    }
+                                  } else {
+                                    _tabController.animateTo(_tabController.index + 1);
+                                  }
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF33C8DA),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: widget.isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
                                     color: Colors.white,
                                   ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      isLastTab
+                                          ? Icons.save_outlined
+                                          : Icons.arrow_forward_rounded,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      isLastTab ? 'Simpan KAK' : 'Selanjutnya',
+                                      style: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                        );
+                      }
                     ),
                   ),
                 ],
               ),
             ),
         ],
-      ),
-    );
+      );
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     namaController.dispose();
     deskripsiController.dispose();
     metodeController.dispose();

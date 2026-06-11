@@ -874,104 +874,182 @@ class _LpjFormPageState extends State<LpjFormPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          _buildColumnInput(
-                            'Volume 1',
-                            row.volume1Controller,
-                            required: true,
-                            kakValue: _formatDouble(item.volume),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildColumnSatuan(
-                            'Satuan 1',
-                            row,
-                            1,
-                            isEditable,
-                            kakValue: item.satuan1Nama ?? '-',
-                          ),
-                        ],
+                      child: TextFormField(
+                        controller: row.volume1Controller,
+                        decoration: InputDecoration(
+                          labelText: 'Vol 1',
+                          filled: true,
+                          fillColor: Colors.white,
+                          helperText: 'KAK: ${_formatDouble(item.volume)}',
+                          helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: !isEditable,
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Wajib isi';
+                          if (double.tryParse(v.replaceAll(',', '.')) == null) return 'Harus angka';
+                          return null;
+                        },
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          _buildColumnInput(
-                            'Volume 2',
-                            row.volume2Controller,
-                            kakValue: item.volume2 != null ? _formatDouble(item.volume2!) : '-',
-                          ),
-                          const SizedBox(height: 8),
-                          _buildColumnSatuan(
-                            'Satuan 2',
-                            row,
-                            2,
-                            isEditable,
-                            kakValue: item.satuan2Nama ?? '-',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        children: [
-                          _buildColumnInput(
-                            'Volume 3',
-                            row.volume3Controller,
-                            kakValue: item.volume3 != null ? _formatDouble(item.volume3!) : '-',
-                          ),
-                          const SizedBox(height: 8),
-                          _buildColumnSatuan(
-                            'Satuan 3',
-                            row,
-                            3,
-                            isEditable,
-                            kakValue: item.satuan3Nama ?? '-',
-                          ),
-                        ],
+                      child: _buildSatuanDropdown(
+                        label: 'Satuan 1',
+                        value: row.satuan1Id,
+                        onChanged: isEditable
+                            ? (v) => setState(() => row.satuan1Id = v)
+                            : null,
+                        validator: (v) => (v == null || v.isEmpty) ? 'Wajib isi' : null,
+                        kakValue: item.satuan1Nama ?? '-',
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _buildColumnInput(
-                  'Harga Satuan (Rp)',
-                  row.hargaSatuanController,
-                  required: true,
-                  kakValue: _formatCurrency(item.hargaSatuan),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: row.volume2Controller,
+                        decoration: InputDecoration(
+                          labelText: 'Vol 2 (opsional)',
+                          filled: true,
+                          fillColor: Colors.white,
+                          helperText: 'KAK: ${item.volume2 != null ? _formatDouble(item.volume2!) : "-"}',
+                          helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: !isEditable,
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty && double.tryParse(v.replaceAll(',', '.')) == null) {
+                            return 'Harus angka';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSatuanDropdown(
+                        label: 'Satuan 2',
+                        value: row.satuan2Id,
+                        onChanged: isEditable
+                            ? (v) => setState(() => row.satuan2Id = v)
+                            : null,
+                        validator: (v) {
+                          final vol2Text = row.volume2Controller.text;
+                          final vol2Val = double.tryParse(vol2Text.replaceAll(',', '.')) ?? 0;
+                          if (vol2Val > 0 && (v == null || v.isEmpty)) {
+                            return 'Wajib isi';
+                          }
+                          return null;
+                        },
+                        kakValue: item.satuan2Nama ?? '-',
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: row.volume3Controller,
+                        decoration: InputDecoration(
+                          labelText: 'Vol 3 (opsional)',
+                          filled: true,
+                          fillColor: Colors.white,
+                          helperText: 'KAK: ${item.volume3 != null ? _formatDouble(item.volume3!) : "-"}',
+                          helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                        ),
+                        keyboardType: TextInputType.number,
+                        readOnly: !isEditable,
+                        onChanged: (_) => setState(() {}),
+                        validator: (v) {
+                          if (v != null && v.isNotEmpty && double.tryParse(v.replaceAll(',', '.')) == null) {
+                            return 'Harus angka';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildSatuanDropdown(
+                        label: 'Satuan 3',
+                        value: row.satuan3Id,
+                        onChanged: isEditable
+                            ? (v) => setState(() => row.satuan3Id = v)
+                            : null,
+                        validator: (v) {
+                          final vol3Text = row.volume3Controller.text;
+                          final vol3Val = double.tryParse(vol3Text.replaceAll(',', '.')) ?? 0;
+                          if (vol3Val > 0 && (v == null || v.isEmpty)) {
+                            return 'Wajib isi';
+                          }
+                          return null;
+                        },
+                        kakValue: item.satuan3Nama ?? '-',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: row.hargaSatuanController,
+                  decoration: InputDecoration(
+                    labelText: 'Harga Satuan (Rp)',
+                    prefixIcon: const Icon(Icons.paid_outlined, size: 18),
+                    filled: true,
+                    fillColor: Colors.white,
+                    helperText: 'KAK: ${_formatCurrency(item.hargaSatuan)}',
+                    helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+                  ),
+                  keyboardType: TextInputType.number,
+                  readOnly: !isEditable,
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Wajib isi';
+                    if (double.tryParse(v.replaceAll(',', '.')) == null) return 'Harus angka';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE0F7FA),
-                    borderRadius: BorderRadius.circular(8),
+                    color: const Color(0xFF33C8DA),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF33C8DA).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total Realisasi:',
+                        'Total Realisasi',
                         style: GoogleFonts.figtree(
                           fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                          color: const Color(0xFF006064),
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.9),
                         ),
                       ),
                       Text(
                         _formatCurrency(_calculateRowTotal(row)),
                         style: GoogleFonts.figtree(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          color: const Color(0xFF006064),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
                     ],
@@ -1029,212 +1107,42 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Widget _buildColumnInput(
-    String label,
-    TextEditingController controller, {
-    double? width,
-    String? prefix,
-    bool required = false,
-    String? kakValue,
+  Widget _buildSatuanDropdown({
+    required String label,
+    required String? value,
+    required ValueChanged<String?>? onChanged,
+    String? Function(String?)? validator,
+    required String kakValue,
   }) {
-    return Container(
-      width: width,
-      margin: width != null ? const EdgeInsets.only(right: 12) : EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (kakValue != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'KAK: $kakValue',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-          ],
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 50, // Increased height to accommodate error text if needed
-            child: TextFormField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                prefixText: prefix,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF33C8DA)),
-                ),
-                errorStyle: const TextStyle(
-                  fontSize: 0,
-                  height: 0,
-                ), // Hide error text but keep red border
-              ),
-              validator: required
-                  ? (val) {
-                      if (val == null || val.isEmpty) return '';
-                      if (double.tryParse(val.replaceAll(',', '.')) == null)
-                        return '';
-                      return null;
-                    }
-                  : null,
-            ),
-          ),
-        ],
+    return DropdownButtonFormField<String>(
+      isExpanded: true,
+      value: _satuanOptions.any((s) => s.id == value) ? value : null,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white,
+        helperText: 'KAK: $kakValue',
+        helperStyle: const TextStyle(fontSize: 10, color: Color(0xFF33C8DA), fontWeight: FontWeight.bold),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+        ),
       ),
-    );
-  }
-
-  Widget _buildColumnSatuan(
-    String label,
-    _RealisasiRowControllers row,
-    int volIdx,
-    bool enabled, {
-    double? width,
-    String? kakValue,
-  }) {
-    String? currentVal;
-    if (volIdx == 1) currentVal = row.satuan1Id;
-    if (volIdx == 2) currentVal = row.satuan2Id;
-    if (volIdx == 3) currentVal = row.satuan3Id;
-
-    return Container(
-      width: width,
-      margin: width != null ? const EdgeInsets.only(right: 12) : EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (kakValue != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'KAK: $kakValue',
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-          ],
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            height: 50,
-            child: DropdownButtonFormField<String>(
-              value: _satuanOptions.any((s) => s.id == currentVal)
-                  ? currentVal
-                  : null,
-              onChanged: enabled
-                  ? (val) {
-                      setState(() {
-                        if (volIdx == 1) row.satuan1Id = val;
-                        if (volIdx == 2) row.satuan2Id = val;
-                        if (volIdx == 3) row.satuan3Id = val;
-                      });
-                    }
-                  : null,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                errorStyle: const TextStyle(fontSize: 0, height: 0),
-              ),
-              items: _satuanOptions
-                  .map(
-                    (s) => DropdownMenuItem(
-                      value: s.id,
-                      child: Text(s.name, overflow: TextOverflow.ellipsis),
-                    ),
-                  )
-                  .toList(),
-              validator: (val) {
-                if (volIdx == 1 && (val == null || val.isEmpty)) return '';
-                return null;
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildColumnDisplay(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color? color,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? Colors.black87,
-            ),
-          ),
-        ],
-      ),
+      items: [
+        const DropdownMenuItem<String>(
+          value: null,
+          child: Text('Satuan'),
+        ),
+        ..._satuanOptions.map((s) => DropdownMenuItem<String>(
+              value: s.id,
+              child: Text(s.name, overflow: TextOverflow.ellipsis),
+            )),
+      ],
+      onChanged: onChanged,
+      validator: validator,
     );
   }
 
