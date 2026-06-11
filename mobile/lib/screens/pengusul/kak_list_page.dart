@@ -225,7 +225,7 @@ class _KakListPageState extends State<KakListPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: pelaksanaCtrl,
-                    decoration: const InputDecoration(labelText: 'Pelaksana'),
+                    decoration: const InputDecoration(labelText: 'Ketua Pelaksana'),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
