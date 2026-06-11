@@ -84,8 +84,8 @@ class RabItem {
   });
 
   double getTotal() {
-    double v2 = volume2 ?? 1;
-    double v3 = volume3 ?? 1;
+    double v2 = (volume2 == null || volume2 == 0) ? 1 : volume2!;
+    double v3 = (volume3 == null || volume3 == 0) ? 1 : volume3!;
     return volume1 * v2 * v3 * hargaSatuan;
   }
 }
@@ -455,6 +455,8 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
           id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           uraian: '',
           volume1: 1,
+          volume2: 0,
+          volume3: 0,
           hargaSatuan: 0,
           kategoriBelanjaId: kategoriId,
         ),
@@ -476,6 +478,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
           : (tanggalSelesai ?? DateTime.now()),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      confirmText: 'Oke',
     );
     if (picked != null) {
       setState(() {
@@ -1580,9 +1583,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume1.toString(),
+                                initialValue: rabItem.volume1 == 0 ? '' : (rabItem.volume1 == rabItem.volume1.toInt() ? rabItem.volume1.toInt().toString() : rabItem.volume1.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 1',
+                                  hintText: '0',
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -1618,9 +1622,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume2?.toString() ?? '',
+                                initialValue: (rabItem.volume2 == null || rabItem.volume2 == 0) ? '' : (rabItem.volume2 == rabItem.volume2!.toInt() ? rabItem.volume2!.toInt().toString() : rabItem.volume2!.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 2 (opsional)',
+                                  hintText: '0',
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -1657,9 +1662,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume3?.toString() ?? '',
+                                initialValue: (rabItem.volume3 == null || rabItem.volume3 == 0) ? '' : (rabItem.volume3 == rabItem.volume3!.toInt() ? rabItem.volume3!.toInt().toString() : rabItem.volume3!.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 3 (opsional)',
+                                  hintText: '0',
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -1692,9 +1698,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                         ),
                         const SizedBox(height: 8),
                         TextFormField(
-                          initialValue: rabItem.hargaSatuan.toStringAsFixed(0),
+                          initialValue: rabItem.hargaSatuan == 0 ? '' : rabItem.hargaSatuan.toStringAsFixed(0),
                           decoration: const InputDecoration(
                             labelText: 'Harga Satuan (Rp)',
+                            hintText: '0',
                             prefixIcon: Icon(Icons.paid_outlined, size: 18),
                             filled: true,
                             fillColor: Colors.white,

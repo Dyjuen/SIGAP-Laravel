@@ -683,17 +683,19 @@ class KegiatanApiTest extends TestCase
         $bendahara = User::factory()->create(['role_id' => 6]);
         $rektorat = User::factory()->create(['role_id' => 7]);
 
-        // Verifikator, Bendahara, Rektorat cannot access GET /api/kegiatan
+        // Verifikator, Bendahara cannot access GET /api/kegiatan
         $this->actingAs($verifikator)->getJson('/api/kegiatan')->assertStatus(403);
         $this->actingAs($bendahara)->getJson('/api/kegiatan')->assertStatus(403);
-        $this->actingAs($rektorat)->getJson('/api/kegiatan')->assertStatus(403);
+
+        // Rektorat can access GET /api/kegiatan
+        $this->actingAs($rektorat)->getJson('/api/kegiatan')->assertStatus(200);
 
         // Create a kegiatan
         $kak = $this->createApprovedKak($this->pengusul);
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
 
-        // Rektorat cannot access GET /api/kegiatan/{kegiatan}
-        $this->actingAs($rektorat)->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(403);
+        // Rektorat can access GET /api/kegiatan/{kegiatan}
+        $this->actingAs($rektorat)->getJson('/api/kegiatan/'.$kegiatan->kegiatan_id)->assertStatus(200);
     }
 
     public function test_api_bendahara_and_verifikator_can_access_kegiatan_show_route()

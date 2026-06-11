@@ -161,6 +161,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
       firstDate: DateTime(2020),
       lastDate: DateTime(2101),
       locale: const Locale('id', 'ID'),
+      confirmText: 'Oke',
     );
     if (picked != null) {
       setState(() {
@@ -308,6 +309,18 @@ class _LpjFormPageState extends State<LpjFormPage> {
       for (var index = 0; index < _rows.length; index++) {
         final row = _rows[index];
         final item = detail.anggaranItems[index];
+
+        final newFiles = _selectedFilesMap[item.anggaranId] ?? [];
+        final existing = item.lampiran ?? [];
+        if (newFiles.isEmpty && existing.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Item "${item.uraian}" wajib melampirkan minimal 1 dokumen bukti.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
 
         final vol1 = _parseDouble(row.volume1Controller.text);
         final harga = _parseDouble(row.hargaSatuanController.text);
@@ -880,6 +893,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                         controller: row.volume1Controller,
                         decoration: InputDecoration(
                           labelText: 'Vol 1',
+                          hintText: '0',
                           filled: true,
                           fillColor: Colors.white,
                           helperText: 'KAK: ${_formatDouble(item.volume)}',
@@ -917,6 +931,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                         controller: row.volume2Controller,
                         decoration: InputDecoration(
                           labelText: 'Vol 2 (opsional)',
+                          hintText: '0',
                           filled: true,
                           fillColor: Colors.white,
                           helperText: 'KAK: ${item.volume2 != null ? _formatDouble(item.volume2!) : "-"}',
@@ -962,6 +977,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                         controller: row.volume3Controller,
                         decoration: InputDecoration(
                           labelText: 'Vol 3 (opsional)',
+                          hintText: '0',
                           filled: true,
                           fillColor: Colors.white,
                           helperText: 'KAK: ${item.volume3 != null ? _formatDouble(item.volume3!) : "-"}',
@@ -1004,6 +1020,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
                   controller: row.hargaSatuanController,
                   decoration: InputDecoration(
                     labelText: 'Harga Satuan (Rp)',
+                    hintText: '0',
                     prefixIcon: const Icon(Icons.paid_outlined, size: 18),
                     filled: true,
                     fillColor: Colors.white,
@@ -1798,21 +1815,32 @@ class _RealisasiRowControllers {
     this.satuan3Id,
   });
 
+  static String _formatVal(double val) {
+    if (val == val.toInt()) {
+      return val.toInt().toString();
+    }
+    return val.toString();
+  }
+
   factory _RealisasiRowControllers.fromItem(LpjRealization item) {
     return _RealisasiRowControllers(
       volume1Controller: TextEditingController(
-        text: item.realisasiVolume1?.toString() ?? item.volume.toString(),
+        text: (() {
+          final val = item.realisasiVolume1 ?? item.volume;
+          return val == 0 ? '' : _formatVal(val);
+        })(),
       ),
       volume2Controller: TextEditingController(
-        text: item.realisasiVolume2?.toString() ?? '',
+        text: (item.realisasiVolume2 == null || item.realisasiVolume2 == 0) ? '' : _formatVal(item.realisasiVolume2!),
       ),
       volume3Controller: TextEditingController(
-        text: item.realisasiVolume3?.toString() ?? '',
+        text: (item.realisasiVolume3 == null || item.realisasiVolume3 == 0) ? '' : _formatVal(item.realisasiVolume3!),
       ),
       hargaSatuanController: TextEditingController(
-        text:
-            item.realisasiHargaSatuan?.toString() ??
-            item.hargaSatuan.toString(),
+        text: (() {
+          final val = item.realisasiHargaSatuan ?? item.hargaSatuan;
+          return val == 0 ? '' : val.toStringAsFixed(0);
+        })(),
       ),
       satuan1Id: item.realisasiSatuan1Id ?? item.satuanId,
       satuan2Id: item.realisasiSatuan2Id,
