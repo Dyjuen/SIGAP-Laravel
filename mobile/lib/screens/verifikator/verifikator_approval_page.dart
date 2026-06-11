@@ -538,6 +538,10 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
 
                                 return sortedKategoriIds.expand((katId) {
                                   final entries = groupedRab[katId]!;
+                                  
+                                  // Debug log
+                                  debugPrint('DEBUG: katId=$katId, firstItemNama=${entries.first.value.kategoriNama}');
+                                  
                                   final katNama = entries.first.value.kategoriNama?.isNotEmpty == true 
                                       ? entries.first.value.kategoriNama!
                                       : (katId == 1
@@ -599,12 +603,61 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                     }),
                                   ];
                                 }).toList();
-                              }(),
-                            const SizedBox(height: 8),
-                          ],
-                        ),
-                      ),
-                    ),
+                            ...() {
+                              final groupedRab = <int, List<KakRab>>{};
+                              final kategoriNames = <int, String>{};
+
+                              for (var item in kak.rab) {
+                                groupedRab.putIfAbsent(item.kategoriBelanjaId, () => []).add(item);
+                                if (item.kategoriNama != null) {
+                                  kategoriNames[item.kategoriBelanjaId] = item.kategoriNama!;
+                                }
+                              }
+
+                              final sortedKategoriIds = groupedRab.keys.toList()..sort();
+
+                              return sortedKategoriIds.expand((katId) {
+                                final items = groupedRab[katId]!;
+                                final katNama = kategoriNames[katId] ?? 
+                                    (katId == 1 ? 'Belanja Barang' : 
+                                     katId == 2 ? 'Belanja Jasa' : 
+                                     katId == 3 ? 'Belanja Perjalanan' : 'Lainnya');
+                                
+                                return [
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    child: Text(
+                                      katNama,
+                                      style: GoogleFonts.figtree(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 14,
+                                        color: const Color(0xFF2E7D32),
+                                      ),
+                                    ),
+                                  ),
+                                  ...items.map((item) {
+                                    final index = kak.rab.indexOf(item);
+                                    final key = 't_kak_anggaran:$index';
+                                    return _buildChildRevisionCard(
+                                      title: 'RAB ${index + 1}',
+                                      details: [
+                                        'Uraian: ${item.uraian}',
+                                        'Volume 1: ${_formatNumber(item.volume1)}',
+                                        'Volume 2: ${_formatNumber(item.volume2)}',
+                                        'Volume 3: ${_formatNumber(item.volume3)}',
+                                        'Harga Satuan: ${_formatCurrency(item.hargaSatuan)}',
+                                        'Jumlah Diusulkan: ${_formatCurrency(item.jumlahDiusulkan)}',
+                                      ],
+                                      noteController: childNotes['t_kak_anggaran']![index],
+                                      hintText: 'Catatan untuk RAB ${index + 1}...',
+                                      fieldKey: key,
+                                      isExpanded: expandedNoteKeys.contains(key),
+                                      onToggle: () => toggleNote(key),
+                                    );
+                                  }),
+                                ];
+                              }).toList();
+                            }(),
                     Container(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                       decoration: BoxDecoration(
