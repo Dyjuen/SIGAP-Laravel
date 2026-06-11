@@ -124,7 +124,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
   late TextEditingController metodeController;
   late TextEditingController lokasiController;
   late TextEditingController sasaranController;
-  late TextEditingController outputKegiatanController; // Added this
   late TabController _tabController;
 
   DateTime? tanggalMulai;
@@ -149,7 +148,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     metodeController = TextEditingController();
     lokasiController = TextEditingController();
     sasaranController = TextEditingController();
-    outputKegiatanController = TextEditingController(); // Keep initialized to empty
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
@@ -171,7 +169,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     metodeController.text = data.metodePelaksanaan;
     lokasiController.text = data.lokasi;
     sasaranController.text = data.sasaranUtama;
-    outputKegiatanController.text = data.outputKegiatan; // Added this
 
     tanggalMulai = DateTime.tryParse(data.tanggalMulai);
     tanggalSelesai = DateTime.tryParse(data.tanggalSelesai);
@@ -301,7 +298,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
       'metode_pelaksanaan': metodeController.text,
       'lokasi': lokasiController.text,
       'sasaran_utama': sasaranController.text,
-      'output_kegiatan': outputKegiatanController.text, // Added this
       'tanggal_mulai': tanggalMulai?.toIso8601String().split('T')[0] ?? '',
       'tanggal_selesai': tanggalSelesai?.toIso8601String().split('T')[0] ?? '',
       'tipe_kegiatan_id': selectedTipeKegiatan ?? '',
@@ -1969,7 +1965,6 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     metodeController.dispose();
     lokasiController.dispose();
     sasaranController.dispose();
-    outputKegiatanController.dispose();
     super.dispose();
   }
 }

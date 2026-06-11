@@ -120,7 +120,6 @@ class KakApiTest extends TestCase
                 'lokasi' => 'Lab Komputer 3',
                 'tipe_kegiatan_id' => 1,
                 'sasaran_utama' => 'Mahasiswa Tingkat Akhir',
-                'output_kegiatan' => 'Sertifikat dan Portofolio',
                 'manfaat' => [
                     ['value' => 'Meningkatkan skill UI/UX'],
                     ['value' => 'Mempersiapkan portofolio kerja'],

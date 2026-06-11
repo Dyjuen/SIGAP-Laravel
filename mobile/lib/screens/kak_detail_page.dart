@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -234,10 +235,17 @@ class _KakDetailPageState extends State<KakDetailPage> {
         '${ApiService.baseUrl}/kak/${widget.kakId}/pdf/$type?token=$token';
     final uri = Uri.parse(url);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Tidak dapat membuka browser untuk link ini';
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        Clipboard.setData(ClipboardData(text: url));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Tidak bisa membuka browser. URL PDF telah disalin ke papan klip.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {

@@ -38,7 +38,6 @@ class FakeKakService extends KakService {
       tanggalSelesai: '2026-06-05',
       lokasi: 'Lobi Utama PNJ',
       sasaranUtama: 'Mahasiswa',
-      outputKegiatan: 'Output Test',
       kurunWaktuPelaksanaan: '6 Hari',
       statusId: 2,
       statusNama: 'Review Verifikator',

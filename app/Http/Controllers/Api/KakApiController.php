@@ -144,7 +144,6 @@ class KakApiController extends Controller
             'tanggal_selesai' => $kak->tanggal_selesai?->format('Y-m-d'),
             'lokasi' => $kak->lokasi,
             'sasaran_utama' => $kak->sasaran_utama,
-            'output_kegiatan' => $kak->output_kegiatan,
             'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
             'mata_anggaran_id' => $kak->mata_anggaran_id,
             'mata_anggaran_nama' => $kak->mataAnggaran

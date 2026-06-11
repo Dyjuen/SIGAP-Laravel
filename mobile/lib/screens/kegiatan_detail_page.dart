@@ -99,10 +99,21 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
     final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
     final uri = Uri.parse(url);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Tidak dapat membuka browser untuk link ini';
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched && mounted) {
+        // Fallback: copy URL to clipboard
+        Clipboard.setData(ClipboardData(text: url));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Tidak bisa membuka browser. URL PDF telah disalin ke papan klip.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -116,15 +127,27 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
     }
   }
 
+
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
 
     final uri = Uri.tryParse(urlString);
     if (uri == null) return;
 
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched && mounted) {
+        Clipboard.setData(ClipboardData(text: urlString));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Tidak bisa membuka browser. Tautan telah disalin ke papan klip.',
+            ),
+            backgroundColor: Color(0xFF2E7D32),
+          ),
+        );
+      }
+    } catch (e) {
       // Fallback: copy to clipboard
       if (mounted) {
         Clipboard.setData(ClipboardData(text: urlString));
@@ -139,6 +162,7 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
       }
     }
   }
+
 
   Future<void> _submitApprove() async {
     setState(() {
