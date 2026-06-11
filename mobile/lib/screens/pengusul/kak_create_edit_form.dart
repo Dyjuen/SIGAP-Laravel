@@ -766,6 +766,18 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                   ),
                 ],
               ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: lokasiController,
+                decoration: const InputDecoration(
+                  labelText: 'Lokasi Pelaksanaan',
+                  prefixIcon: Icon(Icons.location_on_outlined, size: 20),
+                ),
+                readOnly: widget.readOnly,
+                onChanged: (_) => widget.onFormChange(getFormData()),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Lokasi wajib diisi' : null,
+              ),
             ],
           ),
 
