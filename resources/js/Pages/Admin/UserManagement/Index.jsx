@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import { Head, useForm, router, usePage } from '@inertiajs/react'; // Import usePage
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function UserManagementIndex({ auth, users, roles }) {
     const { is_production } = usePage().props;
@@ -11,6 +12,30 @@ export default function UserManagementIndex({ auth, users, roles }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(10);
     const [filteredUsers, setFilteredUsers] = useState(users);
+
+    // Password fields toggle & strength meter states
+    const [showAddPassword, setShowAddPassword] = useState(false);
+    const [showAddPasswordConfirm, setShowAddPasswordConfirm] = useState(false);
+    const [showEditPassword, setShowEditPassword] = useState(false);
+    const [showEditPasswordConfirm, setShowEditPasswordConfirm] = useState(false);
+
+    const checkPasswordStrength = (password) => {
+        if (!password) return { score: 0, text: 'Kosong', color: 'bg-slate-200' };
+        let score = 0;
+        if (password.length >= 10) score += 1;
+        if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 1;
+        if (/[0-9]/.test(password)) score += 1;
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+        const rating = [
+            { score: 0, text: 'Sangat Lemah', color: 'bg-rose-500 w-1/4' },
+            { score: 1, text: 'Lemah', color: 'bg-rose-400 w-2/4' },
+            { score: 2, text: 'Sedang', color: 'bg-amber-400 w-3/4' },
+            { score: 3, text: 'Kuat', color: 'bg-emerald-400 w-full' },
+            { score: 4, text: 'Sangat Kuat', color: 'bg-emerald-600 w-full' }
+        ];
+        return rating[score];
+    };
 
     // Modal States
     const [showAddModal, setShowAddModal] = useState(false);
@@ -410,28 +435,66 @@ export default function UserManagementIndex({ auth, users, roles }) {
 
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1">Password <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="password"
-                                        className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
-                                        placeholder="Min. 8 karakter"
-                                        value={addData.password}
-                                        onChange={e => setAddData('password', e.target.value)}
-                                        required={is_production}
-                                        minLength={is_production ? 8 : undefined}
-                                        maxLength={is_production ? 100 : undefined}
-                                    />
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type={showAddPassword ? "text" : "password"}
+                                            className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5 pr-10"
+                                            placeholder="Min. 8 karakter"
+                                            value={addData.password}
+                                            onChange={e => setAddData('password', e.target.value)}
+                                            required={is_production}
+                                            minLength={is_production ? 8 : undefined}
+                                            maxLength={is_production ? 100 : undefined}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAddPassword(!showAddPassword)}
+                                            className="absolute right-3 text-gray-400 hover:text-cyan-500 focus:outline-none"
+                                        >
+                                            {showAddPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                    
+                                    {addData.password && (
+                                        <div className="mt-2">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="text-xs font-semibold text-gray-600">Kekuatan Kata Sandi:</span>
+                                                <span className={`text-xs font-bold ${
+                                                    checkPasswordStrength(addData.password).score <= 1 ? 'text-rose-500' :
+                                                    checkPasswordStrength(addData.password).score === 2 ? 'text-amber-500' :
+                                                    'text-emerald-500'
+                                                }`}>{checkPasswordStrength(addData.password).text}</span>
+                                            </div>
+                                            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div className={`h-full transition-all duration-300 ${checkPasswordStrength(addData.password).color}`}></div>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500 mt-1 leading-relaxed">
+                                                Gunakan minimal 10 karakter dengan kombinasi huruf kapital, huruf kecil, angka, dan simbol.
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {errorsAdd.password && <p className="mt-1 text-xs text-red-500">{errorsAdd.password}</p>}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-1">Konfirmasi Password <span className="text-red-500">*</span></label>
-                                    <input
-                                        type="password"
-                                        className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
-                                        placeholder="Ulangi password"
-                                        value={addData.password_confirmation}
-                                        onChange={e => setAddData('password_confirmation', e.target.value)}
-                                        required={is_production}
-                                    />
+                                    <div className="relative flex items-center">
+                                        <input
+                                            type={showAddPasswordConfirm ? "text" : "password"}
+                                            className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5 pr-10"
+                                            placeholder="Ulangi password"
+                                            value={addData.password_confirmation}
+                                            onChange={e => setAddData('password_confirmation', e.target.value)}
+                                            required={is_production}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowAddPasswordConfirm(!showAddPasswordConfirm)}
+                                            className="absolute right-3 text-gray-400 hover:text-cyan-500 focus:outline-none"
+                                        >
+                                            {showAddPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="mt-6 flex justify-end gap-3">
@@ -522,26 +585,61 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm text-gray-600 mb-1">Password Baru</label>
-                                            <input
-                                                type="password"
-                                                className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
-                                                placeholder="Kosongkan jika tetap"
-                                                value={editData.new_password}
-                                                onChange={e => setEditData('new_password', e.target.value)}
-                                                minLength={is_production ? 8 : undefined}
-                                                maxLength={is_production ? 100 : undefined}
-                                            />
+                                            <div className="relative flex items-center">
+                                                <input
+                                                    type={showEditPassword ? "text" : "password"}
+                                                    className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5 pr-10"
+                                                    placeholder="Kosongkan jika tetap"
+                                                    value={editData.new_password}
+                                                    onChange={e => setEditData('new_password', e.target.value)}
+                                                    minLength={is_production ? 8 : undefined}
+                                                    maxLength={is_production ? 100 : undefined}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowEditPassword(!showEditPassword)}
+                                                    className="absolute right-3 text-gray-400 hover:text-cyan-500 focus:outline-none"
+                                                >
+                                                    {showEditPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
+                                            
+                                            {editData.new_password && (
+                                                <div className="mt-2">
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-xs font-semibold text-gray-600">Kekuatan Kata Sandi:</span>
+                                                        <span className={`text-xs font-bold ${
+                                                            checkPasswordStrength(editData.new_password).score <= 1 ? 'text-rose-500' :
+                                                            checkPasswordStrength(editData.new_password).score === 2 ? 'text-amber-500' :
+                                                            'text-emerald-500'
+                                                        }`}>{checkPasswordStrength(editData.new_password).text}</span>
+                                                    </div>
+                                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                        <div className={`h-full transition-all duration-300 ${checkPasswordStrength(editData.new_password).color}`}></div>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {errorsEdit.new_password && <p className="mt-1 text-xs text-red-500">{errorsEdit.new_password}</p>}
                                         </div>
                                         <div>
                                             <label className="block text-sm text-gray-600 mb-1">Konfirmasi Password</label>
-                                            <input
-                                                type="password"
-                                                className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5"
-                                                placeholder="Ulangi password baru"
-                                                value={editData.new_password_confirmation}
-                                                onChange={e => setEditData('new_password_confirmation', e.target.value)}
-                                            />
+                                            <div className="relative flex items-center">
+                                                <input
+                                                    type={showEditPasswordConfirm ? "text" : "password"}
+                                                    className="w-full rounded-xl border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 py-2.5 pr-10"
+                                                    placeholder="Ulangi password baru"
+                                                    value={editData.new_password_confirmation}
+                                                    onChange={e => setEditData('new_password_confirmation', e.target.value)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowEditPasswordConfirm(!showEditPasswordConfirm)}
+                                                    className="absolute right-3 text-gray-400 hover:text-cyan-500 focus:outline-none"
+                                                >
+                                                    {showEditPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

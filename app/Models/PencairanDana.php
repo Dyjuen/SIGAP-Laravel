@@ -17,6 +17,7 @@ class PencairanDana extends Model
     protected $casts = [
         'tanggal_pencairan' => 'date',
         'jumlah_dicairkan' => 'decimal:2',
+        'keterangan' => 'encrypted',
     ];
 
     public function kegiatan()

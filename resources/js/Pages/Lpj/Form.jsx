@@ -540,6 +540,11 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                                                                                         {isArchived && <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 text-slate-600 font-bold uppercase">Archived</span>}
                                                                                                     </div>
                                                                                                     <div className="text-[11px] text-slate-400 mt-0.5 font-medium">Diunggah pada {new Date(file.created_at).toLocaleDateString()}</div>
+                                                                                                    {file.file_hash && (
+                                                                                                        <div className="text-[10px] text-slate-400 font-mono mt-0.5" title={`SHA-256: ${file.file_hash}`}>
+                                                                                                            SHA-256: <span className="text-slate-500 font-bold select-all">{file.file_hash.substring(0, 8)}...{file.file_hash.substring(file.file_hash.length - 8)}</span>
+                                                                                                        </div>
+                                                                                                    )}
                                                                                                 </div>
                                                                                             </div>
                                                                                             <div className="flex items-center gap-2">

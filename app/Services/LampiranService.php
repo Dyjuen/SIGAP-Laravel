@@ -43,10 +43,13 @@ class LampiranService
                     throw new Exception('Gagal menulis file ke disk.');
                 }
 
+                $fileHash = hash_file('sha256', $file->getRealPath());
+
                 return KegiatanLampiran::create([
                     'anggaran_id' => $anggaran->anggaran_id,
                     'nama_file_asli' => $file->getClientOriginalName(),
                     'path_file_disimpan' => $storedPath,
+                    'file_hash' => $fileHash,
                     'uploader_user_id' => $actor->user_id,
                     'catatan' => $catatan,
                     'status_lampiran' => 'pending',
@@ -132,11 +135,14 @@ class LampiranService
                 // Archive old version
                 $lampiran->update(['status_lampiran' => 'archived']);
 
+                $fileHash = hash_file('sha256', $file->getRealPath());
+
                 // Create new version
                 return KegiatanLampiran::create([
                     'anggaran_id' => $lampiran->anggaran_id,
                     'nama_file_asli' => $file->getClientOriginalName(),
                     'path_file_disimpan' => $storedPath,
+                    'file_hash' => $fileHash,
                     'uploader_user_id' => $actor->user_id,
                     'catatan' => $catatan,
                     'status_lampiran' => 'pending',

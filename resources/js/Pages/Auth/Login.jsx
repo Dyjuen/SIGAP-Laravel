@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Login({ status, canResetPassword }) {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
         username: '',
         password: '',
@@ -69,19 +72,26 @@ export default function Login({ status, canResetPassword }) {
                 <div className="mb-4">
                     <InputLabel htmlFor="password" value="Kata Sandi" className="text-gray-700 font-semibold mb-2" />
 
-                    <div className="relative w-full rounded-2xl border border-gray-300/50 bg-white/5 backdrop-blur-sm transition-all duration-300 focus-within:border-[#33C8DA]/70 focus-within:bg-[#33C8DA]/10 focus-within:ring-4 focus-within:ring-[#33C8DA]/10">
+                    <div className="relative w-full rounded-2xl border border-gray-300/50 bg-white/5 backdrop-blur-sm transition-all duration-300 focus-within:border-[#33C8DA]/70 focus-within:bg-[#33C8DA]/10 focus-within:ring-4 focus-within:ring-[#33C8DA]/10 flex items-center pr-3">
                         <TextInput
                             id="password"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={data.password}
-                            className="w-full bg-transparent border-none p-4 text-sm outline-none focus:ring-0 shadow-none"
+                            className="w-full bg-transparent border-none p-4 text-sm outline-none focus:ring-0 shadow-none pr-10"
                             autoComplete="current-password"
                             placeholder="Masukkan kata sandi Anda"
                             onChange={(e) => setData('password', e.target.value)}
                             required
                             minLength={6}
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 text-gray-400 hover:text-[#33C8DA] focus:outline-none transition-colors duration-200"
+                        >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
                     </div>
                     <InputError message={errors.password} className="mt-2" />
                 </div>

@@ -109,9 +109,9 @@ class PencairanServiceTest extends TestCase
         $this->assertDatabaseHas('t_pencairan_dana', [
             'kegiatan_id' => $kegiatan->kegiatan_id,
             'jumlah_dicairkan' => 2000000,
-            'keterangan' => 'Tahap 1',
             'created_by' => $this->bendahara->user_id,
         ]);
+        $this->assertEquals('Tahap 1', $pencairan->keterangan);
     }
 
     public function test_store_fails_when_bendahara_cair_not_active(): void
