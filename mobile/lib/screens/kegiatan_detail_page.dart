@@ -721,10 +721,11 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                             targets.map((t) {
                               final kode = t['iku']?['kode_iku'] ?? '-';
                               final targetValue = t['target'] ?? '-';
-                              final satuan = t['satuan']?['nama_satuan'] ??
-                                  t['satuan_nama'] ??
-                                  '';
-                              return '$kode: $targetValue $satuan';
+                              final satuan = t['satuan']?['nama_satuan'] ?? 
+                                             t['satuan_nama'] ?? 
+                                             '';
+                              
+                              return '$kode: $targetValue $satuan'.trim();
                             }).join('\n'),
                           ),
                         ],

@@ -128,6 +128,7 @@ class KegiatanApiController extends Controller
             'kak.mataAnggaran',
             'kak.tipeKegiatan',
             'kak.ikus.iku',
+            'kak.ikus.satuan',
             'kak.manfaat',
             'kak.tahapan',
             'kak.targets',
