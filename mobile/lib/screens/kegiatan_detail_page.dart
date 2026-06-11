@@ -716,7 +716,17 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                         _buildCompactInfoRow('Sasaran', sasaranUtama),
                         if (targets.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          _buildCompactInfoRow('IKU', targets.map((t) => t['iku']?['kode_iku'] ?? '-').join(', ')),
+                          _buildCompactInfoRow(
+                            'Target IKU',
+                            targets.map((t) {
+                              final kode = t['iku']?['kode_iku'] ?? '-';
+                              final targetValue = t['target'] ?? '-';
+                              final satuan = t['satuan']?['nama_satuan'] ??
+                                  t['satuan_nama'] ??
+                                  '';
+                              return '$kode: $targetValue $satuan';
+                            }).join('\n'),
+                          ),
                         ],
                       ],
                     ),
