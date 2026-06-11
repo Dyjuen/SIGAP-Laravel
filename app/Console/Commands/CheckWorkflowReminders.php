@@ -29,13 +29,7 @@ class CheckWorkflowReminders extends Command
      */
     protected $description = 'Check for stale workflows and LPJ deadlines to send reminders.';
 
-    protected FcmService $fcmService;
-
-    public function __construct(FcmService $fcmService)
-    {
-        parent::__construct();
-        $this->fcmService = $fcmService;
-    }
+    // FcmService is resolved dynamically to prevent command scanner boot errors when Firebase is not configured.
 
     /**
      * Execute the console command.
@@ -161,7 +155,7 @@ class CheckWorkflowReminders extends Command
         }
 
         // 3. Push Notification
-        $this->fcmService->sendToUser(
+        app(FcmService::class)->sendToUser(
             $user->user_id,
             $subject,
             $message,

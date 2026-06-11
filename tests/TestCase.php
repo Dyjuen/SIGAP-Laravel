@@ -34,5 +34,8 @@ abstract class TestCase extends BaseTestCase
 
         // Globally disable CSRF for tests
         $this->withoutMiddleware(ValidateCsrfToken::class);
+
+        // Globally mock FcmService to avoid Firebase credentials dependency in tests
+        $this->app->instance(\App\Services\FcmService::class, $this->createMock(\App\Services\FcmService::class));
     }
 }

@@ -21,6 +21,7 @@ use App\Listeners\SendPencairanEmail;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 use Kreait\Firebase\Messaging;
 
 class AppServiceProvider extends ServiceProvider
@@ -53,5 +54,16 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(LpjCompleted::class, SendLpjEmail::class);
         Event::listen(PencairanSelesai::class, SendPencairanEmail::class);
         Event::listen(KegiatanApproved::class, SendKegiatanEmail::class);
+
+        // Configure strong password defaults
+        Password::defaults(function () {
+            $rule = Password::min(10)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols();
+
+            return app()->isProduction() ? $rule->uncompromised() : $rule;
+        });
     }
 }
