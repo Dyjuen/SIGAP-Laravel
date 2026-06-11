@@ -31,6 +31,7 @@ import 'screens/pengusul/lpj_list_page.dart';
 import 'screens/bendahara/pencairan_page.dart';
 import 'services/notification_service.dart';
 import 'providers/notification_provider.dart';
+import 'providers/master_data_provider.dart';
 
 String _getBaseUrl() {
   // Gunakan URL produksi langsung
@@ -126,6 +127,9 @@ void main() async {
         ChangeNotifierProvider<NotificationProvider>(
           create: (context) =>
               NotificationProvider(context.read<NotificationService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => MasterDataProvider(context.read<MasterDataService>()),
         ),
         ChangeNotifierProvider(create: (_) => ChatbotService()),
       ],

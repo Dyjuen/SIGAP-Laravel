@@ -141,6 +141,44 @@ class MasterDataService {
     }
   }
 
+  /// Store new master data
+  Future<void> store(String type, Map<String, dynamic> data) async {
+    try {
+      await dio.post(
+        '/admin/master/$type',
+        data: data,
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  /// Update existing master data
+  Future<void> update(String type, String id, Map<String, dynamic> data) async {
+    try {
+      await dio.put(
+        '/admin/master/$type/$id',
+        data: data,
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
+  /// Delete master data
+  Future<void> delete(String type, String id) async {
+    try {
+      await dio.delete(
+        '/admin/master/$type/$id',
+        options: Options(headers: {'Accept': 'application/json'}),
+      );
+    } on DioException catch (e) {
+      throw _handleDioException(e);
+    }
+  }
+
   /// Error handling for DioException
   String _handleDioException(DioException e) {
     if (e.response != null) {

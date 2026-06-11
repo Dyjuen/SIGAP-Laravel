@@ -11,6 +11,7 @@ import 'user_management_page.dart';
 import '../help_guide_page.dart';
 import '../profile_page.dart';
 import 'spk_page.dart';
+import 'master/admin_master_list_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -220,10 +221,35 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 iconColor: const Color(0xFF10B981),
                                 tintColor: const Color(0xFFD1FAE5),
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Master Data tersedia di versi web.'),
-                                      backgroundColor: Color(0xFF10B981),
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => Scaffold(
+                                        appBar: AppBar(title: const Text('Pilih Master Data')),
+                                        body: ListView(
+                                          children: [
+                                            ListTile(
+                                              title: const Text('Tipe Kegiatan'),
+                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'tipe-kegiatan', title: 'Tipe Kegiatan'))),
+                                            ),
+                                            ListTile(
+                                              title: const Text('Mata Anggaran'),
+                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'mata-anggaran', title: 'Mata Anggaran'))),
+                                            ),
+                                            ListTile(
+                                              title: const Text('Kategori Belanja'),
+                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'kategori-belanja', title: 'Kategori Belanja'))),
+                                            ),
+                                            ListTile(
+                                              title: const Text('Satuan'),
+                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'satuan', title: 'Satuan'))),
+                                            ),
+                                            ListTile(
+                                              title: const Text('IKU'),
+                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'iku', title: 'IKU'))),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   );
                                 },
