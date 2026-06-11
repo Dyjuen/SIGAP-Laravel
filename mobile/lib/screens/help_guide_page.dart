@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
+import '../widgets/app_shell.dart';
+import '../widgets/sigap_bottom_navigation_bar.dart';
 
 class HelpGuidePage extends StatefulWidget {
   const HelpGuidePage({super.key});
@@ -568,6 +570,18 @@ class _HelpGuidePageState extends State<HelpGuidePage> {
                 ),
               ],
             ),
+      bottomNavigationBar: Navigator.of(context).canPop()
+          ? SigapBottomNavigationBar(
+              selectedIndex: AppShellState.activeInstance?.selectedIndex ?? 0,
+              roleId: authProvider.user?.roleId ?? 3,
+              onDestinationSelected: (index) {
+                if (AppShellState.activeInstance != null) {
+                  AppShellState.activeInstance!.setSelectedIndex(index);
+                }
+                Navigator.of(context).pop();
+              },
+            )
+          : null,
     );
   }
 }

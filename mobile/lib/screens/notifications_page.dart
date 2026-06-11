@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../core/app_theme.dart';
 import '../models/notifikasi_model.dart';
+import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
+import '../widgets/app_shell.dart';
+import '../widgets/sigap_bottom_navigation_bar.dart';
 import 'kak_detail_page.dart';
 import 'lpj_detail_page.dart';
 
@@ -352,6 +355,18 @@ class _NotificationsPageState extends State<NotificationsPage> {
           );
         },
       ),
+      bottomNavigationBar: Navigator.of(context).canPop()
+          ? SigapBottomNavigationBar(
+              selectedIndex: AppShellState.activeInstance?.selectedIndex ?? 0,
+              roleId: Provider.of<AuthProvider>(context, listen: false).user?.roleId ?? 3,
+              onDestinationSelected: (index) {
+                if (AppShellState.activeInstance != null) {
+                  AppShellState.activeInstance!.setSelectedIndex(index);
+                }
+                Navigator.of(context).pop();
+              },
+            )
+          : null,
     );
   }
 }

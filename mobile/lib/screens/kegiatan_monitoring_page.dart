@@ -5,10 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/auth_provider.dart';
 import '../providers/monitoring_provider.dart';
 import '../models/monitoring_model.dart';
 import '../widgets/monitoring_card.dart';
 import '../widgets/sigap_logo.dart';
+import '../widgets/app_shell.dart';
+import '../widgets/sigap_bottom_navigation_bar.dart';
 import 'kak_detail_page.dart';
 import 'kegiatan_detail_page.dart';
 
@@ -131,7 +134,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                                 color: colorScheme.surface,
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: colorScheme.outline,
+                                  color: const Color(0xFFE2E8F0),
                                   width: 1,
                                 ),
                               ),
@@ -344,6 +347,18 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
             );
           },
         ),
+        bottomNavigationBar: Navigator.of(context).canPop()
+            ? SigapBottomNavigationBar(
+                selectedIndex: AppShellState.activeInstance?.selectedIndex ?? 0,
+                roleId: Provider.of<AuthProvider>(context, listen: false).user?.roleId ?? 3,
+                onDestinationSelected: (index) {
+                  if (AppShellState.activeInstance != null) {
+                    AppShellState.activeInstance!.setSelectedIndex(index);
+                  }
+                  Navigator.of(context).pop();
+                },
+              )
+            : null,
       ),
     );
   }
@@ -765,7 +780,10 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? colorScheme.primary : colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colorScheme.outline, width: 1),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
         ),
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 12),
