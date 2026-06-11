@@ -277,7 +277,11 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
                       decoration: const BoxDecoration(
-                        color: Color(0xFF2E7D32),
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF33C8DA), Color(0xFF2BA9B8)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(24),
                           topRight: Radius.circular(24),
@@ -285,24 +289,33 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                       ),
                       child: Row(
                         children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.rate_review_rounded, color: Colors.white, size: 22),
+                          ),
+                          const SizedBox(width: 14),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Minta Revisi KAK',
+                                  'Catatan Revisi',
                                   style: GoogleFonts.figtree(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 Text(
-                                  'Layout mengikuti form pengusul, catatan muncul lewat tombol per field.',
+                                  'Tap ikon komentar untuk memberikan catatan per field.',
                                   style: GoogleFonts.figtree(
                                     fontSize: 12,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withOpacity(0.85),
                                   ),
                                 ),
                               ],
@@ -313,7 +326,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                               Navigator.pop(dialogContext);
                               disposeAll();
                             },
-                            icon: const Icon(Icons.close, color: Colors.white),
+                            icon: const Icon(Icons.close_rounded, color: Colors.white),
                           ),
                         ],
                       ),
@@ -324,7 +337,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildRevisionSectionTitle('Informasi Umum KAK'),
+                            _buildRevisionSectionTitle('Informasi Umum', icon: Icons.info_outline_rounded),
                             const SizedBox(height: 12),
                             _buildRevisionFieldCard(
                               label: 'Nama Kegiatan',
@@ -444,7 +457,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            _buildRevisionSectionTitle('Manfaat'),
+                            _buildRevisionSectionTitle('Manfaat', icon: Icons.emoji_objects_outlined),
                             const SizedBox(height: 12),
                             if (kak.manfaat.isEmpty)
                               _buildRevisionEmptyState(
@@ -467,7 +480,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   onToggle: () => toggleNote(key),
                                 );
                               }),
-                            _buildRevisionSectionTitle('Tahapan Pelaksanaan'),
+                            _buildRevisionSectionTitle('Tahapan Pelaksanaan', icon: Icons.timeline_rounded),
                             const SizedBox(height: 12),
                             if (kak.tahapan.isEmpty)
                               _buildRevisionEmptyState(
@@ -490,7 +503,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   onToggle: () => toggleNote(key),
                                 );
                               }),
-                            _buildRevisionSectionTitle('Indikator Kinerja'),
+                            _buildRevisionSectionTitle('Indikator Kinerja', icon: Icons.trending_up_rounded),
                             const SizedBox(height: 12),
                             if (kak.indikatorKinerja.isEmpty)
                               _buildRevisionEmptyState(
@@ -519,7 +532,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   onToggle: () => toggleNote(key),
                                 );
                               }),
-                            _buildRevisionSectionTitle('Target IKU'),
+                            _buildRevisionSectionTitle('Target IKU', icon: Icons.flag_rounded),
                             const SizedBox(height: 12),
                             if (kak.targetIku.isEmpty)
                               _buildRevisionEmptyState(
@@ -553,7 +566,7 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   onToggle: () => toggleNote(key),
                                 );
                               }),
-                            _buildRevisionSectionTitle('RAB'),
+                            _buildRevisionSectionTitle('Rencana Anggaran Biaya', icon: Icons.account_balance_wallet_outlined),
                             const SizedBox(height: 12),
                             if (kak.rab.isEmpty)
                               _buildRevisionEmptyState('Tidak ada data RAB.')
@@ -578,9 +591,6 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
 
                                 return sortedKategoriIds.expand((katId) {
                                   final entries = groupedRab[katId]!;
-                                  
-                                  // Debug log
-                                  debugPrint('DEBUG: katId=$katId, firstItemNama=${entries.first.value.kategoriNama}');
                                   
                                   final katNama = (entries.first.value.kategoriNama != null &&
                                           entries.first.value.kategoriNama!
@@ -607,20 +617,26 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 12,
-                                          vertical: 6,
+                                          vertical: 7,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF2E7D32)
-                                              .withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: const Color(0xFF33C8DA),
+                                          borderRadius: BorderRadius.circular(10),
                                         ),
-                                        child: Text(
-                                          katNama,
-                                          style: GoogleFonts.figtree(
-                                            fontWeight: FontWeight.w900,
-                                            fontSize: 13,
-                                            color: const Color(0xFF2E7D32),
-                                          ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.category_rounded, size: 13, color: Colors.white),
+                                            const SizedBox(width: 7),
+                                            Text(
+                                              katNama,
+                                              style: GoogleFonts.figtree(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 13,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -655,33 +671,53 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 14, 20, 20),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border(
-                          top: BorderSide(color: Colors.grey.shade200),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(24),
+                          bottomRight: Radius.circular(24),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.06),
+                            offset: const Offset(0, -3),
+                            blurRadius: 10,
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
                           Expanded(
-                            child: TextButton(
+                            child: OutlinedButton(
                               onPressed: () {
                                 Navigator.pop(dialogContext);
                                 disposeAll();
                               },
-                              child: const Text('Batal'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                side: BorderSide(color: Colors.grey.shade300),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: Text('Batal', style: GoogleFonts.figtree(fontWeight: FontWeight.w600, color: const Color(0xFF64748B))),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: FilledButton(
+                            flex: 2,
+                            child: FilledButton.icon(
                               onPressed: () async {
                                 Navigator.pop(dialogContext);
                                 await _requestRevision(parentNotes, childNotes);
                                 disposeAll();
                               },
-                              child: const Text('Minta Revisi'),
+                              icon: const Icon(Icons.send_rounded, size: 18),
+                              label: Text('Kirim Revisi', style: GoogleFonts.figtree(fontWeight: FontWeight.w700)),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF33C8DA),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
                             ),
                           ),
                         ],
@@ -697,13 +733,36 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     );
   }
 
-  Widget _buildRevisionSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.figtree(
-        fontSize: 15,
-        fontWeight: FontWeight.w900,
-        color: const Color(0xFF0F172A),
+  Widget _buildRevisionSectionTitle(String title, {IconData icon = Icons.folder_outlined}) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF33C8DA).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: const Color(0xFF33C8DA)),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            title,
+            style: GoogleFonts.figtree(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Container(
+              height: 1,
+              color: const Color(0xFFE2E8F0),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -717,56 +776,116 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     required bool isExpanded,
     required VoidCallback onToggle,
   }) {
+    final hasNote = noteController.text.trim().isNotEmpty;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: hasNote ? const Color(0xFF33C8DA).withOpacity(0.4) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.figtree(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF0F172A),
+          // Header row with label + comment toggle
+          InkWell(
+            onTap: onToggle,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 8, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: GoogleFonts.figtree(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF64748B),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          value,
+                          style: GoogleFonts.figtree(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Comment icon badge
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: hasNote
+                          ? const Color(0xFF33C8DA).withOpacity(0.1)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        hasNote ? Icons.comment_rounded : Icons.add_comment_outlined,
+                        size: 18,
+                        color: hasNote ? const Color(0xFF33C8DA) : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: GoogleFonts.figtree(
-              fontSize: 13,
-              color: const Color(0xFF475569),
-            ),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: onToggle,
-            icon: Icon(
-              isExpanded ? Icons.keyboard_arrow_up : Icons.add_comment_outlined,
-            ),
-            label: Text(isExpanded ? 'Sembunyikan Catatan' : 'Tambah Catatan'),
-          ),
-          if (isExpanded) ...[
-            const SizedBox(height: 10),
-            TextField(
-              controller: noteController,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: 'Catatan revisi',
-                hintText: hintText,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+          // Note input (animated)
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 200),
+            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            firstChild: const SizedBox(height: 12),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+              child: TextField(
+                controller: noteController,
+                maxLines: 2,
+                style: GoogleFonts.figtree(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: GoogleFonts.figtree(fontSize: 12, color: const Color(0xFF94A3B8)),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF33C8DA).withOpacity(0.3)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF33C8DA).withOpacity(0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                  ),
                 ),
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -781,80 +900,118 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     required bool isExpanded,
     required VoidCallback onToggle,
   }) {
+    final hasNote = noteController.text.trim().isNotEmpty;
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: hasNote ? const Color(0xFF33C8DA).withOpacity(0.4) : const Color(0xFFE2E8F0),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: GoogleFonts.figtree(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF0F172A),
+          // Tappable header
+          InkWell(
+            onTap: onToggle,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 8, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.figtree(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        ...details.map(
+                          (detail) => Padding(
+                            padding: const EdgeInsets.only(bottom: 3),
+                            child: Text(
+                              detail,
+                              style: GoogleFonts.figtree(
+                                fontSize: 12,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: hasNote
+                          ? const Color(0xFF33C8DA).withOpacity(0.1)
+                          : const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        hasNote ? Icons.comment_rounded : Icons.add_comment_outlined,
+                        size: 18,
+                        color: hasNote ? const Color(0xFF33C8DA) : const Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Note input (animated)
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 200),
+            crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            firstChild: const SizedBox(height: 12),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+              child: TextField(
+                controller: noteController,
+                maxLines: 2,
+                style: GoogleFonts.figtree(fontSize: 13),
+                decoration: InputDecoration(
+                  hintText: hintText,
+                  hintStyle: GoogleFonts.figtree(fontSize: 12, color: const Color(0xFF94A3B8)),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF33C8DA).withOpacity(0.3)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: const Color(0xFF33C8DA).withOpacity(0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
                   ),
                 ),
               ),
-              // Inline per-item comment icon (mirip LPJ)
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                icon: Icon(
-                  noteController.text.trim().isNotEmpty ? Icons.comment : Icons.add_comment_outlined,
-                  color: noteController.text.trim().isNotEmpty ? Colors.orange : Colors.grey,
-                  size: 20,
-                ),
-                onPressed: onToggle,
-                tooltip: isExpanded ? 'Sembunyikan Catatan' : 'Tambah Catatan',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...details.map(
-            (detail) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                detail,
-                style: GoogleFonts.figtree(
-                  fontSize: 12,
-                  color: const Color(0xFF475569),
-                ),
-              ),
             ),
           ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: onToggle,
-            icon: Icon(
-              isExpanded ? Icons.keyboard_arrow_up : Icons.add_comment_outlined,
-            ),
-            label: Text(isExpanded ? 'Sembunyikan Catatan' : 'Tambah Catatan'),
-          ),
-          if (isExpanded) ...[
-            const SizedBox(height: 10),
-            TextField(
-              controller: noteController,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: 'Catatan revisi item',
-                hintText: hintText,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -879,19 +1036,27 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
         color: const Color(0xFFF8FAFC),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Text(
-        message,
-        style: GoogleFonts.figtree(
-          fontSize: 12,
-          color: const Color(0xFF64748B),
-          fontStyle: FontStyle.italic,
-        ),
+      child: Row(
+        children: [
+          Icon(Icons.inbox_outlined, size: 18, color: const Color(0xFF94A3B8)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.figtree(
+                fontSize: 12,
+                color: const Color(0xFF94A3B8),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
