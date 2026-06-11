@@ -123,4 +123,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'notification_polling_interval' => (int) env('NOTIFICATION_POLLING_INTERVAL', 300000),
+
 ];

@@ -42,7 +42,7 @@ PROMPT;
             'message' => 'required|string|max:2000',
         ]);
 
-        $apiKey = env('GROQ_API_KEY');
+        $apiKey = config('services.groq.api_key');
         $user = auth()->user();
         $userId = $user ? $user->id : $request->ip();
         $cacheKey = "chatbot_off_topic_streak_{$userId}";
