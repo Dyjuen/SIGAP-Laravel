@@ -542,7 +542,11 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
                                   // Debug log
                                   debugPrint('DEBUG: katId=$katId, firstItemNama=${entries.first.value.kategoriNama}');
                                   
-                                  final katNama = (entries.first.value.kategoriNama?.isNotEmpty == true)
+                                  final katNama = (entries.first.value.kategoriNama != null &&
+                                          entries.first.value.kategoriNama!
+                                              .isNotEmpty &&
+                                          entries.first.value.kategoriNama !=
+                                              '-')
                                       ? entries.first.value.kategoriNama!
                                       : (katId == 1
                                           ? 'Belanja Barang'

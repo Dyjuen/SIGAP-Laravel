@@ -99,6 +99,7 @@ class KakCreateEditForm extends StatefulWidget {
   final VoidCallback onSubmit;
   final bool isLoading;
   final Function(Map<String, dynamic>) onFormChange;
+  final GlobalKey<FormState>? formKey; // Add formKey parameter
 
   const KakCreateEditForm({
     super.key,
@@ -111,13 +112,14 @@ class KakCreateEditForm extends StatefulWidget {
     required this.onSubmit,
     this.isLoading = false,
     required this.onFormChange,
+    this.formKey, // Initialize formKey
   });
 
   @override
-  State<KakCreateEditForm> createState() => _KakCreateEditFormState();
+  State<KakCreateEditForm> createState() => KakCreateEditFormState();
 }
 
-class _KakCreateEditFormState extends State<KakCreateEditForm> {
+class KakCreateEditFormState extends State<KakCreateEditForm> {
   late TextEditingController namaController;
   late TextEditingController deskripsiController;
   late TextEditingController metodeController;
@@ -134,11 +136,12 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
   List<TargetIkuItem> targetIkuList = [];
   List<RabItem> rabList = [];
 
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  late final GlobalKey<FormState> _formKey;
 
   @override
   void initState() {
     super.initState();
+    _formKey = widget.formKey ?? GlobalKey<FormState>();
     namaController = TextEditingController();
     deskripsiController = TextEditingController();
     metodeController = TextEditingController();
@@ -436,7 +439,7 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Form(
-      key: _formKey,
+      key: widget.formKey, // Use the external formKey
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -1841,61 +1844,61 @@ class _KakCreateEditFormState extends State<KakCreateEditForm> {
           ),
           const SizedBox(height: 32),
 
-          // Submit Button
-          FilledButton(
-            onPressed: widget.isLoading
-                ? null
-                : () {
-                    if (_formKey.currentState!.validate()) {
-                      if (manfaatList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Minimal harus ada 1 manfaat'),
-                          ),
-                        );
-                        return;
+          // Action Buttons (Only show if not readOnly)
+          if (!widget.readOnly) ...[
+            FilledButton(
+              onPressed: widget.isLoading
+                  ? null
+                  : () {
+                      if (_formKey.currentState!.validate()) {
+                        if (manfaatList.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Minimal harus ada 1 manfaat'),
+                            ),
+                          );
+                          return;
+                        }
+                        if (tahapanList.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Minimal harus ada 1 tahapan'),
+                            ),
+                          );
+                          return;
+                        }
+                        if (rabList.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Minimal harus ada 1 item RAB'),
+                            ),
+                          );
+                          return;
+                        }
+                        widget.onFormChange(getFormData());
+                        widget.onSubmit();
                       }
-                      if (tahapanList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Minimal harus ada 1 tahapan'),
-                          ),
-                        );
-                        return;
-                      }
-                      if (rabList.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Minimal harus ada 1 item RAB'),
-                          ),
-                        );
-                        return;
-                      }
-                      widget.onFormChange(getFormData());
-                      widget.onSubmit();
-                    }
-                  },
-            child: widget.isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(
-                    'Simpan',
-                    style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
-                  ),
-          ),
-          const SizedBox(height: 16),
-
-          // Cancel Button
-          OutlinedButton(
-            onPressed: widget.isLoading ? null : () => Navigator.pop(context),
-            child: Text(
-              'Batal',
-              style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                    },
+              child: widget.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(
+                      'Simpan',
+                      style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+                    ),
             ),
-          ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: widget.isLoading ? null : () => Navigator.pop(context),
+              child: Text(
+                'Batal',
+                style: GoogleFonts.figtree(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
           const SizedBox(height: 24),
         ],
       ),
