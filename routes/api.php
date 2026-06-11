@@ -85,23 +85,26 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:Bendahara')->group(function () {
         Route::get('/bendahara/dashboard', [DashboardApiController::class, 'bendahara']);
     });
-    Route::middleware('role:Direktur,Admin')->group(function () {
+    Route::middleware('role:Direktur,Rektorat,Admin')->group(function () {
         Route::get('/direktur/dashboard', [DashboardApiController::class, 'direktur']);
     });
 
     // Kegiatan API Routes
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Verifikator')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Verifikator,Direktur,Rektorat')->group(function () {
         Route::get('/kegiatan/monitoring', [KegiatanApiController::class, 'monitoring']);
     });
 
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Direktur,Rektorat')->group(function () {
         Route::get('/kegiatan', [KegiatanApiController::class, 'index']);
+    });
+
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir')->group(function () {
         Route::post('/kegiatan', [KegiatanApiController::class, 'store'])->middleware('throttle:60,1');
         Route::match(['put', 'patch'], '/kegiatan/{kegiatan}', [KegiatanApiController::class, 'update']);
         Route::post('/kegiatan/{kegiatan}/approve', [KegiatanApiController::class, 'approve']);
     });
 
-    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Verifikator,Direktur')->group(function () {
+    Route::middleware('role:Admin,Pengusul,PPK,Wadir,Bendahara,Verifikator,Direktur,Rektorat')->group(function () {
         Route::get('/kegiatan/{kegiatan}', [KegiatanApiController::class, 'show']);
     });
 
@@ -156,3 +159,8 @@ Route::middleware('throttle:60,1')->group(function () {
     Route::get('/master/kategori-belanja', [MasterDataController::class, 'getKategoriBelanja']);
     Route::get('/master/mata-anggaran', [MasterDataController::class, 'getMataAnggaran']);
 });
+
+// KAK PDF Routes (Public/Manual authentication via token query parameter)
+Route::get('/kak/{id}/pdf/preview-blob', [KakApiController::class, 'previewPdfBlob']);
+Route::get('/kak/{id}/pdf/preview', [KakApiController::class, 'previewPdf']);
+Route::get('/kak/{id}/pdf/download', [KakApiController::class, 'downloadPdf']);

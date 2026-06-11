@@ -16,7 +16,8 @@ import 'kak_detail_page.dart';
 import 'kegiatan_detail_page.dart';
 
 class KegiatanMonitoringPage extends StatefulWidget {
-  const KegiatanMonitoringPage({super.key});
+  final bool isTab;
+  const KegiatanMonitoringPage({super.key, this.isTab = false});
 
   static const String routeName = 'kegiatanMonitoring';
   static const String routePath = '/kegiatan-monitoring';
@@ -347,7 +348,7 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
             );
           },
         ),
-        bottomNavigationBar: Navigator.of(context).canPop()
+        bottomNavigationBar: (!widget.isTab && Navigator.of(context).canPop())
             ? SigapBottomNavigationBar(
                 selectedIndex: AppShellState.activeInstance?.selectedIndex ?? 0,
                 roleId: Provider.of<AuthProvider>(context, listen: false).user?.roleId ?? 3,

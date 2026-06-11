@@ -13,7 +13,9 @@ use App\Models\KAK;
 use App\Models\User;
 use App\Services\KakService;
 use App\Services\KakWorkflowService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class KakApiController extends Controller
 {
@@ -124,7 +126,7 @@ class KakApiController extends Controller
             'status', 'tipeKegiatan', 'pengusul', 'mataAnggaran',
             'manfaat', 'tahapan', 'targets',
             'ikus.iku', 'ikus.satuan',
-            'anggaran.kategoriBelanja',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1', 'anggaran.satuan2', 'anggaran.satuan3',
             'approvals.approver',
         ])->findOrFail($id);
 
@@ -142,6 +144,7 @@ class KakApiController extends Controller
             'tanggal_selesai' => $kak->tanggal_selesai?->format('Y-m-d'),
             'lokasi' => $kak->lokasi,
             'sasaran_utama' => $kak->sasaran_utama,
+            'output_kegiatan' => $kak->output_kegiatan,
             'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
             'mata_anggaran_id' => $kak->mata_anggaran_id,
             'mata_anggaran_nama' => $kak->mataAnggaran
@@ -197,10 +200,13 @@ class KakApiController extends Controller
                 ],
                 'volume1' => $a->volume1,
                 'satuan1_id' => $a->satuan1_id,
+                'satuan1_nama' => $a->satuan1?->nama_satuan,
                 'volume2' => $a->volume2,
                 'satuan2_id' => $a->satuan2_id,
+                'satuan2_nama' => $a->satuan2?->nama_satuan,
                 'volume3' => $a->volume3,
                 'satuan3_id' => $a->satuan3_id,
+                'satuan3_nama' => $a->satuan3?->nama_satuan,
                 'harga_satuan' => $a->harga_satuan,
                 'jumlah_diusulkan' => $a->jumlah_diusulkan,
                 'catatan_verifikator' => $a->catatan_verifikator,
@@ -387,5 +393,138 @@ class KakApiController extends Controller
         if ($kak->pengusul_user_id === $user->user_id) {
             abort(403, 'Verifikator tidak dapat memverifikasi KAK sendiri.');
         }
+    }
+
+    /**
+     * Helper to manually authenticate and authorize KAK access for API / url_launcher.
+     */
+    private function authenticateAndAuthorizeKak(Request $request, $id)
+    {
+        $user = auth('sanctum')->user() ?? $request->user();
+
+        // Try token query parameter if guard was empty
+        if (! $user && $request->has('token')) {
+            $token = trim(urldecode($request->query('token')));
+            if (str_starts_with($token, 'Bearer ')) {
+                $token = substr($token, 7);
+            }
+            $accessToken = PersonalAccessToken::findToken($token);
+            if ($accessToken) {
+                $user = $accessToken->tokenable;
+                $request->setUserResolver(fn () => $user);
+            }
+        }
+
+        if (! $user) {
+            abort(401, 'Unauthenticated.');
+        }
+
+        $kak = KAK::findOrFail($id);
+
+        // 1. Admin
+        if ($user->role_id === 1) {
+            return $kak;
+        }
+
+        // 2. Pengusul (only own KAKs)
+        if ($user->role_id === 3) {
+            if ($kak->pengusul_user_id !== $user->user_id) {
+                abort(403, 'Akses ditolak.');
+            }
+
+            return $kak;
+        }
+
+        // 3. Verifikator (only matched tipe_kegiatan_id)
+        if ($user->role_id === 2) {
+            $allowedTipeId = $user->getVerifikatorTipeId();
+            if ($allowedTipeId !== null && $kak->tipe_kegiatan_id === $allowedTipeId) {
+                return $kak;
+            }
+            abort(403, 'Akses ditolak.');
+        }
+
+        // 4. PPK, Wadir, Direktur/Rektorat (read-only access permitted)
+        if (in_array($user->role_id, [4, 5, 7])) {
+            return $kak;
+        }
+
+        abort(403, 'Akses ditolak.');
+    }
+
+    /**
+     * Generate PDF payload for frontend blob preview.
+     */
+    public function previewPdfBlob(Request $request, $id)
+    {
+        $kak = $this->authenticateAndAuthorizeKak($request, $id);
+
+        $kak->load([
+            'status', 'tipeKegiatan', 'mataAnggaran', 'pengusul',
+            'manfaat', 'tahapan', 'targets',
+            'ikus.iku', 'ikus.satuan',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.kak', compact('kak'))
+            ->setPaper('a4', 'portrait');
+
+        $fileName = 'KAK_'.str_replace(' ', '_', $kak->nama_kegiatan).'.pdf';
+
+        return response()->json([
+            'fileName' => $fileName,
+            'mimeType' => 'application/pdf',
+            'base64' => base64_encode($pdf->output()),
+        ]);
+    }
+
+    /**
+     * Stream inline PDF.
+     */
+    public function previewPdf(Request $request, $id)
+    {
+        $kak = $this->authenticateAndAuthorizeKak($request, $id);
+
+        $kak->load([
+            'status', 'tipeKegiatan', 'mataAnggaran', 'pengusul',
+            'manfaat', 'tahapan', 'targets',
+            'ikus.iku', 'ikus.satuan',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.kak', compact('kak'))
+            ->setPaper('a4', 'portrait');
+
+        $fileName = 'KAK_'.str_replace(' ', '_', $kak->nama_kegiatan).'.pdf';
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$fileName.'"',
+        ]);
+    }
+
+    /**
+     * Force download PDF.
+     */
+    public function downloadPdf(Request $request, $id)
+    {
+        $kak = $this->authenticateAndAuthorizeKak($request, $id);
+
+        $kak->load([
+            'status', 'tipeKegiatan', 'mataAnggaran', 'pengusul',
+            'manfaat', 'tahapan', 'targets',
+            'ikus.iku', 'ikus.satuan',
+            'anggaran.kategoriBelanja', 'anggaran.satuan1',
+        ]);
+
+        $pdf = Pdf::loadView('pdf.kak', compact('kak'))
+            ->setPaper('a4', 'portrait');
+
+        $fileName = 'KAK_'.str_replace(' ', '_', $kak->nama_kegiatan).'.pdf';
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$fileName.'"',
+        ]);
     }
 }

@@ -167,38 +167,71 @@ class _VerifikatorApprovalPageState extends State<VerifikatorApprovalPage> {
     catatanController.clear();
 
     final parentNotes = <String, TextEditingController>{
-      'nama_kegiatan': TextEditingController(),
-      'tipe_kegiatan_id': TextEditingController(),
-      'deskripsi_kegiatan': TextEditingController(),
-      'metode_pelaksanaan': TextEditingController(),
-      'tanggal': TextEditingController(),
-      'lokasi': TextEditingController(),
-      'sasaran_utama': TextEditingController(),
+      'nama_kegiatan': TextEditingController(text: kak.catatanNamaKegiatan),
+      'tipe_kegiatan_id': TextEditingController(text: kak.catatanTipeKegiatan),
+      'deskripsi_kegiatan': TextEditingController(text: kak.catatanDeskripsiKegiatan),
+      'metode_pelaksanaan': TextEditingController(text: kak.catatanMetodePelaksanaan),
+      'tanggal': TextEditingController(text: kak.catatanTanggal),
+      'lokasi': TextEditingController(text: kak.catatanLokasi),
+      'sasaran_utama': TextEditingController(text: kak.catatanSasaranUtama),
     };
 
     final childNotes = <String, List<TextEditingController>>{
       't_kak_manfaat': List.generate(
         kak.manfaat.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.manfaat[index].catatan),
       ),
       't_kak_tahapan': List.generate(
         kak.tahapan.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.tahapan[index].catatanVerifikator),
       ),
       't_kak_target': List.generate(
         kak.indikatorKinerja.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.indikatorKinerja[index].catatanVerifikator),
       ),
       't_kak_iku': List.generate(
         kak.targetIku.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.targetIku[index].catatanVerifikator),
       ),
       't_kak_anggaran': List.generate(
         kak.rab.length,
-        (_) => TextEditingController(),
+        (index) => TextEditingController(text: kak.rab[index].catatanVerifikator),
       ),
     };
     final expandedNoteKeys = <String>{};
+    if (kak.catatanNamaKegiatan?.isNotEmpty ?? false) expandedNoteKeys.add('nama_kegiatan');
+    if (kak.catatanTipeKegiatan?.isNotEmpty ?? false) expandedNoteKeys.add('tipe_kegiatan_id');
+    if (kak.catatanDeskripsiKegiatan?.isNotEmpty ?? false) expandedNoteKeys.add('deskripsi_kegiatan');
+    if (kak.catatanMetodePelaksanaan?.isNotEmpty ?? false) expandedNoteKeys.add('metode_pelaksanaan');
+    if (kak.catatanTanggal?.isNotEmpty ?? false) expandedNoteKeys.add('tanggal');
+    if (kak.catatanLokasi?.isNotEmpty ?? false) expandedNoteKeys.add('lokasi');
+    if (kak.catatanSasaranUtama?.isNotEmpty ?? false) expandedNoteKeys.add('sasaran_utama');
+
+    for (int i = 0; i < kak.manfaat.length; i++) {
+      if (kak.manfaat[i].catatan?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_manfaat:$i');
+      }
+    }
+    for (int i = 0; i < kak.tahapan.length; i++) {
+      if (kak.tahapan[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_tahapan:$i');
+      }
+    }
+    for (int i = 0; i < kak.indikatorKinerja.length; i++) {
+      if (kak.indikatorKinerja[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_target:$i');
+      }
+    }
+    for (int i = 0; i < kak.targetIku.length; i++) {
+      if (kak.targetIku[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_iku:$i');
+      }
+    }
+    for (int i = 0; i < kak.rab.length; i++) {
+      if (kak.rab[i].catatanVerifikator?.isNotEmpty ?? false) {
+        expandedNoteKeys.add('t_kak_anggaran:$i');
+      }
+    }
 
     void disposeAll() {
       catatanController.clear();

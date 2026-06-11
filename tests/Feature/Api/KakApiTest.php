@@ -120,6 +120,7 @@ class KakApiTest extends TestCase
                 'lokasi' => 'Lab Komputer 3',
                 'tipe_kegiatan_id' => 1,
                 'sasaran_utama' => 'Mahasiswa Tingkat Akhir',
+                'output_kegiatan' => 'Sertifikat dan Portofolio',
                 'manfaat' => [
                     ['value' => 'Meningkatkan skill UI/UX'],
                     ['value' => 'Mempersiapkan portofolio kerja'],
@@ -792,5 +793,98 @@ class KakApiTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['catatan']);
+    }
+
+    public function test_api_preview_pdf_blob()
+    {
+        $kak = KAK::create([
+            'nama_kegiatan' => 'PDF Blob Test KAK',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 1,
+        ]);
+
+        $response = $this->actingAs($this->pengusul, 'sanctum')
+            ->getJson("/api/kak/{$kak->kak_id}/pdf/preview-blob");
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['fileName', 'mimeType', 'base64']);
+    }
+
+    public function test_api_preview_pdf_with_bearer_token()
+    {
+        $kak = KAK::create([
+            'nama_kegiatan' => 'PDF Preview Test KAK',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 1,
+        ]);
+
+        $response = $this->actingAs($this->pengusul, 'sanctum')
+            ->get("/api/kak/{$kak->kak_id}/pdf/preview");
+
+        $response->assertStatus(200);
+        $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
+    }
+
+    public function test_api_download_pdf_with_query_token()
+    {
+        $kak = KAK::create([
+            'nama_kegiatan' => 'PDF Download Test KAK',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 1,
+        ]);
+
+        // Generate personal access token
+        $tokenResult = $this->pengusul->createToken('test-token');
+        $token = $tokenResult->plainTextToken;
+
+        $response = $this->get("/api/kak/{$kak->kak_id}/pdf/download?token={$token}");
+
+        $response->assertStatus(200);
+        $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('attachment', $response->headers->get('Content-Disposition'));
+    }
+
+    public function test_api_pdf_unauthenticated()
+    {
+        $kak = KAK::create([
+            'nama_kegiatan' => 'PDF Unauth KAK',
+            'deskripsi_kegiatan' => 'Deskripsi.',
+            'metode_pelaksanaan' => 'Metode.',
+            'tanggal_mulai' => now()->toDateString(),
+            'tanggal_selesai' => now()->addDays(2)->toDateString(),
+            'kurun_waktu_pelaksanaan' => '3 Hari',
+            'lokasi' => 'Aula PNJ',
+            'tipe_kegiatan_id' => 1,
+            'sasaran_utama' => 'Tendik',
+            'pengusul_user_id' => $this->pengusul->user_id,
+            'status_id' => 1,
+        ]);
+
+        $this->getJson("/api/kak/{$kak->kak_id}/pdf/preview-blob")
+            ->assertStatus(401);
     }
 }

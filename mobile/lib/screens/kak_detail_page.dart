@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/kak_model.dart';
 import '../providers/kak_detail_provider.dart';
 import '../services/master_data_service.dart';
+import '../services/api_service.dart';
+import '../providers/auth_provider.dart';
 import 'pengusul/pengajuan_create_page.dart';
 import 'pengusul/kak_create_edit_form.dart';
 
@@ -207,6 +210,39 @@ class _KakDetailPageState extends State<KakDetailPage> {
     );
   }
 
+  Future<void> _openKakPdf(String type) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sesi aktif tidak ditemukan. Silakan login kembali.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final url = '${ApiService.baseUrl}/kak/${widget.kakId}/pdf/$type?token=$token';
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka browser untuk link ini';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat PDF KAK: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<KakDetailProvider>(
@@ -246,6 +282,18 @@ class _KakDetailPageState extends State<KakDetailPage> {
               style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
             ),
             actions: [
+              if (!_isEditing) ...[
+                IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  tooltip: 'Preview KAK',
+                  onPressed: () => _openKakPdf('preview'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.download_outlined),
+                  tooltip: 'Download KAK',
+                  onPressed: () => _openKakPdf('download'),
+                ),
+              ],
               if (!widget.embedMode && !_isEditing)
                 IconButton(
                   icon: const Icon(Icons.edit),

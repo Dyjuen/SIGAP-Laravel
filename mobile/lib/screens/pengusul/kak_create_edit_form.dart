@@ -84,8 +84,8 @@ class RabItem {
   });
 
   double getTotal() {
-    double v2 = volume2 ?? 1;
-    double v3 = volume3 ?? 1;
+    double v2 = (volume2 == null || volume2 == 0) ? 1 : volume2!;
+    double v3 = (volume3 == null || volume3 == 0) ? 1 : volume3!;
     return volume1 * v2 * v3 * hargaSatuan;
   }
 }
@@ -149,7 +149,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     metodeController = TextEditingController();
     lokasiController = TextEditingController();
     sasaranController = TextEditingController();
-    outputKegiatanController = TextEditingController(); // Added this
+    outputKegiatanController = TextEditingController(); // Keep initialized to empty
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
@@ -159,6 +159,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
       _initializeFromData(widget.initialData!);
     }
   }
+
+  bool get showRevisionNotes =>
+      widget.initialData?.statusId == 5 ||
+      widget.initialData?.statusNama?.toLowerCase() == 'revisi' ||
+      widget.initialData?.statusNama?.toLowerCase() == 'perlu revisi';
 
   void _initializeFromData(KakDetail data) {
     namaController.text = data.namaKegiatan;
@@ -300,31 +305,57 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
       'tanggal_mulai': tanggalMulai?.toIso8601String().split('T')[0] ?? '',
       'tanggal_selesai': tanggalSelesai?.toIso8601String().split('T')[0] ?? '',
       'tipe_kegiatan_id': selectedTipeKegiatan ?? '',
-      'manfaat': manfaatList.map((m) => {'value': m.value}).toList(),
+      'manfaat': manfaatList
+          .map((m) {
+            final map = <String, dynamic>{'value': m.value};
+            if (!m.id.startsWith('new_')) {
+              map['manfaat_id'] = m.id;
+            }
+            return map;
+          })
+          .toList(),
       'tahapan_pelaksanaan': tahapanList
-          .map((t) => {'nama_tahapan': t.nama})
+          .map((t) {
+            final map = <String, dynamic>{'nama_tahapan': t.nama};
+            if (!t.id.startsWith('new_')) {
+              map['tahapan_id'] = t.id;
+            }
+            return map;
+          })
           .toList(),
       'indikator_kinerja': indikatorKinerjaList
           .map(
-            (i) => {
-              'bulan_indikator': i.bulanIndikator,
-              'deskripsi_target': i.deskripsiTarget,
-              'persentase_target': i.persentaseTarget,
+            (i) {
+              final map = <String, dynamic>{
+                'bulan_indikator': i.bulanIndikator,
+                'deskripsi_target': i.deskripsiTarget,
+                'persentase_target': i.persentaseTarget,
+              };
+              if (!i.id.startsWith('new_')) {
+                map['target_id'] = i.id;
+              }
+              return map;
             },
           )
           .toList(),
       'rab': rabList
           .map(
-            (r) => {
-              'uraian': r.uraian,
-              'volume1': r.volume1,
-              'satuan1_id': r.satuan1Id,
-              'volume2': r.volume2,
-              'satuan2_id': r.satuan2Id,
-              'volume3': r.volume3,
-              'satuan3_id': r.satuan3Id,
-              'harga_satuan': r.hargaSatuan,
-              'kategori_belanja_id': r.kategoriBelanjaId,
+            (r) {
+              final map = <String, dynamic>{
+                'uraian': r.uraian,
+                'volume1': r.volume1,
+                'satuan1_id': r.satuan1Id,
+                'volume2': r.volume2,
+                'satuan2_id': r.satuan2Id,
+                'volume3': r.volume3,
+                'satuan3_id': r.satuan3Id,
+                'harga_satuan': r.hargaSatuan,
+                'kategori_belanja_id': r.kategoriBelanjaId,
+              };
+              if (!r.id.startsWith('new_')) {
+                map['anggaran_id'] = r.id;
+              }
+              return map;
             },
           )
           .toList(),
@@ -344,7 +375,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       manfaatList.add(
         ManfaatItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           value: '',
         ),
       );
@@ -361,7 +392,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       tahapanList.add(
         TahapanItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           nama: '',
           urutan: tahapanList.length + 1,
         ),
@@ -383,7 +414,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       indikatorKinerjaList.add(
         IndikatorKinerjaItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           bulanIndikator: '',
           deskripsiTarget: '',
           persentaseTarget: null,
@@ -402,7 +433,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       targetIkuList.add(
         TargetIkuItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           ikuId: 0,
           ikuNama: '',
           target: '',
@@ -421,9 +452,11 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       rabList.add(
         RabItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           uraian: '',
           volume1: 1,
+          volume2: 0,
+          volume3: 0,
           hargaSatuan: 0,
           kategoriBelanjaId: kategoriId,
         ),
@@ -445,6 +478,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
           : (tanggalSelesai ?? DateTime.now()),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
+      confirmText: 'Oke',
     );
     if (picked != null) {
       setState(() {
@@ -465,6 +499,24 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     required ValueChanged<int?> onChanged,
     String? Function(int?)? validator,
   }) {
+    if (widget.readOnly) {
+      final satuan = widget.satuanOptions.firstWhere(
+        (s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value,
+        orElse: () => null,
+      );
+      final satuanNama = satuan != null ? (satuan['nama_satuan'] ?? satuan['nama'] ?? '-').toString() : '-';
+      return TextFormField(
+        initialValue: satuanNama,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: const Color(0xFFF1F5F9),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          enabled: false,
+        ),
+      );
+    }
     return DropdownButtonFormField<int?>(
       isExpanded: true,
       value: widget.satuanOptions.any((s) => int.tryParse((s['satuan_id'] ?? s['id'] ?? '').toString()) == value)
@@ -580,6 +632,43 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     );
   }
 
+  // ─── helper for revision notes ───────────────────────────────────────────
+  Widget _buildNoteDisplay(String? note) {
+    if (!showRevisionNotes || note == null || note.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED), // Light orange background
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFFFCC80)), // Orange border
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline,
+            color: Color(0xFFE65100), // Dark orange icon
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Catatan Verifikator: $note',
+              style: GoogleFonts.figtree(
+                fontSize: 12,
+                color: const Color(0xFFE65100), // Dark orange text
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── Tab 1: Kerangka Acuan Kerja ─────────────────────────────────────────
   Widget _buildKerangkaAcuanKerjaForm() {
     return SingleChildScrollView(
@@ -602,6 +691,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Nama kegiatan wajib diisi' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanNamaKegiatan),
               const SizedBox(height: 14),
               DropdownButtonFormField<int?>(
                 value: widget.tipeKegiatanOptions.any((o) => int.tryParse((o['tipe_kegiatan_id'] ?? o['id'] ?? '').toString()) == selectedTipeKegiatan)
@@ -633,6 +723,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null) ? 'Tipe kegiatan wajib dipilih' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanTipeKegiatan),
             ],
           ),
 
@@ -766,6 +857,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                   ),
                 ],
               ),
+              _buildNoteDisplay(widget.initialData?.catatanTanggal),
               const SizedBox(height: 14),
               TextFormField(
                 controller: lokasiController,
@@ -778,6 +870,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Lokasi wajib diisi' : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanLokasi),
             ],
           ),
 
@@ -802,6 +895,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                     ? 'Gambaran umum wajib diisi'
                     : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanDeskripsiKegiatan),
               const SizedBox(height: 14),
               TextFormField(
                 controller: sasaranController,
@@ -818,23 +912,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 validator: (v) =>
                     (v == null || v.isEmpty) ? 'Sasaran utama wajib diisi' : null,
               ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: outputKegiatanController,
-                decoration: const InputDecoration(
-                  labelText: 'Output Kegiatan',
-                  alignLabelWithHint: true,
-                  prefixIcon: Padding(
-                    padding: EdgeInsets.only(bottom: 24),
-                    child: Icon(Icons.output_outlined, size: 20),
-                  ),
-                ),
-                maxLines: 2,
-                readOnly: widget.readOnly,
-                validator: (v) => (v == null || v.isEmpty)
-                    ? 'Output kegiatan wajib diisi'
-                    : null,
-              ),
+              _buildNoteDisplay(widget.initialData?.catatanSasaranUtama),
               const SizedBox(height: 14),
               TextFormField(
                 controller: metodeController,
@@ -852,6 +930,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                     ? 'Metode pelaksanaan wajib diisi'
                     : null,
               ),
+              _buildNoteDisplay(widget.initialData?.catatanMetodePelaksanaan),
             ],
           ),
 
@@ -873,56 +952,63 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 ),
               ...manfaatList.asMap().entries.map((entry) {
                 final index = entry.key;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${index + 1}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF33C8DA),
+                final item = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF33C8DA),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: manfaatList[index].value,
-                          decoration: InputDecoration(
-                            labelText: 'Manfaat ${index + 1}',
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.value,
+                              decoration: InputDecoration(
+                                labelText: 'Manfaat ${index + 1}',
+                              ),
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                item.value = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Manfaat tidak boleh kosong'
+                                  : null,
+                            ),
                           ),
-                          readOnly: widget.readOnly,
-                          onChanged: (v) {
-                            manfaatList[index].value = v;
-                            widget.onFormChange(getFormData());
-                          },
-                          validator: (v) => (v == null || v.isEmpty)
-                              ? 'Manfaat tidak boleh kosong'
-                              : null,
-                        ),
+                          if (!widget.readOnly)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                              onPressed: () => _removeManfaat(index),
+                            ),
+                        ],
                       ),
-                      if (!widget.readOnly)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Color(0xFFEF4444),
-                            size: 20,
-                          ),
-                          onPressed: () => _removeManfaat(index),
-                        ),
-                    ],
-                  ),
+                    ),
+                    _buildNoteDisplay(item.note),
+                  ],
                 );
               }),
               if (!widget.readOnly) ...[
@@ -953,56 +1039,63 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 ),
               ...tahapanList.asMap().entries.map((entry) {
                 final index = entry.key;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${index + 1}',
-                            style: GoogleFonts.figtree(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF33C8DA),
+                final item = entry.value;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF33C8DA).withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: GoogleFonts.figtree(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF33C8DA),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: tahapanList[index].nama,
-                          decoration: InputDecoration(
-                            labelText: 'Tahapan ${index + 1}',
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: item.nama,
+                              decoration: InputDecoration(
+                                labelText: 'Tahapan ${index + 1}',
+                              ),
+                              readOnly: widget.readOnly,
+                              onChanged: (v) {
+                                item.nama = v;
+                                widget.onFormChange(getFormData());
+                              },
+                              validator: (v) => (v == null || v.isEmpty)
+                                  ? 'Tahapan tidak boleh kosong'
+                                  : null,
+                            ),
                           ),
-                          readOnly: widget.readOnly,
-                          onChanged: (v) {
-                            tahapanList[index].nama = v;
-                            widget.onFormChange(getFormData());
-                          },
-                          validator: (v) => (v == null || v.isEmpty)
-                              ? 'Tahapan tidak boleh kosong'
-                              : null,
-                        ),
+                          if (!widget.readOnly)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Color(0xFFEF4444),
+                                size: 20,
+                              ),
+                              onPressed: () => _removeTahapan(index),
+                            ),
+                        ],
                       ),
-                      if (!widget.readOnly)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Color(0xFFEF4444),
-                            size: 20,
-                          ),
-                          onPressed: () => _removeTahapan(index),
-                        ),
-                    ],
-                  ),
+                    ),
+                    _buildNoteDisplay(item.note),
+                  ],
                 );
               }),
               if (!widget.readOnly) ...[
@@ -1170,6 +1263,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           return null;
                         },
                       ),
+                      _buildNoteDisplay(indikatorKinerjaList[index].note),
                     ],
                   ),
                 );
@@ -1375,6 +1469,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           ),
                         ],
                       ),
+                      _buildNoteDisplay(item.note),
                     ],
                   ),
                 );
@@ -1489,11 +1584,14 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume1 == rabItem.volume1.roundToDouble()
-                                    ? rabItem.volume1.toStringAsFixed(0)
-                                    : rabItem.volume1.toString(),
+                                initialValue: rabItem.volume1 == 0
+                                    ? ''
+                                    : (rabItem.volume1 == rabItem.volume1.roundToDouble()
+                                        ? rabItem.volume1.toStringAsFixed(0)
+                                        : rabItem.volume1.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 1',
+                                  hintText: '0',
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -1529,13 +1627,14 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume2 == null
+                                initialValue: (rabItem.volume2 == null || rabItem.volume2 == 0)
                                     ? ''
                                     : (rabItem.volume2 == rabItem.volume2!.roundToDouble()
                                         ? rabItem.volume2!.toStringAsFixed(0)
                                         : rabItem.volume2!.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 2 (opsional)',
+                                  hintText: '0',
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -1572,13 +1671,14 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           children: [
                             Expanded(
                               child: TextFormField(
-                                initialValue: rabItem.volume3 == null
+                                initialValue: (rabItem.volume3 == null || rabItem.volume3 == 0)
                                     ? ''
                                     : (rabItem.volume3 == rabItem.volume3!.roundToDouble()
                                         ? rabItem.volume3!.toStringAsFixed(0)
                                         : rabItem.volume3!.toString()),
                                 decoration: const InputDecoration(
                                   labelText: 'Vol 3 (opsional)',
+                                  hintText: '0',
                                   filled: true,
                                   fillColor: Colors.white,
                                 ),
@@ -1663,6 +1763,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                             ],
                           ),
                         ),
+                        _buildNoteDisplay(rabItem.note),
                       ],
                     ),
                   );

@@ -117,7 +117,7 @@ class AppShellState extends State<AppShell> {
             child: const VerifikatorDashboardScreen(),
           ),
           const VerifikatorKakListPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 4: // PPK
@@ -127,7 +127,7 @@ class AppShellState extends State<AppShell> {
             child: const PpkDashboardScreen(),
           ),
           const PpkKegiatanListPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 5: // Wadir
@@ -137,7 +137,7 @@ class AppShellState extends State<AppShell> {
             child: const PpkDashboardScreen(),
           ),
           const PpkKegiatanListPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 6: // Bendahara
@@ -156,14 +156,14 @@ class AppShellState extends State<AppShell> {
             create: (_) => DirektorDashboardProvider(DashboardService(context.read())),
             child: const DirektorDashboardScreen(),
           ),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       case 1: // Admin
         return [
           const AdminDashboardPage(),
           const UserManagementPage(),
-          const KegiatanMonitoringPage(),
+          const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
       default:

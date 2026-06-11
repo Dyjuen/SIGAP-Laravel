@@ -74,7 +74,7 @@ class KakService
         $fields = [
             'nama_kegiatan', 'deskripsi_kegiatan', 'metode_pelaksanaan',
             'tanggal_mulai', 'tanggal_selesai', 'lokasi',
-            'tipe_kegiatan_id', 'sasaran_utama',
+            'tipe_kegiatan_id', 'sasaran_utama', 'output_kegiatan',
         ];
 
         $extracted = [];
@@ -176,8 +176,8 @@ class KakService
         }
         foreach ($rabData as $r) {
             $vol1 = $r['volume1'] ?? 1;
-            $vol2 = $r['volume2'] ?? 1;
-            $vol3 = $r['volume3'] ?? 1;
+            $vol2 = (! array_key_exists('volume2', $r) || $r['volume2'] === '' || $r['volume2'] === '0' || $r['volume2'] === 0 || $r['volume2'] === 0.0 || $r['volume2'] === null) ? 1 : $r['volume2'];
+            $vol3 = (! array_key_exists('volume3', $r) || $r['volume3'] === '' || $r['volume3'] === '0' || $r['volume3'] === 0 || $r['volume3'] === 0.0 || $r['volume3'] === null) ? 1 : $r['volume3'];
             $harga = $r['harga_satuan'] ?? 0;
             $jumlah = $vol1 * $vol2 * $vol3 * $harga;
 
@@ -186,9 +186,9 @@ class KakService
                 'uraian' => $r['uraian'],
                 'volume1' => $vol1,
                 'satuan1_id' => $r['satuan1_id'] ?? $r['satuan_id'] ?? null,
-                'volume2' => $r['volume2'] ?? null,
+                'volume2' => (! array_key_exists('volume2', $r) || $r['volume2'] === '' || $r['volume2'] === '0' || $r['volume2'] === 0 || $r['volume2'] === 0.0 || $r['volume2'] === null) ? null : $r['volume2'],
                 'satuan2_id' => $r['satuan2_id'] ?? null,
-                'volume3' => $r['volume3'] ?? null,
+                'volume3' => (! array_key_exists('volume3', $r) || $r['volume3'] === '' || $r['volume3'] === '0' || $r['volume3'] === 0 || $r['volume3'] === 0.0 || $r['volume3'] === null) ? null : $r['volume3'],
                 'satuan3_id' => $r['satuan3_id'] ?? null,
                 'harga_satuan' => $harga,
                 'jumlah_diusulkan' => $jumlah,

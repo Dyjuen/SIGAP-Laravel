@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
 import '../kegiatan_detail_page.dart';
 
 class PpkKegiatanListPage extends StatefulWidget {
@@ -30,6 +32,39 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openKakPdf(dynamic kakId, String type) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sesi aktif tidak ditemukan. Silakan login kembali.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka browser untuk link ini';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat PDF KAK: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _fetchKegiatans() async {
@@ -301,21 +336,65 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFF7ED),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFFFEDD5)),
-                          ),
-                          child: const Text(
-                            'PENDING',
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFC2410C),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF7ED),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFFEDD5)),
+                              ),
+                              child: const Text(
+                                'PENDING',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  color: Color(0xFFC2410C),
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(
+                                    Icons.picture_as_pdf_outlined,
+                                    color: Color(0xFF64748B),
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    final kakId = kak['kak_id'];
+                                    if (kakId != null) {
+                                      _openKakPdf(kakId, 'preview');
+                                    }
+                                  },
+                                  tooltip: 'Preview KAK',
+                                ),
+                                const SizedBox(width: 12),
+                                IconButton(
+                                  constraints: const BoxConstraints(),
+                                  padding: EdgeInsets.zero,
+                                  icon: const Icon(
+                                    Icons.download_outlined,
+                                    color: Color(0xFF64748B),
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    final kakId = kak['kak_id'];
+                                    if (kakId != null) {
+                                      _openKakPdf(kakId, 'download');
+                                    }
+                                  },
+                                  tooltip: 'Download KAK',
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),

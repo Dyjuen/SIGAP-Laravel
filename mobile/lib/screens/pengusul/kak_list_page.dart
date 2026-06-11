@@ -6,6 +6,8 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/chatbot_service.dart';
 import '../../services/api_service.dart';
 import 'kak_edit_page.dart';
@@ -225,7 +227,7 @@ class _KakListPageState extends State<KakListPage> {
                   const SizedBox(height: 8),
                   TextField(
                     controller: pelaksanaCtrl,
-                    decoration: const InputDecoration(labelText: 'Pelaksana'),
+                    decoration: const InputDecoration(labelText: 'Ketua Pelaksana'),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
@@ -420,6 +422,39 @@ class _KakListPageState extends State<KakListPage> {
       'webp' => MediaType('image', 'webp'),
       _ => MediaType('application', 'octet-stream'),
     };
+  }
+
+  Future<void> _openKakPdf(int kakId, String type) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sesi aktif tidak ditemukan. Silakan login kembali.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka browser untuk link ini';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat PDF KAK: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -667,24 +702,58 @@ class _KakListPageState extends State<KakListPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: statusBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  statusNama,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                    fontFamily: 'Figtree',
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusBg,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      statusNama,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        fontFamily: 'Figtree',
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          Icons.picture_as_pdf_outlined,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
+                        onPressed: () => _openKakPdf(kakId, 'preview'),
+                        tooltip: 'Preview KAK',
+                      ),
+                      const SizedBox(width: 12),
+                      IconButton(
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(
+                          Icons.download_outlined,
+                          color: Color(0xFF64748B),
+                          size: 20,
+                        ),
+                        onPressed: () => _openKakPdf(kakId, 'download'),
+                        tooltip: 'Download KAK',
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),

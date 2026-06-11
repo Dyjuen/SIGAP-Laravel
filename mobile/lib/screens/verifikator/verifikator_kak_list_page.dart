@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/dashboard_model.dart';
 import '../../services/kak_service.dart';
+import '../../services/api_service.dart';
+import '../../providers/auth_provider.dart';
 import 'verifikator_approval_page.dart';
 
 class VerifikatorKakListPage extends StatefulWidget {
@@ -118,6 +121,39 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openKakPdf(String kakId, String type) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final token = authProvider.token;
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sesi aktif tidak ditemukan. Silakan login kembali.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka browser untuk link ini';
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memuat PDF KAK: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -342,36 +378,69 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
-                          ? const Color(0xFFECFDF5)
-                          : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
-                              ? const Color(0xFFFEF2F2)
-                              : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
-                                  ? const Color(0xFFFFFBEB)
-                                  : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      item.status ?? 'Review',
-                      style: GoogleFonts.figtree(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
-                        color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
-                            ? const Color(0xFF10B981)
-                            : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
-                                ? const Color(0xFFEF4444)
-                                : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
-                                    ? const Color(0xFFF59E0B)
-                                    : const Color(0xFF64748B),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                              ? const Color(0xFFECFDF5)
+                              : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                                  ? const Color(0xFFFEF2F2)
+                                  : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
+                                      ? const Color(0xFFFFFBEB)
+                                      : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          item.status ?? 'Review',
+                          style: GoogleFonts.figtree(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                            color: (item.status?.toUpperCase() == 'DISETUJUI' || item.status?.toUpperCase() == 'APPROVED')
+                                ? const Color(0xFF10B981)
+                                : (item.status?.toUpperCase() == 'DITOLAK' || item.status?.toUpperCase() == 'REJECTED')
+                                    ? const Color(0xFFEF4444)
+                                    : (item.status?.toUpperCase() == 'REVIEW' || item.status?.toUpperCase() == 'MENUNGGU VERIFIKASI')
+                                        ? const Color(0xFFF59E0B)
+                                        : const Color(0xFF64748B),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(
+                              Icons.picture_as_pdf_outlined,
+                              color: Color(0xFF64748B),
+                              size: 20,
+                            ),
+                            onPressed: () => _openKakPdf(item.id, 'preview'),
+                            tooltip: 'Preview KAK',
+                          ),
+                          const SizedBox(width: 12),
+                          IconButton(
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(
+                              Icons.download_outlined,
+                              color: Color(0xFF64748B),
+                              size: 20,
+                        ),
+                            onPressed: () => _openKakPdf(item.id, 'download'),
+                            tooltip: 'Download KAK',
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),

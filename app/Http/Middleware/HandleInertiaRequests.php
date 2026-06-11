@@ -53,7 +53,7 @@ class HandleInertiaRequests extends Middleware
                 'message' => $request->session()->get('message'),
             ],
             'app' => [
-                'notification_polling_interval' => (int) env('NOTIFICATION_POLLING_INTERVAL', 300000), // Default 5 mins
+                'notification_polling_interval' => (int) config('app.notification_polling_interval', 300000), // Default 5 mins
             ],
         ];
     }
