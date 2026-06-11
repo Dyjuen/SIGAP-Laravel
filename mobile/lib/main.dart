@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -233,6 +234,15 @@ class _MyAppState extends State<MyApp> {
           ),
         ),
       ),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('id', 'ID'),
+        Locale('en', 'US'),
+      ],
       routes: {
         '/lpj': (context) => const LpjListPage(),
         '/bendahara/pencairan': (context) => const PencairanPage(),
