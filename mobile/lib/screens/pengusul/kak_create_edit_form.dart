@@ -305,31 +305,57 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
       'tanggal_mulai': tanggalMulai?.toIso8601String().split('T')[0] ?? '',
       'tanggal_selesai': tanggalSelesai?.toIso8601String().split('T')[0] ?? '',
       'tipe_kegiatan_id': selectedTipeKegiatan ?? '',
-      'manfaat': manfaatList.map((m) => {'value': m.value}).toList(),
+      'manfaat': manfaatList
+          .map((m) {
+            final map = <String, dynamic>{'value': m.value};
+            if (!m.id.startsWith('new_')) {
+              map['manfaat_id'] = m.id;
+            }
+            return map;
+          })
+          .toList(),
       'tahapan_pelaksanaan': tahapanList
-          .map((t) => {'nama_tahapan': t.nama})
+          .map((t) {
+            final map = <String, dynamic>{'nama_tahapan': t.nama};
+            if (!t.id.startsWith('new_')) {
+              map['tahapan_id'] = t.id;
+            }
+            return map;
+          })
           .toList(),
       'indikator_kinerja': indikatorKinerjaList
           .map(
-            (i) => {
-              'bulan_indikator': i.bulanIndikator,
-              'deskripsi_target': i.deskripsiTarget,
-              'persentase_target': i.persentaseTarget,
+            (i) {
+              final map = <String, dynamic>{
+                'bulan_indikator': i.bulanIndikator,
+                'deskripsi_target': i.deskripsiTarget,
+                'persentase_target': i.persentaseTarget,
+              };
+              if (!i.id.startsWith('new_')) {
+                map['target_id'] = i.id;
+              }
+              return map;
             },
           )
           .toList(),
       'rab': rabList
           .map(
-            (r) => {
-              'uraian': r.uraian,
-              'volume1': r.volume1,
-              'satuan1_id': r.satuan1Id,
-              'volume2': r.volume2,
-              'satuan2_id': r.satuan2Id,
-              'volume3': r.volume3,
-              'satuan3_id': r.satuan3Id,
-              'harga_satuan': r.hargaSatuan,
-              'kategori_belanja_id': r.kategoriBelanjaId,
+            (r) {
+              final map = <String, dynamic>{
+                'uraian': r.uraian,
+                'volume1': r.volume1,
+                'satuan1_id': r.satuan1Id,
+                'volume2': r.volume2,
+                'satuan2_id': r.satuan2Id,
+                'volume3': r.volume3,
+                'satuan3_id': r.satuan3Id,
+                'harga_satuan': r.hargaSatuan,
+                'kategori_belanja_id': r.kategoriBelanjaId,
+              };
+              if (!r.id.startsWith('new_')) {
+                map['anggaran_id'] = r.id;
+              }
+              return map;
             },
           )
           .toList(),
@@ -349,7 +375,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       manfaatList.add(
         ManfaatItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           value: '',
         ),
       );
@@ -366,7 +392,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       tahapanList.add(
         TahapanItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           nama: '',
           urutan: tahapanList.length + 1,
         ),
@@ -388,7 +414,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       indikatorKinerjaList.add(
         IndikatorKinerjaItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           bulanIndikator: '',
           deskripsiTarget: '',
           persentaseTarget: null,
@@ -407,7 +433,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       targetIkuList.add(
         TargetIkuItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           ikuId: 0,
           ikuNama: '',
           target: '',
@@ -426,7 +452,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     setState(() {
       rabList.add(
         RabItem(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: 'new_${DateTime.now().millisecondsSinceEpoch}',
           uraian: '',
           volume1: 1,
           hargaSatuan: 0,
