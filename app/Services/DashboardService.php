@@ -744,7 +744,6 @@ class DashboardService
         return collect($results);
     }
 
-
     private function getVideos()
     {
         $panduan = Panduan::all();
