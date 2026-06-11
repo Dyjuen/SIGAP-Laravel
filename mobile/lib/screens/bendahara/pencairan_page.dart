@@ -57,23 +57,20 @@ class _PencairanPageState extends State<PencairanPage> {
           title: Text(
             'Pencairan Dana',
             style: GoogleFonts.figtree(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
               color: const Color(0xFF0F172A),
             ),
           ),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF0F172A), size: 20),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          centerTitle: true,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(1.0),
-            child: Container(
-              color: const Color(0xFFE2E8F0),
-              height: 1.0,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+          actions: [
+            IconButton(
+              onPressed: () => context.read<PencairanProvider>().fetchList(),
+              icon: const Icon(Icons.refresh_rounded),
             ),
-          ),
+          ],
         ),
         body: Consumer<PencairanProvider>(
           builder: (context, provider, child) {
@@ -106,153 +103,100 @@ class _PencairanPageState extends State<PencairanPage> {
               onRefresh: () => provider.fetchList(),
               color: const Color(0xFF33C8DA),
               child: ListView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
                 children: [
                   // Summary Card (Cyan Gradient)
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFF33C8DA), Color(0xFF00ACC1)],
+                        colors: [Color(0xFF33C8DA), Color(0xFF2BA9B8)],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: const [
                         BoxShadow(
-                          color: const Color(0xFF33C8DA).withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                          color: Color(0x180F172A),
+                          blurRadius: 18,
+                          offset: Offset(0, 6),
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Ringkasan Anggaran Kegiatan',
                           style: GoogleFonts.figtree(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Total anggaran, dana yang telah dicairkan, dan sisa dana kegiatan secara keseluruhan.',
+                          style: GoogleFonts.figtree(
+                            color: Colors.white.withOpacity(0.82),
+                            height: 1.4,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Total Anggaran',
-                                    style: GoogleFonts.figtree(
-                                      color: Colors.white70,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _formatCurrency(totalAnggaran),
-                                    style: GoogleFonts.figtree(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
+                            _StatPill(
+                              label: 'Total Anggaran',
+                              value: _formatCurrency(totalAnggaran),
                             ),
-                            Container(
-                              width: 1,
-                              height: 36,
-                              color: Colors.white24,
+                            const SizedBox(width: 8),
+                            _StatPill(
+                              label: 'Total Dicairkan',
+                              value: _formatCurrency(totalDicairkan),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Total Dicairkan',
-                                    style: GoogleFonts.figtree(
-                                      color: Colors.white70,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    _formatCurrency(totalDicairkan),
-                                    style: GoogleFonts.figtree(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Divider(color: Colors.white24, height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Sisa Dana:',
-                              style: GoogleFonts.figtree(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              _formatCurrency(totalSisa),
-                              style: GoogleFonts.figtree(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w900,
-                              ),
+                            const SizedBox(width: 8),
+                            _StatPill(
+                              label: 'Total Sisa',
+                              value: _formatCurrency(totalSisa),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
 
-                  // Search Bar
-                  TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Cari nama kegiatan atau pelaksana...',
-                      hintStyle: GoogleFonts.figtree(color: const Color(0xFF94A3B8), fontSize: 14),
-                      prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
-                              onPressed: () => _searchController.clear(),
-                            )
-                          : null,
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama kegiatan atau pelaksana...',
+                        prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                                onPressed: () {
+                                  _searchController.clear();
+                                },
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        hintStyle: GoogleFonts.figtree(color: const Color(0xFF94A3B8), fontSize: 14),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-
+                  const SizedBox(height: 12),
+ 
                   // Header List
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -282,7 +226,7 @@ class _PencairanPageState extends State<PencairanPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // List view or empty state
                   if (filteredItems.isEmpty)
@@ -337,16 +281,22 @@ class _PencairanPageState extends State<PencairanPage> {
   }
 
   Widget _buildPencairanCard(BuildContext context, PencairanItem item) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      color: Colors.white,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x080F172A),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -354,8 +304,8 @@ class _PencairanPageState extends State<PencairanPage> {
             Text(
               item.namaKegiatan,
               style: GoogleFonts.figtree(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
                 color: const Color(0xFF0F172A),
               ),
               maxLines: 2,
@@ -381,7 +331,7 @@ class _PencairanPageState extends State<PencairanPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.amber.shade50,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.amber.shade200),
                 ),
                 child: Row(
@@ -500,7 +450,7 @@ class _PencairanPageState extends State<PencairanPage> {
             const SizedBox(height: 12),
 
             // Actions Buttons
-            Row(
+             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
@@ -513,16 +463,16 @@ class _PencairanPageState extends State<PencairanPage> {
                       disabledBackgroundColor: const Color(0xFFCBD5E1),
                       disabledForegroundColor: const Color(0xFF94A3B8),
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: Text(
                       'Cairkan',
                       style: GoogleFonts.figtree(
                         fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -534,16 +484,16 @@ class _PencairanPageState extends State<PencairanPage> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF10B981),
                       side: const BorderSide(color: Color(0xFF10B981)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
                     child: Text(
                       'Selesai',
                       style: GoogleFonts.figtree(
                         fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -561,7 +511,7 @@ class _PencairanPageState extends State<PencairanPage> {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -622,14 +572,14 @@ class _PencairanPageState extends State<PencairanPage> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           title: Text(
             'Selesaikan Pencairan?',
-            style: GoogleFonts.figtree(fontWeight: FontWeight.bold, fontSize: 16),
+            style: GoogleFonts.figtree(fontWeight: FontWeight.w800, fontSize: 18, color: const Color(0xFF0F172A)),
           ),
           content: Text(
             'Tindakan ini akan mengunci proses pencairan dan memulai tahap LPJ untuk kegiatan "${item.namaKegiatan}".',
-            style: GoogleFonts.figtree(fontSize: 13, color: const Color(0xFF64748B)),
+            style: GoogleFonts.figtree(fontSize: 14, color: const Color(0xFF64748B), height: 1.4),
           ),
           actions: [
             TextButton(
@@ -672,11 +622,12 @@ class _PencairanPageState extends State<PencairanPage> {
                 backgroundColor: const Color(0xFF10B981),
                 foregroundColor: Colors.white,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(
                 'Selesai',
-                style: GoogleFonts.figtree(fontWeight: FontWeight.bold),
+                style: GoogleFonts.figtree(fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -812,7 +763,7 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -865,19 +816,19 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
               errorStyle: GoogleFonts.figtree(color: const Color(0xFFEF4444), fontSize: 11),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: Color(0xFF33C8DA), width: 1.5),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: Color(0xFFEF4444)),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(14),
                 borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
               ),
             ),
@@ -896,7 +847,7 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
                     foregroundColor: const Color(0xFF64748B),
                     side: const BorderSide(color: Color(0xFFE2E8F0)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: Text(
                     'Batal',
@@ -927,7 +878,7 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
                     disabledForegroundColor: const Color(0xFF94A3B8),
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                   child: provider.isSubmitting
                       ? const SizedBox(
@@ -947,6 +898,53 @@ class _CairkanFormBottomSheetState extends State<_CairkanFormBottomSheet> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _StatPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _StatPill({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.15)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.figtree(
+                color: Colors.white.withOpacity(0.75),
+                fontSize: 11,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                style: GoogleFonts.figtree(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

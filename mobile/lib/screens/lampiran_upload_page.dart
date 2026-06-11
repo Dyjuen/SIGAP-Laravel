@@ -107,7 +107,16 @@ class _LampiranUploadPageState extends State<LampiranUploadPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upload Lampiran'),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          'Upload Lampiran',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: const Color(0xFF33C8DA),
       ),
       body: SingleChildScrollView(

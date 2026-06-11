@@ -145,16 +145,13 @@ class _SpkPageState extends State<SpkPage> {
         title: Text(
           'Evaluasi SPK',
           style: GoogleFonts.figtree(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.textPrimary, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        centerTitle: true,
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1.0),
           child: Container(

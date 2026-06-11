@@ -52,7 +52,28 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            'Monitoring Kegiatan',
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+          iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
+          actions: [
+            IconButton(
+              onPressed: () => context.read<MonitoringProvider>().loadItems(),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
+        ),
         body: Consumer<MonitoringProvider>(
           builder: (context, monitoringProvider, _) {
             return SingleChildScrollView(
@@ -60,99 +81,6 @@ class _KegiatanMonitoringPageState extends State<KegiatanMonitoringPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Header Section
-                  ClipRRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface.withOpacity(0.8),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(
-                                12,
-                                24,
-                                24,
-                                16,
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.arrow_back_rounded,
-                                          color: colorScheme.onSurface,
-                                          size: 24,
-                                        ),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const SigapLogo(
-                                            width: 96,
-                                            height: 24,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Monitoring Kegiatan',
-                                            style: GoogleFonts.figtree(
-                                              fontWeight: FontWeight.w400,
-                                              fontSize: 13,
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
-                                              height: 1.4,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primaryContainer,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: IconButton(
-                                      padding: EdgeInsets.zero,
-                                      icon: Icon(
-                                        Icons.filter_list_rounded,
-                                        color: colorScheme.primary,
-                                        size: 24,
-                                      ),
-                                      onPressed: () {
-                                        // Show filter options dialog if needed
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(
-                              height: 1,
-                              thickness: 1,
-                              color: colorScheme.outline,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                   // Search and Filter Section
                   Padding(
                     padding: const EdgeInsets.all(24),

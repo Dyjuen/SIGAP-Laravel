@@ -328,12 +328,18 @@ class _LpjFormPageState extends State<LpjFormPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: const Color(0xFF0F172A),
         title: Text(
           'Formulir LPJ',
-          style: GoogleFonts.figtree(fontWeight: FontWeight.w800),
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
         ),
       ),
       body: Consumer2<AuthProvider, LpjProvider>(
@@ -356,6 +362,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
 
           return Scaffold(
             backgroundColor: Colors.transparent,
+            appBar: null,
             body: RefreshIndicator(
               onRefresh: () => provider.getLpjDetail(detail.kegiatanId),
               child: SingleChildScrollView(

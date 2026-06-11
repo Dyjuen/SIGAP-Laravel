@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../services/chatbot_service.dart';
 import '../../services/api_service.dart';
-import '../../widgets/sigap_logo.dart';
 
 class KegiatanFormPage extends StatefulWidget {
   final VoidCallback? onSuccess;
@@ -279,27 +279,17 @@ class _KegiatanFormPageState extends State<KegiatanFormPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-          onPressed: () => Navigator.of(context).pop(),
+        automaticallyImplyLeading: true,
+        centerTitle: false,
+        title: Text(
+          'Buat KAK Baru',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            color: const Color(0xFF0F172A),
+            fontWeight: FontWeight.w800,
+          ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            SigapLogo(
-              width: 90,
-              height: 24,
-            ),
-            Text(
-              'Buat KAK Baru',
-              style: TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 12,
-                fontFamily: 'Figtree',
-              ),
-            ),
-          ],
-        ),
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
       ),
       body: Column(
         children: [

@@ -11,13 +11,16 @@ class PlaceholderPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           title,
           style: GoogleFonts.figtree(
+            fontSize: 20,
             color: const Color(0xFF0F172A),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
           ),
         ),
         iconTheme: const IconThemeData(color: Color(0xFF0F172A)),

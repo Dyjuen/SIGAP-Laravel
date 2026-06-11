@@ -91,7 +91,16 @@ class _ExampleKakDetailWithLampiranState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('KAK Detail dengan Lampiran'),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          'KAK Detail dengan Lampiran',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: const Color(0xFF33C8DA),
       ),
       body: SingleChildScrollView(

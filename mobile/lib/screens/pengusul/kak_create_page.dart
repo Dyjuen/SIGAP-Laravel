@@ -116,7 +116,16 @@ class _KakCreatePageState extends State<KakCreatePage> {
     if (isLoadingMaster) {
       return Scaffold(
         appBar: AppBar(
-          title: Text('Buat KAK Baru', style: GoogleFonts.figtree()),
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            'Buat KAK Baru',
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -124,7 +133,16 @@ class _KakCreatePageState extends State<KakCreatePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Buat KAK Baru', style: GoogleFonts.figtree()),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          'Buat KAK Baru',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
       ),
       body: KakCreateEditForm(
         tipeKegiatanOptions: tipeKegiatanOptions,

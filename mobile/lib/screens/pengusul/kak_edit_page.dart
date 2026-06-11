@@ -131,14 +131,36 @@ class _KakEditPageState extends State<KakEditPage> {
   Widget build(BuildContext context) {
     if (isLoadingMaster || isLoadingData) {
       return Scaffold(
-        appBar: AppBar(title: Text('Edit KAK', style: GoogleFonts.figtree())),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            'Edit KAK',
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (errorMessage != null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Edit KAK', style: GoogleFonts.figtree())),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            'Edit KAK',
+            style: GoogleFonts.figtree(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF0F172A),
+            ),
+          ),
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -161,7 +183,18 @@ class _KakEditPageState extends State<KakEditPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Edit KAK', style: GoogleFonts.figtree())),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        title: Text(
+          'Edit KAK',
+          style: GoogleFonts.figtree(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF0F172A),
+          ),
+        ),
+      ),
       body: KakCreateEditForm(
         initialData: kakDetail,
         tipeKegiatanOptions: tipeKegiatanOptions,
