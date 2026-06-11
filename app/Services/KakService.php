@@ -74,7 +74,7 @@ class KakService
         $fields = [
             'nama_kegiatan', 'deskripsi_kegiatan', 'metode_pelaksanaan',
             'tanggal_mulai', 'tanggal_selesai', 'lokasi',
-            'tipe_kegiatan_id', 'sasaran_utama',
+            'tipe_kegiatan_id', 'sasaran_utama', 'output_kegiatan',
         ];
 
         $extracted = [];
