@@ -65,5 +65,39 @@ class AppServiceProvider extends ServiceProvider
 
             return app()->isProduction() ? $rule->uncompromised() : $rule;
         });
+
+        // Audit Trail untuk Login
+        Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
+            \Illuminate\Support\Facades\Log::info('[AUTH_AUDIT] Login Sukses', [
+                'user_id' => $event->user->user_id ?? $event->user->id,
+                'username' => $event->user->username ?? $event->user->email,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        });
+
+        // Audit Trail untuk Logout
+        Event::listen(\Illuminate\Auth\Events\Logout::class, function ($event) {
+            if ($event->user) {
+                \Illuminate\Support\Facades\Log::info('[AUTH_AUDIT] Logout', [
+                    'user_id' => $event->user->user_id ?? $event->user->id,
+                    'username' => $event->user->username ?? $event->user->email,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            }
+        });
+
+        // Audit Trail untuk Percobaan Login Gagal
+        Event::listen(\Illuminate\Auth\Events\Failed::class, function ($event) {
+            \Illuminate\Support\Facades\Log::warning('[AUTH_AUDIT] Login Gagal', [
+                'username_attempted' => $event->credentials['username'] ?? $event->credentials['email'] ?? 'unknown',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'timestamp' => now()->toIso8601String(),
+            ]);
+        });
     }
 }

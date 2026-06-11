@@ -1,0 +1,23 @@
+# Lembar Ceklis Keamanan Aplikasi Web (Web Application Security Checklist)
+## Sistem Informasi Kegiatan dan Anggaran Politeknik (SIGAP)
+*Berdasarkan Praktik Terbaik OWASP (Open Web Application Security Project)*
+
+| Kategori Keamanan | Poin Ceklis | Status | Implementasi & Lokasi File / Konfigurasi |
+| :--- | :--- | :---: | :--- |
+| **1. Autentikasi & Kata Sandi** | Kebijakan password minimal 10 karakter, mixed-case, angka, dan simbol. | [x] | Ditetapkan di `Password::defaults()` pada [AppServiceProvider.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Providers/AppServiceProvider.php#L58-L67). |
+| | Pengecekan kebocoran kata sandi publik (*uncompromised check*) di lingkungan produksi. | [x] | Konfigurasi `uncompromised()` aktif untuk prod di [AppServiceProvider.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Providers/AppServiceProvider.php#L66). |
+| | Fitur Show/Hide Password untuk kenyamanan dan ketepatan pengetikan sandi. | [x] | Diimplementasikan di [Login.jsx](file:///c:/xampp/htdocs/SIGAP-Laravel/resources/js/Pages/Auth/Login.jsx), [UpdatePasswordForm.jsx](file:///c:/xampp/htdocs/SIGAP-Laravel/resources/js/Pages/Profile/Partials/UpdatePasswordForm.jsx), dan modal manajemen user. |
+| | Indikator kekuatan kata sandi dinamis (*Password Strength Meter*). | [x] | Diimplementasikan menggunakan kalkulasi entropi visual pada [UpdatePasswordForm.jsx](file:///c:/xampp/htdocs/SIGAP-Laravel/resources/js/Pages/Profile/Partials/UpdatePasswordForm.jsx) dan modal manajemen user. |
+| | Proteksi serangan brute-force dengan pembatasan percobaan login (Rate Limiting). | [x] | Menggunakan middleware `throttle` bawaan Laravel pada rute login [AuthenticationTest.php](file:///c:/xampp/htdocs/SIGAP-Laravel/tests/Feature/Auth/AuthenticationTest.php#L191-L215). |
+| **2. Manajemen Sesi (Session)** | Regenerasi ID Sesi pada saat pengguna berhasil masuk (mencegah *Session Fixation*). | [x] | Diuji dan ditangani otomatis oleh Laravel pada method login [AuthenticationTest.php](file:///c:/xampp/htdocs/SIGAP-Laravel/tests/Feature/Auth/AuthenticationTest.php#L285-L302). |
+| | Waktu tunggu sesi tidak aktif (Session Idle Timeout) otomatis berakhir. | [x] | Dikonfigurasi selama 120 menit di `config/session.php`. |
+| **3. Kriptografi & Integritas** | Enkripsi data sensitif (catatan pencairan dana) pada database PostgreSQL. | [x] | Menerapkan cast `'keterangan' => 'encrypted'` pada model [PencairanDana.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Models/PencairanDana.php) (enkripsi otomatis AES-256-CBC). |
+| | Verifikasi integritas file lampiran kegiatan menggunakan kalkulasi kriptografi. | [x] | Menghitung hash SHA-256 file saat diunggah pada [LampiranService.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Services/LampiranService.php) dan menyimpannya di kolom `file_hash`. |
+| | Menampilkan hash SHA-256 pada UI lampiran sebagai bukti keaslian file bagi verifikator. | [x] | Ditampilkan di bawah link unduhan file lampiran pada halaman form LPJ [Form.jsx](file:///c:/xampp/htdocs/SIGAP-Laravel/resources/js/Pages/Lpj/Form.jsx). |
+| **4. Otorisasi (Access Control)** | Hak akses ketat berdasarkan peran (*Role-Based Access Control* - RBAC). | [x] | Dibatasi melalui `RoleMiddleware` bawaan pada rute-rute web dan API. |
+| | Larangan pengubahan KAK oleh pengusul lain (Mencegah kerentanan IDOR - *Insecure Direct Object Reference*). | [x] | Divalidasi melalui traits otorisasi kepemilikan data sebelum pemrosesan controller. |
+| **5. Proteksi CSRF & SQLi** | Perlindungan terhadap serangan pemalsuan request lintas situs (CSRF). | [x] | Proteksi CSRF diaktifkan untuk seluruh rute web Inertia di [bootstrap/app.php](file:///c:/xampp/htdocs/SIGAP-Laravel/bootstrap/app.php#L25-L28). |
+| | Penggunaan parameter binding PDO untuk seluruh query database dinamis (anti SQL Injection). | [x] | Didokumentasikan secara rinci pada laporan audit [SQL_Injection_Audit.md](file:///c:/xampp/htdocs/SIGAP-Laravel/SQL_Injection_Audit.md). |
+| **6. Audit Trail & Logging** | Pencatatan log aktivitas login sukses, login gagal, dan logout. | [x] | Didaftarkan melalui event listeners di [AppServiceProvider.php](file:///c:/xampp/htdocs/SIGAP-Laravel/app/Providers/AppServiceProvider.php) dengan format log terstruktur `[AUTH_AUDIT]`. |
+| | Uji coba fitur audit trail logging otomatis untuk verifikasi keandalan log. | [x] | Kasus uji dibuat dan dijalankan di [AuditTrailTest.php](file:///c:/xampp/htdocs/SIGAP-Laravel/tests/Feature/Auth/AuditTrailTest.php). |
+| **7. Manajemen Kerentanan** | Audit berkala terhadap pustaka/dependensi backend dan frontend. | [x] | Pembaruan rutin paket bermasalah dan didokumentasikan di [Vulnerability_Analysis_Report.md](file:///c:/xampp/htdocs/SIGAP-Laravel/Vulnerability_Analysis_Report.md). |
