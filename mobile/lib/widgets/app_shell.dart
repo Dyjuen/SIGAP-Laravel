@@ -38,8 +38,35 @@ class _AppShellState extends State<AppShell> {
     super.initState();
     // Move chatbot above navbar
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatbotService>().setBottomPadding(100);
+      final chatbotService = context.read<ChatbotService>();
+      chatbotService.setBottomPadding(100);
+      _updateChatbotVisibility(_selectedIndex);
     });
+  }
+
+  void _updateChatbotVisibility(int index) {
+    final chatbotService = context.read<ChatbotService>();
+    
+    // Default visibility
+    bool shouldHide = false;
+    
+    // We target role 3 (Pengusul) specifically for KAK and Profile hiding
+    // as requested by the user.
+    if (widget.roleId == 3) {
+      if (index == 1) { // KAK tab for Pengusul
+        shouldHide = true;
+      } else if (index == 4) { // Profil tab for Pengusul
+        shouldHide = true;
+      }
+    } else {
+      // For other roles, typically the last tab is Profile
+      final destinations = _getDestinations();
+      if (index == destinations.length - 1) {
+        shouldHide = true;
+      }
+    }
+    
+    chatbotService.setVisible(!shouldHide);
   }
 
   @override
@@ -48,6 +75,7 @@ class _AppShellState extends State<AppShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<ChatbotService>().setBottomPadding(20);
+        context.read<ChatbotService>().setVisible(true);
       }
     });
     super.dispose();
@@ -62,7 +90,7 @@ class _AppShellState extends State<AppShell> {
             create: (_) => PengusulDashboardProvider(DashboardService(context.read())),
             child: const PengusulDashboardScreen(),
           ),
-          const KakListPage(),
+          const KakListPage(isTab: true),
           const KegiatanPage(),
           const LpjListPage(),
           const ProfilePage(),
@@ -347,6 +375,8 @@ class _AppShellState extends State<AppShell> {
               setState(() {
                 _selectedIndex = index;
               });
+              
+              _updateChatbotVisibility(index);
             },
             destinations: destinations,
           ),

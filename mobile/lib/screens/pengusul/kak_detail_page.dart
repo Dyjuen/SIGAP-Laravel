@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/chatbot_service.dart';
 import '../../services/api_service.dart';
 import '../../widgets/sigap_logo.dart';
 
@@ -20,6 +22,24 @@ class _KakDetailPageState extends State<KakDetailPage> {
   void initState() {
     super.initState();
     _loadKak();
+
+    // Hide chatbot on detail page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // Show chatbot again when leaving detail page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(true);
+      }
+    });
+    super.dispose();
   }
 
   Future<void> _loadKak() async {

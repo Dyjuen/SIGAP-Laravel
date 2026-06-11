@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/chatbot_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../core/app_theme.dart';
 import 'dashboard_router.dart';
@@ -19,6 +20,17 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _rememberMe = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Hide chatbot on login page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(false);
+      }
+    });
+  }
 
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;

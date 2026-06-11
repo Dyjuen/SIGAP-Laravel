@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import '../services/chatbot_service.dart';
 import 'login_page.dart';
 import '../widgets/sigap_logo.dart';
 
@@ -12,6 +14,16 @@ class LandingPage extends StatefulWidget {
 }
 
 class _LandingPageState extends State<LandingPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Show chatbot on landing page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ChatbotService>().setVisible(true);
+      }
+    });
+  }
   final List<Map<String, dynamic>> _features = [
     {
       'title': 'Pengajuan Digital',

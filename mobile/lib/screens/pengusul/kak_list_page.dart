@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import '../../services/chatbot_service.dart';
 import '../../services/api_service.dart';
 import 'kak_edit_page.dart';
 import 'kak_detail_page.dart';
@@ -13,7 +14,8 @@ import '../../widgets/sigap_logo.dart';
 
 class KakListPage extends StatefulWidget {
   final int? initialStatusId;
-  const KakListPage({super.key, this.initialStatusId});
+  final bool isTab;
+  const KakListPage({super.key, this.initialStatusId, this.isTab = false});
 
   @override
   State<KakListPage> createState() => _KakListPageState();
@@ -39,11 +41,28 @@ class _KakListPageState extends State<KakListPage> {
     super.initState();
     _activeStatusFilter = widget.initialStatusId;
     _loadKaks();
+
+    // If pushed (not a tab), hide chatbot
+    if (!widget.isTab) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ChatbotService>().setVisible(false);
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    // If was pushed, show chatbot again
+    if (!widget.isTab) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<ChatbotService>().setVisible(true);
+        }
+      });
+    }
     super.dispose();
   }
 
