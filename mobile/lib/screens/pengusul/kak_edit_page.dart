@@ -95,11 +95,23 @@ class _KakEditPageState extends State<KakEditPage> {
       final kakService = context.read<KakService>();
       await kakService.updateKak(widget.kakId.toString(), formData);
 
+      bool autoResubmitted = false;
+      if (kakDetail?.statusId == 5) {
+        try {
+          await kakService.resubmitKak(widget.kakId.toString());
+          autoResubmitted = true;
+        } catch (e) {
+          // Log or handle resubmit error silently if update succeeded
+        }
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('KAK berhasil diperbarui'),
-            backgroundColor: Color(0xFF2E7D32),
+          SnackBar(
+            content: Text(autoResubmitted
+                ? 'KAK berhasil diperbarui dan diajukan kembali'
+                : 'KAK berhasil diperbarui'),
+            backgroundColor: const Color(0xFF2E7D32),
           ),
         );
 

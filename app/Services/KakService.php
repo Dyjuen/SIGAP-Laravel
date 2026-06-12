@@ -50,12 +50,38 @@ class KakService
                 $kakData['tanggal_selesai']
             );
 
+            // clear catatan when editing a Revisi KAK
+            if ($kak->status_id === 5) {
+                $this->clearCatatan($kak);
+            }
+
             $kak->update($kakData);
 
             $this->saveChildren($kak, $data, true);
 
             return $kak;
         });
+    }
+
+    /**
+     * Clear all reviewer notes helper.
+     */
+    private function clearCatatan(KAK $kak): void
+    {
+        $kak->catatan_nama_kegiatan = null;
+        $kak->catatan_tipe_kegiatan = null;
+        $kak->catatan_deskripsi_kegiatan = null;
+        $kak->catatan_sasaran_utama = null;
+        $kak->catatan_metode_pelaksanaan = null;
+        $kak->catatan_lokasi = null;
+        $kak->catatan_tanggal = null;
+
+        // Clear child notes
+        $kak->manfaat()->update(['catatan_manfaat' => null]);
+        $kak->tahapan()->update(['catatan_verifikator' => null]);
+        $kak->targets()->update(['catatan_verifikator' => null]);
+        $kak->ikus()->update(['catatan_verifikator' => null]);
+        $kak->anggaran()->update(['catatan_verifikator' => null]);
     }
 
     /**
