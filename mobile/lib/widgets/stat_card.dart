@@ -45,47 +45,51 @@ class StatCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    subtitle.toUpperCase(),
-                    style: AppTheme.label.copyWith(
-                      color: subCol,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  subtitle.toUpperCase(),
+                  style: AppTheme.label.copyWith(
+                    color: subCol,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.8,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    label,
-                    style: AppTheme.subheading.copyWith(
-                      color: textCol,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: AppTheme.subheading.copyWith(
+                    color: textCol,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            Text(
-              '$value',
-              style: AppTheme.displayLg.copyWith(
-                color: valCol,
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                height: 1.0,
+            Flexible(
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    '$value',
+                    style: AppTheme.displayLg.copyWith(
+                      color: valCol,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      height: 1.0,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

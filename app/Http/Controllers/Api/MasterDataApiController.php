@@ -47,6 +47,7 @@ class MasterDataApiController extends Controller
         $items->through(function ($item) use ($primaryKey) {
             $array = $item->toArray();
             $array['id'] = $item->{$primaryKey};
+
             return $array;
         });
 

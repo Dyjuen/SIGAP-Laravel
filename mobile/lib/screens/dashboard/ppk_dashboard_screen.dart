@@ -184,7 +184,7 @@ class _PpkDashboardScreenState extends State<PpkDashboardScreen> {
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 2.2,
+                      childAspectRatio: 1.8,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
                       children: [
                         StatCard(
