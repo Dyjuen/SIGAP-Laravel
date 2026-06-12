@@ -120,10 +120,10 @@ class MasterDataTest extends TestCase
 
     public function test_admin_cannot_create_read_only_resource()
     {
-        $data = ['nama_tipe' => 'New Type'];
+        $data = ['nama_role' => 'New Role'];
 
         $response = $this->actingAs($this->admin)
-            ->post(route('admin.master.store', 'tipe-kegiatan'), $data);
+            ->post(route('admin.master.store', 'roles'), $data);
 
         $response->assertStatus(403);
     }

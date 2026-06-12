@@ -65,6 +65,6 @@ class MasterDataServiceTest extends TestCase
     public function test_it_throws_exception_on_readonly_create(): void
     {
         $this->expectException(\LogicException::class);
-        $this->service->store('tipe-kegiatan', ['nama_tipe' => 'Tipe A']);
+        $this->service->store('roles', ['nama_role' => 'Role A']);
     }
 }

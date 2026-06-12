@@ -64,7 +64,7 @@ class MasterDataService
         'tipe-kegiatan' => [
             'model' => TipeKegiatan::class,
             'title' => 'Tipe Kegiatan',
-            'readonly' => true,
+            'readonly' => false,
             'primary_key' => 'tipe_kegiatan_id',
             'fields' => [
                 ['name' => 'nama_tipe', 'label' => 'Nama Tipe', 'type' => 'text'],
@@ -77,7 +77,7 @@ class MasterDataService
         'kategori-belanja' => [
             'model' => KategoriBelanja::class,
             'title' => 'Kategori Belanja',
-            'readonly' => true,
+            'readonly' => false,
             'primary_key' => 'kategori_belanja_id',
             'fields' => [
                 ['name' => 'kode', 'label' => 'Kode', 'type' => 'text'],
