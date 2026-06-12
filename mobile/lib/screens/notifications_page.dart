@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../core/app_theme.dart';
 import '../models/notifikasi_model.dart';
 import '../providers/auth_provider.dart';
@@ -25,6 +26,36 @@ class _NotificationsPageState extends State<NotificationsPage> {
     Future.microtask(() {
       context.read<NotificationProvider>().fetchNotifications();
     });
+  }
+
+  Map<String, dynamic> _getNotifTheme(String pesan) {
+    final msg = pesan.toLowerCase();
+    if (msg.contains('setuju') || msg.contains('acc') || msg.contains('terima') || msg.contains('cair') || msg.contains('pencairan') || msg.contains('selesai')) {
+      return {
+        'color': const Color(0xFF10B981), // Emerald green
+        'bg': const Color(0xFFECFDF5),
+        'label': 'Disetujui',
+      };
+    }
+    if (msg.contains('tolak') || msg.contains('revisi') || msg.contains('perbaiki') || msg.contains('salah') || msg.contains('ditolak') || msg.contains('kurang')) {
+      return {
+        'color': const Color(0xFFEF4444), // Red
+        'bg': const Color(0xFFFEF2F2),
+        'label': 'Revisi/Ditolak',
+      };
+    }
+    if (msg.contains('baru') || msg.contains('pengajuan') || msg.contains('upload') || msg.contains('kirim') || msg.contains('tambah') || msg.contains('buat')) {
+      return {
+        'color': const Color(0xFF3B82F6), // Blue
+        'bg': const Color(0xFFEFF6FF),
+        'label': 'Pengajuan',
+      };
+    }
+    return {
+      'color': const Color(0xFF33C8DA), // Primary Cyan/Teal
+      'bg': const Color(0xFFEDFBFD),
+      'label': 'Informasi',
+    };
   }
 
   String _formatDateTime(String rawDate) {
@@ -261,92 +292,152 @@ class _NotificationsPageState extends State<NotificationsPage> {
               itemBuilder: (context, index) {
                 final notif = provider.notifications[index];
                 final isUnread = notif.isRead == 0;
+                final theme = _getNotifTheme(notif.pesan);
+                final Color stateColor = theme['color'] as Color;
+                final String stateLabel = theme['label'] as String;
 
                 return InkWell(
                   onTap: () => _onNotificationTap(context, notif),
                   borderRadius: BorderRadius.circular(16),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                  child: Container(
                     decoration: BoxDecoration(
                       color: isUnread ? const Color(0xFFEDFBFD) : Colors.white,
                       border: Border.all(
                         color: isUnread
-                            ? colorScheme.primary.withOpacity(0.3)
+                            ? const Color(0xFF33C8DA).withValues(alpha: 0.3)
                             : const Color(0xFFE2E8F0),
-                        width: 1,
+                        width: 1.2,
                       ),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.02),
+                          color: Colors.black.withValues(alpha: 0.02),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: isUnread
-                                ? colorScheme.primary.withOpacity(0.12)
-                                : const Color(0xFFF1F5F9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isUnread
-                                ? Icons.mark_chat_unread_outlined
-                                : Icons.mark_chat_read_outlined,
-                            size: 20,
-                            color: isUnread ? colorScheme.primary : const Color(0xFF64748B),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                notif.pesan,
-                                style: GoogleFonts.figtree(
-                                  fontSize: 14,
-                                  fontWeight: isUnread ? FontWeight.bold : FontWeight.w500,
-                                  color: const Color(0xFF1E293B),
-                                  height: 1.4,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _formatDateTime(notif.createdAt),
-                                    style: GoogleFonts.figtree(
-                                      fontSize: 12,
-                                      fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
-                                      color: isUnread
-                                          ? colorScheme.primary
-                                          : const Color(0xFF94A3B8),
-                                    ),
-                                  ),
-                                  if (isUnread)
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Left accent indicator line
+                            Container(
+                              width: 5,
+                              color: stateColor,
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Custom Circular S logo with state color
                                     Container(
-                                      width: 8,
-                                      height: 8,
+                                      width: 42,
+                                      height: 42,
+                                      padding: const EdgeInsets.all(9),
                                       decoration: BoxDecoration(
-                                        color: colorScheme.primary,
+                                        color: isUnread
+                                            ? stateColor.withValues(alpha: 0.12)
+                                            : const Color(0xFFF1F5F9),
                                         shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isUnread
+                                              ? stateColor.withValues(alpha: 0.2)
+                                              : const Color(0xFFE2E8F0),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: SvgPicture.asset(
+                                        'assets/images/logoauth.svg',
+                                        colorFilter: ColorFilter.mode(
+                                          isUnread ? stateColor : const Color(0xFF64748B),
+                                          BlendMode.srcIn,
+                                        ),
                                       ),
                                     ),
-                                ],
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              // Modern pill badge for state
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                decoration: BoxDecoration(
+                                                  color: stateColor.withValues(alpha: 0.1),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: stateColor.withValues(alpha: 0.15),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  stateLabel,
+                                                  style: GoogleFonts.figtree(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: stateColor,
+                                                    letterSpacing: 0.2,
+                                                  ),
+                                                ),
+                                              ),
+                                              // Unread glowing dot
+                                              if (isUnread)
+                                                Container(
+                                                  width: 8,
+                                                  height: 8,
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFF33C8DA),
+                                                    shape: BoxShape.circle,
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Color(0xFF33C8DA),
+                                                        blurRadius: 4,
+                                                        spreadRadius: 1,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            notif.pesan,
+                                            style: GoogleFonts.figtree(
+                                              fontSize: 13,
+                                              fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
+                                              color: const Color(0xFF1E293B),
+                                              height: 1.45,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            _formatDateTime(notif.createdAt),
+                                            style: GoogleFonts.figtree(
+                                              fontSize: 11,
+                                              fontWeight: isUnread ? FontWeight.bold : FontWeight.w500,
+                                              color: isUnread
+                                                  ? const Color(0xFF33C8DA)
+                                                  : const Color(0xFF94A3B8),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 );
