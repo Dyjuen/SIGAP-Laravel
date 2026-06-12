@@ -1502,11 +1502,12 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A), // Dark elegant background
+        color: Colors.white, // White background
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2), // Light grey border
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -1522,8 +1523,8 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 'TOTAL RAB',
                 style: GoogleFonts.figtree(
                   fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white60,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF33C8DA), // Muted label brand teal
                   letterSpacing: 1.0,
                 ),
               ),
@@ -1533,14 +1534,14 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                 style: GoogleFonts.figtree(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: const Color(0xFF33C8DA),
+                  color: const Color(0xFF33C8DA), // Signature brand teal
                 ),
               ),
             ],
           ),
           const Icon(
             Icons.account_balance_wallet_outlined,
-            color: Color(0xFF33C8DA),
+            color: Color(0xFF33C8DA), // Signature brand teal
             size: 24,
           ),
         ],

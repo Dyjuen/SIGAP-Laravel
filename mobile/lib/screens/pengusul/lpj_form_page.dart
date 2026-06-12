@@ -528,6 +528,8 @@ class _LpjFormPageState extends State<LpjFormPage> {
                       _buildHeader(detail),
                       const SizedBox(height: 16),
                       _buildTableAlternative(detail, isEditable, roleId),
+                      const SizedBox(height: 8),
+                      _buildTotalRealizationSummaryCard(detail),
                       const SizedBox(height: 24),
                       _buildSpkSection(detail, isEditable),
                       const SizedBox(height: 32),
@@ -552,11 +554,6 @@ class _LpjFormPageState extends State<LpjFormPage> {
   }
 
   Widget _buildHeader(LpjDetail detail) {
-    final double totalUsulan = detail.totalAnggaranDiusulkan;
-    final double totalRealisasi = _calculateCurrentTotalRealization();
-    final double sisaAnggaran = totalUsulan - totalRealisasi;
-    final bool isOverBudget = totalRealisasi > totalUsulan;
-
     return Container(
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.all(16),
@@ -572,30 +569,72 @@ class _LpjFormPageState extends State<LpjFormPage> {
           ),
         ],
       ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              detail.namaKegiatan,
+              style: GoogleFonts.figtree(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0F172A),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          _Badge(
+            label: detail.statusDisplay,
+            color: _statusColor(detail.lpjStatus),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTotalRealizationSummaryCard(LpjDetail detail) {
+    final double totalUsulan = detail.totalAnggaranDiusulkan;
+    final double totalRealisasi = _calculateCurrentTotalRealization();
+    final double sisaAnggaran = totalUsulan - totalRealisasi;
+    final bool isOverBudget = totalRealisasi > totalUsulan;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F7FA), // Soft bright brand teal background
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFB2EBF2), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF33C8DA).withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  detail.namaKegiatan,
-                  style: GoogleFonts.figtree(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF0F172A),
-                  ),
-                ),
+              const Icon(
+                Icons.account_balance_wallet_outlined,
+                color: Color(0xFF00838F),
+                size: 20,
               ),
-              _Badge(
-                label: detail.statusDisplay,
-                color: _statusColor(detail.lpjStatus),
+              const SizedBox(width: 8),
+              Text(
+                'RINGKASAN ANGGARAN LPJ',
+                style: GoogleFonts.figtree(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF006064),
+                  letterSpacing: 0.5,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -603,17 +642,21 @@ class _LpjFormPageState extends State<LpjFormPage> {
                 _buildCompactStat(
                   'Diusulkan',
                   _formatCurrency(totalUsulan),
+                  labelColor: const Color(0xFF006064),
+                  valueColor: const Color(0xFF0F172A),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 24),
                 _buildCompactStat(
                   'Realisasi (Live)',
                   _formatCurrency(totalRealisasi),
-                  valueColor: isOverBudget ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                  labelColor: const Color(0xFF006064),
+                  valueColor: isOverBudget ? const Color(0xFFEF4444) : const Color(0xFF00838F),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 24),
                 _buildCompactStat(
                   isOverBudget ? 'Melebihi Usulan' : 'Sisa Anggaran',
                   _formatCurrency(sisaAnggaran.abs()),
+                  labelColor: const Color(0xFF006064),
                   valueColor: isOverBudget ? const Color(0xFFEF4444) : const Color(0xFF0F172A),
                 ),
               ],
@@ -624,7 +667,12 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Widget _buildCompactStat(String label, String value, {Color? valueColor}) {
+  Widget _buildCompactStat(
+    String label,
+    String value, {
+    Color? labelColor,
+    Color? valueColor,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -633,7 +681,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
           style: GoogleFonts.figtree(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF64748B),
+            color: labelColor ?? const Color(0xFF64748B),
           ),
         ),
         Text(
