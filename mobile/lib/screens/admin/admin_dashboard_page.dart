@@ -10,8 +10,7 @@ import '../../widgets/status_badge.dart';
 import 'user_management_page.dart';
 import '../help_guide_page.dart';
 import '../profile_page.dart';
-import 'spk_page.dart';
-import 'master/admin_master_list_page.dart';
+import 'admin_master_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -205,17 +204,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildQuickActionItem(
-                                icon: Icons.bar_chart_rounded,
-                                label: 'SPK',
-                                iconColor: const Color(0xFF6366F1),
-                                tintColor: const Color(0xFFEEF2FF),
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const SpkPage()),
-                                  );
-                                },
-                              ),
-                              _buildQuickActionItem(
                                 icon: Icons.library_books_outlined,
                                 label: 'Master Data',
                                 iconColor: const Color(0xFF10B981),
@@ -223,33 +211,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) => Scaffold(
-                                        appBar: AppBar(title: const Text('Pilih Master Data')),
-                                        body: ListView(
-                                          children: [
-                                            ListTile(
-                                              title: const Text('Tipe Kegiatan'),
-                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'tipe-kegiatan', title: 'Tipe Kegiatan'))),
-                                            ),
-                                            ListTile(
-                                              title: const Text('Mata Anggaran'),
-                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'mata-anggaran', title: 'Mata Anggaran'))),
-                                            ),
-                                            ListTile(
-                                              title: const Text('Kategori Belanja'),
-                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'kategori-belanja', title: 'Kategori Belanja'))),
-                                            ),
-                                            ListTile(
-                                              title: const Text('Satuan'),
-                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'satuan', title: 'Satuan'))),
-                                            ),
-                                            ListTile(
-                                              title: const Text('IKU'),
-                                              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminMasterListPage(type: 'iku', title: 'IKU'))),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                      builder: (_) => const AdminMasterPage(),
+                                    ),
+                                  );
+                                },
+                              ),
+                              _buildQuickActionItem(
+                                icon: Icons.group_rounded,
+                                label: 'Pengguna',
+                                iconColor: const Color(0xFF6366F1),
+                                tintColor: const Color(0xFFEEF2FF),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const UserManagementPage(),
                                     ),
                                   );
                                 },
