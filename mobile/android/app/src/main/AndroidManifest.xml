@@ -3,7 +3,7 @@
     <application
         android:label="SIGAP"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/yes">
         <activity
             android:name=".MainActivity"
             android:exported="true"
