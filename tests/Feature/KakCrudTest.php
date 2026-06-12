@@ -707,7 +707,12 @@ class KakCrudTest extends TestCase
     /**
      * Test Case: KAK-FT-034 - CRUD Update: Ubah harga RAB yang punya catatan revisi
      */
-    public function test_kak_update_preserves_rab_catatan_verifikator(): void
+    /**
+     * Test Case: KAK-FT-034 - CRUD Update: Ubah harga RAB yang punya catatan revisi
+     * Note: Updating a KAK with status 5 (Revisi) now intentionally clears verifikator notes,
+     * so we verify they are cleared.
+     */
+    public function test_kak_update_clears_rab_catatan_verifikator_when_status_is_revisi(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 5]); // Revision
@@ -715,6 +720,72 @@ class KakCrudTest extends TestCase
         $satuan = Satuan::first();
         $iku = Iku::first();
         $kategori = KategoriBelanja::first();
+
+        $kak->catatan_nama_kegiatan = 'Fix name';
+        $kak->save();
+
+        $rab = KAKAnggaran::create([
+            'kak_id' => $kak->kak_id,
+            'kategori_belanja_id' => $kategori->kategori_belanja_id,
+            'uraian' => 'Item X',
+            'volume1' => 1,
+            'satuan1_id' => $satuan->satuan_id,
+            'harga_satuan' => 1000,
+            'catatan_verifikator' => 'Please fix price',
+        ]);
+
+        $updatedData = [
+            'kak' => [
+                'nama_kegiatan' => $kak->nama_kegiatan,
+                'deskripsi_kegiatan' => $kak->deskripsi_kegiatan,
+                'metode_pelaksanaan' => $kak->metode_pelaksanaan,
+                'kurun_waktu_pelaksanaan' => $kak->kurun_waktu_pelaksanaan,
+                'tanggal_mulai' => $kak->tanggal_mulai->toDateString(),
+                'tanggal_selesai' => $kak->tanggal_selesai->toDateString(),
+                'lokasi' => $kak->lokasi,
+                'tipe_kegiatan_id' => $kak->tipe_kegiatan_id,
+                'sasaran_utama' => $kak->sasaran_utama,
+                'manfaat' => [['value' => 'M']],
+                'tahapan_pelaksanaan' => [['nama_tahapan' => 'T', 'urutan' => 1]],
+                'indikator_kinerja' => [['bulan_indikator' => 'Jan', 'deskripsi_target' => 'T', 'persentase_target' => 50]],
+            ],
+            'target_iku' => [['iku_id' => $iku->iku_id, 'target' => '10', 'satuan_id' => $satuan->satuan_id]],
+            'rab' => [
+                [
+                    'anggaran_id' => $rab->anggaran_id,
+                    'kategori_belanja_id' => $kategori->kategori_belanja_id,
+                    'uraian' => 'Item X Updated',
+                    'volume1' => 1,
+                    'satuan1_id' => $satuan->satuan_id,
+                    'harga_satuan' => 900,
+                ],
+            ],
+        ];
+
+        $this->actingAs($user)->put(route('kak.update', $kak->kak_id), $updatedData);
+
+        $this->assertDatabaseHas('t_kak_anggaran', [
+            'anggaran_id' => $rab->anggaran_id,
+            'catatan_verifikator' => null,
+        ]);
+
+        $this->assertDatabaseHas('t_kak', [
+            'kak_id' => $kak->kak_id,
+            'catatan_nama_kegiatan' => null,
+        ]);
+    }
+
+    public function test_kak_update_does_not_clear_catatan_when_status_is_not_revisi(): void
+    {
+        $user = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 1]); // Draft
+        $tipe = TipeKegiatan::first();
+        $satuan = Satuan::first();
+        $iku = Iku::first();
+        $kategori = KategoriBelanja::first();
+
+        $kak->catatan_nama_kegiatan = 'Fix name';
+        $kak->save();
 
         $rab = KAKAnggaran::create([
             'kak_id' => $kak->kak_id,
@@ -759,6 +830,11 @@ class KakCrudTest extends TestCase
         $this->assertDatabaseHas('t_kak_anggaran', [
             'anggaran_id' => $rab->anggaran_id,
             'catatan_verifikator' => 'Please fix price',
+        ]);
+
+        $this->assertDatabaseHas('t_kak', [
+            'kak_id' => $kak->kak_id,
+            'catatan_nama_kegiatan' => 'Fix name',
         ]);
     }
 
