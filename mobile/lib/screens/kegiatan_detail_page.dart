@@ -6,7 +6,11 @@ import '../providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
+import '../utils/download_helper.dart';
+import '../widgets/pdf_preview_dialog.dart';
 
 class KegiatanDetailPage extends StatefulWidget {
   final int kegiatanId;
@@ -96,33 +100,75 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
       return;
     }
 
-    final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
-    final uri = Uri.parse(url);
-    try {
-      final launched = await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
+    final previewUrl = '${ApiService.baseUrl}/kak/$kakId/pdf/preview?token=$token';
+    final downloadUrl = '${ApiService.baseUrl}/kak/$kakId/pdf/download?token=$token';
+
+    if (type == 'preview') {
+      final String kakTitle = _kegiatan['kak']?['nama_kegiatan'] ?? 'Dokumen KAK';
+      await showPdfPreviewDialog(
+        context,
+        previewUrl: previewUrl,
+        downloadUrl: downloadUrl,
+        title: kakTitle,
+        kakId: kakId,
       );
-      if (!launched && mounted) {
-        // Fallback: copy URL to clipboard
-        Clipboard.setData(ClipboardData(text: url));
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Tidak bisa membuka browser. URL PDF telah disalin ke papan klip.',
+    } else {
+      // Direct Download inside the application
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
+          ),
+        ),
+      );
+
+      try {
+        final uri = Uri.parse(downloadUrl);
+        final response = await http.get(uri);
+        if (mounted) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.pop(context); // Close loading dialog
+          }
+        }
+
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+          if (mounted) {
+            await downloadFile(
+              bytes: bytes,
+              fileName: 'KAK_$kakId.pdf',
+              fallbackUrl: downloadUrl,
+              context: context,
+            );
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('File KAK berhasil diunduh dan disimpan.'),
+                backgroundColor: Color(0xFF2E7D32),
+              ),
+            );
+          }
+        } else {
+          throw Exception('Server error: ${response.statusCode}');
+        }
+      } catch (e) {
+        if (mounted) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.pop(context); // Close loading dialog if still open
+          }
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal mengunduh file KAK: $e'),
+              backgroundColor: Colors.redAccent,
             ),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat PDF KAK: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+          );
+        }
       }
     }
   }

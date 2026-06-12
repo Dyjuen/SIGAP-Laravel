@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 import '../../models/lpj_model.dart';
 import '../../providers/lpj_provider.dart';
@@ -12,6 +13,8 @@ import '../../services/master_data_service.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../services/chatbot_service.dart';
+import '../../utils/download_helper.dart';
+import '../../widgets/image_preview_dialog.dart';
 
 class LpjFormPage extends StatefulWidget {
   final String kegiatanId;
@@ -1237,7 +1240,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
               Flexible(
                 child: GestureDetector(
                   onTap: fileUrl != null
-                      ? () => _launchURL(fileUrl!)
+                      ? () => _previewEvidence(fileName, fileUrl!)
                       : null,
                   child: Text(
                     fileName,
@@ -1288,13 +1291,88 @@ class _LpjFormPageState extends State<LpjFormPage> {
     );
   }
 
-  Future<void> _launchURL(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  Future<void> _previewEvidence(String fileName, String fileUrl) async {
+    final dotIndex = fileName.lastIndexOf('.');
+    final ext = dotIndex != -1 && dotIndex < fileName.length - 1
+        ? fileName.substring(dotIndex + 1).toLowerCase()
+        : '';
+
+    final isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].contains(ext);
+    final isPdf = ext == 'pdf';
+
+    if (isImage) {
+      showDialog(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.6),
+        builder: (ctx) => ImagePreviewDialog(
+          fileName: fileName,
+          imageUrl: fileUrl,
+          downloadCallback: () => _downloadEvidenceDirectly(fileName, fileUrl),
+        ),
+      );
+    } else if (isPdf) {
+      final uri = Uri.parse(fileUrl);
+      try {
+        final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!launched) {
+          throw Exception('Cannot launch browser');
+        }
+      } catch (e) {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      }
     } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Tidak bisa membuka $url')),
+      _downloadEvidenceDirectly(fileName, fileUrl);
+    }
+  }
+
+  Future<void> _downloadEvidenceDirectly(String fileName, String fileUrl) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
+        ),
+      ),
+    );
+
+    try {
+      final response = await http.get(Uri.parse(fileUrl));
+      if (navigator.canPop()) {
+        navigator.pop(); // Close loading dialog
+      }
+
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        if (mounted) {
+          await downloadFile(
+            bytes: bytes,
+            fileName: fileName,
+            fallbackUrl: fileUrl,
+            context: context,
+          );
+        }
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('File bukti berhasil diunduh.'),
+            backgroundColor: Color(0xFF2E7D32),
+          ),
+        );
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (navigator.canPop()) {
+        navigator.pop(); // Close loading dialog
+      }
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengunduh file bukti: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
       );
     }
   }

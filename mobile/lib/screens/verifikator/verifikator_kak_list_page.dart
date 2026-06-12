@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 import '../../models/dashboard_model.dart';
-import '../../services/kak_service.dart';
 import '../../services/api_service.dart';
 import '../../providers/auth_provider.dart';
 import 'verifikator_approval_page.dart';
+import '../../utils/download_helper.dart';
+import '../../widgets/pdf_preview_dialog.dart';
 
 class VerifikatorKakListPage extends StatefulWidget {
   const VerifikatorKakListPage({super.key});
@@ -123,7 +124,7 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
     super.dispose();
   }
 
-  Future<void> _openKakPdf(String kakId, String type) async {
+  Future<void> _openKakPdf(String kakId, String type, {String title = 'Dokumen KAK'}) async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final token = authProvider.token;
     if (token == null) {
@@ -136,22 +137,74 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
       return;
     }
 
-    final url = '${ApiService.baseUrl}/kak/$kakId/pdf/$type?token=$token';
-    final uri = Uri.parse(url);
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Tidak dapat membuka browser untuk link ini';
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal memuat PDF KAK: $e'),
-            backgroundColor: Colors.redAccent,
+    final previewUrl = '${ApiService.baseUrl}/kak/$kakId/pdf/preview?token=$token';
+    final downloadUrl = '${ApiService.baseUrl}/kak/$kakId/pdf/download?token=$token';
+
+    if (type == 'preview') {
+      await showPdfPreviewDialog(
+        context,
+        previewUrl: previewUrl,
+        downloadUrl: downloadUrl,
+        title: title,
+        kakId: kakId,
+      );
+    } else {
+      // Direct Download inside the application
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
           ),
-        );
+        ),
+      );
+
+      try {
+        final uri = Uri.parse(downloadUrl);
+        final response = await http.get(uri);
+        if (mounted) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.pop(context); // Close loading dialog
+          }
+        }
+
+        if (response.statusCode == 200) {
+          final bytes = response.bodyBytes;
+          if (mounted) {
+            await downloadFile(
+              bytes: bytes,
+              fileName: 'KAK_$kakId.pdf',
+              fallbackUrl: downloadUrl,
+              context: context,
+            );
+          }
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('File KAK berhasil diunduh dan disimpan.'),
+                backgroundColor: Color(0xFF2E7D32),
+              ),
+            );
+          }
+        } else {
+          throw Exception('Server error: ${response.statusCode}');
+        }
+      } catch (e) {
+        if (mounted) {
+          if (Navigator.of(context).canPop()) {
+            Navigator.pop(context); // Close loading dialog if still open
+          }
+        }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal mengunduh file KAK: $e'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
       }
     }
   }
@@ -336,7 +389,6 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
   }
 
   Widget _buildListCard(BuildContext context, DashboardItem item) {
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -423,7 +475,7 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                               color: Color(0xFF64748B),
                               size: 20,
                             ),
-                            onPressed: () => _openKakPdf(item.id, 'preview'),
+                            onPressed: () => _openKakPdf(item.id, 'preview', title: item.nama),
                             tooltip: 'Preview KAK',
                           ),
                           const SizedBox(width: 12),
@@ -435,7 +487,7 @@ class _VerifikatorKakListPageState extends State<VerifikatorKakListPage> {
                               color: Color(0xFF64748B),
                               size: 20,
                         ),
-                            onPressed: () => _openKakPdf(item.id, 'download'),
+                            onPressed: () => _openKakPdf(item.id, 'download', title: item.nama),
                             tooltip: 'Download KAK',
                           ),
                         ],

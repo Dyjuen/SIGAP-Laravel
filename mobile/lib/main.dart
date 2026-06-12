@@ -27,6 +27,7 @@ import 'providers/pencairan_provider.dart';
 import 'core/navigator_key.dart';
 import 'screens/landing_page.dart';
 import 'screens/dashboard_router.dart';
+import 'screens/video_splash_screen.dart';
 import 'screens/pengusul/lpj_list_page.dart';
 import 'screens/bendahara/pencairan_page.dart';
 import 'services/notification_service.dart';
@@ -147,6 +148,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isCheckingAuth = true;
+  bool _showVideoSplash = true;
 
   @override
   void initState() {
@@ -172,6 +174,19 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    if (_showVideoSplash) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: VideoSplashScreen(
+          onFinished: () {
+            setState(() {
+              _showVideoSplash = false;
+            });
+          },
+        ),
+      );
+    }
+
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'SIGAP PNJ',
