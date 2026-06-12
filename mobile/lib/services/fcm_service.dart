@@ -57,7 +57,7 @@ class FcmService {
 
       // 3. Initialize Flutter Local Notifications for Foreground Handling
       const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
+          AndroidInitializationSettings('@mipmap/yes');
 
       const InitializationSettings initializationSettings =
           InitializationSettings(android: initializationSettingsAndroid);
@@ -188,7 +188,7 @@ class FcmService {
             channel.id,
             channel.name,
             channelDescription: channel.description,
-            icon: '@mipmap/ic_launcher',
+            icon: '@mipmap/yes',
             importance: Importance.max,
             priority: Priority.high,
           ),
