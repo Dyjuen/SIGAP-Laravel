@@ -1491,6 +1491,63 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
     );
   }
 
+  double _calculateTotalRab() {
+    return rabList.fold(0.0, (sum, item) => sum + item.getTotal());
+  }
+
+  Widget _buildTotalRabBanner() {
+    final currencyFmt = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A), // Dark elegant background
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'TOTAL RAB',
+                style: GoogleFonts.figtree(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white60,
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                currencyFmt.format(_calculateTotalRab()),
+                style: GoogleFonts.figtree(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF33C8DA),
+                ),
+              ),
+            ],
+          ),
+          const Icon(
+            Icons.account_balance_wallet_outlined,
+            color: Color(0xFF33C8DA),
+            size: 24,
+          ),
+        ],
+      ),
+    );
+  }
+
   // ─── Tab 3: Rencana Anggaran Biaya ────────────────────────────────────────
   Widget _buildRencanaAnggaranBiayaForm() {
     final currencyFmt =
@@ -1602,6 +1659,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                                 onChanged: (v) {
                                   rabItem.volume1 = double.tryParse(v) ?? 0;
                                   widget.onFormChange(getFormData());
+                                  setState(() {});
                                 },
                                 validator: (v) =>
                                     (v == null || double.tryParse(v) == null)
@@ -1645,6 +1703,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                                 onChanged: (v) {
                                   rabItem.volume2 = double.tryParse(v);
                                   widget.onFormChange(getFormData());
+                                  setState(() {});
                                 },
                               ),
                             ),
@@ -1689,6 +1748,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                                 onChanged: (v) {
                                   rabItem.volume3 = double.tryParse(v);
                                   widget.onFormChange(getFormData());
+                                  setState(() {});
                                 },
                               ),
                             ),
@@ -1781,6 +1841,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
               ],
             );
           }),
+          _buildTotalRabBanner(),
         ],
       ),
     );

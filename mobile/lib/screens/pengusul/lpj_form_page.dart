@@ -306,6 +306,41 @@ class _LpjFormPageState extends State<LpjFormPage> {
         return;
       }
 
+      final totalUsulan = detail.totalAnggaranDiusulkan;
+      final totalRealisasi = _calculateCurrentTotalRealization();
+      
+      if (totalRealisasi > totalUsulan) {
+        final confirmOver = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                SizedBox(width: 8),
+                Text('Peringatan Anggaran'),
+              ],
+            ),
+            content: Text(
+              'Total realisasi (${_formatCurrency(totalRealisasi)}) melebihi anggaran yang diusulkan (${_formatCurrency(totalUsulan)}). '
+              'Apakah Anda yakin ingin tetap mengajukan LPJ ini?'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
+                child: const Text('Ya, Lanjutkan'),
+              ),
+            ],
+          ),
+        );
+
+        if (confirmOver != true) return;
+      }
+
       final realizasiData = <Map<String, dynamic>>[];
       final buktiFilesMap = <String, List<PlatformFile>>{};
 
@@ -517,6 +552,11 @@ class _LpjFormPageState extends State<LpjFormPage> {
   }
 
   Widget _buildHeader(LpjDetail detail) {
+    final double totalUsulan = detail.totalAnggaranDiusulkan;
+    final double totalRealisasi = _calculateCurrentTotalRealization();
+    final double sisaAnggaran = totalUsulan - totalRealisasi;
+    final bool isOverBudget = totalRealisasi > totalUsulan;
+
     return Container(
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.all(16),
@@ -556,25 +596,35 @@ class _LpjFormPageState extends State<LpjFormPage> {
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              _buildCompactStat(
-                'Diusulkan',
-                _formatCurrency(detail.totalAnggaranDiusulkan),
-              ),
-              const SizedBox(width: 16),
-              _buildCompactStat(
-                'Realisasi (Live)',
-                _formatCurrency(_calculateCurrentTotalRealization()),
-              ),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildCompactStat(
+                  'Diusulkan',
+                  _formatCurrency(totalUsulan),
+                ),
+                const SizedBox(width: 16),
+                _buildCompactStat(
+                  'Realisasi (Live)',
+                  _formatCurrency(totalRealisasi),
+                  valueColor: isOverBudget ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+                ),
+                const SizedBox(width: 16),
+                _buildCompactStat(
+                  isOverBudget ? 'Melebihi Usulan' : 'Sisa Anggaran',
+                  _formatCurrency(sisaAnggaran.abs()),
+                  valueColor: isOverBudget ? const Color(0xFFEF4444) : const Color(0xFF0F172A),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCompactStat(String label, String value) {
+  Widget _buildCompactStat(String label, String value, {Color? valueColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -591,7 +641,7 @@ class _LpjFormPageState extends State<LpjFormPage> {
           style: GoogleFonts.figtree(
             fontSize: 14,
             fontWeight: FontWeight.w800,
-            color: const Color(0xFF0F172A),
+            color: valueColor ?? const Color(0xFF0F172A),
           ),
         ),
       ],

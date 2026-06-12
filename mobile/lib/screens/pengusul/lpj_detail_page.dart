@@ -367,10 +367,10 @@ class _LpjDetailPageState extends State<LpjDetailPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      _buildDetailRow('Diusulkan', 'Rp ${_formatCurrency(item.jumlahDiusulkan)}'),
+                      _buildDetailRow('Diusulkan', _formatCurrency(item.jumlahDiusulkan)),
                       _buildDetailRow(
                         'Realisasi',
-                        'Rp ${_formatCurrency(item.realisasiJumlah)}',
+                        _formatCurrency(item.realisasiJumlah),
                         valueColor: const Color(0xFF10B981),
                       ),
                       _buildDetailRow(
