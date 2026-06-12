@@ -173,6 +173,85 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
     }
   }
 
+  String _getFileNameFromUrl(String url, String defaultName) {
+    try {
+      final uri = Uri.parse(url);
+      if (uri.pathSegments.isNotEmpty) {
+        final lastSegment = uri.pathSegments.last;
+        if (lastSegment.contains('.')) {
+          return lastSegment;
+        }
+      }
+    } catch (_) {}
+    return defaultName;
+  }
+
+  Future<void> _downloadLampiranDirectly(String url, String fileName) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF33C8DA)),
+        ),
+      ),
+    );
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final token = authProvider.token;
+      final Map<String, String> headers = {};
+      if (token != null && (url.contains('wattaway.id') || url.contains('/api/'))) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      final uri = Uri.parse(url);
+      final response = await http.get(uri, headers: headers);
+      if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.pop(context); // Close loading dialog
+        }
+      }
+
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        if (mounted) {
+          await downloadFile(
+            bytes: bytes,
+            fileName: fileName,
+            fallbackUrl: url,
+            context: context,
+          );
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('File berhasil diunduh dan disimpan.'),
+              backgroundColor: Color(0xFF2E7D32),
+            ),
+          );
+        }
+      } else {
+        throw Exception('Server error: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.pop(context); // Close loading dialog if still open
+        }
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengunduh file: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
 
   Future<void> _launchUrl(String? urlString) async {
     if (urlString == null || urlString.isEmpty) return;
@@ -1015,7 +1094,11 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                         final downloadUrl = suratPengantarUrl.contains('?')
                                             ? '$suratPengantarUrl&download='
                                             : '$suratPengantarUrl?download=';
-                                        _launchUrl(downloadUrl);
+                                        final fileName = _getFileNameFromUrl(
+                                          downloadUrl,
+                                          'Lampiran_Kegiatan_${widget.kegiatanId}.pdf',
+                                        );
+                                        _downloadLampiranDirectly(downloadUrl, fileName);
                                       },
                                       icon: const Icon(
                                         Icons.download_outlined,

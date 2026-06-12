@@ -409,36 +409,44 @@ class _DirektorDashboardScreenState extends State<DirektorDashboardScreen> {
     final worstUnit = data.worstUnit;
     final growth = ov.budgetGrowth;
 
-    return SizedBox(
-      height: 115,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        children: [
-          _InsightCard(
-            label: 'Serapan Terbaik',
-            value: bestUnit?.namaJurusan ?? '-',
-            subtitle: '${bestUnit?.persentaseSerapan.toStringAsFixed(0) ?? 0}% Serapan',
-            icon: Icons.emoji_events_rounded,
-            isPrimary: false,
-          ),
-          const SizedBox(width: 12),
-          _InsightCard(
-            label: 'Sisa Anggaran Terbesar',
-            value: worstUnit?.namaJurusan ?? '-',
-            subtitle: 'Sisa ${_formatMoneyShort((worstUnit?.danaDiminta ?? 0) - (worstUnit?.danaTerserap ?? 0))}',
-            icon: Icons.info_outline_rounded,
-            isPrimary: true,
-          ),
-          const SizedBox(width: 12),
-          _InsightCard(
-            label: 'Tren Anggaran',
-            value: '${growth > 0 ? "+" : ""}${growth.toStringAsFixed(1)}%',
-            subtitle: 'vs Periode Lalu',
-            icon: Icons.trending_up_rounded,
-            isPrimary: false,
-          ),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: SizedBox(
+        height: 110,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _InsightCard(
+                label: 'Serapan Terbaik',
+                value: bestUnit?.namaJurusan ?? '-',
+                subtitle: '${bestUnit?.persentaseSerapan.toStringAsFixed(0) ?? 0}% Serapan',
+                icon: Icons.emoji_events_rounded,
+                isPrimary: false,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _InsightCard(
+                label: 'Sisa Terbesar',
+                value: worstUnit?.namaJurusan ?? '-',
+                subtitle: 'Sisa ${_formatMoneyShort((worstUnit?.danaDiminta ?? 0) - (worstUnit?.danaTerserap ?? 0))}',
+                icon: Icons.info_outline_rounded,
+                isPrimary: true,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _InsightCard(
+                label: 'Tren Anggaran',
+                value: '${growth > 0 ? "+" : ""}${growth.toStringAsFixed(1)}%',
+                subtitle: 'vs Periode Lalu',
+                icon: Icons.trending_up_rounded,
+                isPrimary: false,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -987,14 +995,13 @@ class _InsightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 160,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         gradient: isPrimary
             ? const LinearGradient(colors: [Color(0xFF00BCD4), Color(0xFF0097A7)], begin: Alignment.topLeft, end: Alignment.bottomRight)
             : null,
         color: isPrimary ? null : Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: isPrimary ? Colors.transparent : AppTheme.border),
         boxShadow: [
           BoxShadow(
@@ -1006,30 +1013,45 @@ class _InsightCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(label,
+              Expanded(
+                child: Text(
+                  label,
                   style: AppTheme.caption.copyWith(
                       color: isPrimary ? Colors.white70 : AppTheme.primary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 10)),
-              Icon(icon, color: isPrimary ? Colors.white70 : AppTheme.primary, size: 16),
+                      fontSize: 9),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(icon, color: isPrimary ? Colors.white70 : AppTheme.primary, size: 12),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(value,
-              style: AppTheme.heading.copyWith(
-                color: isPrimary ? Colors.white : AppTheme.primary,
-                fontSize: 15,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: AppTheme.heading.copyWith(
+              color: isPrimary ? Colors.white : AppTheme.primary,
+              fontSize: 12,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 2),
-          Text(subtitle,
-              style: AppTheme.caption.copyWith(
-                  color: isPrimary ? Colors.white70 : AppTheme.textSecondary, fontSize: 10)),
+          Text(
+            subtitle,
+            style: AppTheme.caption.copyWith(
+                color: isPrimary ? Colors.white70 : AppTheme.textSecondary,
+                fontSize: 9),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
@@ -1109,8 +1131,15 @@ class _TopsisAuditTable extends StatelessWidget {
               children: [
                 const Icon(Icons.table_chart_rounded, color: AppTheme.primary, size: 16),
                 const SizedBox(width: 8),
-                Text('Datasheet TOPSIS (Audit Internal)', style: AppTheme.bodyBold.copyWith(fontSize: 12)),
-                const Spacer(),
+                Expanded(
+                  child: Text(
+                    'Datasheet TOPSIS (Audit Internal)',
+                    style: AppTheme.bodyBold.copyWith(fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Text('Geser untuk lihat semua ›', style: AppTheme.caption.copyWith(fontSize: 10)),
               ],
             ),
@@ -1135,6 +1164,7 @@ class _TopsisAuditTable extends StatelessWidget {
                 DataColumn(label: Text('C4', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
                 DataColumn(label: Text('TOPSIS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
                 DataColumn(label: Text('Kategori', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+                DataColumn(label: Text('Detail', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
               ],
               rows: activities.asMap().entries.map((entry) {
                 final idx = entry.key;
@@ -1182,18 +1212,23 @@ class _TopsisAuditTable extends StatelessWidget {
                     DataCell(Text(act.topsisScore.toStringAsFixed(4),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primary))),
                     DataCell(
-                      GestureDetector(
-                        onTap: () => showModalBottomSheet(
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(color: katBg, borderRadius: BorderRadius.circular(6)),
+                        child: Text(act.kategori,
+                            style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: katColor)),
+                      ),
+                    ),
+                    DataCell(
+                      IconButton(
+                        icon: const Icon(Icons.info_outline_rounded, color: AppTheme.primary, size: 18),
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                        onPressed: () => showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
                           builder: (_) => TopsisDetailBottomSheet(activity: act),
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                          decoration: BoxDecoration(color: katBg, borderRadius: BorderRadius.circular(6)),
-                          child: Text(act.kategori,
-                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: katColor)),
                         ),
                       ),
                     ),

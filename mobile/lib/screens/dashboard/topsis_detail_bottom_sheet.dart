@@ -332,6 +332,87 @@ class TopsisDetailBottomSheet extends StatelessWidget {
     );
   }
 
+  Widget _detailRow(String label, String value, {Color? valueColor, bool highlightValue = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: AppTheme.caption.copyWith(fontSize: 11)),
+          Text(
+            value,
+            style: AppTheme.caption.copyWith(
+              fontSize: 11,
+              fontWeight: highlightValue ? FontWeight.w800 : FontWeight.w600,
+              color: valueColor ?? AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNormCard({
+    required String title,
+    required Color color,
+    required IconData icon,
+    required double c,
+    required double pembagi,
+    required double r,
+    required double w,
+    required double v,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: color.withOpacity(0.05),
+            child: Row(
+              children: [
+                Icon(icon, color: color, size: 16),
+                const SizedBox(width: 8),
+                Text(title, style: AppTheme.bodyBold.copyWith(fontSize: 12, color: color)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                _detailRow('Nilai Kriteria (c_ij)', c.toStringAsFixed(0)),
+                _detailRow('Nilai Pembagi Norm', pembagi.toStringAsFixed(4)),
+                _detailRow('Hasil Normalisasi (r_ij)', r.toStringAsFixed(6)),
+                _detailRow('Bobot Kriteria (w_j)', '${w.toStringAsFixed(0)}%'),
+                const Divider(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Bobot Terhitung (v_ij):',
+                      style: AppTheme.caption.copyWith(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.primary),
+                    ),
+                    Text(
+                      v.toStringAsFixed(6),
+                      style: AppTheme.bodyBold.copyWith(color: AppTheme.primary, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTabNormalisasi() {
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -347,87 +428,100 @@ class TopsisDetailBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Formula visual card
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Formula Normalisasi', style: AppTheme.caption.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    'r_ij = c_ij / √Σ(c_kj²)',
-                    style: GoogleFonts.firaCode(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600),
-                  ),
-                  const Spacer(),
-                  Text(
-                    'v_ij = r_ij × w_j',
-                    style: GoogleFonts.firaCode(fontSize: 11, color: AppTheme.primary, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        _buildNormCard(
+          title: 'C1 – Kesesuaian Waktu',
+          color: Colors.blue,
+          icon: Icons.schedule_rounded,
+          c: activity.c1,
+          pembagi: activity.normC1,
+          r: activity.r1,
+          w: activity.w1,
+          v: activity.v1,
         ),
-        const SizedBox(height: 16),
-
-        // Scrollable Table Container
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columnSpacing: 16,
-              headingRowHeight: 40,
-              dataRowMinHeight: 40,
-              dataRowMaxHeight: 48,
-              headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
-              columns: const [
-                DataColumn(label: Text('Kriteria', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('c_ij', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Pembagi', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('r_ij', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('w_j', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('v_ij (Bobot)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primary))),
-              ],
-              rows: [
-                _normRow('C1 Waktu', activity.c1, activity.normC1, activity.r1, activity.w1, activity.v1),
-                _normRow('C2 Anggaran', activity.c2, activity.normC2, activity.r2, activity.w2, activity.v2),
-                _normRow('C3 Output', activity.c3, activity.normC3, activity.r3, activity.w3, activity.v3),
-                _normRow('C4 LPJ', activity.c4, activity.normC4, activity.r4, activity.w4, activity.v4),
-              ],
-            ),
-          ),
+        const SizedBox(height: 12),
+        _buildNormCard(
+          title: 'C2 – Ketepatan Anggaran',
+          color: Colors.purple,
+          icon: Icons.account_balance_wallet_rounded,
+          c: activity.c2,
+          pembagi: activity.normC2,
+          r: activity.r2,
+          w: activity.w2,
+          v: activity.v2,
+        ),
+        const SizedBox(height: 12),
+        _buildNormCard(
+          title: 'C3 – Kesesuaian Output',
+          color: Colors.teal,
+          icon: Icons.task_alt_rounded,
+          c: activity.c3,
+          pembagi: activity.normC3,
+          r: activity.r3,
+          w: activity.w3,
+          v: activity.v3,
+        ),
+        const SizedBox(height: 12),
+        _buildNormCard(
+          title: 'C4 – Kepatuhan LPJ',
+          color: Colors.orange,
+          icon: Icons.description_rounded,
+          c: activity.c4,
+          pembagi: activity.normC4,
+          r: activity.r4,
+          w: activity.w4,
+          v: activity.v4,
         ),
       ],
     );
   }
 
-  DataRow _normRow(String kriteria, double c, double pembagi, double r, double w, double v) {
-    return DataRow(
-      cells: [
-        DataCell(Text(kriteria, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-        DataCell(Text(c.toStringAsFixed(0), style: const TextStyle(fontSize: 11))),
-        DataCell(Text(pembagi.toStringAsFixed(4), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary))),
-        DataCell(Text(r.toStringAsFixed(6), style: const TextStyle(fontSize: 11))),
-        DataCell(Text('${w.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 11))),
-        DataCell(Text(
-          v.toStringAsFixed(6),
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primary),
-        )),
-      ],
+  Widget _buildIdealCard({
+    required String title,
+    required Color color,
+    required IconData icon,
+    required double v,
+    required double aPos,
+    required double aNeg,
+  }) {
+    final dPos2 = (v - aPos) * (v - aPos);
+    final dNeg2 = (v - aNeg) * (v - aNeg);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.border),
+      ),
+      clipBehavior: Clip.hardEdge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: color.withOpacity(0.05),
+            child: Row(
+              children: [
+                Icon(icon, color: color, size: 16),
+                const SizedBox(width: 8),
+                Text(title, style: AppTheme.bodyBold.copyWith(fontSize: 12, color: color)),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                _detailRow('Bobot Terhitung (v_ij)', v.toStringAsFixed(6)),
+                _detailRow('Solusi Ideal Positif (A⁺)', aPos.toStringAsFixed(6), valueColor: AppTheme.success, highlightValue: true),
+                _detailRow('Solusi Ideal Negatif (A⁻)', aNeg.toStringAsFixed(6), valueColor: AppTheme.danger, highlightValue: true),
+                const Divider(height: 12),
+                _detailRow('Jarak Kuadrat Positif (v_ij - A⁺)²', dPos2.toStringAsFixed(8)),
+                _detailRow('Jarak Kuadrat Negatif (v_ij - A⁻)²', dNeg2.toStringAsFixed(8)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -459,54 +553,41 @@ class TopsisDetailBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Scrollable Table Container
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppTheme.border),
-          ),
-          clipBehavior: Clip.hardEdge,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columnSpacing: 16,
-              headingRowHeight: 40,
-              dataRowMinHeight: 40,
-              dataRowMaxHeight: 48,
-              headingRowColor: WidgetStateProperty.all(const Color(0xFFF8FAFC)),
-              columns: const [
-                DataColumn(label: Text('Kriteria', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('v_ij (Bobot)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('A⁺ (Terbaik)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.success))),
-                DataColumn(label: Text('A⁻ (Terburuk)', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.danger))),
-                DataColumn(label: Text('(v_ij - A⁺)²', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('(v_ij - A⁻)²', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold))),
-              ],
-              rows: [
-                _idealRow('C1 Waktu', activity.v1, pos1, neg1),
-                _idealRow('C2 Anggaran', activity.v2, pos2, neg2),
-                _idealRow('C3 Output', activity.v3, pos3, neg3),
-                _idealRow('C4 LPJ', activity.v4, pos4, neg4),
-              ],
-            ),
-          ),
+        _buildIdealCard(
+          title: 'C1 – Kesesuaian Waktu',
+          color: Colors.blue,
+          icon: Icons.schedule_rounded,
+          v: activity.v1,
+          aPos: pos1,
+          aNeg: neg1,
         ),
-      ],
-    );
-  }
-
-  DataRow _idealRow(String kriteria, double v, double aPos, double aNeg) {
-    final dPos2 = (v - aPos) * (v - aPos);
-    final dNeg2 = (v - aNeg) * (v - aNeg);
-    return DataRow(
-      cells: [
-        DataCell(Text(kriteria, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
-        DataCell(Text(v.toStringAsFixed(6), style: const TextStyle(fontSize: 11))),
-        DataCell(Text(aPos.toStringAsFixed(6), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.success))),
-        DataCell(Text(aNeg.toStringAsFixed(6), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.danger))),
-        DataCell(Text(dPos2.toStringAsFixed(8), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary))),
-        DataCell(Text(dNeg2.toStringAsFixed(8), style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary))),
+        const SizedBox(height: 12),
+        _buildIdealCard(
+          title: 'C2 – Ketepatan Anggaran',
+          color: Colors.purple,
+          icon: Icons.account_balance_wallet_rounded,
+          v: activity.v2,
+          aPos: pos2,
+          aNeg: neg2,
+        ),
+        const SizedBox(height: 12),
+        _buildIdealCard(
+          title: 'C3 – Kesesuaian Output',
+          color: Colors.teal,
+          icon: Icons.task_alt_rounded,
+          v: activity.v3,
+          aPos: pos3,
+          aNeg: neg3,
+        ),
+        const SizedBox(height: 12),
+        _buildIdealCard(
+          title: 'C4 – Kepatuhan LPJ',
+          color: Colors.orange,
+          icon: Icons.description_rounded,
+          v: activity.v4,
+          aPos: pos4,
+          aNeg: neg4,
+        ),
       ],
     );
   }

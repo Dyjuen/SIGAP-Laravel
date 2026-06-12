@@ -63,7 +63,7 @@ class _DirektorDanaPieChartState extends State<DirektorDanaPieChart> {
                     child: PieChart(
                       PieChartData(
                         sectionsSpace: 2,
-                        centerSpaceRadius: 40,
+                        centerSpaceRadius: 30,
                         pieTouchData: PieTouchData(
                           touchCallback: (event, response) {
                             setState(() {
@@ -88,9 +88,9 @@ class _DirektorDanaPieChartState extends State<DirektorDanaPieChart> {
                             color: color,
                             value: unit.danaDiminta,
                             title: isTouched ? '${pct.toStringAsFixed(0)}%' : '',
-                            radius: isTouched ? 56 : 48,
+                            radius: isTouched ? 42 : 36,
                             titleStyle: const TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.w800,
                               color: Colors.white,
                             ),
@@ -103,9 +103,11 @@ class _DirektorDanaPieChartState extends State<DirektorDanaPieChart> {
                   // Legend
                   Expanded(
                     flex: 6,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                       children: units.asMap().entries.map((entry) {
                         final idx = entry.key;
                         final unit = entry.value;
@@ -143,6 +145,7 @@ class _DirektorDanaPieChartState extends State<DirektorDanaPieChart> {
                       }).toList(),
                     ),
                   ),
+                ),
                 ],
               ),
             ),
