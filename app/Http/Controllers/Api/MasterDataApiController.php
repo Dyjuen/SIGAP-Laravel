@@ -41,13 +41,20 @@ class MasterDataApiController extends Controller
         }
 
         $config = $this->masterDataService->getConfig($type);
+        $primaryKey = $config['primary_key'];
         $items = $this->masterDataService->list($type, $request->search);
+
+        $items->through(function ($item) use ($primaryKey) {
+            $array = $item->toArray();
+            $array['id'] = $item->{$primaryKey};
+            return $array;
+        });
 
         return response()->json([
             'type' => $type,
             'title' => $config['title'],
             'readonly' => $config['readonly'],
-            'primaryKey' => $config['primary_key'],
+            'primaryKey' => $primaryKey,
             'fields' => $config['fields'],
             'items' => $items,
         ]);
