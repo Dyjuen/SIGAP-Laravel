@@ -14,18 +14,24 @@ class VideoSplashScreen extends StatefulWidget {
 class _VideoSplashScreenState extends State<VideoSplashScreen> {
   late VideoPlayerController _controller;
   bool _initialized = false;
+  bool _finished = false;
 
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    _controller = VideoPlayerController.asset('assets/videos/introm.mp4')
-      ..initialize().then((_) {
+    _controller = VideoPlayerController.asset('assets/videos/introm.mp4');
+    _controller.initialize().then((_) {
+      if (mounted) {
         setState(() {
           _initialized = true;
         });
         _controller.play();
-      });
+      }
+    }).catchError((error) {
+      debugPrint('Video player initialization failed: $error');
+      _finish();
+    });
 
     _controller.addListener(_checkVideoStatus);
   }
@@ -39,6 +45,8 @@ class _VideoSplashScreenState extends State<VideoSplashScreen> {
   }
 
   void _finish() {
+    if (_finished) return;
+    _finished = true;
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     widget.onFinished();
   }

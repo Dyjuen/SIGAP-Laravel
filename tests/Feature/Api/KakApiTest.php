@@ -148,6 +148,56 @@ class KakApiTest extends TestCase
         ]);
     }
 
+    public function test_pengusul_can_store_kak_with_all_rab_volumes_and_satuan()
+    {
+        $response = $this->actingAs($this->pengusul, 'sanctum')
+            ->postJson('/api/kak', [
+                'nama_kegiatan' => 'Workshop UI/UX Pemula',
+                'deskripsi_kegiatan' => 'Belajar desain antarmuka mobile and web.',
+                'metode_pelaksanaan' => 'Pelatihan langsung and mentoring online.',
+                'tanggal_mulai' => now()->addDays(1)->toDateString(),
+                'tanggal_selesai' => now()->addDays(4)->toDateString(),
+                'lokasi' => 'Lab Komputer 3',
+                'tipe_kegiatan_id' => 1,
+                'sasaran_utama' => 'Mahasiswa Tingkat Akhir',
+                'manfaat' => [
+                    ['value' => 'Meningkatkan skill UI/UX'],
+                ],
+                'tahapan' => [
+                    ['nama_tahapan' => 'Persiapan Lab and Software'],
+                ],
+                'rab' => [
+                    [
+                        'uraian' => 'Honor Narasumber Utama',
+                        'volume1' => 2,
+                        'satuan1_id' => 1,
+                        'volume2' => 3,
+                        'satuan2_id' => 2,
+                        'volume3' => 4,
+                        'satuan3_id' => 3,
+                        'harga_satuan' => 500000,
+                        'kategori_belanja_id' => 1,
+                    ],
+                ],
+            ]);
+
+        $response->assertStatus(201);
+        $kakId = $response->json('kak_id');
+
+        $this->assertDatabaseHas('t_kak_anggaran', [
+            'kak_id' => $kakId,
+            'uraian' => 'Honor Narasumber Utama',
+            'volume1' => 2.0,
+            'satuan1_id' => 1,
+            'volume2' => 3.0,
+            'satuan2_id' => 2,
+            'volume3' => 4.0,
+            'satuan3_id' => 3,
+            'harga_satuan' => 500000.0,
+            'jumlah_diusulkan' => 2 * 3 * 4 * 500000.0,
+        ]);
+    }
+
     public function test_pengusul_can_submit_kak_to_review()
     {
         $kak = KAK::create([

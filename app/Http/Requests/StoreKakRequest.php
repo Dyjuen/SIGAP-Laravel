@@ -63,6 +63,10 @@ class StoreKakRequest extends FormRequest
                 'rab.*.uraian' => 'required|string|max:255',
                 'rab.*.volume1' => 'required|numeric|min:0',
                 'rab.*.satuan1_id' => 'nullable|integer|exists:m_satuan,satuan_id',
+                'rab.*.volume2' => 'nullable|numeric|min:0',
+                'rab.*.satuan2_id' => 'nullable|integer|exists:m_satuan,satuan_id',
+                'rab.*.volume3' => 'nullable|numeric|min:0',
+                'rab.*.satuan3_id' => 'nullable|integer|exists:m_satuan,satuan_id',
                 'rab.*.harga_satuan' => 'required|numeric|min:0',
                 'rab.*.kategori_belanja_id' => 'required|integer|exists:m_kategori_belanja,kategori_belanja_id',
             ];
@@ -110,6 +114,10 @@ class StoreKakRequest extends FormRequest
             'rab.*.uraian' => 'required|string|max:255',
             'rab.*.volume1' => 'required|numeric|min:0',
             'rab.*.satuan1_id' => 'required|exists:m_satuan,satuan_id',
+            'rab.*.volume2' => 'nullable|numeric|min:0',
+            'rab.*.satuan2_id' => 'nullable|exists:m_satuan,satuan_id',
+            'rab.*.volume3' => 'nullable|numeric|min:0',
+            'rab.*.satuan3_id' => 'nullable|exists:m_satuan,satuan_id',
             'rab.*.harga_satuan' => 'required|numeric|min:0',
             'rab.*.kategori_belanja_id' => 'required|exists:m_kategori_belanja,kategori_belanja_id',
         ];
