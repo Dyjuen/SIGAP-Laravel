@@ -12,5 +12,12 @@ class KegiatanStatus extends Model
 
     protected $guarded = ['status_id'];
 
+    protected $appends = ['id'];
+
     public $timestamps = false;
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 }

@@ -21,5 +21,12 @@ class Iku extends Model
         'nama_iku',
     ];
 
+    protected $appends = ['id'];
+
     public $timestamps = false;
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 }

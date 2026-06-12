@@ -26,4 +26,11 @@ class KategoriBelanja extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected $appends = ['id'];
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 }

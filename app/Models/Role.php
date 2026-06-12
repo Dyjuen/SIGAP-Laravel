@@ -26,7 +26,14 @@ class Role extends Model
 
     protected $guarded = ['role_id'];
 
+    protected $appends = ['id'];
+
     public $timestamps = false;
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 
     public function users()
     {

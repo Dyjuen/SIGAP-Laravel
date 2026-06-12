@@ -20,5 +20,12 @@ class Satuan extends Model
         'nama_satuan',
     ];
 
+    protected $appends = ['id'];
+
     public $timestamps = false;
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 }

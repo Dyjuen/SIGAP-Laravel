@@ -19,5 +19,12 @@ class TipeKegiatan extends Model
         'nama_tipe',
     ];
 
+    protected $appends = ['id'];
+
     public $timestamps = false;
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 }

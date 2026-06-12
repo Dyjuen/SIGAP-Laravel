@@ -23,5 +23,12 @@ class MataAnggaran extends Model
         'total_pagu',
     ];
 
+    protected $appends = ['id'];
+
     public $timestamps = false;
+
+    public function getIdAttribute()
+    {
+        return $this->getKey();
+    }
 }
