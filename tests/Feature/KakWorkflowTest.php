@@ -443,4 +443,31 @@ class KakWorkflowTest extends TestCase
         $kak->refresh();
         $this->assertEquals(1, $kak->status_id);
     }
+
+    public function test_revise_clears_previous_notes_on_subsequent_revisions(): void
+    {
+        $tipeId = 1;
+        $verif = $this->createVerifikator($tipeId);
+        $pengusul = User::factory()->create(['role_id' => 3]);
+        $kak = KAK::factory()->review()->create(['pengusul_user_id' => $pengusul->user_id, 'tipe_kegiatan_id' => $tipeId]);
+
+        $kak->catatan_nama_kegiatan = 'Old Note to Clear';
+        $kak->save();
+
+        $data = [
+            'catatan' => 'New general revision note',
+            'catatan_kak' => [
+                'deskripsi_kegiatan' => 'New Deskripsi Note Only',
+            ],
+        ];
+
+        $response = $this->actingAs($verif)->post(route('kak.revise', $kak->kak_id), $data);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('t_kak', [
+            'kak_id' => $kak->kak_id,
+            'catatan_nama_kegiatan' => null,
+            'catatan_deskripsi_kegiatan' => 'New Deskripsi Note Only',
+        ]);
+    }
 }

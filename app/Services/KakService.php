@@ -50,11 +50,6 @@ class KakService
                 $kakData['tanggal_selesai']
             );
 
-            // clear catatan when editing a Revisi KAK
-            if ($kak->status_id === 5) {
-                $this->clearCatatan($kak);
-            }
-
             $kak->update($kakData);
 
             $this->saveChildren($kak, $data, true);

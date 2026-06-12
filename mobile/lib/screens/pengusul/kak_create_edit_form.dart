@@ -138,7 +138,9 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
   List<TargetIkuItem> targetIkuList = [];
   List<RabItem> rabList = [];
 
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyTab1 = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyTab2 = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKeyTab3 = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -1238,6 +1240,7 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                       ),
                       const SizedBox(height: 10),
                       TextFormField(
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         initialValue: indikatorKinerjaList[index].persentaseTarget
                             ?.toString(),
                         decoration: const InputDecoration(
@@ -1824,17 +1827,24 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
           ),
 
           // ── Form content ─────────────────────────────────────────────────
+          // ── Form content ─────────────────────────────────────────────────
           Expanded(
-            child: Form(
-              key: _formKey,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildKerangkaAcuanKerjaForm(),
-                  _buildIndikatorKinerjaUtamaForm(),
-                  _buildRencanaAnggaranBiayaForm(),
-                ],
-              ),
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                Form(
+                  key: _formKeyTab1,
+                  child: _buildKerangkaAcuanKerjaForm(),
+                ),
+                Form(
+                  key: _formKeyTab2,
+                  child: _buildIndikatorKinerjaUtamaForm(),
+                ),
+                Form(
+                  key: _formKeyTab3,
+                  child: _buildRencanaAnggaranBiayaForm(),
+                ),
+              ],
             ),
           ),
 
@@ -1882,36 +1892,76 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                               ? null
                               : () {
                                   if (isLastTab) {
-                                    if (_formKey.currentState!.validate()) {
-                                      if (manfaatList.isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Minimal harus ada 1 manfaat'),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      if (tahapanList.isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Minimal harus ada 1 tahapan'),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      if (rabList.isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Minimal harus ada 1 item RAB'),
-                                          ),
-                                        );
-                                        return;
-                                      }
-                                      widget.onFormChange(getFormData());
-                                      widget.onSubmit();
+                                    final isTab1Valid = _formKeyTab1.currentState?.validate() ?? true;
+                                    final isTab2Valid = _formKeyTab2.currentState?.validate() ?? true;
+                                    final isTab3Valid = _formKeyTab3.currentState?.validate() ?? true;
+
+                                    if (!isTab1Valid) {
+                                      _tabController.animateTo(0);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Periksa kembali data Kerangka Acuan'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      );
+                                      return;
                                     }
+                                    if (!isTab2Valid) {
+                                      _tabController.animateTo(1);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Periksa kembali data Target IKU'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (!isTab3Valid) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Periksa kembali data Anggaran (RAB)'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    if (manfaatList.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Minimal harus ada 1 manfaat'),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (tahapanList.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Minimal harus ada 1 tahapan'),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (rabList.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Minimal harus ada 1 item RAB'),
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    widget.onFormChange(getFormData());
+                                    widget.onSubmit();
                                   } else {
-                                    _tabController.animateTo(_tabController.index + 1);
+                                    if (_tabController.index == 0) {
+                                      if (_formKeyTab1.currentState?.validate() ?? false) {
+                                        _tabController.animateTo(1);
+                                      }
+                                    } else if (_tabController.index == 1) {
+                                      if (_formKeyTab2.currentState?.validate() ?? false) {
+                                        _tabController.animateTo(2);
+                                      }
+                                    }
                                   }
                                 },
                           style: FilledButton.styleFrom(

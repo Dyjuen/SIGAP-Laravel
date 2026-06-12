@@ -706,13 +706,10 @@ class KakCrudTest extends TestCase
 
     /**
      * Test Case: KAK-FT-034 - CRUD Update: Ubah harga RAB yang punya catatan revisi
+     * Note: Updating a KAK with status 5 (Revisi) now preserves verifikator notes,
+     * so we verify they are kept.
      */
-    /**
-     * Test Case: KAK-FT-034 - CRUD Update: Ubah harga RAB yang punya catatan revisi
-     * Note: Updating a KAK with status 5 (Revisi) now intentionally clears verifikator notes,
-     * so we verify they are cleared.
-     */
-    public function test_kak_update_clears_rab_catatan_verifikator_when_status_is_revisi(): void
+    public function test_kak_update_preserves_rab_catatan_verifikator_when_status_is_revisi(): void
     {
         $user = User::factory()->create(['role_id' => 3]);
         $kak = KAK::factory()->create(['pengusul_user_id' => $user->user_id, 'status_id' => 5]); // Revision
@@ -766,12 +763,12 @@ class KakCrudTest extends TestCase
 
         $this->assertDatabaseHas('t_kak_anggaran', [
             'anggaran_id' => $rab->anggaran_id,
-            'catatan_verifikator' => null,
+            'catatan_verifikator' => 'Please fix price',
         ]);
 
         $this->assertDatabaseHas('t_kak', [
             'kak_id' => $kak->kak_id,
-            'catatan_nama_kegiatan' => null,
+            'catatan_nama_kegiatan' => 'Fix name',
         ]);
     }
 
