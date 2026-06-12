@@ -126,7 +126,7 @@ class AppShellState extends State<AppShell> {
             create: (_) => PpkDashboardProvider(DashboardService(context.read())),
             child: const PpkDashboardScreen(),
           ),
-          const PpkKegiatanListPage(),
+          const PpkKegiatanListPage(isTab: true),
           const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];
@@ -136,7 +136,7 @@ class AppShellState extends State<AppShell> {
             create: (_) => WadirDashboardProvider(DashboardService(context.read())),
             child: const PpkDashboardScreen(),
           ),
-          const PpkKegiatanListPage(),
+          const PpkKegiatanListPage(isTab: true),
           const KegiatanMonitoringPage(isTab: true),
           const ProfilePage(),
         ];

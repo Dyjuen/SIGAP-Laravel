@@ -14,7 +14,8 @@ import '../../utils/download_helper.dart';
 import '../../widgets/pdf_preview_dialog.dart';
 
 class PpkKegiatanListPage extends StatefulWidget {
-  const PpkKegiatanListPage({super.key});
+  final bool isTab;
+  const PpkKegiatanListPage({super.key, this.isTab = false});
 
   @override
   State<PpkKegiatanListPage> createState() => _PpkKegiatanListPageState();
@@ -243,7 +244,7 @@ class _PpkKegiatanListPageState extends State<PpkKegiatanListPage> {
           ),
         ],
       ),
-      bottomNavigationBar: Navigator.of(context).canPop()
+      bottomNavigationBar: (!widget.isTab && Navigator.of(context).canPop())
           ? SigapBottomNavigationBar(
               selectedIndex: 1,
               roleId: Provider.of<AuthProvider>(context, listen: false).user?.roleId ?? 4,

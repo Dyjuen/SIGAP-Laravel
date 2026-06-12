@@ -982,11 +982,11 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                       onPressed: () =>
                                           _launchUrl(suratPengantarUrl),
                                       icon: const Icon(
-                                        Icons.picture_as_pdf_rounded,
+                                        Icons.remove_red_eye_outlined,
                                         size: 18,
                                       ),
                                       label: Text(
-                                        'Buka Surat Pengantar (PDF)',
+                                        'Preview',
                                         style: GoogleFonts.figtree(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -1007,38 +1007,41 @@ class _KegiatanDetailPageState extends State<KegiatanDetailPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                Container(
-                                  height: 48,
-                                  width: 48,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: const Color(0xFF33C8DA),
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.copy_rounded,
-                                      color: Color(0xFF33C8DA),
-                                      size: 18,
-                                    ),
-                                    onPressed: () {
-                                      Clipboard.setData(
-                                        ClipboardData(
-                                          text: suratPengantarUrl ?? '',
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 48,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {
+                                        final downloadUrl = suratPengantarUrl.contains('?')
+                                            ? '$suratPengantarUrl&download='
+                                            : '$suratPengantarUrl?download=';
+                                        _launchUrl(downloadUrl);
+                                      },
+                                      icon: const Icon(
+                                        Icons.download_outlined,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        'Unduh PDF',
+                                        style: GoogleFonts.figtree(
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      );
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Tautan berhasil disalin ke papan klip!',
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: const BorderSide(
+                                          color: Color(0xFF33C8DA),
+                                        ),
+                                        foregroundColor: const Color(
+                                          0xFF33C8DA,
+                                        ),
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                          backgroundColor: Color(0xFF2E7D32),
                                         ),
-                                      );
-                                    },
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],

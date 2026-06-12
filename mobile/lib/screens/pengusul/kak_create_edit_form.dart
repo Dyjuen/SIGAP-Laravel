@@ -1255,7 +1255,10 @@ class KakCreateEditFormState extends State<KakCreateEditForm> with SingleTickerP
                           if (v == null || v.isEmpty) {
                             return 'Persentase target wajib diisi';
                           }
-                          if (double.tryParse(v) == null) return 'Harus angka';
+                          final parsed = double.tryParse(v);
+                          if (parsed == null) return 'Harus angka';
+                          if (parsed > 100) return 'Persentase maksimal 100%';
+                          if (parsed < 0) return 'Persentase minimal 0%';
                           return null;
                         },
                       ),
