@@ -29,11 +29,11 @@ class LpjService
      * @throws LpjException
      * @throws Exception
      */
-    public function submit(Kegiatan $kegiatan, array $realisasi, ?array $buktiFiles, array $spkInputs, User $actor): void
+    public function submit(Kegiatan $kegiatan, array $realisasi, ?array $buktiFiles, array $spkInputs, array $ikuScores, User $actor): void
     {
         $uploadedFiles = [];
         try {
-            DB::transaction(function () use ($kegiatan, $realisasi, $buktiFiles, $spkInputs, $actor, &$uploadedFiles) {
+            DB::transaction(function () use ($kegiatan, $realisasi, $buktiFiles, $spkInputs, $ikuScores, $actor, &$uploadedFiles) {
                 // Pessimistic lock to prevent double submission
                 $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
 
@@ -98,10 +98,14 @@ class LpjService
                     'realisasi_tgl_mulai' => $spkInputs['realisasi_tgl_mulai'] ?? null,
                     'realisasi_tgl_selesai' => $spkInputs['realisasi_tgl_selesai'] ?? null,
                     'spk_kesesuaian_waktu' => $this->calculateWaktuScore($kegiatan, $spkInputs['realisasi_tgl_mulai'] ?? null, $spkInputs['realisasi_tgl_selesai'] ?? null),
-                    'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? null,
+                    // 'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? null, // Removed
                     'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
                     'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
                 ]);
+
+                // Update IKU scores and calculate average for spk_kesesuaian_output
+                $this->updateIkuScoresAndCalculateAverage($kegiatan, $ikuScores);
+
                 $kak->update(['status_id' => $newStatus]);
 
                 // 4. Activate Approval
@@ -137,11 +141,11 @@ class LpjService
      * @throws LpjException
      * @throws Exception
      */
-    public function resubmit(Kegiatan $kegiatan, ?array $realisasi, ?array $buktiFiles, ?array $filesToDelete, array $spkInputs, User $actor): void
+    public function resubmit(Kegiatan $kegiatan, ?array $realisasi, ?array $buktiFiles, ?array $filesToDelete, array $spkInputs, array $ikuScores, User $actor): void
     {
         $uploadedFiles = [];
         try {
-            DB::transaction(function () use ($kegiatan, $realisasi, $buktiFiles, $filesToDelete, $spkInputs, $actor, &$uploadedFiles) {
+            DB::transaction(function () use ($kegiatan, $realisasi, $buktiFiles, $filesToDelete, $spkInputs, $ikuScores, $actor, &$uploadedFiles) {
                 $kegiatan = Kegiatan::where('kegiatan_id', $kegiatan->kegiatan_id)->lockForUpdate()->first();
 
                 // 0. State Guard: Only allow resubmit if there is a 'Revisi' status for Bendahara-LPJ
@@ -218,10 +222,13 @@ class LpjService
                     'realisasi_tgl_mulai' => $spkInputs['realisasi_tgl_mulai'] ?? $kegiatan->realisasi_tgl_mulai,
                     'realisasi_tgl_selesai' => $spkInputs['realisasi_tgl_selesai'] ?? $kegiatan->realisasi_tgl_selesai,
                     'spk_kesesuaian_waktu' => $this->calculateWaktuScore($kegiatan, $spkInputs['realisasi_tgl_mulai'] ?? $kegiatan->realisasi_tgl_mulai, $spkInputs['realisasi_tgl_selesai'] ?? $kegiatan->realisasi_tgl_selesai),
-                    'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? $kegiatan->spk_kesesuaian_output,
+                    // 'spk_kesesuaian_output' => $spkInputs['spk_kesesuaian_output'] ?? $kegiatan->spk_kesesuaian_output, // Removed
                     'spk_ketepatan_anggaran' => $spkScores['spk_ketepatan_anggaran'],
                     'spk_ketepatan_lpj' => $spkScores['spk_ketepatan_lpj'],
                 ]);
+
+                // Update IKU scores and calculate average for spk_kesesuaian_output
+                $this->updateIkuScoresAndCalculateAverage($kegiatan, $ikuScores);
                 $kak->update(['status_id' => $newStatus]);
 
                 $approval->update([
@@ -602,4 +609,45 @@ class LpjService
 
         return 'Draft';
     }
+
+    /**
+     * Updates t_kak_iku scores and calculates the average spk_kesesuaian_output for the Kegiatan.
+     *
+     * @param Kegiatan $kegiatan The kegiatan model.
+     * @param array $ikuScores Array of ['kak_iku_id' => int, 'score' => int].
+     * @return void
+     * @throws Exception
+     */
+    private function updateIkuScoresAndCalculateAverage(Kegiatan $kegiatan, array $ikuScores): void
+    {
+        // 1. Update individual KAK IKU scores
+        $totalScore = 0;
+        $ikuCount = 0;
+
+        foreach ($ikuScores as $ikuScore) {
+            \Illuminate\Support\Facades\Log::info('Debug IkuScore', ['ikuScore' => $ikuScore]);
+            
+            // Check if this IKU belongs to the current KAK (using DB to avoid composite PK issues)
+            $kakIku = \Illuminate\Support\Facades\DB::table('t_kak_iku')
+                ->where('kak_id', $ikuScore['kak_id'])
+                ->where('iku_id', $ikuScore['iku_id'])
+                ->first();
+
+            if ($kakIku && (int)$kakIku->kak_id === (int)$kegiatan->kak_id) {
+                \Illuminate\Support\Facades\DB::table('t_kak_iku')
+                    ->where('kak_id', $ikuScore['kak_id'])
+                    ->where('iku_id', $ikuScore['iku_id'])
+                    ->update(['spk_kesesuaian_output_score' => $ikuScore['score']]);
+                
+                $totalScore += $ikuScore['score'];
+                $ikuCount++;
+            }
+        }
+
+        // 2. Calculate average and update kegiatan's spk_kesesuaian_output
+        $averageScore = $ikuCount > 0 ? round($totalScore / $ikuCount) : 0;
+
+        $kegiatan->update(['spk_kesesuaian_output' => $averageScore]);
+    }
+
 }

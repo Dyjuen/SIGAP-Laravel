@@ -53,7 +53,10 @@ class SubmitLpjRequest extends FormRequest
             'bukti.*.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
             'realisasi_tgl_mulai' => ['required', 'date'],
             'realisasi_tgl_selesai' => ['required', 'date', 'after_or_equal:realisasi_tgl_mulai'],
-            'spk_kesesuaian_output' => ['required', 'integer', "in:{$config->output_min},{$config->output_max}"],
+            'ikuScores' => ['required', 'array', 'min:1'],
+            'ikuScores.*.kak_id' => ['required', 'integer', 'exists:t_kak_iku,kak_id'],
+            'ikuScores.*.iku_id' => ['required', 'integer', 'exists:t_kak_iku,iku_id'],
+            'ikuScores.*.score' => ['required', 'integer', 'in:0,100'],
         ];
     }
 
@@ -72,6 +75,17 @@ class SubmitLpjRequest extends FormRequest
             'between' => ':attribute harus bernilai antara :min dan :max.',
             'in' => ':attribute harus bernilai :values.',
             'after_or_equal' => ':attribute harus sama dengan atau setelah :date.',
+            'ikuScores.required' => 'Penilaian kesesuaian IKU wajib diisi.',
+            'ikuScores.min' => 'Penilaian kesesuaian IKU tidak boleh kosong.',
+            'ikuScores.*.kak_id.required' => 'ID KAK wajib diisi.',
+            'ikuScores.*.kak_id.integer' => 'ID KAK harus berupa angka.',
+            'ikuScores.*.kak_id.exists' => 'ID KAK tidak valid.',
+            'ikuScores.*.iku_id.required' => 'ID IKU wajib diisi.',
+            'ikuScores.*.iku_id.integer' => 'ID IKU harus berupa angka.',
+            'ikuScores.*.iku_id.exists' => 'ID IKU tidak valid.',
+            'ikuScores.*.score.required' => 'Skor kesesuaian IKU wajib diisi.',
+            'ikuScores.*.score.integer' => 'Skor kesesuaian IKU harus berupa angka.',
+            'ikuScores.*.score.in' => 'Skor kesesuaian IKU harus 0 atau 100.',
         ];
     }
 
@@ -88,7 +102,10 @@ class SubmitLpjRequest extends FormRequest
             'bukti.*.*' => 'Bukti Dokumen',
             'realisasi_tgl_mulai' => 'Tanggal Mulai Realisasi',
             'realisasi_tgl_selesai' => 'Tanggal Selesai Realisasi',
-            'spk_kesesuaian_output' => 'Kesesuaian Output (IKU)',
+            'ikuScores' => 'Penilaian Kesesuaian IKU',
+            'ikuScores.*.kak_id' => 'ID KAK',
+            'ikuScores.*.iku_id' => 'ID IKU',
+            'ikuScores.*.score' => 'Skor Kesesuaian IKU',
         ];
     }
 }

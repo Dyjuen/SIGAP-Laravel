@@ -62,7 +62,13 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
         anggaran_comments: [], // { id: anggaran_id, catatan_reviewer: string }
         realisasi_tgl_mulai: kegiatan.realisasi_tgl_mulai ?? null,
         realisasi_tgl_selesai: kegiatan.realisasi_tgl_selesai ?? null,
-        spk_kesesuaian_output: kegiatan.spk_kesesuaian_output ?? '',
+        ikuScores: kegiatan.kak?.ikus?.map(ikuItem => ({
+            id: `${ikuItem.kak_id}-${ikuItem.iku_id}`, // Unique identifier
+            kak_id: ikuItem.kak_id,
+            iku_id: ikuItem.iku_id,
+            score: ikuItem.spk_kesesuaian_output_score ?? 100 // Default to 100 if not set
+        })) || [],
+
     });
 
     const [activeTab, setActiveTab] = useState(0); // 0: Form, 1: Review/Riwayat
@@ -324,6 +330,14 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
         const v3 = parseFloat(item.volume3) || 1;
         const price = parseFloat(item.harga_satuan) || 0;
         return v1 * v2 * v3 * price;
+    };
+
+    const handleIkuCheckboxChange = (uniqueIkuId, isChecked) => {
+        setData('ikuScores', data.ikuScores.map(item =>
+            item.id === uniqueIkuId
+                ? { ...item, score: isChecked ? 100 : 0 }
+                : item
+        ));
     };
 
     return (
@@ -738,23 +752,36 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                                                         </div>
                                                     )}
 
-                                                    <CustomSelect
-                                                        value={data.spk_kesesuaian_output}
-                                                        onChange={val => setData('spk_kesesuaian_output', val)}
-                                                        options={[
-                                                            { label: `${config.output_min} - Output Tidak Sesuai IKU`, value: config.output_min },
-                                                            { label: `${config.output_max} - Output Sesuai IKU`, value: config.output_max }
-                                                        ]}
-                                                        placeholder="- Pilih Kesesuaian IKU -"
-                                                        disabled={!isEditingPengusul}
-                                                    />
+                                                    {kegiatan.kak?.ikus?.length > 0 && (
+                                                        <div className="space-y-2">
+                                                            {kegiatan.kak.ikus.map((ikuItem) => {
+                                                                const uniqueIkuId = `${ikuItem.kak_id}-${ikuItem.iku_id}`;
+                                                                return (
+                                                                    <div key={uniqueIkuId} className="flex items-center space-x-2 p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            id={`iku-${uniqueIkuId}`}
+                                                                            name={`iku-${uniqueIkuId}`}
+                                                                            checked={data.ikuScores.find(scoreItem => scoreItem.id === uniqueIkuId)?.score === 100}
+                                                                            onChange={(e) => handleIkuCheckboxChange(uniqueIkuId, e.target.checked)}
+                                                                            disabled={!isEditingPengusul}
+                                                                            className="rounded border-gray-300 text-cyan-600 shadow-sm focus:ring-cyan-500"
+                                                                        />
+                                                                        <label htmlFor={`iku-${uniqueIkuId}`} className="text-sm font-medium text-gray-700">
+                                                                            IKU: {ikuItem.iku?.nama_iku} (Target: {ikuItem.target} {ikuItem.satuan?.nama_satuan})
+                                                                        </label>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] text-slate-400 font-medium leading-normal mt-2">
-                                                        Hanya boleh bernilai {config.output_min} (tidak sesuai) atau {config.output_max} (sesuai indikator IKU KAK) (Bobot: {config.weight_output}%).
+                                                        Centang untuk menandakan IKU sesuai (skor 100) dan kosongkan jika tidak sesuai (skor 0). Rata-rata dari skor ini akan menjadi nilai Kesesuaian Output (IKU) keseluruhan (Bobot: {config.weight_output}%).
                                                     </p>
-                                                    {errors.spk_kesesuaian_output && (
-                                                        <p className="text-xs text-red-500 font-bold">{errors.spk_kesesuaian_output}</p>
+                                                    {errors.ikuScores && (
+                                                        <p className="text-xs text-red-500 font-bold">{errors.ikuScores}</p>
                                                     )}
                                                 </div>
                                             </div>

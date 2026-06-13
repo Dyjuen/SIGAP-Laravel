@@ -61,7 +61,6 @@ class LpjController extends Controller
             $spkInputs = [
                 'realisasi_tgl_mulai' => $request->realisasi_tgl_mulai,
                 'realisasi_tgl_selesai' => $request->realisasi_tgl_selesai,
-                'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
             ];
 
             $this->lpjService->submit(
@@ -69,6 +68,7 @@ class LpjController extends Controller
                 $request->realisasi ?? [],
                 $request->file('bukti'),
                 $spkInputs,
+                $request->ikuScores,
                 $request->user()
             );
 
@@ -155,7 +155,6 @@ class LpjController extends Controller
             $spkInputs = [
                 'realisasi_tgl_mulai' => $request->realisasi_tgl_mulai,
                 'realisasi_tgl_selesai' => $request->realisasi_tgl_selesai,
-                'spk_kesesuaian_output' => $request->spk_kesesuaian_output,
             ];
 
             $this->lpjService->resubmit(
@@ -164,6 +163,7 @@ class LpjController extends Controller
                 $request->file('bukti'),
                 $request->files_to_delete,
                 $spkInputs,
+                $request->ikuScores,
                 $request->user()
             );
 
