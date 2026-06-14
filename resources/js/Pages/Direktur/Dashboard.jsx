@@ -1667,27 +1667,28 @@ export default function Dashboard({ dashboardData }) {
                             </div>
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 {videos.map((vid, i) => {
-                                      let embedUrl = getEmbedUrl(vid.url);
-                                      // Add origin parameter for YouTube API client identification (fixes Error 153)
-                                      let origin = '';
-                                      if (embedUrl && embedUrl.includes('youtube.com/embed/')) {
-                                          origin = window.location.origin;
-                                          embedUrl = embedUrl.includes('?') 
-                                              ? `${embedUrl}&origin=${origin}` 
-                                              : `${embedUrl}?origin=${origin}`;
-                                      }
+                                       let embedUrl = getEmbedUrl(vid.url);
+                                       // Add origin parameter and enablejsapi for YouTube API client identification (fixes Error 153)
+                                       let origin = '';
+                                       if (embedUrl && embedUrl.includes('youtube.com/embed/')) {
+                                           origin = window.location.origin;
+                                           embedUrl = embedUrl.includes('?') 
+                                               ? `${embedUrl}&origin=${origin}&enablejsapi=1` 
+                                               : `${embedUrl}?origin=${origin}&enablejsapi=1`;
+                                       }
 
                                     return (
                                         <div key={i} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                                            <iframe
-                                                width="100%"
-                                                height="200"
-                                                src={embedUrl}
-                                                title={vid.title}
-                                                frameBorder="0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowFullScreen
-                                            ></iframe>
+                                              <iframe
+                                                  width="100%"
+                                                  height="200"
+                                                  src={embedUrl}
+                                                  title={vid.title}
+                                                  frameBorder="0"
+                                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                  allowFullScreen
+                                                  referrerPolicy="strict-origin-when-cross-origin"
+                                              ></iframe>
                                             <div className="p-4 font-semibold text-slate-800 text-sm">{vid.title}</div>
                                         </div>
                                     );
