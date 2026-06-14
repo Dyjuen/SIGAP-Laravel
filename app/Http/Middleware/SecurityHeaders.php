@@ -26,13 +26,24 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         
-        // Content Security Policy - updated to allow YouTube embeds
+        // Content Security Policy - updated to allow YouTube embeds and local Vite dev server
         $csp = "default-src 'self'; ";
-        $csp .= "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: https://www.youtube.com https://s.ytimg.com https://www.google.com https://apis.google.com; ";
-        $csp .= "style-src 'self' 'unsafe-inline' https: https://fonts.googleapis.com https://www.youtube.com; ";
+        
+        $scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' https: https://www.youtube.com https://s.ytimg.com https://www.google.com https://apis.google.com";
+        $styleSrc = "'self' 'unsafe-inline' https: https://fonts.googleapis.com https://www.youtube.com";
+        $connectSrc = "'self' https: https://www.youtube.com https://s.ytimg.com https://www.google.com";
+        
+        if (app()->environment('local')) {
+            $scriptSrc .= " http://localhost:5173 http://127.0.0.1:5173";
+            $styleSrc .= " http://localhost:5173 http://127.0.0.1:5173";
+            $connectSrc .= " http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173";
+        }
+
+        $csp .= "script-src $scriptSrc; ";
+        $csp .= "style-src $styleSrc; ";
         $csp .= "img-src 'self' data: https: https://i.ytimg.com https://www.youtube.com https://s.ytimg.com; ";
         $csp .= "font-src 'self' https: https://fonts.gstatic.com https://www.youtube.com; ";
-        $csp .= "connect-src 'self' https: https://www.youtube.com https://s.ytimg.com https://www.google.com; ";
+        $csp .= "connect-src $connectSrc; ";
         // Allow framing content from YouTube domains in iframes
         $csp .= "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtu.be https://youtu.be; ";
         // For broader compatibility with older CSP implementations

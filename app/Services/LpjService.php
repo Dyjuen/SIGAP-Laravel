@@ -476,7 +476,7 @@ class LpjService
     /**
      * Calculate SPK kesesuaian waktu score from date diff vs KAK original dates.
      */
-    private function calculateWaktuScore(Kegiatan $kegiatan, $realisasiMulaiStr, $realisasiSelesaiStr): ?int
+    public function calculateWaktuScore(Kegiatan $kegiatan, $realisasiMulaiStr, $realisasiSelesaiStr): ?int
     {
         if (empty($realisasiMulaiStr) || empty($realisasiSelesaiStr)) {
             return null;
@@ -492,9 +492,12 @@ class LpjService
         $realisasiMulai = Carbon::parse($realisasiMulaiStr);
         $realisasiSelesai = Carbon::parse($realisasiSelesaiStr);
 
-        $diffStart = abs($realisasiMulai->diffInDays($kakMulai));
-        $diffEnd = abs($realisasiSelesai->diffInDays($kakSelesai));
-        $totalDiff = $diffStart + $diffEnd;
+        // Normalize to date string to avoid timezone shifts during diffInDays.
+        // We add 12 hours to realisasi dates to handle potential UTC shifts from 
+        // Indonesian timezones (UTC+7 to UTC+9) commonly sent by frontend datepickers.
+        $diffStart = abs(Carbon::parse($realisasiMulai->addHours(12)->toDateString())->diffInDays(Carbon::parse($kakMulai->toDateString())));
+        $diffEnd = abs(Carbon::parse($realisasiSelesai->addHours(12)->toDateString())->diffInDays(Carbon::parse($kakSelesai->toDateString())));
+        $totalDiff = (int) ($diffStart + $diffEnd);
 
         return (int) max($config->waktu_min, min($config->waktu_max, $config->waktu_max - $totalDiff));
     }
