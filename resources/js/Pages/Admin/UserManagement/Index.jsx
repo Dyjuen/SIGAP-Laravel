@@ -43,7 +43,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
     const [editingUser, setEditingUser] = useState(null);
 
     // Form Hooks
-    const { data: addData, setData: setAddData, post: postAdd, transform: transformAdd, processing: processingAdd, errors: errorsAdd, reset: resetAdd, clearErrors: clearErrorsAdd } = useForm({
+    const { data: addData, setData: setAddData, post: postAdd, transform: transformAdd, processing: processingAdd, errors: errorsAdd, setError: setErrorAdd, reset: resetAdd, clearErrors: clearErrorsAdd } = useForm({
         nama_lengkap: '',
         username: '',
         email: '',
@@ -52,7 +52,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
         password_confirmation: '',
     });
 
-    const { data: editData, setData: setEditData, put: putEdit, transform: transformEdit, processing: processingEdit, errors: errorsEdit, reset: resetEdit, clearErrors: clearErrorsEdit } = useForm({
+    const { data: editData, setData: setEditData, put: putEdit, transform: transformEdit, processing: processingEdit, errors: errorsEdit, setError: setErrorEdit, reset: resetEdit, clearErrors: clearErrorsEdit } = useForm({
         nama_lengkap: '',
         email: '',
         role_id: '',
@@ -90,10 +90,128 @@ export default function UserManagementIndex({ auth, users, roles }) {
     const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
+    const validateAddForm = () => {
+        clearErrorsAdd();
+        const newErrors = {};
+
+        if (!addData.nama_lengkap.trim()) {
+            newErrors.nama_lengkap = 'Nama lengkap harus diisi.';
+        } else if (addData.nama_lengkap.trim().length < 3) {
+            newErrors.nama_lengkap = 'Nama lengkap minimal 3 karakter.';
+        } else if (addData.nama_lengkap.length > 100) {
+            newErrors.nama_lengkap = 'Nama lengkap maksimal 100 karakter.';
+        }
+
+        if (!addData.username.trim()) {
+            newErrors.username = 'Username harus diisi.';
+        } else if (addData.username.trim().length < 3) {
+            newErrors.username = 'Username minimal 3 karakter.';
+        } else if (addData.username.length > 50) {
+            newErrors.username = 'Username maksimal 50 karakter.';
+        } else if (!/^[a-zA-Z0-9]+$/.test(addData.username)) {
+            newErrors.username = 'Username hanya boleh berisi huruf dan angka.';
+        }
+
+        if (!addData.role_id) {
+            newErrors.role_id = 'Peran harus dipilih.';
+        }
+
+        if (!addData.email.trim()) {
+            newErrors.email = 'Email harus diisi.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addData.email)) {
+            newErrors.email = 'Format email tidak valid.';
+        } else if (addData.email.length > 100) {
+            newErrors.email = 'Email maksimal 100 karakter.';
+        }
+
+        if (!addData.password) {
+            newErrors.password = 'Password harus diisi.';
+        } else {
+            if (addData.password.length < 8) {
+                newErrors.password = 'Password minimal 8 karakter.';
+            } else if (addData.password.length > 100) {
+                newErrors.password = 'Password maksimal 100 karakter.';
+            } else if (!/[A-Z]/.test(addData.password) || !/[a-z]/.test(addData.password)) {
+                newErrors.password = 'Password harus mengandung huruf besar dan huruf kecil.';
+            } else if (!/[0-9]/.test(addData.password)) {
+                newErrors.password = 'Password harus mengandung minimal satu angka.';
+            } else if (!/[^A-Za-z0-9]/.test(addData.password)) {
+                newErrors.password = 'Password harus mengandung minimal satu simbol/karakter khusus.';
+            }
+        }
+
+        if (!addData.password_confirmation) {
+            newErrors.password_confirmation = 'Konfirmasi password harus diisi.';
+        } else if (addData.password !== addData.password_confirmation) {
+            newErrors.password_confirmation = 'Konfirmasi password tidak sesuai.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrorAdd(newErrors);
+            return false;
+        }
+        return true;
+    };
+
+    const validateEditForm = () => {
+        clearErrorsEdit();
+        const newErrors = {};
+
+        if (!editData.nama_lengkap.trim()) {
+            newErrors.nama_lengkap = 'Nama lengkap harus diisi.';
+        } else if (editData.nama_lengkap.trim().length < 3) {
+            newErrors.nama_lengkap = 'Nama lengkap minimal 3 karakter.';
+        } else if (editData.nama_lengkap.length > 100) {
+            newErrors.nama_lengkap = 'Nama lengkap maksimal 100 karakter.';
+        }
+
+        if (!editData.email.trim()) {
+            newErrors.email = 'Email harus diisi.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editData.email)) {
+            newErrors.email = 'Format email tidak valid.';
+        } else if (editData.email.length > 100) {
+            newErrors.email = 'Email maksimal 100 karakter.';
+        }
+
+        if (!editData.role_id) {
+            newErrors.role_id = 'Peran harus dipilih.';
+        }
+
+        if (editData.new_password) {
+            if (editData.new_password.length < 8) {
+                newErrors.new_password = 'Password baru minimal 8 karakter.';
+            } else if (editData.new_password.length > 100) {
+                newErrors.new_password = 'Password baru maksimal 100 karakter.';
+            } else if (!/[A-Z]/.test(editData.new_password) || !/[a-z]/.test(editData.new_password)) {
+                newErrors.new_password = 'Password baru harus mengandung huruf besar dan huruf kecil.';
+            } else if (!/[0-9]/.test(editData.new_password)) {
+                newErrors.new_password = 'Password baru harus mengandung minimal satu angka.';
+            } else if (!/[^A-Za-z0-9]/.test(editData.new_password)) {
+                newErrors.new_password = 'Password baru harus mengandung minimal satu simbol/karakter khusus.';
+            }
+
+            if (!editData.new_password_confirmation) {
+                newErrors.new_password_confirmation = 'Konfirmasi password baru harus diisi.';
+            } else if (editData.new_password !== editData.new_password_confirmation) {
+                newErrors.new_password_confirmation = 'Konfirmasi password baru tidak sesuai.';
+            }
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrorEdit(newErrors);
+            return false;
+        }
+        return true;
+    };
+
     // Handlers
     const handleAddSubmit = (e) => {
         e.preventDefault();
         
+        if (!validateAddForm()) {
+            return;
+        }
+
         postAdd(route('admin.users.store'), {
             onSuccess: () => {
                 setShowAddModal(false);
@@ -125,6 +243,10 @@ export default function UserManagementIndex({ auth, users, roles }) {
     const handleEditSubmit = (e) => {
         e.preventDefault();
         
+        if (!validateEditForm()) {
+            return;
+        }
+
         putEdit(route('admin.users.update', editingUser.user_id), {
             onSuccess: () => {
                 if (editData.new_password) {
@@ -495,6 +617,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                             {showAddPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                                         </button>
                                     </div>
+                                    {errorsAdd.password_confirmation && <p className="mt-1 text-xs text-red-500">{errorsAdd.password_confirmation}</p>}
                                 </div>
 
                                 <div className="mt-6 flex justify-end gap-3">
@@ -640,6 +763,7 @@ export default function UserManagementIndex({ auth, users, roles }) {
                                                     {showEditPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                                                 </button>
                                             </div>
+                                            {errorsEdit.new_password_confirmation && <p className="mt-1 text-xs text-red-500">{errorsEdit.new_password_confirmation}</p>}
                                         </div>
                                     </div>
                                 </div>

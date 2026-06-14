@@ -76,8 +76,8 @@ class AccountTest extends TestCase
             'nama_lengkap' => 'New User',
             'username' => 'newuser',
             'email' => 'newuser@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'P@ssword123!',
+            'password_confirmation' => 'P@ssword123!',
             'role_ids' => [3],
         ];
 
@@ -130,8 +130,8 @@ class AccountTest extends TestCase
         ]);
 
         $passwordData = [
-            'new_password' => 'newpassword',
-            'new_password_confirmation' => 'newpassword',
+            'new_password' => 'NewP@ssword123!',
+            'new_password_confirmation' => 'NewP@ssword123!',
         ];
 
         $response = $this->actingAs($admin)
@@ -140,7 +140,7 @@ class AccountTest extends TestCase
         $response->assertRedirect();
 
         $user->refresh();
-        $this->assertTrue(Hash::check('newpassword', $user->password_hash));
+        $this->assertTrue(Hash::check('NewP@ssword123!', $user->password_hash));
     }
 
     /**
@@ -156,8 +156,8 @@ class AccountTest extends TestCase
                 'nama_lengkap' => 'Test User 01',
                 'username' => 'testuser01',
                 'email' => 'test01@example.com',
-                'password' => 'password123',
-                'password_confirmation' => 'password123',
+                'password' => 'P@ssword123!',
+                'password_confirmation' => 'P@ssword123!',
                 'role_ids' => [3],
             ]);
 
@@ -167,7 +167,7 @@ class AccountTest extends TestCase
         // Login as new user
         $response = $this->post('/login', [
             'username' => 'testuser01',
-            'password' => 'password123',
+            'password' => 'P@ssword123!',
         ]);
 
         $this->assertAuthenticated();
@@ -206,7 +206,7 @@ class AccountTest extends TestCase
         $admin = User::factory()->create(['role_id' => 1]);
         $user = User::factory()->create([
             'username' => 'testuser01',
-            'password_hash' => Hash::make('password123'),
+            'password_hash' => Hash::make('P@ssword123!'),
         ]);
 
         // Admin deletes user
@@ -218,7 +218,7 @@ class AccountTest extends TestCase
         // Attempt login with deleted user
         $response = $this->post('/login', [
             'username' => 'testuser01',
-            'password' => 'password123',
+            'password' => 'P@ssword123!',
         ]);
 
         $this->assertGuest();

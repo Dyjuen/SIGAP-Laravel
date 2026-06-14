@@ -59,8 +59,8 @@ class AdminApiExtendedTest extends TestCase
             'Authorization' => 'Bearer '.$token,
             'Accept' => 'application/json',
         ])->putJson('/api/admin/users/'.$targetUser->user_id.'/change-password', [
-            'new_password' => 'supersecretpass',
-            'new_password_confirmation' => 'supersecretpass',
+            'new_password' => 'SuperP@ssword123!',
+            'new_password_confirmation' => 'SuperP@ssword123!',
         ]);
 
         $response->assertStatus(200);
@@ -154,8 +154,8 @@ class AdminApiExtendedTest extends TestCase
             'username' => 'newuser',
             'nama_lengkap' => 'New User',
             'email' => 'newuser@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'P@ssword123!',
+            'password_confirmation' => 'P@ssword123!',
             'role_ids' => [3],
         ]);
 
@@ -223,8 +223,8 @@ class AdminApiExtendedTest extends TestCase
             'username' => 'hackuser',
             'nama_lengkap' => 'Hack User',
             'email' => 'hack@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'P@ssword123!',
+            'password_confirmation' => 'P@ssword123!',
             'role_ids' => [3],
         ])->assertStatus(403);
 
@@ -248,8 +248,8 @@ class AdminApiExtendedTest extends TestCase
             'username' => 'test space',
             'nama_lengkap' => 'Test User',
             'email' => 'test@gmail.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'P@ssword123!',
+            'password_confirmation' => 'P@ssword123!',
             'role_ids' => [3],
         ]);
         $response->assertStatus(422);
@@ -263,8 +263,8 @@ class AdminApiExtendedTest extends TestCase
             'username' => 'testuser',
             'nama_lengkap' => 'Test User',
             'email' => 'invalid-email',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'P@ssword123!',
+            'password_confirmation' => 'P@ssword123!',
             'role_ids' => [3],
         ]);
         $response->assertStatus(422);
@@ -278,8 +278,8 @@ class AdminApiExtendedTest extends TestCase
             'username' => 'testuser',
             'nama_lengkap' => 'Test User',
             'email' => 'test@gmail.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'P@ssword123!',
+            'password_confirmation' => 'P@ssword123!',
             'role_ids' => [],
         ]);
         $response->assertStatus(422);
