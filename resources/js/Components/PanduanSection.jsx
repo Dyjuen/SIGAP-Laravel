@@ -58,28 +58,31 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
                         <p className="text-sm text-slate-400 mt-1">Tutorial visual penggunaan sistem SIGAP</p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-{displayVideos.map((video) => (
-                             <div key={video.id} className="group space-y-3 cursor-pointer">
-                                 <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 shadow-md group-hover:shadow-[0_8px_20px_rgba(6,81,237,0.15)] transition-all duration-300 group-hover:-translate-y-1">
-                                     {/* Get embed URL and add origin parameter for YouTube API client identification (fixes Error 153) */}
-                                     let embedUrl = getEmbedUrl(video.path);
-                                     if (embedUrl && embedUrl.includes('youtube.com/embed/')) {
-                                         const origin = window.location.origin;
-                                         embedUrl = embedUrl.includes('?') 
-                                             ? `${embedUrl}&origin=${origin}` 
-                                             : `${embedUrl}?origin=${origin}`;
-                                     }
-                                     <iframe
-                                         src={embedUrl}
-                                         title={video.judul}
-                                         frameBorder="0"
-                                         allowFullScreen
-                                         className="absolute inset-0 w-full h-full opacity-90 group-hover:opacity-100 transition-opacity"
-                                     />
+{displayVideos.map((video) => {
+                             // Get embed URL and add origin parameter for YouTube API client identification (fixes Error 153)
+                             let embedUrl = getEmbedUrl(video.path);
+                             let origin = '';
+                             if (embedUrl && embedUrl.includes('youtube.com/embed/')) {
+                                 origin = window.location.origin;
+                                 embedUrl = embedUrl.includes('?') 
+                                     ? `${embedUrl}&origin=${origin}` 
+                                     : `${embedUrl}?origin=${origin}`;
+                             }
+                             return (
+                                 <div key={video.id} className="group space-y-3 cursor-pointer">
+                                     <div className="relative rounded-2xl overflow-hidden aspect-video bg-slate-900 shadow-md group-hover:shadow-[0_8px_20px_rgba(6,81,237,0.15)] transition-all duration-300 group-hover:-translate-y-1">
+                                         <iframe
+                                             src={embedUrl}
+                                             title={video.judul}
+                                             frameBorder="0"
+                                             allowFullScreen
+                                             className="absolute inset-0 w-full h-full opacity-90 group-hover:opacity-100 transition-opacity"
+                                         />
+                                     </div>
+                                     <h4 className="font-bold text-slate-700 px-1 line-clamp-2 text-sm leading-tight group-hover:text-cyan-600 transition-colors">{video.judul}</h4>
                                  </div>
-                                 <h4 className="font-bold text-slate-700 px-1 line-clamp-2 text-sm leading-tight group-hover:text-cyan-600 transition-colors">{video.judul}</h4>
-                             </div>
-                         ))}
+                             );
+                         })}
                     </div>
                 </div>
             )}

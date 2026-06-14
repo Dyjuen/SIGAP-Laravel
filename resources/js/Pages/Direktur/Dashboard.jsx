@@ -78,6 +78,18 @@ const formatMoneyShort = (amount) => {
     return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(amount);
 };
 
+const getEmbedUrl = (url) => {
+    if (!url) return null;
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let videoId = '';
+        if (url.includes('watch?v=')) videoId = url.split('watch?v=')[1]?.split('&')[0];
+        else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
+        else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+    }
+    return url;
+};
+
 export default function Dashboard({ dashboardData }) {
     const { overview, by_jurusan, trends, recent_activities, videos, period, topsis_activities, spk_config } = dashboardData;
 
@@ -1653,29 +1665,17 @@ export default function Dashboard({ dashboardData }) {
                                 </div>
                                 <div className="h-0.5 flex-1 bg-gradient-to-r from-cyan-500 to-transparent opacity-30"></div>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 {videos.map((vid, i) => {
-                                     // Function to convert YouTube URL to embed URL
-                                     const getEmbedUrl = (url) => {
-                                         if (!url) return null;
-                                         if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                                             let videoId = '';
-                                             if (url.includes('watch?v=')) videoId = url.split('watch?v=')[1]?.split('&')[0];
-                                             else if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split('?')[0];
-                                             else if (url.includes('embed/')) videoId = url.split('embed/')[1]?.split('?')[0];
-                                             if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-                                         }
-                                         return url;
-                                     };
-                                     
-                                     let embedUrl = getEmbedUrl(vid.url);
-                                     // Add origin parameter for YouTube API client identification (fixes Error 153)
-                                     if (embedUrl && embedUrl.includes('youtube.com/embed/')) {
-                                         const origin = window.location.origin;
-                                         embedUrl = embedUrl.includes('?') 
-                                             ? `${embedUrl}&origin=${origin}` 
-                                             : `${embedUrl}?origin=${origin}`;
-                                     }
+                                      let embedUrl = getEmbedUrl(vid.url);
+                                      // Add origin parameter for YouTube API client identification (fixes Error 153)
+                                      let origin = '';
+                                      if (embedUrl && embedUrl.includes('youtube.com/embed/')) {
+                                          origin = window.location.origin;
+                                          embedUrl = embedUrl.includes('?') 
+                                              ? `${embedUrl}&origin=${origin}` 
+                                              : `${embedUrl}?origin=${origin}`;
+                                      }
 
                                     return (
                                         <div key={i} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
