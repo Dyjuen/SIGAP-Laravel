@@ -351,12 +351,12 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
                         </button>
                         <PageHeader
                             title="Laporan Pertanggungjawaban (LPJ)"
-                            description={kegiatan.nama_kegiatan}
+                            description={kegiatan.kak?.nama_kegiatan}
                         />
                     </div>
                 }
             >
-                <Head title={`LPJ - ${kegiatan.nama_kegiatan}`} />
+                <Head title={`LPJ - ${kegiatan.kak?.nama_kegiatan}`} />
 
                 <div className="max-w-7xl mx-auto space-y-6 form-lpj-page pb-20">
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden main-step-content active border-hover-draw">

@@ -974,7 +974,7 @@ export default function KakForm({ auth, kak, tipe_kegiatan, satuan, iku, kategor
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title={isEdit ? 'Edit KAK' : 'Usulan KAK'} />
+            <Head title={readOnly ? 'Detail KAK' : (isEdit ? 'Edit KAK' : 'Usulan KAK')} />
 
             <div className="pt-4 pb-8 sm:py-8 relative min-h-screen">
                 {/* Decorative background blobs */}
