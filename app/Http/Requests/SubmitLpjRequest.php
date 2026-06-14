@@ -57,6 +57,7 @@ class SubmitLpjRequest extends FormRequest
             'ikuScores.*.kak_id' => ['required', 'integer', 'exists:t_kak_iku,kak_id'],
             'ikuScores.*.iku_id' => ['required', 'integer', 'exists:t_kak_iku,iku_id'],
             'ikuScores.*.score' => ['required', 'integer', 'in:0,100'],
+            'spk_kesesuaian_output' => ['nullable', 'integer', 'between:'.$config->output_min.','.$config->output_max],
         ];
     }
 

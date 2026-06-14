@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
+use App\Models\KAKIku;
+use App\Models\Iku;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
@@ -79,6 +81,34 @@ class LpjTest extends TestCase
             'pelaksana_manual' => 'Test Pelaksana',
         ]);
 
+        // Create IKU data for testing
+        $iku1 = Iku::create([
+            'kode_iku' => 'IKU-TEST-001',
+            'nama_iku' => 'Test IKU 1',
+        ]);
+
+        $iku2 = Iku::create([
+            'kode_iku' => 'IKU-TEST-002',
+            'nama_iku' => 'Test IKU 2',
+        ]);
+
+        // Link IKUs to KAK via the pivot table
+        KAKIku::create([
+            'kak_id' => $kak->kak_id,
+            'iku_id' => $iku1->iku_id,
+            'spk_kesesuaian_output_score' => 100, // Default score
+            'satuan_id' => 1, // Assuming satuan_id 1 exists
+            'target' => 10,
+        ]);
+
+        KAKIku::create([
+            'kak_id' => $kak->kak_id,
+            'iku_id' => $iku2->iku_id,
+            'spk_kesesuaian_output_score' => 0, // Default score
+            'satuan_id' => 1, // Assuming satuan_id 1 exists
+            'target' => 5,
+        ]);
+
         // Create approval chain
         $steps = ['PPK', 'Wadir2', 'Bendahara-Cair', 'Bendahara-LPJ', 'Bendahara-Setor'];
         foreach ($steps as $step) {
@@ -106,6 +136,15 @@ class LpjTest extends TestCase
         $satuan = Satuan::first();
         $kak = $kegiatan->kak;
 
+        // Get the IKUs linked to this KAK for the test
+        $kakIkus = $kegiatan->kak->ikus->map(function ($kakIku) {
+            return [
+                'kak_id' => $kakIku->kak_id,
+                'iku_id' => $kakIku->iku_id,
+                'score' => $kakIku->spk_kesesuaian_output_score, // Use actual score from DB
+            ];
+        })->toArray();
+
         return [
             'realisasi' => [
                 $anggaran->anggaran_id => [
@@ -120,7 +159,7 @@ class LpjTest extends TestCase
             ],
             'realisasi_tgl_mulai' => $kak->tanggal_mulai->toDateString(),
             'realisasi_tgl_selesai' => $kak->tanggal_selesai->toDateString(),
-            'spk_kesesuaian_output' => 100,
+            'ikuScores' => $kakIkus,
         ];
     }
 
@@ -184,7 +223,7 @@ class LpjTest extends TestCase
         $this->assertNotNull($kegiatan->lpj_submitted_at);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
         $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
-        $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
+        $this->assertEquals(50, $kegiatan->spk_kesesuaian_output); // Average of 100 and 0
         $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
         $this->assertEquals($kegiatan->kak->tanggal_mulai->toDateString(), $kegiatan->realisasi_tgl_mulai->toDateString());
         $this->assertEquals($kegiatan->kak->tanggal_selesai->toDateString(), $kegiatan->realisasi_tgl_selesai->toDateString());
@@ -427,12 +466,12 @@ class LpjTest extends TestCase
         $response->assertStatus(302);
         $response->assertSessionHas('success');
 
-        // Verify kegiatan was updated with SPK
-        $kegiatan->refresh();
-        $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
-        $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
-        $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
-        $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
+         // Verify kegiatan was updated with SPK
+         $kegiatan->refresh();
+         $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
+         $this->assertEquals(80, $kegiatan->spk_ketepatan_anggaran);
+         $this->assertEquals(50, $kegiatan->spk_kesesuaian_output); // Average of 100 and 0
+         $this->assertEquals(100, $kegiatan->spk_ketepatan_lpj);
         $this->assertEquals($kegiatan->kak->tanggal_mulai->toDateString(), $kegiatan->realisasi_tgl_mulai->toDateString());
         $this->assertEquals($kegiatan->kak->tanggal_selesai->toDateString(), $kegiatan->realisasi_tgl_selesai->toDateString());
 

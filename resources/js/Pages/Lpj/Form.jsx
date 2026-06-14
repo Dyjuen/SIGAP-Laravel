@@ -66,7 +66,7 @@ export default function Form({ auth, kegiatan, anggaran, lampiran, satuans, spk_
             id: `${ikuItem.kak_id}-${ikuItem.iku_id}`, // Unique identifier
             kak_id: ikuItem.kak_id,
             iku_id: ikuItem.iku_id,
-            score: ikuItem.spk_kesesuaian_output_score ?? 100 // Default to 100 if not set
+            score: ikuItem.spk_kesesuaian_output_score ?? 0 // Default to 0 if not set
         })) || [],
 
     });

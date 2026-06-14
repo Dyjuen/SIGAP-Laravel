@@ -9,6 +9,8 @@ use App\Events\LpjSubmitted;
 use App\Exceptions\LpjException;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
+use App\Models\KAKIku;
+use App\Models\Iku;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\KegiatanLampiran;
@@ -69,6 +71,34 @@ class LpjServiceTest extends TestCase
             'jumlah_diusulkan' => $totalAnggaran,
         ]);
 
+        // Create IKU data for testing
+        $iku1 = Iku::create([
+            'kode_iku' => 'IKU-TEST-001',
+            'nama_iku' => 'Test IKU 1',
+        ]);
+
+        $iku2 = Iku::create([
+            'kode_iku' => 'IKU-TEST-002',
+            'nama_iku' => 'Test IKU 2',
+        ]);
+
+        // Link IKUs to KAK via the pivot table
+        KAKIku::create([
+            'kak_id' => $kak->kak_id,
+            'iku_id' => $iku1->iku_id,
+            'spk_kesesuaian_output_score' => 100,
+            'satuan_id' => 1,
+            'target' => 10,
+        ]);
+
+        KAKIku::create([
+            'kak_id' => $kak->kak_id,
+            'iku_id' => $iku2->iku_id,
+            'spk_kesesuaian_output_score' => 0,
+            'satuan_id' => 1,
+            'target' => 5,
+        ]);
+
         $kegiatan = Kegiatan::create([
             'kak_id' => $kak->kak_id,
             'penanggung_jawab_manual' => 'Test PJ',
@@ -91,6 +121,17 @@ class LpjServiceTest extends TestCase
         }
 
         return $kegiatan;
+    }
+
+    private function getIkuScores(Kegiatan $kegiatan): array
+    {
+        return $kegiatan->kak->ikus->map(function ($kakIku) {
+            return [
+                'kak_id' => $kakIku->kak_id,
+                'iku_id' => $kakIku->iku_id,
+                'score' => $kakIku->spk_kesesuaian_output_score,
+            ];
+        })->toArray();
     }
 
     public function test_submit_success(): void
@@ -121,15 +162,16 @@ class LpjServiceTest extends TestCase
         $spkInputs = [
             'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
             'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
-            'spk_kesesuaian_output' => 100,
         ];
 
-        $this->service->submit($kegiatan, $realisasi, $files, $spkInputs, $this->pengusul);
+        $ikuScores = $this->getIkuScores($kegiatan);
+
+        $this->service->submit($kegiatan, $realisasi, $files, $spkInputs, $ikuScores, $this->pengusul);
 
         $kegiatan->refresh();
         $this->assertNotNull($kegiatan->lpj_submitted_at);
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
-        $this->assertEquals(100, $kegiatan->spk_kesesuaian_output);
+        $this->assertEquals(50, $kegiatan->spk_kesesuaian_output); // Average of 100 and 0
 
         $this->assertDatabaseHas('t_kak', [
             'kak_id' => $kegiatan->kak_id,
@@ -154,7 +196,7 @@ class LpjServiceTest extends TestCase
         $this->expectException(LpjException::class);
         $this->expectExceptionMessage('LPJ untuk kegiatan ini sudah pernah disubmit.');
 
-        $this->service->submit($kegiatan, [], null, [], $this->pengusul);
+        $this->service->submit($kegiatan, [], null, [], [], $this->pengusul);
     }
 
     public function test_resubmit_success(): void
@@ -199,10 +241,11 @@ class LpjServiceTest extends TestCase
         $spkInputs = [
             'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
             'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
-            'spk_kesesuaian_output' => 100,
         ];
 
-        $this->service->resubmit($kegiatan, $realisasi, $files, [$lampiran->lampiran_id], $spkInputs, $this->pengusul);
+        $ikuScores = $this->getIkuScores($kegiatan);
+
+        $this->service->resubmit($kegiatan, $realisasi, $files, [$lampiran->lampiran_id], $spkInputs, $ikuScores, $this->pengusul);
 
         $kegiatan->refresh();
         $this->assertEquals(100, $kegiatan->spk_kesesuaian_waktu);
@@ -231,7 +274,7 @@ class LpjServiceTest extends TestCase
         $this->expectException(LpjException::class);
         $this->expectExceptionMessage('LPJ tidak dalam status revisi.');
 
-        $this->service->resubmit($kegiatan, [], null, [], [], $this->pengusul);
+        $this->service->resubmit($kegiatan, [], null, [], [], [], $this->pengusul);
     }
 
     public function test_revise_success(): void

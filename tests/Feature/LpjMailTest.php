@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Mail\LPJWorkflowMail;
 use App\Models\KAK;
 use App\Models\KAKAnggaran;
+use App\Models\KAKIku;
+use App\Models\Iku;
 use App\Models\Kegiatan;
 use App\Models\KegiatanApproval;
 use App\Models\Satuan;
@@ -58,6 +60,34 @@ class LpjMailTest extends TestCase
             'jumlah_diusulkan' => 1000,
         ]);
 
+        // Create IKU data for testing
+        $iku1 = Iku::create([
+            'kode_iku' => 'IKU-TEST-001',
+            'nama_iku' => 'Test IKU 1',
+        ]);
+
+        $iku2 = Iku::create([
+            'kode_iku' => 'IKU-TEST-002',
+            'nama_iku' => 'Test IKU 2',
+        ]);
+
+        // Link IKUs to KAK via the pivot table
+        KAKIku::create([
+            'kak_id' => $kak->kak_id,
+            'iku_id' => $iku1->iku_id,
+            'spk_kesesuaian_output_score' => 100, // Default score
+            'satuan_id' => 1, // Assuming satuan_id 1 exists
+            'target' => 10,
+        ]);
+
+        KAKIku::create([
+            'kak_id' => $kak->kak_id,
+            'iku_id' => $iku2->iku_id,
+            'spk_kesesuaian_output_score' => 0, // Default score
+            'satuan_id' => 1, // Assuming satuan_id 1 exists
+            'target' => 5,
+        ]);
+
         $kegiatan = Kegiatan::create(['kak_id' => $kak->kak_id]);
 
         $steps = ['PPK', 'Wadir2', 'Bendahara-Cair', 'Bendahara-LPJ', 'Bendahara-Setor'];
@@ -77,6 +107,15 @@ class LpjMailTest extends TestCase
         $kegiatan = $this->createKegiatanAtLpjStage();
         $anggaran = $kegiatan->kak->anggaran->first();
 
+        // Get the IKUs linked to this KAK for the test
+        $kakIkus = $kegiatan->kak->ikus->map(function ($kakIku) {
+            return [
+                'kak_id' => $kakIku->kak_id,
+                'iku_id' => $kakIku->iku_id,
+                'score' => $kakIku->spk_kesesuaian_output_score, // Use actual score from DB
+            ];
+        })->toArray();
+
         $response = $this->actingAs($this->pengusul)->post(route('lpj.submit', $kegiatan), [
             'realisasi' => [
                 $anggaran->anggaran_id => [
@@ -91,7 +130,7 @@ class LpjMailTest extends TestCase
             ],
             'realisasi_tgl_mulai' => now()->subDays(5)->toDateString(),
             'realisasi_tgl_selesai' => now()->subDays(1)->toDateString(),
-            'spk_kesesuaian_output' => 100,
+            'ikuScores' => $kakIkus,
         ]);
 
         $response->assertStatus(302);

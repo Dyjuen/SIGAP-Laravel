@@ -624,10 +624,8 @@ class LpjService
         $totalScore = 0;
         $ikuCount = 0;
 
-        foreach ($ikuScores as $ikuScore) {
-            \Illuminate\Support\Facades\Log::info('Debug IkuScore', ['ikuScore' => $ikuScore]);
-            
-            // Check if this IKU belongs to the current KAK (using DB to avoid composite PK issues)
+         foreach ($ikuScores as $ikuScore) {
+             // Check if this IKU belongs to the current KAK (using DB to avoid composite PK issues)
             $kakIku = \Illuminate\Support\Facades\DB::table('t_kak_iku')
                 ->where('kak_id', $ikuScore['kak_id'])
                 ->where('iku_id', $ikuScore['iku_id'])
