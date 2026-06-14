@@ -75,7 +75,7 @@ export default function PanduanSection({ panduans = [], delay = 900 }) {
                                               src={embedUrl}
                                               title={video.judul}
                                               frameBorder="0"
-                                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                               allowFullScreen
                                               referrerPolicy="strict-origin-when-cross-origin"
                                               className="absolute inset-0 w-full h-full opacity-90 group-hover:opacity-100 transition-opacity"
