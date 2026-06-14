@@ -102,14 +102,29 @@ export default function ResourceIndex({ auth, type, title, readonly, primaryKey,
         }
     };
 
+    // Sync searchTerm with filters or type change
+    useEffect(() => {
+        setSearchTerm(filters.search || '');
+    }, [type, filters.search]);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== (filters.search || '')) {
+                router.get(route('admin.master.resource.index', type), { search: searchTerm }, { preserveState: true, replace: true });
+            }
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
     const handleSearch = (e) => {
         e.preventDefault();
-        router.get(route('admin.master.resource.index', type), { search: searchTerm }, { preserveState: true });
+        router.get(route('admin.master.resource.index', type), { search: searchTerm }, { preserveState: true, replace: true });
     };
 
     const clearSearch = () => {
         setSearchTerm('');
-        router.get(route('admin.master.resource.index', type), {}, { preserveState: true });
+        router.get(route('admin.master.resource.index', type), {}, { preserveState: true, replace: true });
     };
 
     return (
@@ -174,8 +189,8 @@ export default function ResourceIndex({ auth, type, title, readonly, primaryKey,
                     </div>
 
                     {/* ── Search Bar ──────────────────────────── */}
-                    <form onSubmit={handleSearch} className="relative flex items-center gap-2">
-                        <div className="relative flex-1">
+                    <form onSubmit={handleSearch} className="relative w-full">
+                        <div className="relative w-full">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400 pointer-events-none">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -200,15 +215,6 @@ export default function ResourceIndex({ auth, type, title, readonly, primaryKey,
                                 </button>
                             )}
                         </div>
-                        <button
-                            type="submit"
-                            className="flex-shrink-0 flex items-center gap-1.5 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium py-2.5 px-4 rounded-xl transition"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Cari
-                        </button>
                     </form>
 
                     {/* ── Table Card ─────────────────────────── */}
