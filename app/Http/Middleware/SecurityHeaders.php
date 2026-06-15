@@ -44,10 +44,10 @@ class SecurityHeaders
         $csp .= "img-src 'self' data: https: https://i.ytimg.com https://www.youtube.com https://s.ytimg.com; ";
         $csp .= "font-src 'self' https: https://fonts.gstatic.com https://www.youtube.com; ";
         $csp .= "connect-src $connectSrc; ";
-        // Allow framing content from YouTube domains in iframes
-        $csp .= "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtu.be https://youtu.be; ";
+        // Allow framing content from YouTube and Supabase (for document previews)
+        $csp .= "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtu.be https://youtu.be https://amhryhogxzfebcvtozyw.supabase.co; ";
         // For broader compatibility with older CSP implementations
-        $csp .= "child-src 'self' https://www.youtube.com https://youtube.com https://www.youtu.be https://youtu.be; ";
+        $csp .= "child-src 'self' https://www.youtube.com https://youtube.com https://www.youtu.be https://youtu.be https://amhryhogxzfebcvtozyw.supabase.co; ";
         // Control who can embed OUR content (not relevant for YouTube embeds but good practice)
         $csp .= "frame-ancestors 'self';";
         

@@ -211,20 +211,45 @@ class LampiranController extends Controller
     private function authorizeAccess(KAKAnggaran $anggaran, bool $strictOwner = false)
     {
         $user = auth()->user();
-        if (in_array($user->getRoleName(), ['Admin', 'Bendahara'])) {
+        $roleName = $user->getRoleName();
+
+        // 1. Admin & Bendahara - Global Access
+        if (in_array($roleName, ['Admin', 'Bendahara'])) {
             return;
         }
 
-        if ($strictOwner && $anggaran->kak->pengusul_user_id !== $user->user_id) {
-            abort(403, 'Unauthorized');
+        // 2. Strict Owner check (for deleting/archiving)
+        if ($strictOwner) {
+            if ($roleName !== 'Pengusul' || $anggaran->kak->pengusul_user_id !== $user->user_id) {
+                abort(403, 'Unauthorized');
+            }
+
+            return;
         }
 
-        if (! $strictOwner && $user->getRoleName() !== 'Pengusul') {
-            abort(403, 'Unauthorized');
+        // 3. Read access check
+        // Allowed: Pengusul (owner), Verifikator (if matching type), PPK, Wadir, Rektorat
+        if ($roleName === 'Pengusul') {
+            if ($anggaran->kak->pengusul_user_id !== $user->user_id) {
+                abort(403, 'Unauthorized');
+            }
+
+            return;
         }
 
-        if ($user->getRoleName() === 'Pengusul' && $anggaran->kak->pengusul_user_id !== $user->user_id) {
-            abort(403, 'Unauthorized');
+        if ($roleName === 'Verifikator') {
+            $allowedTipeId = $user->getVerifikatorTipeId();
+            if ($allowedTipeId && $anggaran->kak->tipe_kegiatan_id !== $allowedTipeId) {
+                abort(403, 'Unauthorized');
+            }
+
+            return;
         }
+
+        if (in_array($roleName, ['PPK', 'Wadir', 'Rektorat'])) {
+            return;
+        }
+
+        abort(403, 'Unauthorized');
     }
 }

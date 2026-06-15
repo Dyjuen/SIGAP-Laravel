@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // KAK Routes
-    Route::middleware('role:Admin,Verifikator,Pengusul,Bendahara,Rektorat')->group(function () {
+    Route::middleware('role:Admin,Verifikator,Pengusul,Bendahara,Rektorat,PPK,Wadir')->group(function () {
         Route::resource('kak', KakController::class);
         Route::get('/kak/{kak}/pdf/preview', [KakController::class, 'previewPdf'])->name('kak.pdf.preview');
         Route::get('/kak/{kak}/pdf/preview-blob', [KakController::class, 'previewPdfBlob'])->name('kak.pdf.preview-blob');

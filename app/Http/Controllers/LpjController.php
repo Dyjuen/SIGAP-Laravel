@@ -209,7 +209,7 @@ class LpjController extends Controller
     private function canAccessLpj($user, Kegiatan $kegiatan): bool
     {
         $role = $user->getRoleName();
-        if (in_array($role, ['Bendahara', 'Admin'])) {
+        if (in_array($role, ['Bendahara', 'Admin', 'PPK', 'Wadir', 'Rektorat'])) {
             return true;
         }
 

@@ -187,7 +187,7 @@ class PencairanController extends Controller
     {
         $role = $user->getRoleName();
 
-        if (in_array($role, ['Bendahara', 'Admin'])) {
+        if (in_array($role, ['Bendahara', 'Admin', 'PPK', 'Wadir', 'Rektorat'])) {
             return true;
         }
 
