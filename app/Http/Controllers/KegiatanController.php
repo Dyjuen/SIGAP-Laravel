@@ -113,6 +113,10 @@ class KegiatanController extends Controller
      */
     public function show(Kegiatan $kegiatan)
     {
+        if (! $this->canAccessKegiatan(auth()->user(), $kegiatan)) {
+            abort(403, 'Anda tidak memiliki akses ke kegiatan ini.');
+        }
+
         $kegiatan->load([
             'kak.pengusul',
             'kak.mataAnggaran',
@@ -216,5 +220,27 @@ class KegiatanController extends Controller
             'filters' => $request->only(['search', 'tipe_kegiatan_id']),
             'tipeKegiatans' => $tipeKegiatans,
         ]);
+    }
+
+    private function canAccessKegiatan($user, Kegiatan $kegiatan): bool
+    {
+        $role = $user->getRoleName();
+
+        // Admin & Bendahara: Full Access
+        if (in_array($role, ['Admin', 'Bendahara'])) {
+            return true;
+        }
+
+        // Pengusul: Only their own activities
+        if ($role === 'Pengusul') {
+            return $kegiatan->kak->pengusul_user_id === $user->user_id;
+        }
+
+        // PPK, Wadir, Rektorat, Verifikator: Can view for monitoring/approval
+        if (in_array($role, ['PPK', 'Wadir', 'Rektorat', 'Verifikator'])) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -5,11 +5,12 @@ namespace App\Models;
 use Database\Factories\TipeKegiatanFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TipeKegiatan extends Model
 {
     /** @use HasFactory<TipeKegiatanFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'm_tipe_kegiatan';
 

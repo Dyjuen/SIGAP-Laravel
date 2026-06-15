@@ -24,7 +24,7 @@ class MasterDataService
                 ['name' => 'nama_iku', 'label' => 'Nama IKU', 'type' => 'text', 'required' => true, 'maxLength' => 255],
             ],
             'validation_rules' => [
-                'kode_iku' => 'required|string|max:50',
+                'kode_iku' => 'required|string|max:50|unique:m_iku,kode_iku',
                 'nama_iku' => 'required|string|max:255',
             ],
             'searchable' => ['kode_iku', 'nama_iku'],
@@ -38,7 +38,7 @@ class MasterDataService
                 ['name' => 'nama_satuan', 'label' => 'Nama Satuan', 'type' => 'text'],
             ],
             'validation_rules' => [
-                'nama_satuan' => 'required|string|max:255',
+                'nama_satuan' => 'required|string|max:255|unique:m_satuan,nama_satuan',
             ],
             'searchable' => ['nama_satuan'],
         ],
@@ -86,7 +86,7 @@ class MasterDataService
                 ['name' => 'is_active', 'label' => 'Aktif?', 'type' => 'boolean'],
             ],
             'validation_rules' => [
-                'kode' => 'required|string|max:50',
+                'kode' => 'required|string|max:50|unique:m_kategori_belanja,kode',
                 'nama' => 'required|string|max:255',
                 'keterangan' => 'nullable|string',
                 'is_active' => 'boolean',

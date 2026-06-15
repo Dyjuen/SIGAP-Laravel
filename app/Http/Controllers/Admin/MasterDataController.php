@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\MasterDataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -56,7 +57,7 @@ class MasterDataController extends Controller
             abort(403, 'This master data type is read-only.');
         }
 
-        $validatedData = $request->validate($config['validation_rules'], [
+        $validator = Validator::make($request->all(), $config['validation_rules'], [
             'required' => ':attribute harus diisi.',
             'string' => ':attribute harus berupa teks.',
             'max' => ':attribute maksimal :max karakter.',
@@ -68,7 +69,11 @@ class MasterDataController extends Controller
             'boolean' => ':attribute harus berupa ya/tidak.',
         ]);
 
-        $this->masterDataService->store($type, $validatedData);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput()->with('error', 'Gagal menyimpan data. Silakan periksa kembali inputan Anda.');
+        }
+
+        $this->masterDataService->store($type, $validator->validated());
 
         return redirect()->back()->with('success', 'Data berhasil ditambahkan.');
     }
@@ -82,7 +87,15 @@ class MasterDataController extends Controller
             abort(403, 'This master data type is read-only.');
         }
 
-        $validatedData = $request->validate($config['validation_rules'], [
+        // Handle dynamic unique rules for update
+        $rules = $config['validation_rules'];
+        foreach ($rules as $field => $rule) {
+            if (is_string($rule) && str_contains($rule, 'unique:')) {
+                $rules[$field] = $rule . ',' . $id . ',' . $config['primary_key'];
+            }
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
             'required' => ':attribute harus diisi.',
             'string' => ':attribute harus berupa teks.',
             'max' => ':attribute maksimal :max karakter.',
@@ -94,7 +107,11 @@ class MasterDataController extends Controller
             'boolean' => ':attribute harus berupa ya/tidak.',
         ]);
 
-        $this->masterDataService->update($type, $id, $validatedData);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput()->with('error', 'Gagal memperbarui data. Silakan periksa kembali inputan Anda.');
+        }
+
+        $this->masterDataService->update($type, $id, $validator->validated());
 
         return redirect()->back()->with('success', 'Data berhasil diperbarui.');
     }
