@@ -557,7 +557,7 @@ class LpjService
             'kak.tipeKegiatan' => fn ($q) => $q->select(['tipe_kegiatan_id', 'nama_tipe']),
             'kak.status' => fn ($q) => $q->select(['status_id', 'nama_status']),
             'approvals' => fn ($q) => $q->select(['approval_kegiatan_id', 'kegiatan_id', 'approval_level', 'status', 'approved_at']),
-        ])->whereHas('kak', function ($q) {
+        ])->withSum('pencairanDana', 'jumlah_dicairkan')->whereHas('kak', function ($q) {
             // Only show kegiatan with status >= 10 (Approved KAK) and not rejected
             $q->where('status_id', '>=', 10)->where('status_id', '!=', 14);
         });
@@ -572,7 +572,7 @@ class LpjService
 
         return $kegiatans->map(function (Kegiatan $kegiatan) {
             $totalAnggaran = (float) ($kegiatan->kak?->anggaran_sum_jumlah_diusulkan ?? 0);
-            $totalDicairkan = $kegiatan->pencairanDana()->sum('jumlah_dicairkan');
+            $totalDicairkan = (float) ($kegiatan->pencairan_dana_sum_jumlah_dicairkan ?? 0);
 
             return [
                 'kegiatan_id' => $kegiatan->kegiatan_id,

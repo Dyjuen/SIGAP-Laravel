@@ -35,7 +35,7 @@ class KakApiController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = KAK::with(['status', 'tipeKegiatan']);
+        $query = KAK::with(['status', 'tipeKegiatan', 'mataAnggaran', 'pengusul']);
 
         if (! in_array($user->role_id, [1, 2, 3])) {
             return response()->json(['message' => 'Akses ditolak.'], 403);

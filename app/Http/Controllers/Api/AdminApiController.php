@@ -129,7 +129,7 @@ class AdminApiController extends Controller
     public function getLogs(Request $request)
     {
 
-        $logs = LogAktivitas::with(['user.role'])
+        $logs = LogAktivitas::with(['user.role', 'kak', 'kegiatan.kak', 'oldStatus', 'newStatus'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()

@@ -48,7 +48,7 @@ class MasterDataController extends Controller
         ]);
     }
 
-    public function store(Request $request, string $type): RedirectResponse
+    public function store(Request $request, string $type)
     {
         abort_if(! $this->masterDataService->hasType($type), 404);
         $config = $this->masterDataService->getConfig($type);
@@ -70,6 +70,9 @@ class MasterDataController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
             return back()->withErrors($validator)->withInput()->with('error', 'Gagal menyimpan data. Silakan periksa kembali inputan Anda.');
         }
 
@@ -78,7 +81,7 @@ class MasterDataController extends Controller
         return redirect()->back()->with('success', 'Data berhasil ditambahkan.');
     }
 
-    public function update(Request $request, string $type, string $id): RedirectResponse
+    public function update(Request $request, string $type, string $id)
     {
         abort_if(! $this->masterDataService->hasType($type), 404);
         $config = $this->masterDataService->getConfig($type);
@@ -108,6 +111,9 @@ class MasterDataController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->expectsJson()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
             return back()->withErrors($validator)->withInput()->with('error', 'Gagal memperbarui data. Silakan periksa kembali inputan Anda.');
         }
 

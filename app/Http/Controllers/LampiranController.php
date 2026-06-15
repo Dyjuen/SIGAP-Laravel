@@ -228,7 +228,7 @@ class LampiranController extends Controller
         }
 
         // 3. Read access check
-        // Allowed: Pengusul (owner), Verifikator (if matching type), PPK, Wadir, Rektorat
+        // Allowed: Pengusul (owner), Verifikator (if matching type), Wadir, Rektorat
         if ($roleName === 'Pengusul') {
             if ($anggaran->kak->pengusul_user_id !== $user->user_id) {
                 abort(403, 'Unauthorized');
@@ -239,14 +239,15 @@ class LampiranController extends Controller
 
         if ($roleName === 'Verifikator') {
             $allowedTipeId = $user->getVerifikatorTipeId();
-            if ($allowedTipeId && $anggaran->kak->tipe_kegiatan_id !== $allowedTipeId) {
+            // Verifikator must have a specific allowed tipe and it must match the item
+            if (is_null($allowedTipeId) || $anggaran->kak->tipe_kegiatan_id !== $allowedTipeId) {
                 abort(403, 'Unauthorized');
             }
 
             return;
         }
 
-        if (in_array($roleName, ['PPK', 'Wadir', 'Rektorat'])) {
+        if (in_array($roleName, ['Wadir', 'Rektorat'])) {
             return;
         }
 
