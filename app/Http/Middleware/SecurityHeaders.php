@@ -34,9 +34,16 @@ class SecurityHeaders
         $connectSrc = "'self' https: https://www.youtube.com https://s.ytimg.com https://www.google.com";
         
         if (app()->environment('local')) {
-            $scriptSrc .= " http://localhost:5173 http://127.0.0.1:5173";
-            $styleSrc .= " http://localhost:5173 http://127.0.0.1:5173";
-            $connectSrc .= " http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173";
+            $vitePorts = [5173, 5174, 5175, 5176, 5177, 5178, 5179, 5180];
+            $viteSources = "";
+            $viteWsSources = "";
+            foreach ($vitePorts as $port) {
+                $viteSources .= " http://localhost:$port http://127.0.0.1:$port";
+                $viteWsSources .= " ws://localhost:$port ws://127.0.0.1:$port";
+            }
+            $scriptSrc .= $viteSources;
+            $styleSrc .= $viteSources;
+            $connectSrc .= $viteSources . $viteWsSources;
         }
 
         $csp .= "script-src $scriptSrc; ";

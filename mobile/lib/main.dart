@@ -148,7 +148,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isCheckingAuth = true;
-  bool _showVideoSplash = true;
+  bool _showVideoSplash = false;
 
   @override
   void initState() {

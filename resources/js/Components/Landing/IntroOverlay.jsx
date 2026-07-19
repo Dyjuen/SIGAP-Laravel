@@ -7,6 +7,13 @@ const IntroOverlay = () => {
     const overlayRef = useRef(null);
 
     useEffect(() => {
+        // Detect mobile - disable video opening on mobile
+        const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768 && !/iPad/i.test(navigator.userAgent));
+        if (isMobile) {
+            setIsVisible(false);
+            return;
+        }
+
         // Check if intro has been seen
         const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
         if (hasSeenIntro === 'true') {
@@ -14,9 +21,7 @@ const IntroOverlay = () => {
             return;
         }
 
-        // Detect mobile
-        const isMobile = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768 && !/iPad/i.test(navigator.userAgent));
-        setVideoSrc(isMobile ? '/videos/introm.mp4' : '/videos/intro.mp4');
+        setVideoSrc('/videos/intro.mp4');
 
     }, []);
 
